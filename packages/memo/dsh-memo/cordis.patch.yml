@@ -1,0 +1,19 @@
+# dsh-memo bundle patch: inserts the memo suite host services and the
+# browser UI plugin into the host composition. The telemetry service is a
+# separate bundle (dsh-telemetry); install it alongside this bundle. The
+# github-issue service has no bundle of its own, so this patch inserts it.
+
+- insert:
+    - id: github-issue
+      name: dsh-github-issue
+      config:
+        repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
+
+    - id: memo
+      name: dsh-memo
+      config:
+        repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
+
+    # Browser UI: the memo settings section in the Settings panel.
+    - id: ui-memo
+      name: dsh-client-ui-memo

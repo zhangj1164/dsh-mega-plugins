@@ -1,0 +1,30 @@
+{
+  "name": "dsh-mega-plugins",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "vitest run",
+    "verify-translation-pairing": "tsx scripts/verify-translation-pairing.ts",
+    "verify-export-jsdoc": "tsx scripts/verify-export-jsdoc.ts",
+    "verify-md-links": "tsx scripts/verify-md-links.ts",
+    "verify-md-wrap": "tsx scripts/verify-md-wrap.ts",
+    "gates": "tsx scripts/run-gates.ts check-all",
+    "gates:hygiene": "tsx scripts/run-gates.ts hygiene",
+    "gates:doc-sync": "tsx scripts/run-gates.ts doc-sync"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-gfm": "^3.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
+  }
+}

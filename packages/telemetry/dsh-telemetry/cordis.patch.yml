@@ -1,0 +1,9 @@
+# dsh-telemetry bundle patch: inserts the telemetry service into the host
+# composition. Any plugin can use ctx.telemetry to record operation trails
+# and error logs with feature-code anchors for log analysis.
+
+- insert:
+    - id: telemetry
+      name: dsh-telemetry
+      config:
+        maxEventsPerQuery: 500
