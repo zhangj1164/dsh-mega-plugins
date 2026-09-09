@@ -37,6 +37,7 @@ jobs:
   lifecycle:
     name: Issue lifecycle
     runs-on: ubuntu-latest
+    if: ${{ vars.DSH_MEGA_PLUGINS_ISSUE_APP_CLIENT_ID != '' }}
     steps:
       - name: Check out trusted policy
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
