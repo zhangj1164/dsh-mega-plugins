@@ -66,6 +66,7 @@ export class TelemetryService extends Service {
 
   private readonly maxEventsPerQuery: number
   private table?: KvTable<string, TelemetryEventRow>
+  private readonly pendingWrites: Set<Promise<void>> = new Set()
 
   /**
    * @param ctx - Host context carrying the storage-domain form.
@@ -103,7 +104,7 @@ export class TelemetryService extends Service {
       ...(input.sessionId === undefined ? {} : { sessionId: input.sessionId }),
       ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
     }
-    void this.requireTable().put(event.id, event)
+    void this.trackWrite(this.requireTable().put(event.id, event))
   }
 
   /**
@@ -124,7 +125,7 @@ export class TelemetryService extends Service {
       ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
       error: input.error,
     }
-    void this.requireTable().put(event.id, event)
+    void this.trackWrite(this.requireTable().put(event.id, event))
   }
 
   /**
@@ -184,6 +185,23 @@ export class TelemetryService extends Service {
       }))
       .sort((a, b) => b.count - a.count)
     return Object.freeze({ pluginId, totalEvents, totalFailures, failureGroups })
+  }
+
+  /**
+   * Wait for all in-flight fire-and-forget writes to settle. Tests call this
+   * before reading to avoid a timing race between the write chain and the
+   * synchronous read.
+   */
+  async flush(): Promise<void> {
+    while (this.pendingWrites.size > 0) {
+      await Promise.all([...this.pendingWrites])
+    }
+  }
+
+  /** Register one fire-and-forget write so {@link flush} can later await it. */
+  private trackWrite(write: Promise<void>): void {
+    this.pendingWrites.add(write)
+    void write.then(() => { this.pendingWrites.delete(write) }, () => { this.pendingWrites.delete(write) })
   }
 
   /** Resolve the initialized durable table or fail a broken service lifecycle. */
