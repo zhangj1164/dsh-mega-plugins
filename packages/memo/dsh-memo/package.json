@@ -67,7 +67,7 @@
     "dsh-github-issue": "workspace:*",
     "dsh-telemetry": "workspace:*",
     "tsdown": "^0.22.2",
-    "typescript": "^5.9.0",
+    "typescript": "^7.0.2",
     "vite": "^7.1.0"
   }
 }
