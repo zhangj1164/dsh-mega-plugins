@@ -22,16 +22,11 @@ async function harness(): Promise<TestHarness> {
   return h
 }
 
-/** Wait for fire-and-forget KV writes to settle. */
-function settle(): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, 500))
-}
-
 describe('TelemetryService track and query', () => {
   it('records a success event durably', async () => {
     const { ctx } = await harness()
     ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
-    await settle()
+    await ctx.telemetry.flush()
     const events = ctx.telemetry.listEvents({ pluginId: 'memo' })
     expect(events).toHaveLength(1)
     expect(events[0].pluginId).toBe('memo')
@@ -47,7 +42,7 @@ describe('TelemetryService track and query', () => {
       action: 'analyze',
       error: { code: 'LLM_FAILURE', message: 'model timeout', featureCodeRef: 'memo:analyze' },
     })
-    await settle()
+    await ctx.telemetry.flush()
     const events = ctx.telemetry.listEvents({ pluginId: 'memo' })
     expect(events).toHaveLength(1)
     expect(events[0].result).toBe('failure')
@@ -62,7 +57,7 @@ describe('TelemetryService track and query', () => {
     ctx.telemetry.track({ pluginId: 'memo', action: 'a1' })
     ctx.telemetry.track({ pluginId: 'other', action: 'a2' })
     ctx.telemetry.track({ pluginId: 'memo', action: 'a3' })
-    await settle()
+    await ctx.telemetry.flush()
     expect(ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(2)
     expect(ctx.telemetry.listEvents({ pluginId: 'other' })).toHaveLength(1)
   })
@@ -72,7 +67,7 @@ describe('TelemetryService track and query', () => {
     for (let i = 0; i < 5; i++) {
       ctx.telemetry.track({ pluginId: 'memo', action: `action-${i}` })
     }
-    await settle()
+    await ctx.telemetry.flush()
     expect(ctx.telemetry.listEvents({ pluginId: 'memo', limit: 2 })).toHaveLength(2)
   })
 })
@@ -93,7 +88,7 @@ describe('TelemetryService analyzeForPlugin', () => {
       error: { code: 'E3', message: 'err3', featureCodeRef: 'memo:analyze' },
     })
     ctx.telemetry.track({ pluginId: 'memo', action: 'listWeeks' })
-    await settle()
+    await ctx.telemetry.flush()
 
     const analysis = ctx.telemetry.analyzeForPlugin('memo')
     expect(analysis.totalEvents).toBe(4)
@@ -129,7 +124,7 @@ describe('TelemetryService durability', () => {
       pluginId: 'memo', action: 'analyze',
       error: { code: 'LLM_FAILURE', message: 'timeout', featureCodeRef: 'memo:analyze' },
     })
-    await settle()
+    await first.ctx.telemetry.flush()
     // Verify events are readable before disposing
     expect(first.ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(2)
     await first.disposeKeepRoot()
