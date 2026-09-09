@@ -217,11 +217,11 @@ export class MemoService extends TypertRemoteService {
   /**
    * Get or create the current week's memo. If the current ISO week already
    * has a stored week, it is returned; otherwise a new empty week is created.
-   * @param _request - provider/model route stored for later AI calls (unused).
+   * @param request - provider/model route stored for later AI calls (unused).
    * @returns the current week.
    */
   @Remote('getOrCreateCurrentWeek')
-  async getOrCreateCurrentWeek(_request: MemoGetCurrentWeekRequest): Promise<MemoGetCurrentWeekResult> {
+  async getOrCreateCurrentWeek(request: MemoGetCurrentWeekRequest): Promise<MemoGetCurrentWeekResult> {
     const table = this.requireTable()
     const { weekId, weekStart, weekEnd } = computeWeekBounds()
     const existing = table.get(weekId)
