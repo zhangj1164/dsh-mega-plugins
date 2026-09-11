@@ -25,6 +25,10 @@
     "./llm-text": {
       "types": "./lib/llm-text.d.ts",
       "default": "./lib/llm-text.js"
+    },
+    "./period": {
+      "types": "./lib/period.d.ts",
+      "default": "./lib/period.js"
     }
   },
   "files": [

@@ -51,6 +51,20 @@ When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
 | `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
 | `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. |
+| `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
+
+## Four-dimension periods
+
+The memo UI navigates weeks, months, quarters, and years over the same cards. `dsh-memo/period` owns that calendar math so the host and the UI cannot disagree about which card belongs where.
+
+Period labels are pinned: `2026-W36`, `2026-09`, `2026-Q3`, `2026`.
+
+One rule decides ownership: **a week belongs to the period containing its Thursday** — the same convention that decides which year owns the week, so `2025-12-29` is `2026-W01`. Because every week has exactly one Thursday, the week lists tile the timeline: the twelve months and the four quarters of a year each cover that year's weeks exactly once, with no gap and no overlap. `weekIdsInPeriod` is the enumeration of `weekIdBelongsToPeriod`, so a card cannot be listed under one period and highlighted under another.
+
+Two defects lived in the previous prefix-based check and are covered by tests now:
+
+- Quarter membership used the `YYYY-` prefix shared with month labels, so every quarter of a year matched `Q1`.
+- Week labels took the calendar year of the week's Monday, so a week at a year boundary was off by one year.
 
 ## Shared LLM text helper
 

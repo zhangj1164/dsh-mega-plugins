@@ -282,3 +282,36 @@ export interface MemoListMemoryRequest {
 export type MemoListMemoryResult =
   | { readonly ok: true; readonly value: readonly MemoMemoryEntry[] }
   | { readonly ok: false; readonly error: { readonly code: 'ledger-error'; readonly message: string } }
+
+/** One navigable period in the memo timeline. */
+export interface MemoPeriodEntry {
+  /** Stable identity of the period: the week id for week periods, the label for the rest. */
+  readonly id: string
+  /** The canonical period label (`2026-W36`, `2026-09`, `2026-Q3`, `2026`). */
+  readonly label: string
+  /** The dimension this entry belongs to. */
+  readonly period: MemoAnalysisPeriod
+  /** Epoch milliseconds of the period's first day, local midnight. */
+  readonly start: number
+  /** Epoch milliseconds of the period's last day, end of day. */
+  readonly end: number
+  /** Whether the period is still current at the time of the request. */
+  readonly current: boolean
+  /** How many stored weeks fall inside this period. */
+  readonly weekCount: number
+  /** The ISO week ids inside this period, ascending. */
+  readonly weekIds: readonly string[]
+}
+
+/** Request to list the memo timeline in one dimension. */
+export interface MemoListPeriodsRequest {
+  /** The dimension to list. */
+  readonly period: MemoAnalysisPeriod
+  /** How many periods to return, counting back from the current one. */
+  readonly limit?: number
+}
+
+/** Result of listing the memo timeline. */
+export type MemoListPeriodsResult =
+  | { readonly ok: true; readonly value: readonly MemoPeriodEntry[] }
+  | { readonly ok: false; readonly error: { readonly code: 'not-initialized'; readonly message: string } }

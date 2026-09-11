@@ -329,3 +329,67 @@ describe('MemoService model-route resolution and LLM failure reporting', () => {
     expect(result.error.failureCode).toBe('NO_ADAPTER')
   })
 })
+
+describe('MemoService four-dimension timeline', () => {
+  it('reports the stored week as belonging to the current period in all four dimensions', async () => {
+    const { ctx } = await harness()
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    for (const period of ['week', 'month', 'quarter', 'year'] as const) {
+      const listed = ctx.memo.listPeriods({ period })
+      expect(listed.ok, period).toBe(true)
+      if (!listed.ok) continue
+      const current = listed.value.find(entry => entry.current)
+      expect(current, period).toBeDefined()
+      if (current === undefined) continue
+      expect(current.period, period).toBe(period)
+      expect(current.weekIds, period).toContain(week.value.weekId)
+      // The stored week must be visible from every dimension, which is the
+      // whole point of the timeline: a card added in the week view is
+      // reachable from month, quarter, and year without being re-added.
+      expect(current.weekCount, period).toBeGreaterThanOrEqual(1)
+      expect(current.start, period).toBeLessThanOrEqual(current.end)
+    }
+  })
+
+  it('lists periods newest first with stable labels and no duplicates', async () => {
+    const { ctx } = await harness()
+    await ctx.memo.getOrCreateCurrentWeek({})
+    await settle()
+
+    for (const period of ['week', 'month', 'quarter', 'year'] as const) {
+      const listed = ctx.memo.listPeriods({ period, limit: 8 })
+      expect(listed.ok, period).toBe(true)
+      if (!listed.ok) continue
+      expect(listed.value.length, period).toBe(8)
+      const labels = listed.value.map(entry => entry.label)
+      expect(new Set(labels).size, period).toBe(labels.length)
+      for (let index = 1; index < listed.value.length; index += 1) {
+        const previous = listed.value[index - 1]
+        const entry = listed.value[index]
+        if (previous === undefined || entry === undefined) continue
+        expect(entry.start, `${period} newest first`).toBeLessThan(previous.start)
+      }
+    }
+  })
+
+  it('returns empty periods as valid targets for a first card', async () => {
+    const { ctx } = await harness()
+    await ctx.memo.getOrCreateCurrentWeek({})
+    await settle()
+
+    // Far enough back that nothing can be stored there.
+    const listed = ctx.memo.listPeriods({ period: 'month', limit: 40 })
+    expect(listed.ok).toBe(true)
+    if (!listed.ok) return
+    const empty = listed.value.filter(entry => entry.weekCount === 0)
+    expect(empty.length).toBeGreaterThan(0)
+    for (const entry of empty) {
+      expect(entry.weekIds.length).toBeGreaterThan(0)
+      expect(entry.current).toBe(false)
+    }
+  })
+})

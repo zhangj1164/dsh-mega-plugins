@@ -23,6 +23,15 @@ import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
 import type { TelemetryFailureGroup } from 'dsh-telemetry/types'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
+import {
+  isoWeekParts,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
 import { memoDomainSpec } from './spec.ts'
 import type { MemoWeekRow } from './spec.ts'
 import type {
@@ -46,6 +55,8 @@ import type {
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
+  MemoListPeriodsRequest,
+  MemoListPeriodsResult,
   MemoMemoFailure,
   MemoReadExternalPathRequest,
   MemoUpdateEntryRequest,
@@ -62,6 +73,17 @@ export { memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema } f
 export type { MemoWeekRow } from './spec.ts'
 export { streamLlmText } from './llm-text.ts'
 export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
+export {
+  isPeriodLabel,
+  isoWeekParts,
+  mondayOfWeekId,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
 
 /** Deployment configuration for the memo service. */
 export interface Config {
@@ -159,28 +181,19 @@ function appendToLedger(entry: MemoMemoryEntry): void {
 
 /**
  * Compute the ISO-8601 week id and range for a given date.
- * Monday is the start of the week; Sunday is the end.
+ * Monday is the start of the week; Sunday is the end. The week-year comes
+ * from the week's Thursday, so a week at a year boundary is labelled with the
+ * year that owns it rather than the calendar year of its Monday.
  * @param date - the reference date (defaults to now).
  * @returns the week id, start, and end timestamps.
  */
 function computeWeekBounds(date: Date = new Date()): { weekId: string; weekStart: number; weekEnd: number } {
-  const dayOfWeek = date.getDay() // 0=Sun, 1=Mon, ..., 6=Sat
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  const monday = new Date(date)
-  monday.setHours(0, 0, 0, 0)
-  monday.setDate(monday.getDate() + mondayOffset)
+  const monday = startOfIsoWeek(date)
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
   sunday.setHours(23, 59, 59, 999)
-  const year = monday.getFullYear()
-  const thursday = new Date(monday)
-  thursday.setDate(monday.getDate() + 3)
-  const firstThursday = new Date(thursday.getFullYear(), 0, 4)
-  const firstThursdayDay = firstThursday.getDay()
-  const firstMonday = new Date(firstThursday)
-  firstMonday.setDate(firstThursday.getDate() - (firstThursdayDay === 0 ? 6 : firstThursdayDay - 1))
-  const weekNumber = Math.floor((thursday.getTime() - firstMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
-  const weekId = `${String(year)}-W${String(weekNumber).padStart(2, '0')}`
+  const { weekYear, week } = isoWeekParts(date)
+  const weekId = `${String(weekYear)}-W${String(week).padStart(2, '0')}`
   return { weekId, weekStart: monday.getTime(), weekEnd: sunday.getTime() }
 }
 
@@ -608,29 +621,62 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Whether a week id matches a period label. Week periods match the full
-   * weekId; month/quarter/year periods match a prefix.
-   * @param weekId - the ISO week id.
-   * @param period - the period kind.
-   * @param periodLabel - the period label.
-   * @returns whether the week belongs to the period.
+   * List the memo timeline in one dimension, newest period first.
+   *
+   * This is the host-side source of truth for four-dimension navigation: the
+   * UI asks for `week`/`month`/`quarter`/`year` and receives the navigable
+   * periods **plus** the week ids each one contains, so the UI never has to
+   * re-implement calendar math that could disagree with storage.
+   *
+   * Periods that contain no stored week are still listed — an empty period is
+   * a valid place to add the first card, and omitting it would make the
+   * timeline skip months the user can see on a calendar.
+   *
+   * @param request - the dimension and how many periods to return.
+   * @returns the periods, newest first.
    */
-  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
-    if (period === 'week') return weekId === periodLabel
-    if (period === 'month') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'quarter') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'year') return weekId.startsWith(periodLabel)
-    return false
+  @Remote('listPeriods')
+  listPeriods(request: MemoListPeriodsRequest): MemoListPeriodsResult {
+    const table = this.requireTable()
+    const stored = new Set<string>()
+    for (const [weekId] of table.entries()) stored.add(weekId)
+
+    const limit = Math.max(1, Math.min(request.limit ?? 26, 400))
+    const now = new Date()
+    const currentLabel = periodLabelFor(request.period, now)
+    const periods: MemoPeriodEntry[] = []
+    for (let offset = 0; offset < limit; offset += 1) {
+      const label = shiftPeriod(request.period, currentLabel, -offset)
+      if (label === undefined) break
+      const weekIds = weekIdsInPeriod(request.period, label)
+      const range = periodBounds(request.period, label) ?? { start: 0, end: 0 }
+      periods.push(Object.freeze({
+        id: label,
+        label,
+        period: request.period,
+        start: range.start,
+        end: range.end,
+        current: label === currentLabel,
+        weekCount: weekIds.filter(weekId => stored.has(weekId)).length,
+        weekIds: Object.freeze(weekIds),
+      }))
+    }
+    this.track('listPeriods', 'success', { period: request.period, limit })
+    return { ok: true, value: Object.freeze(periods) }
   }
 
   /**
-   * Stream one model call and collect the text output.
-   * @param provider - registered provider route.
-   * @param model - model id.
-   * @param system - system prompt text.
-   * @param userText - user message text.
-   * @returns the concatenated text, or `undefined` on empty or errored output.
+   * Whether a week id is attributed to a period label.
+   * @param weekId - the ISO week id.
+   * @param period - the period kind.
+   * @param periodLabel - the period label.
+   * @returns whether the week's Monday falls inside the period.
    */
+  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
+    if (period !== 'week' && period !== 'month' && period !== 'quarter' && period !== 'year') return false
+    return weekIdBelongsToPeriod(weekId, period, periodLabel)
+  }
+
   /**
    * List long-term memory entries (persisted AI analyses from the JSON ledger).
    * This is the "long-term memory" feature: every successful `analyze` call
@@ -665,8 +711,12 @@ export class MemoService extends TypertRemoteService {
     this.ctx.get('telemetry')?.track(input)
   }
 
-  /** Track one telemetry event for this plugin. */
-
+  /**
+   * Track one telemetry failure for this plugin.
+   * @param action - the feature that failed.
+   * @param error - the failure code, message, and optional feature anchor.
+   * @param metadata - extra structured context, such as the attempted route.
+   */
   private trackError(
     action: string,
     error: { code: string; message: string; featureCodeRef?: string },
