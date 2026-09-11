@@ -10,22 +10,51 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 
 | Config | Default | Meaning |
 |---|---|---|
-| `repoUrl` | — | GitHub repository URL passed to the github-issue service for report generation. |
+| `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | GitHub repository URL passed to the github-issue service for report generation. |
+| `provider` | unset | Registered DSH provider route for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
+| `model` | unset | Model id for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
+
+## Model route resolution
+
+AI calls resolve their route in one order, and nothing is hardcoded:
+
+1. An explicit `provider`/`model` on the request (used by tests and by callers that need to retarget one call).
+2. This service's `Config.provider` / `Config.model`.
+3. The deployment's `agentDefaultModel` service selection — the existing single source of truth for "which model does this deployment use".
+
+When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_MODEL_ROUTE'` instead of silently producing nothing.
+
+## Failure reporting
+
+`analyze`, `exportReport`, and any other model-backed method preserve the DSH failure facts instead of collapsing them into one message. A failed `llm-failure` carries:
+
+| Field | Meaning |
+|---|---|
+| `failureCode` | DSH provider-neutral machine-routing code: `NO_ADAPTER`, `MISSING_CREDENTIAL`, `AUTH`, `RATE_LIMIT`, `EMPTY_RESPONSE`, … |
+| `message` | The DSH message prefixed with the attempted provider and model. |
+| `provider` / `model` | The route the failed call was sent to. |
+| `status` | HTTP status from the provider, when DSH supplied one. |
+
+`EMPTY_RESPONSE` means the model genuinely returned no text; `NO_ADAPTER` means the configured provider is not registered in this deployment. Those two used to be indistinguishable.
 
 ## Remote methods
 
 | Method | Behavior |
 |---|---|
-| `getOrCreateCurrentWeek(request)` | Creates or returns the current week. Stores the provider/model route for later AI calls. |
+| `getOrCreateCurrentWeek(request)` | Creates or returns the current week. `provider`/`model` are optional overrides. |
 | `getWeek(request)` | Returns one week by id, or `null` when it does not exist. |
 | `listWeeks(request)` | Lists weeks in a range, newest first. |
 | `addEntry(request)` | Adds an entry to a week. Creates the week if it does not exist. |
 | `updateEntry(request)` | Updates an entry's content. Editing a past week requires `force: true`. |
 | `deleteEntry(request)` | Deletes an entry from a week. Past weeks require `force: true`. |
-| `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty. |
+| `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
 | `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
 | `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. |
+
+## Shared LLM text helper
+
+`dsh-memo/llm-text` exports `streamLlmText(llm, route, system, userText)`, the one place that turns a DSH stream into either collected text or preserved failure facts. Other host plugins that ask a model for a single block of text should use it instead of re-implementing the stream loop: the hand-rolled copies are what dropped `chunk.reason.failure` and reported every failure identically.
 
 ## Past-week force gate
 
@@ -50,5 +79,5 @@ This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The pa
 ## Known Limitations
 
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
-- **Analysis depends on LLM** — `analyze` and `exportReport` fail with `llm-failure` when the model produces no output.
+- **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
 - **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.

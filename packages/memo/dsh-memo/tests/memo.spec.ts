@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import type { TestHarness } from './harness.ts'
-import { setupHarness } from './harness.ts'
+import { setupHarness, TEST_ROUTE } from './harness.ts'
 
 const harnesses: TestHarness[] = []
 
@@ -8,8 +8,8 @@ afterEach(async () => {
   await Promise.all(harnesses.splice(0).map(h => h.dispose()))
 })
 
-async function harness(): Promise<TestHarness> {
-  const h = await setupHarness()
+async function harness(options: Parameters<typeof setupHarness>[0] = {}): Promise<TestHarness> {
+  const h = await setupHarness(options)
   harnesses.push(h)
   return h
 }
@@ -33,7 +33,7 @@ function currentWeekId(): string {
 describe('MemoService week lifecycle', () => {
   it('getOrCreateCurrentWeek creates and returns the current week', async () => {
     const { ctx } = await harness()
-    const result = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const result = await ctx.memo.getOrCreateCurrentWeek({})
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.weekId).toBe(currentWeekId())
@@ -42,8 +42,8 @@ describe('MemoService week lifecycle', () => {
 
   it('getOrCreateCurrentWeek returns the same week on second call', async () => {
     const { ctx } = await harness()
-    const first = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
-    const second = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const first = await ctx.memo.getOrCreateCurrentWeek({})
+    const second = await ctx.memo.getOrCreateCurrentWeek({})
     expect(first.ok).toBe(true)
     expect(second.ok).toBe(true)
     if (!first.ok || !second.ok) return
@@ -52,7 +52,7 @@ describe('MemoService week lifecycle', () => {
 
   it('getWeek returns a week by id', async () => {
     const { ctx } = await harness()
-    const created = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const created = await ctx.memo.getOrCreateCurrentWeek({})
     expect(created.ok).toBe(true)
     if (!created.ok) return
     const result = ctx.memo.getWeek({ weekId: created.value.weekId })
@@ -73,7 +73,7 @@ describe('MemoService week lifecycle', () => {
 
   it('listWeeks returns at least one week after creation', async () => {
     const { ctx } = await harness()
-    await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    await ctx.memo.getOrCreateCurrentWeek({})
     const result = ctx.memo.listWeeks({})
     expect(result.ok).toBe(true)
     if (!result.ok) return
@@ -84,7 +84,7 @@ describe('MemoService week lifecycle', () => {
 describe('MemoService entry CRUD', () => {
   it('addEntry adds to the current week', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     expect(week.ok).toBe(true)
     if (!week.ok) return
     const result = await ctx.memo.addEntry({
@@ -101,7 +101,7 @@ describe('MemoService entry CRUD', () => {
 
   it('updateEntry updates content', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     if (!week.ok) return
     const added = await ctx.memo.addEntry({
       weekId: week.value.weekId,
@@ -146,7 +146,7 @@ describe('MemoService entry CRUD', () => {
 
   it('deleteEntry removes an entry', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     if (!week.ok) return
     const added = await ctx.memo.addEntry({
       weekId: week.value.weekId,
@@ -169,7 +169,7 @@ describe('MemoService entry CRUD', () => {
 describe('MemoService analysis and export', () => {
   it('analyze returns analysis text from the model', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     if (!week.ok) return
     await ctx.memo.addEntry({
       weekId: week.value.weekId,
@@ -181,8 +181,6 @@ describe('MemoService analysis and export', () => {
       period: 'week',
       periodLabel: week.value.weekId,
       analysisType: '\u68b3\u7406',
-      provider: 'test',
-      model: 'test',
     })
     expect(result.ok).toBe(true)
     if (!result.ok) return
@@ -193,14 +191,12 @@ describe('MemoService analysis and export', () => {
 
   it('analyze fails with no-entries when the week has no entries', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     if (!week.ok) return
     const result = await ctx.memo.analyze({
       period: 'week',
       periodLabel: week.value.weekId,
       analysisType: '\u603b\u7ed3',
-      provider: 'test',
-      model: 'test',
     })
     expect(result.ok).toBe(false)
     if (result.ok) return
@@ -209,7 +205,7 @@ describe('MemoService analysis and export', () => {
 
   it('exportReport returns a markdown report', async () => {
     const { ctx } = await harness()
-    const week = await ctx.memo.getOrCreateCurrentWeek({ provider: 'test', model: 'test' })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
     if (!week.ok) return
     await ctx.memo.addEntry({
       weekId: week.value.weekId,
@@ -220,12 +216,116 @@ describe('MemoService analysis and export', () => {
     const result = await ctx.memo.exportReport({
       period: 'week',
       periodLabel: week.value.weekId,
-      provider: 'test',
-      model: 'test',
     })
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value).toBeTruthy()
     expect(typeof result.value).toBe('string')
+  })
+})
+
+describe('MemoService model-route resolution and LLM failure reporting', () => {
+  it('resolves the route from Config instead of requiring a caller-supplied value', async () => {
+    const { ctx } = await harness()
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({ period: 'week', periodLabel: week.value.weekId, analysisType: '\u68b3\u7406' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.modelProvider).toBe(TEST_ROUTE.provider)
+    expect(result.value.modelName).toBe(TEST_ROUTE.model)
+  })
+
+  it('reports NO_ADAPTER with the attempted provider when the route is unregistered', async () => {
+    // Config pins the exact provider that used to be hardcoded in the UI
+    // controller: unregistered, and previously reported as "the model produced
+    // no output" with no way to tell why.
+    const { ctx } = await harness({ config: { provider: 'custom', model: 'glm-5-2-260617' } })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({ period: 'week', periodLabel: week.value.weekId, analysisType: '\u5206\u6790' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('llm-failure')
+    if (result.error.code !== 'llm-failure') return
+    expect(result.error.failureCode).toBe('NO_ADAPTER')
+    expect(result.error.provider).toBe('custom')
+    expect(result.error.model).toBe('glm-5-2-260617')
+    expect(result.error.message).toContain('NO_ADAPTER')
+    expect(result.error.message).toContain('custom')
+  })
+
+  it('reports the preserved failure code for a non-routing terminal failure', async () => {
+    const { ctx } = await harness({
+      llm: {
+        behaviour: 'route-error',
+        failure: { code: 'MISSING_CREDENTIAL', message: 'no API key for this provider', status: 401 },
+      },
+    })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({ period: 'week', periodLabel: week.value.weekId, analysisType: '\u603b\u7ed3' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('llm-failure')
+    if (result.error.code !== 'llm-failure') return
+    expect(result.error.failureCode).toBe('MISSING_CREDENTIAL')
+    expect(result.error.status).toBe(401)
+  })
+
+  it('reports EMPTY_RESPONSE when the model succeeds with no text', async () => {
+    const { ctx } = await harness({ llm: { behaviour: 'empty' } })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({ period: 'week', periodLabel: week.value.weekId, analysisType: '\u603b\u7ed3' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('llm-failure')
+    if (result.error.code !== 'llm-failure') return
+    expect(result.error.failureCode).toBe('EMPTY_RESPONSE')
+  })
+
+  it('lets an explicit request route override the configured route', async () => {
+    const { ctx } = await harness({ config: { provider: 'unregistered', model: 'unregistered' } })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({
+      period: 'week',
+      periodLabel: week.value.weekId,
+      analysisType: '\u603b\u7ed3',
+      provider: TEST_ROUTE.provider,
+      model: TEST_ROUTE.model,
+    })
+    expect(result.ok).toBe(true)
+  })
+
+  it('exportReport preserves the failure code instead of a generic message', async () => {
+    const { ctx } = await harness({ config: { provider: 'nope', model: 'nope' } })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.exportReport({ period: 'week', periodLabel: week.value.weekId })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('llm-failure')
+    if (result.error.code !== 'llm-failure') return
+    expect(result.error.failureCode).toBe('NO_ADAPTER')
   })
 })
