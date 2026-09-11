@@ -4,23 +4,27 @@
   "version": "0.1.0",
   "type": "module",
   "main": "lib/index.js",
-  "types": "lib/types/index.d.ts",
+  "types": "lib/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
+      "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
     "./invariant": {
-      "types": "./lib/types/invariant.d.ts",
+      "types": "./lib/invariant.d.ts",
       "default": "./lib/invariant.js"
     },
     "./types": {
-      "types": "./lib/types/types.d.ts",
-      "default": "./lib/types/types.js"
+      "types": "./lib/types.d.ts",
+      "default": "./lib/types.js"
     },
     "./client": {
-      "types": "./lib/types/client.d.ts",
-      "default": "./lib/types/client.js"
+      "types": "./lib/client.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./llm-text": {
+      "types": "./lib/llm-text.d.ts",
+      "default": "./lib/llm-text.js"
     }
   },
   "files": [

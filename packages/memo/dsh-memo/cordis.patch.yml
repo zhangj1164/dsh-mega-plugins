@@ -13,6 +13,9 @@
       name: dsh-memo
       config:
         repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
+        # provider/model are intentionally unset: the service follows this
+        # deployment's agentDefaultModel selection. Pin them here to retarget
+        # memo AI analysis to a specific route, e.g. provider: cu
 
     # Browser UI: the memo settings section in the Settings panel.
     - id: ui-memo
