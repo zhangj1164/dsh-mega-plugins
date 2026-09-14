@@ -20,6 +20,8 @@ scripts/
   workflows/                      # CI, issue policy, issue lifecycle, translation pairing
 .agents/
   skills/dsh-plugin-contribute/   # DSH plugin publication and iteration skill
+docs/
+  plans/                          # Validated designs, dated, one per change batch
 ```
 
 ## Commands
