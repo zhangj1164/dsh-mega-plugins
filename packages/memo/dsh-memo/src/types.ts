@@ -225,6 +225,7 @@ export interface MemoLogAnalysisResult {
 export type MemoMemoFailure =
   | { readonly code: 'not-initialized'; readonly message: string }
   | { readonly code: 'week-not-found'; readonly message: string; readonly weekId: string }
+  | { readonly code: 'invalid-week-id'; readonly message: string; readonly weekId: string }
   | { readonly code: 'entry-not-found'; readonly message: string; readonly entryId: string }
   | { readonly code: 'past-week-requires-force'; readonly message: string; readonly weekId: string }
   | { readonly code: 'no-entries'; readonly message: string }

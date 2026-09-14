@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { memoWeekSchema } from '../src/spec.ts'
 import type { TestHarness } from './harness.ts'
 import { setupHarness, TEST_ROUTE } from './harness.ts'
 
@@ -97,6 +98,51 @@ describe('MemoService entry CRUD', () => {
     expect(result.value.type).toBe('text')
     expect(result.value.content).toBe('test entry')
     expect(result.value.id).toBeTruthy()
+  })
+
+  it('addEntry on a week with no stored row writes bounds the schema accepts', async () => {
+    const { ctx } = await harness()
+    // A week id nothing has created yet. An earlier revision stored
+    // `weekStart: 0, weekEnd: 0` here, which the week schema rejects; because
+    // the storage domain validates every record on open, that single row then
+    // stopped the plugin from booting at all.
+    const result = await ctx.memo.addEntry({ weekId: '1999-W07', type: 'text', content: 'back-filled' })
+    expect(result.ok).toBe(true)
+
+    const week = await ctx.memo.getWeek({ weekId: '1999-W07' })
+    expect(week.ok).toBe(true)
+    if (!week.ok || week.value === null) throw new Error('expected the back-filled week to exist')
+    expect(week.value.weekEnd).toBeGreaterThan(week.value.weekStart)
+    // 1999-W07 runs Monday 1999-02-15 through Sunday 1999-02-21.
+    const start = new Date(week.value.weekStart)
+    const end = new Date(week.value.weekEnd)
+    expect([start.getFullYear(), start.getMonth(), start.getDate()]).toEqual([1999, 1, 15])
+    expect([end.getFullYear(), end.getMonth(), end.getDate()]).toEqual([1999, 1, 21])
+    expect(() => memoWeekSchema.parse(week.value)).not.toThrow()
+  })
+
+  it('addEntry rejects a week id that is not an ISO week id', async () => {
+    const { ctx } = await harness()
+    const result = await ctx.memo.addEntry({ weekId: 'not-a-week', type: 'text', content: 'nope' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('invalid-week-id')
+    // Nothing may be stored under a rejected id, or the schema would see it on
+    // the next open.
+    const week = await ctx.memo.getWeek({ weekId: 'not-a-week' })
+    expect(week.ok).toBe(true)
+    if (week.ok) expect(week.value).toBeNull()
+  })
+
+  it('the week schema rejects the zero-bounds row an earlier revision wrote', () => {
+    // Pins the exact defect, so the shape cannot come back unnoticed.
+    expect(() => memoWeekSchema.parse({
+      weekId: '1999-W07',
+      weekStart: 0,
+      weekEnd: 0,
+      entries: [],
+      updatedAt: 0,
+    })).toThrow(/weekEnd must follow weekStart/u)
   })
 
   it('updateEntry updates content', async () => {
