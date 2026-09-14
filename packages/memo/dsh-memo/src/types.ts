@@ -228,6 +228,7 @@ export type MemoMemoFailure =
   | { readonly code: 'invalid-week-id'; readonly message: string; readonly weekId: string }
   | { readonly code: 'entry-not-found'; readonly message: string; readonly entryId: string }
   | { readonly code: 'past-week-requires-force'; readonly message: string; readonly weekId: string }
+  | { readonly code: 'invalid-quarter-label'; readonly message: string; readonly label: string }
   | { readonly code: 'no-entries'; readonly message: string }
   | {
     readonly code: 'llm-failure'
@@ -316,3 +317,40 @@ export interface MemoListPeriodsRequest {
 export type MemoListPeriodsResult =
   | { readonly ok: true; readonly value: readonly MemoPeriodEntry[] }
   | { readonly ok: false; readonly error: { readonly code: 'not-initialized'; readonly message: string } }
+
+/** One archived quarter, with the week ids the host resolved for it. */
+export interface MemoArchivedQuarter {
+  /** The canonical quarter label (`2026-Q3`). */
+  readonly label: string
+  /** Epoch milliseconds when the quarter was archived. */
+  readonly archivedAt: number
+  /**
+   * The ISO week ids inside the quarter, ascending.
+   *
+   * Resolved by the host rather than by the caller: a client only has to build
+   * a `Set` from this to know which cards are read-only, so no caller has to
+   * re-derive which weeks a quarter owns across a year boundary.
+   */
+  readonly weekIds: readonly string[]
+}
+
+/** Request naming one quarter by its label. */
+export interface MemoQuarterLabelRequest {
+  /** The quarter label (`2026-Q3`). */
+  readonly label: string
+}
+
+/** Result of archiving a quarter. */
+export type MemoArchiveQuarterResult =
+  | { readonly ok: true; readonly value: MemoArchivedQuarter }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** Result of unarchiving a quarter. */
+export type MemoUnarchiveQuarterResult =
+  | { readonly ok: true; readonly value: { readonly label: string; readonly archived: boolean } }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** Result of listing archived quarters. */
+export type MemoListArchivedQuartersResult =
+  | { readonly ok: true; readonly value: readonly MemoArchivedQuarter[] }
+  | { readonly ok: false; readonly error: MemoMemoFailure }

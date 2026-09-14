@@ -67,5 +67,35 @@ export const memoDomainSpec = defineDomain({
   },
 })
 
+/** Runtime schema for one archived quarter row. */
+export const archivedQuarterSchema = z.object({
+  label: z.string().regex(/^\d{4}-Q[1-4]$/u),
+  archivedAt: nonNegativeSafeInteger,
+})
+
+/** Persisted archived quarter inferred from {@link archivedQuarterSchema}. */
+export type ArchivedQuarterRow = z.infer<typeof archivedQuarterSchema>
+
+/**
+ * Archived quarters, one row per quarter label.
+ *
+ * An independent domain rather than a new table beside `weeks`: the two are
+ * written by different features, and keeping them apart means the archive
+ * feature can never make the memo table itself fail to open. Only the label and
+ * the moment of archiving are stored — the quarter's week ids follow from the
+ * label through the host's own period calendar, so persisting them would be
+ * storing a derivable copy that goes wrong the day that calendar is corrected.
+ *
+ * The name is `memo_archive`, not `memo-archive`: the storage domain accepts
+ * only `/^[a-z][a-z0-9_]*$/u` for a domain name.
+ */
+export const memoArchiveDomainSpec = defineDomain({
+  name: 'memo_archive',
+  version: 0,
+  tables: {
+    quarters: domainTable<string, ArchivedQuarterRow>(archivedQuarterSchema),
+  },
+})
+
 // Re-export the analysis types consumed by host callers so they resolve from one home.
 export type { MemoAnalysisPeriod, MemoAnalysisType, MemoEntryType } from './types.ts'

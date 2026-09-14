@@ -12,6 +12,8 @@ export type MemoKey =
   // Cards
   | 'addPlaceholder' | 'addEntry' | 'noEntries' | 'noCardsInPeriod' | 'loading'
   | 'viewCard' | 'editEntry' | 'duplicateEntry' | 'deleteEntry' | 'copied' | 'copySuffix'
+  // Archive
+  | 'archiveQuarter' | 'unarchiveQuarter' | 'archivedTag'
   // Confirmation / errors
   | 'forceConfirmText' | 'confirm' | 'cancel' | 'confirmDeleteText' | 'dismiss'
   // Analysis
@@ -37,6 +39,9 @@ export const zh: Record<MemoKey, string> = {
   periodYear: '年',
   history: '历史',
   yearFilter: '年份',
+  archiveQuarter: '归档本季度',
+  unarchiveQuarter: '取消归档',
+  archivedTag: '已归档',
   addPlaceholder: '写一条备忘…',
   addEntry: '添加备忘',
   noEntries: '还没有任何备忘，先在上方添加一条',
@@ -89,6 +94,9 @@ export const en: Record<MemoKey, string> = {
   periodYear: 'Year',
   history: 'History',
   yearFilter: 'Year',
+  archiveQuarter: 'Archive this quarter',
+  unarchiveQuarter: 'Unarchive',
+  archivedTag: 'Archived',
   addPlaceholder: 'Write a memo…',
   addEntry: 'Add memo',
   noEntries: 'No memos yet — add one above',

@@ -439,3 +439,103 @@ describe('MemoService four-dimension timeline', () => {
     }
   })
 })
+
+describe('MemoService quarter archive', () => {
+  it('archives the quarter containing the viewed period and resolves its weeks', async () => {
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    expect(listed.ok).toBe(true)
+    if (!listed.ok) return
+    const quarter = listed.value[1]!
+    expect(quarter.current).toBe(false)
+
+    const archived = await ctx.memo.archiveQuarter({ period: 'quarter', label: quarter.label })
+    expect(archived.ok).toBe(true)
+    if (!archived.ok) return
+
+    expect(archived.value.label).toBe(quarter.label)
+    // The host resolves the weeks, so a client never has to.
+    expect(archived.value.weekIds).toEqual(quarter.weekIds)
+    expect(archived.value.weekIds.length).toBeGreaterThan(0)
+    expect(archived.value.archivedAt).toBeGreaterThan(0)
+  })
+
+  it('lists what is archived and drops it again on unarchive', async () => {
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    if (!listed.ok) return
+    const first = listed.value[0]!
+    const second = listed.value[1]!
+
+    await ctx.memo.archiveQuarter({ period: 'quarter', label: first.label })
+    await ctx.memo.archiveQuarter({ period: 'quarter', label: second.label })
+    const both = ctx.memo.listArchivedQuarters()
+    expect(both.ok).toBe(true)
+    if (!both.ok) return
+    // Oldest first, so the order does not depend on write order.
+    expect(both.value.map(entry => entry.label)).toEqual([second.label, first.label].sort())
+
+    const removed = await ctx.memo.unarchiveQuarter({ label: first.label })
+    expect(removed.ok).toBe(true)
+    if (!removed.ok) return
+    expect(removed.value).toEqual({ label: first.label, archived: true })
+
+    const left = ctx.memo.listArchivedQuarters()
+    if (!left.ok) return
+    expect(left.value.map(entry => entry.label)).toEqual([second.label])
+
+    // Unarchiving something already gone reports the no-op rather than failing.
+    const again = await ctx.memo.unarchiveQuarter({ label: first.label })
+    expect(again.ok).toBe(true)
+    if (!again.ok) return
+    expect(again.value.archived).toBe(false)
+  })
+
+  it('archives exactly the quarter named, never a neighbour', async () => {
+    // Regression: resolving "the quarter containing the viewed period" from the
+    // period's start timestamp picks the wrong quarter for a year (four
+    // quarters) and for a week whose Monday sits in the previous quarter. The
+    // request therefore names a quarter, and this pins that the neighbours stay
+    // untouched.
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 6 })
+    expect(listed.ok).toBe(true)
+    if (!listed.ok) return
+    const target = listed.value[2]!
+    const previous = listed.value[3]!
+    const next = listed.value[1]!
+
+    const archived = await ctx.memo.archiveQuarter({ label: target.label })
+    expect(archived.ok).toBe(true)
+    if (!archived.ok) return
+    expect(archived.value.label).toBe(target.label)
+    expect(archived.value.weekIds).toEqual(target.weekIds)
+
+    const stored = ctx.memo.listArchivedQuarters()
+    if (!stored.ok) return
+    expect(stored.value.map(entry => entry.label)).toEqual([target.label])
+    expect(stored.value.map(entry => entry.label)).not.toContain(previous.label)
+    expect(stored.value.map(entry => entry.label)).not.toContain(next.label)
+
+    // Archiving the same quarter twice is idempotent, not a duplicate row.
+    await ctx.memo.archiveQuarter({ label: target.label })
+    const again = ctx.memo.listArchivedQuarters()
+    if (!again.ok) return
+    expect(again.value).toHaveLength(1)
+  })
+
+  it('rejects anything that is not a quarter label and writes nothing', async () => {
+    const { ctx } = await harness()
+    for (const label of ['2026-W37', '2026-09', '2026', 'not-a-quarter', '']) {
+      const bad = await ctx.memo.archiveQuarter({ label })
+      expect(bad.ok).toBe(false)
+      if (bad.ok) return
+      expect(bad.error.code).toBe('invalid-quarter-label')
+    }
+
+    const stored = ctx.memo.listArchivedQuarters()
+    expect(stored.ok).toBe(true)
+    if (!stored.ok) return
+    expect(stored.value).toHaveLength(0)
+  })
+})
