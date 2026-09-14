@@ -58,6 +58,9 @@ const ICON = {
   edit: 'M11.2 2.3l2.5 2.5-8 8-3 .5.5-3z',
   copy: 'M5.5 5.5V2.5h8v8h-3M2.5 5.5h8v8h-8z',
   trash: 'M2.5 4.5h11M6 4.5V2.5h4v2M4 4.5l.7 9h6.6l.7-9M6.5 7v4M9.5 7v4',
+  analyzeLogs: 'M2.5 3.5h11v9h-11zM4.75 6.25l1.5 1.5-1.5 1.5M8.25 9.5h2.75',
+  collapse: 'M4 10l4-4 4 4',
+  expand: 'M4 6l4 4 4-4',
 } as const
 
 /** One inline icon. */
@@ -67,6 +70,59 @@ function Icon({ path, size = 16 }: { path: string; size?: number }): React.React
     stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round', strokeLinejoin: 'round',
     'aria-hidden': 'true', focusable: 'false',
   }, React.createElement('path', { d: path }))
+}
+
+/** Owner props for one collapsible result card. */
+interface ResultCardProps {
+  /** Card title, also the heading text. */
+  readonly title: string
+  /** Whether the body is hidden. */
+  readonly collapsed: boolean
+  /** Translator bound to this plugin's namespace. */
+  readonly t: Translate
+  /** Toggle the body. */
+  readonly onToggle: () => void
+  /** Remove the card. */
+  readonly onClose: () => void
+  /** Card body; omitted entirely while collapsed. */
+  readonly children?: React.ReactNode
+}
+
+/**
+ * One result card: title on the left, collapse and close on the right.
+ *
+ * The three generated results (analysis, report, log analysis) share this frame
+ * so their affordances cannot drift apart, and closing one is the caller's
+ * concern because each result lives in a different part of the view state.
+ *
+ * @param props - title, collapse state, translator, and the two callbacks.
+ * @returns the result card element.
+ */
+function ResultCard({ title, collapsed, t, onToggle, onClose, children }: ResultCardProps): React.ReactElement {
+  const toggleLabel = collapsed ? t('expand') : t('collapse')
+  return React.createElement('section', { className: 'dsh-memo-result' },
+    React.createElement('div', { className: 'dsh-memo-resultHead' },
+      React.createElement('h3', { className: 'dsh-memo-subtitle' }, title),
+      React.createElement('div', { className: 'dsh-memo-resultActions' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-iconBtn',
+          'data-tip': toggleLabel,
+          'aria-label': toggleLabel,
+          'aria-expanded': !collapsed,
+          onClick: onToggle,
+        }, React.createElement(Icon, { path: collapsed ? ICON.expand : ICON.collapse })),
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-iconBtn',
+          'data-tip': t('closeResult'),
+          'aria-label': t('closeResult'),
+          onClick: onClose,
+        }, React.createElement(Icon, { path: ICON.close })),
+      ),
+    ),
+    collapsed ? null : children,
+  )
 }
 
 /**
@@ -84,6 +140,11 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
   const [showIssueEditor, setShowIssueEditor] = React.useState(false)
   const [issueText, setIssueText] = React.useState('')
   const [copied, setCopied] = React.useState<string | null>(null)
+  /**
+   * Names of the result cards whose body is hidden. Collapsing is presentation
+   * only, so it stays in the component instead of in the controller or storage.
+   */
+  const [collapsedResults, setCollapsedResults] = React.useState<readonly string[]>([])
 
   React.useEffect(() => {
     if (view.status === 'cold') void controller.refresh()
@@ -137,26 +198,36 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
     setTimeout(() => setCopied(current => (current === ISSUE_BODY_COPY_KEY ? null : current)), 2000)
   }
 
+  /** Show or hide one result card's body. */
+  const toggleResult = (name: string): void => {
+    setCollapsedResults(current =>
+      current.includes(name) ? current.filter(entry => entry !== name) : [...current, name])
+  }
+
   return React.createElement('section', { className: 'dsh-memo', 'aria-label': t('panelTitle') },
-    // ── Board header: title, Add Issue, close ──
+    // ── Board header: title, then Add Issue / Analyze Logs / Close, each with
+    //    an icon and its label, Close rightmost ──
     React.createElement('header', { className: 'dsh-memo-head' },
       React.createElement('h2', { className: 'dsh-memo-title' }, t('panelTitle')),
       React.createElement('div', { className: 'dsh-memo-headActions' },
         React.createElement('button', {
           type: 'button',
-          className: 'dsh-memo-iconBtn',
-          'data-tip': t('addIssue'),
-          'aria-label': t('addIssue'),
+          className: 'dsh-memo-headBtn',
           disabled: view.busy,
           onClick: () => setShowIssueEditor(open => !open),
-        }, React.createElement(Icon, { path: ICON.addIssue })),
+        }, React.createElement(Icon, { path: ICON.addIssue }), t('addIssue')),
         React.createElement('button', {
           type: 'button',
-          className: 'dsh-memo-iconBtn',
-          'data-tip': t('close'),
-          'aria-label': t('close'),
+          className: 'dsh-memo-headBtn',
+          disabled: view.busy,
+          onClick: () => void controller.analyzeLogs(),
+        }, React.createElement(Icon, { path: ICON.analyzeLogs }), t('analyzeLogs')),
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-headBtn',
+          disabled: view.busy,
           onClick: close,
-        }, React.createElement(Icon, { path: ICON.close })),
+        }, React.createElement(Icon, { path: ICON.close }), t('close')),
       ),
     ),
 
@@ -257,35 +328,44 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
         }, t('exportReport')),
         React.createElement('button', {
           type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
-          onClick: () => void controller.analyzeLogs(),
-        }, t('analyzeLogs')),
-        React.createElement('button', {
-          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
           onClick: () => void controller.refresh(),
         }, t('refresh')),
       ),
     ),
 
     view.analysis !== null
-      ? React.createElement('section', { className: 'dsh-memo-result' },
-          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('analysisResult')),
-          React.createElement('pre', { className: 'dsh-memo-pre' }, view.analysis))
+      ? React.createElement(ResultCard, {
+          title: t('analysisResult'),
+          collapsed: collapsedResults.includes('analysis'),
+          t,
+          onToggle: () => toggleResult('analysis'),
+          onClose: () => controller.clearAnalysis(),
+        }, React.createElement('pre', { className: 'dsh-memo-pre' }, view.analysis))
       : null,
 
     view.report !== null
-      ? React.createElement('section', { className: 'dsh-memo-result' },
-          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('reportResult')),
-          React.createElement('pre', { className: 'dsh-memo-pre' }, view.report))
+      ? React.createElement(ResultCard, {
+          title: t('reportResult'),
+          collapsed: collapsedResults.includes('report'),
+          t,
+          onToggle: () => toggleResult('report'),
+          onClose: () => controller.clearReport(),
+        }, React.createElement('pre', { className: 'dsh-memo-pre' }, view.report))
       : null,
 
     view.logAnalysis !== null
-      ? React.createElement('section', { className: 'dsh-memo-result' },
-          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('logAnalysisTitle')),
-          React.createElement('pre', { className: 'dsh-memo-pre' }, view.logAnalysis.report.body),
-          React.createElement('button', {
-            type: 'button', className: 'dsh-memo-btn',
-            onClick: () => openUrl(view.logAnalysis!.issueUrl),
-          }, t('openPrefilledIssue')))
+      ? React.createElement(ResultCard, {
+          title: t('logAnalysisTitle'),
+          collapsed: collapsedResults.includes('logAnalysis'),
+          t,
+          onToggle: () => toggleResult('logAnalysis'),
+          onClose: () => controller.clearLogAnalysis(),
+        },
+        React.createElement('pre', { className: 'dsh-memo-pre' }, view.logAnalysis.report.body),
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn',
+          onClick: () => openUrl(view.logAnalysis!.issueUrl),
+        }, t('openPrefilledIssue')))
       : null,
 
     // ── Issue editor ──
