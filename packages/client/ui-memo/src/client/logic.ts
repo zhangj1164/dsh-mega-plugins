@@ -9,7 +9,7 @@
  * @module dsh-client-ui-memo/client/logic
  */
 
-import type { MemoAnalysisPeriod, MemoEntry, MemoWeek } from 'dsh-memo/client'
+import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from 'dsh-memo/client'
 
 /** One memo card: an entry plus the week it is stored in. */
 export interface MemoCard {
@@ -37,6 +37,14 @@ export interface MemoSelection {
 
 /** The four dimensions in display order. */
 export const PERIODS: readonly MemoAnalysisPeriod[] = ['week', 'month', 'quarter', 'year']
+
+/**
+ * How many period tags one dimension shows at most.
+ *
+ * A cap rather than a fixed window: a personal memo history is sparse, and
+ * whatever exists beyond the cap is still reachable by switching year.
+ */
+export const PERIOD_TAG_LIMIT = 10
 
 /** Storage key for the last-viewed dimension. */
 export const PERIOD_STORAGE_KEY = 'dsh-memo:period'
@@ -203,4 +211,93 @@ export function labelMatches(period: MemoAnalysisPeriod, label: string): boolean
  */
 export function duplicateContent(content: string, suffix: string): string {
   return `${content}\n\n${suffix}`
+}
+
+// ── Period tags and the year switcher ──────────────────────────────────────
+
+/**
+ * The four-digit year a period label belongs to.
+ *
+ * Every dimension's label begins with its year (`2026-W37`, `2026-09`,
+ * `2026-Q3`, `2026`), which is what makes both the tag rule and the year
+ * switcher client-side work.
+ *
+ * @param label - a canonical period label.
+ * @returns the year as a four-digit string.
+ */
+export function yearOf(label: string): string {
+  return label.slice(0, 4)
+}
+
+/** The week ids that actually hold at least one card. */
+function weeksWithCards(cards: readonly MemoCard[]): Set<string> {
+  return new Set(cards.map(card => card.weekId))
+}
+
+/**
+ * Whether a period holds at least one memo.
+ *
+ * Membership is decided from the cards, not from `weekCount`: the host creates
+ * a zero-entry week row for the current week, so a positive `weekCount` means
+ * the week has a *row*, not that it has a memo. A period is therefore "empty"
+ * only when none of its weeks appears among the cards.
+ *
+ * @param entry - the period to test.
+ * @param withCards - the week ids that hold cards.
+ * @returns whether the period holds at least one memo.
+ */
+export function periodHasCards(entry: MemoPeriodEntry, withCards: ReadonlySet<string>): boolean {
+  return entry.weekIds.some(weekId => withCards.has(weekId))
+}
+
+/**
+ * The tags to show for one dimension in one year.
+ *
+ * Keeps the current period and any period holding a memo, newest first, capped
+ * at `limit`. The current period is kept unconditionally because the user has
+ * to be able to add a memo to the period they are in even when it is empty.
+ *
+ * @param entries - every period of the dimension, newest first.
+ * @param cards - every card.
+ * @param year - the year to show.
+ * @param limit - the maximum number of tags.
+ * @returns the tags to render, newest first.
+ */
+export function visiblePeriods(
+  entries: readonly MemoPeriodEntry[],
+  cards: readonly MemoCard[],
+  year: string,
+  limit: number = PERIOD_TAG_LIMIT,
+): MemoPeriodEntry[] {
+  const withCards = weeksWithCards(cards)
+  return entries
+    .filter(entry => yearOf(entry.label) === year)
+    .filter(entry => entry.current || periodHasCards(entry, withCards))
+    .slice(0, limit)
+}
+
+/**
+ * The years worth offering for a dimension, newest first.
+ *
+ * A year qualifies when it holds a tag, so every option leads somewhere; the
+ * current year is always offered even before anything is stored. Years come
+ * from the periods the host already returned, so the switcher needs no extra
+ * call — the reason the timeline is fetched at its full length.
+ *
+ * @param entries - every period of the dimension, newest first.
+ * @param cards - every card.
+ * @param currentYear - the year of the dimension's current period.
+ * @returns the selectable years, newest first.
+ */
+export function selectableYears(
+  entries: readonly MemoPeriodEntry[],
+  cards: readonly MemoCard[],
+  currentYear: string,
+): string[] {
+  const withCards = weeksWithCards(cards)
+  const years = new Set<string>([currentYear])
+  for (const entry of entries) {
+    if (entry.current || periodHasCards(entry, withCards)) years.add(yearOf(entry.label))
+  }
+  return [...years].sort((a, b) => b.localeCompare(a))
 }

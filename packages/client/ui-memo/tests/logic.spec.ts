@@ -3,15 +3,20 @@ import {
   cardsInPeriod,
   labelMatches,
   periodDisplay,
+  periodHasCards,
   readSelection,
+  selectableYears,
   toCards,
   targetWeekId,
+  visiblePeriods,
   writeSelection,
+  yearOf,
+  PERIOD_TAG_LIMIT,
   PERIODS,
   type MemoCard,
   type StorageLike,
 } from '../src/client/logic.ts'
-import type { MemoWeek } from 'dsh-memo/client'
+import type { MemoPeriodEntry, MemoWeek } from 'dsh-memo/client'
 
 /** One stored week with the given entries; later weeks get later timestamps. */
 function week(weekId: string, contents: string[]): MemoWeek {
@@ -172,5 +177,104 @@ describe('selection persistence', () => {
 describe('PERIODS', () => {
   it('lists the four dimensions in display order', () => {
     expect(PERIODS).toEqual(['week', 'month', 'quarter', 'year'])
+  })
+})
+
+// ── Period tags and the year switcher ──────────────────────────────────────
+
+/** One period entry, as the host returns it. */
+function entry(label: string, weekIds: string[], current = false): MemoPeriodEntry {
+  return {
+    id: label,
+    label,
+    period: 'week',
+    start: 0,
+    end: 0,
+    current,
+    weekCount: weekIds.length,
+    weekIds,
+  }
+}
+
+/** Cards living in the given week ids. */
+function cardsIn(...weekIds: string[]): MemoCard[] {
+  return weekIds.map(weekId => ({
+    id: `card-${weekId}`,
+    weekId,
+    content: 'x',
+    type: 'text',
+    createdAt: 0,
+    updatedAt: 0,
+  }))
+}
+
+describe('yearOf', () => {
+  it('reads the year off every dimension’s label', () => {
+    expect(yearOf('2026-W37')).toBe('2026')
+    expect(yearOf('2026-09')).toBe('2026')
+    expect(yearOf('2026-Q3')).toBe('2026')
+    expect(yearOf('2026')).toBe('2026')
+  })
+})
+
+describe('periodHasCards', () => {
+  it('is false for a week that merely exists as a row', () => {
+    // The host creates a zero-entry row for the current week, so `weekCount`
+    // alone must never be read as "has a memo".
+    const empty = entry('2026-W37', ['2026-W37'], true)
+    expect(periodHasCards(empty, new Set())).toBe(false)
+  })
+
+  it('is true when any of the period’s weeks holds a card', () => {
+    const month = entry('2026-09', ['2026-W36', '2026-W37'])
+    expect(periodHasCards(month, new Set(['2026-W37']))).toBe(true)
+  })
+})
+
+describe('visiblePeriods', () => {
+  const timeline = [
+    entry('2026-W37', ['2026-W37'], true),
+    entry('2026-W36', ['2026-W36']),
+    entry('2026-W35', ['2026-W35']),
+    entry('2025-W50', ['2025-W50']),
+  ]
+
+  it('keeps the current period even when it holds nothing', () => {
+    const tags = visiblePeriods(timeline, cardsIn('2026-W35'), '2026')
+    expect(tags.map(tag => tag.label)).toEqual(['2026-W37', '2026-W35'])
+  })
+
+  it('drops historical periods without memos', () => {
+    const tags = visiblePeriods(timeline, cardsIn('2026-W35'), '2026')
+    expect(tags.some(tag => tag.label === '2026-W36')).toBe(false)
+  })
+
+  it('keeps only the requested year', () => {
+    const tags = visiblePeriods(timeline, cardsIn('2025-W50'), '2025')
+    expect(tags.map(tag => tag.label)).toEqual(['2025-W50'])
+  })
+
+  it('caps the tags while keeping the newest', () => {
+    const many = Array.from({ length: 30 }, (_, index) => entry(`2026-W${String(index + 1).padStart(2, '0')}`, [`2026-W${String(index + 1).padStart(2, '0')}`]))
+    const cards = cardsIn(...many.map(item => item.weekIds[0]!))
+    const tags = visiblePeriods(many, cards, '2026')
+    expect(tags).toHaveLength(PERIOD_TAG_LIMIT)
+    // The list arrives newest first, so the cap must bite at the oldest end.
+    expect(tags[0]?.label).toBe('2026-W01')
+  })
+})
+
+describe('selectableYears', () => {
+  it('offers only years that hold a tag, newest first', () => {
+    const timeline = [
+      entry('2026-W37', ['2026-W37'], true),
+      entry('2026-W01', ['2026-W01']),
+      entry('2024-W20', ['2024-W20']),
+    ]
+    expect(selectableYears(timeline, cardsIn('2024-W20'), '2026')).toEqual(['2026', '2024'])
+  })
+
+  it('always offers the current year, even with nothing stored', () => {
+    expect(selectableYears([entry('2026-W37', ['2026-W37'], true)], [], '2026')).toEqual(['2026'])
   })
 })

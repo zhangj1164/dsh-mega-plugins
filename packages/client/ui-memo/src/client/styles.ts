@@ -62,7 +62,27 @@ export const CSS_TEXT = `
 .dsh-memo-headBtn:disabled { opacity: 0.5; cursor: default; }
 .dsh-memo-headBtn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 
-/* ── Dimension switch (周 / 月 / 季度 / 年) ── */
+/* ── Dimension switch (周 / 月 / 季度 / 年) and the year switcher ── */
+.dsh-memo-dimRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.dsh-memo-year {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-2);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-year:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-year:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 .dsh-memo-dims {
   display: inline-flex;
   align-self: flex-start;

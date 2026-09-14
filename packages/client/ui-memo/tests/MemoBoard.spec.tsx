@@ -93,6 +93,20 @@ function seedWeek(contents: string[]): FakeRpcOptions {
   }
 }
 
+/** The ISO week id `days` days before now, so a test can place a memo in the past. */
+function weekIdDaysAgo(days: number): string {
+  return isoWeekId(new Date(Date.now() - days * 24 * 60 * 60 * 1000))
+}
+
+/** Seed several weeks at once, which is what gives the history more than one tag. */
+function seedWeeks(weeks: Record<string, string[]>): FakeRpcOptions {
+  return {
+    weeks: Object.fromEntries(Object.entries(weeks).map(([weekId, contents]) => [weekId, {
+      entries: contents.map((content, index) => ({ id: `${weekId}-${String(index)}`, content, createdAt: 10 - index })),
+    }])),
+  }
+}
+
 describe('MemoBoard header', () => {
   it('renders the section title', async () => {
     await renderBoard()
@@ -158,14 +172,15 @@ describe('MemoBoard four-dimension navigation', () => {
   })
 
   it('switches the history chips with the dimension', async () => {
-    const { controller } = await renderBoard()
+    const { controller } = await renderBoard(seedWeeks({ [weekIdDaysAgo(0)]: ['now'], [weekIdDaysAgo(7)]: ['then'] }))
+    // Two weeks hold a memo, so the week dimension offers both.
+    expect(historyChips(/^W\d{2}$/u)).toHaveLength(2)
+
     fireEvent.click(screen.getByRole('tab', { name: '月' }))
     await waitFor(() => { expect(controller.getSnapshot().selection.period).toBe('month') })
-
-    const chips = historyChips(/^\d{4}-\d{2}$/u)
-    expect(chips.length).toBeGreaterThan(1)
-    fireEvent.click(chips[1]!)
-    await waitFor(() => { expect(controller.getSnapshot().selection.label).toBe(chips[1]?.textContent) })
+    // The chips are re-rendered for the new dimension's own label format.
+    expect(historyChips(/^W\d{2}$/u)).toHaveLength(0)
+    expect(historyChips(/^\d{4}-\d{2}$/u).length).toBeGreaterThanOrEqual(1)
   })
 
   it('marks the current period so history and now are distinguishable', async () => {
@@ -177,16 +192,57 @@ describe('MemoBoard four-dimension navigation', () => {
   })
 
   it('lists only the cards of the selected history period', async () => {
-    const { controller } = await renderBoard(seedWeek(['this week work']))
+    const { controller } = await renderBoard(seedWeeks({ [weekIdDaysAgo(0)]: ['this week work'], [weekIdDaysAgo(7)]: ['last week work'] }))
     expect(cards()).toHaveLength(1)
+    expect(screen.getByText('this week work')).toBeTruthy()
 
-    // Move to the oldest month in the timeline, which cannot hold this week.
-    fireEvent.click(screen.getByRole('tab', { name: '月' }))
-    await waitFor(() => { expect(controller.getSnapshot().selection.period).toBe('month') })
-    const chips = historyChips(/^\d{4}-\d{2}$/u)
+    const chips = historyChips(/^W\d{2}$/u)
     fireEvent.click(chips[chips.length - 1]!)
-    await waitFor(() => { expect(controller.getSnapshot().cards).toHaveLength(0) })
-    await waitFor(() => { expect(screen.getByText(zh.noCardsInPeriod)).toBeTruthy() })
+    await waitFor(() => { expect(controller.getSnapshot().cards).toHaveLength(1) })
+    expect(screen.getByText('last week work')).toBeTruthy()
+    expect(screen.queryByText('this week work')).toBeNull()
+  })
+
+  it('shows only periods holding a memo, plus the current one', async () => {
+    // One memo last week; the other ~398 weeks the host returns are empty and
+    // must not become tags.
+    const { controller } = await renderBoard(seedWeeks({ [weekIdDaysAgo(7)]: ['last week work'] }))
+
+    expect(historyChips(/^W\d{2}$/u)).toHaveLength(2)
+    expect(historyChips(/^W\d{2}$/u).some(chip => chip.hasAttribute('data-current'))).toBe(true)
+    expect(controller.getSnapshot().visiblePeriods.length).toBeLessThan(controller.getSnapshot().periods.length)
+  })
+
+  it('fetches the host’s full timeline so older years stay reachable', async () => {
+    const { rpc } = await renderBoard()
+    const call = rpc.calls.find(entry => entry.endpoint === 'memo/listPeriods')
+    expect(call?.request.limit).toBe(400)
+  })
+
+  it('switches the year and shows that year’s tags and cards', async () => {
+    const thisYear = String(new Date().getFullYear())
+    const { controller } = await renderBoard(seedWeeks({ [weekIdDaysAgo(0)]: ['now'], [weekIdDaysAgo(400)]: ['then'] }))
+
+    const select = screen.getByRole('combobox', { name: zh.yearFilter })
+    const options = Array.from(select.querySelectorAll('option')).map(option => option.value)
+    // Years that hold a tag, newest first, with the current year always present.
+    expect(options[0]).toBe(thisYear)
+    const olderYear = options[options.length - 1]!
+    expect(olderYear).not.toBe(thisYear)
+
+    fireEvent.change(select, { target: { value: olderYear } })
+    expect(controller.getSnapshot().year).toBe(olderYear)
+    await waitFor(() => { expect(controller.getSnapshot().selection.label.slice(0, 4)).toBe(olderYear) })
+    // The board moved to that year's period and its memo.
+    expect(screen.getByText('then')).toBeTruthy()
+    expect(screen.queryByText('now')).toBeNull()
+  })
+
+  it('keeps the current year reachable when nothing is stored', async () => {
+    await renderBoard()
+    const select = screen.getByRole('combobox', { name: zh.yearFilter })
+    const options = Array.from(select.querySelectorAll('option')).map(option => option.value)
+    expect(options).toEqual([String(new Date().getFullYear())])
   })
 
   it('keeps every card of a week that holds several', async () => {

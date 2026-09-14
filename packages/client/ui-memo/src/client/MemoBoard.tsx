@@ -239,24 +239,36 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           }, t('dismiss')))
       : null,
 
-    // ── Dimension switch (周/月/季/年) ──
-    React.createElement('nav', { className: 'dsh-memo-dims', role: 'tablist', 'aria-label': t('period') },
-      ...PERIODS.map(period => React.createElement('button', {
-        key: period,
-        type: 'button',
-        role: 'tab',
-        'aria-selected': view.selection.period === period,
-        className: 'dsh-memo-dim',
-        'data-active': view.selection.period === period ? '' : undefined,
-        disabled: view.busy,
-        onClick: () => void controller.selectPeriod(period),
-      }, t(periodKey(period)))),
+    // ── Dimension switch (周/月/季/年) with the year switcher on the same row ──
+    React.createElement('div', { className: 'dsh-memo-dimRow' },
+      React.createElement('nav', { className: 'dsh-memo-dims', role: 'tablist', 'aria-label': t('period') },
+        ...PERIODS.map(period => React.createElement('button', {
+          key: period,
+          type: 'button',
+          role: 'tab',
+          'aria-selected': view.selection.period === period,
+          className: 'dsh-memo-dim',
+          'data-active': view.selection.period === period ? '' : undefined,
+          disabled: view.busy,
+          onClick: () => void controller.selectPeriod(period),
+        }, t(periodKey(period)))),
+      ),
+      view.years.length > 0
+        ? React.createElement('select', {
+            className: 'dsh-memo-year',
+            value: view.year,
+            'aria-label': t('yearFilter'),
+            disabled: view.busy,
+            onChange: (event: React.ChangeEvent<HTMLSelectElement>) => controller.selectYear(event.target.value),
+          }, ...view.years.map(year => React.createElement('option', { key: year, value: year }, year)))
+        : null,
     ),
 
-    // ── History chips of the active dimension ──
-    view.periods.length > 0
+    // ── History chips of the active dimension and year: only periods that hold
+    //    a memo, plus the current period, newest first ──
+    view.visiblePeriods.length > 0
       ? React.createElement('div', { className: 'dsh-memo-history', role: 'tablist', 'aria-label': t('history') },
-          ...view.periods.map(entry => React.createElement('button', {
+          ...view.visiblePeriods.map(entry => React.createElement('button', {
             key: entry.label,
             type: 'button',
             role: 'tab',

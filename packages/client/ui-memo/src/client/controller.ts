@@ -39,9 +39,12 @@ import type { GithubIssueReport } from 'dsh-github-issue/client'
 import {
   cardsInPeriod,
   readSelection,
+  selectableYears,
   toCards,
   targetWeekId,
+  visiblePeriods,
   writeSelection,
+  yearOf,
   type MemoCard,
   type MemoSelection,
   type StorageLike,
@@ -62,8 +65,15 @@ export interface RpcCaller {
 
 const API_CHANNEL = '/api'
 
-/** How many periods of each dimension the board offers as history. */
-const PERIOD_HISTORY_LIMIT = 24
+/**
+ * How many periods of each dimension the board fetches.
+ *
+ * The host clamps this to 400, and the board asks for all of it: the tag rule
+ * and the year switcher are computed from this one timeline, so a shorter
+ * window would silently hide years the switcher should offer. 400 weeks is
+ * about 7.7 years, which is the whole history of a personal memo store.
+ */
+const PERIOD_HISTORY_LIMIT = 400
 
 /**
  * Call one Remote method on any service, unwrapping the transport envelope.
@@ -131,8 +141,14 @@ export interface MemoViewState {
   weeks: MemoWeek[]
   /** The active dimension and label. */
   selection: MemoSelection
-  /** Navigable periods of the active dimension, newest first. */
+  /** Every period of the active dimension, newest first, unfiltered. */
   periods: MemoPeriodEntry[]
+  /** The tags to render for the active dimension and year. */
+  visiblePeriods: MemoPeriodEntry[]
+  /** Years offered by the switcher, newest first. */
+  years: readonly string[]
+  /** The active year. */
+  year: string
   /** Cards in the active period, newest first. */
   cards: MemoCard[]
   /** Total number of stored cards, so the UI can distinguish "empty" from "all gone". */
@@ -170,6 +186,9 @@ export function createInitialState(): MemoViewState {
     weeks: [],
     selection: { period: 'week', label: '' },
     periods: [],
+    visiblePeriods: [],
+    years: [],
+    year: '',
     cards: [],
     totalCards: 0,
     error: null,
@@ -264,15 +283,30 @@ export class MemoController {
       const restored = period === undefined
         ? readSelection(this.storage, { period: dimension, label: fallbackLabel })
         : { period: dimension, label: fallbackLabel }
-      const label = periods.some(entry => entry.label === restored.label) ? restored.label : fallbackLabel
-      const selection: MemoSelection = { period: dimension, label }
 
       const cards = toCards(weeks)
+      const currentYear = yearOf(fallbackLabel)
+      const years = selectableYears(periods, cards, currentYear)
+      // A tag only exists for a period with memos (plus the current period), so
+      // a restored label is honoured only when its year offers a tag at all.
+      const restoredYear = restored.label.length > 0 ? yearOf(restored.label) : ''
+      const year = years.includes(restoredYear) ? restoredYear : (years[0] ?? '')
+      const tags = visiblePeriods(periods, cards, year)
+      // Restored-but-invisible (its memos were deleted) lands on the newest tag
+      // of the same year rather than on a period the user cannot see or leave.
+      const label = tags.some(entry => entry.label === restored.label)
+        ? restored.label
+        : (tags[0]?.label ?? fallbackLabel)
+      const selection: MemoSelection = { period: dimension, label }
+
       const active = periods.find(entry => entry.label === label)
       this.set({
         status: 'ready',
         weeks,
         periods,
+        visiblePeriods: tags,
+        years,
+        year,
         selection,
         cards: cardsInPeriod(cards, active?.weekIds ?? []),
         totalCards: cards.length,
@@ -293,6 +327,39 @@ export class MemoController {
     if (period === this._state.selection.period) return
     this.set({ analysis: null, report: null })
     await this.refresh(period)
+  }
+
+  /**
+   * Show another year of the active dimension.
+   *
+   * Every year the switcher offers holds at least one tag, so the switch always
+   * lands somewhere visible. The whole timeline arrived with the dimension's
+   * load, which is why this makes no host call.
+   *
+   * @param year - the year to show.
+   */
+  selectYear(year: string): void {
+    if (year === this._state.year || !this._state.years.includes(year)) return
+    const { selection, weeks, periods } = this._state
+    const cards = toCards(weeks)
+    const tags = visiblePeriods(periods, cards, year)
+    // Keep the current tag when it belongs to this year; otherwise take the
+    // newest tag of the year so the board always shows a real period.
+    const label = tags.some(entry => entry.label === selection.label)
+      ? selection.label
+      : (tags[0]?.label ?? selection.label)
+    const next: MemoSelection = { period: selection.period, label }
+    const active = periods.find(entry => entry.label === label)
+    this.set({
+      year,
+      visiblePeriods: tags,
+      selection: next,
+      cards: cardsInPeriod(cards, active?.weekIds ?? []),
+      analysis: null,
+      report: null,
+      error: null,
+    })
+    writeSelection(this.storage, next)
   }
 
   /**
