@@ -8,7 +8,7 @@ Browser-side UI plugin for the memo board: a four-dimension (week / month / quar
 
 A pure UI surface plugin: the host `apply` is empty so the plugin appears in the host `cordis.yml` / Loader; the browser half ships via `exports["./client"]`, discovered through the `dsh.client` declaration in `package.json`.
 
-The board registers itself as a `settings.section` entry — the extension point DSH provides for one settings page per list entry, and the same seat the official Agent preset page uses. The shell owns the navigation row, the modal, and the close affordance, so this plugin contributes no global DOM, no sidebar observer, and no panel positioning.
+The board is a first-class main panel. A `sidebar.panellist` entry gives it the sidebar button — the sidebar itself owns that button, its accessible name, and its active state, so this plugin contributes only a `currentColor` glyph — and a keyed `main` entry renders the board while that panel id is selected. Closing the board selects the reserved `conversation` panel through `ctx.layout`, because panel selection belongs to the layout service rather than to component state. The plugin declares `layout` in `inject` and adds no npm dependency for it: the service is provided by the shell and reached through the context, the same way this package already treats `dsh-client-ui-slots`. This plugin contributes no global DOM, no sidebar observer, and no panel positioning.
 
 ## Dimensions and history
 
@@ -70,7 +70,7 @@ This package is included in the `dsh-memo` bundle's `cordis.patch.yml` as the `u
 
 ## Tests
 
-`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the Add Issue / Close ordering, each card action, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so the `settings.section` registration, the locale dictionaries, the style disposal, and the section component itself are covered where the shell actually reaches them.
+`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the Add Issue / Close ordering, each card action, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so both slot registrations, the sidebar glyph, the panel-switch on close, the locale dictionaries, the style disposal, and the panel component itself are covered where the shell actually reaches them.
 
 ## Known Limitations
 

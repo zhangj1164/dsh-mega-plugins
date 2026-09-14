@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { apply, inject, MEMO_SECTION_ID, MEMO_SECTION_ORDER } from '../src/client/index.ts'
+import { apply, inject, MEMO_PANEL_ID, MEMO_PANEL_ORDER } from '../src/client/index.ts'
 import { createFakeRpc, isoWeekId } from './fake-rpc.ts'
 import { zh, en } from '../src/client/locales.ts'
 
@@ -11,12 +11,18 @@ afterEach(() => {
   document.querySelectorAll('style[data-dsh-plugin]').forEach(node => node.remove())
 })
 
-/** What one registered section looks like to the shell. */
-interface RegisteredSection {
+/** What one registered slot looks like to the shell. */
+interface RegisteredSlot {
   name: string
-  id: string
+  id?: string
+  key?: string
   order?: number
-  label: string | (() => string)
+  label?: string | (() => string)
+}
+
+/** Props the sidebar hands a panel-list glyph. */
+interface GlyphProps {
+  readonly size: number
 }
 
 /**
@@ -33,7 +39,9 @@ function applyPlugin(options: Parameters<typeof createFakeRpc>[0] = {}) {
   const dictionaries: Record<string, unknown> = {}
   const effects: (() => void)[] = []
   const listeners: Record<string, (() => void)[]> = {}
-  const registered: RegisteredSection[] = []
+  const registered: RegisteredSlot[] = []
+  const selectedPanels: (string | null)[] = []
+  let glyph: ((props: GlyphProps) => React.ReactElement) | null = null
   let element: React.ReactElement | null = null
 
   const ctx = {
@@ -48,6 +56,11 @@ function applyPlugin(options: Parameters<typeof createFakeRpc>[0] = {}) {
       if (name !== 'connection') return undefined
       return { rpc: { call: rpc.call } }
     },
+    layout: {
+      selectPanel(panelId: string | null): void {
+        selectedPanels.push(panelId)
+      },
+    },
     locale: {
       register(namespace: string, value: unknown): void {
         dictionaries[namespace] = value
@@ -58,39 +71,74 @@ function applyPlugin(options: Parameters<typeof createFakeRpc>[0] = {}) {
       },
     },
     slots: {
-      inject(key: string, callback: () => void): void {
-        expect(key).toBe('settings.section')
+      inject(_key: string, callback: () => void): void {
         callback()
       },
-      register(section: RegisteredSection, component: (props: { close: () => void }) => React.ReactElement): void {
-        registered.push(section)
-        element = component({ close: vi.fn() })
+      register(slot: RegisteredSlot, component: (props: never) => React.ReactElement): void {
+        registered.push(slot)
+        if (slot.name === 'sidebar.panellist') {
+          glyph = component as unknown as (props: GlyphProps) => React.ReactElement
+          return
+        }
+        // A keyed main entry receives no owner props.
+        element = (component as unknown as () => React.ReactElement)()
       },
     },
   }
 
   apply(ctx as never, { repoUrl: 'https://example.test/repo' })
-  return { rpc, registered, effects, listeners, element: element as React.ReactElement | null, dictionaries }
+  return {
+    rpc,
+    registered,
+    effects,
+    listeners,
+    element: element as React.ReactElement | null,
+    dictionaries,
+    selectedPanels,
+    glyph: glyph as ((props: GlyphProps) => React.ReactElement) | null,
+  }
 }
 
 describe('ui-memo client entry point', () => {
   it('declares exactly the services it reads', () => {
-    expect(inject).toEqual(['slots', 'locale', 'theme', 'connection'])
+    expect(inject).toEqual(['slots', 'layout', 'locale', 'theme', 'connection'])
   })
 
-  it('registers one settings section at the documented position', () => {
+  it('registers one sidebar entry and one main panel, sharing the panel id', () => {
     const { registered } = applyPlugin()
-    expect(registered).toHaveLength(1)
-    const section = registered[0]!
-    expect(section.name).toBe('settings.section')
-    expect(section.id).toBe(MEMO_SECTION_ID)
-    expect(section.order).toBe(MEMO_SECTION_ORDER)
-    expect(typeof section.label).toBe('function')
+    expect(registered).toHaveLength(2)
+
+    const entry = registered.find(slot => slot.name === 'sidebar.panellist')
+    expect(entry?.id).toBe(MEMO_PANEL_ID)
+    expect(entry?.order).toBe(MEMO_PANEL_ORDER)
+    expect(typeof entry?.label).toBe('function')
+
+    // The main slot is keyed by the sidebar entry id, which is how the layout
+    // knows which panel a sidebar button opens.
+    const panel = registered.find(slot => slot.name === 'main')
+    expect(panel?.key).toBe(MEMO_PANEL_ID)
   })
 
-  it('labels the section through the locale service', () => {
+  it('registers no settings section any more', () => {
+    // A single entry point: two live registrations would render one controller
+    // in two places.
     const { registered } = applyPlugin()
-    expect((registered[0]!.label as () => string)()).toBe(zh.nav)
+    expect(registered.some(slot => slot.name === 'settings.section')).toBe(false)
+  })
+
+  it('draws the sidebar glyph at the size the sidebar asks for', () => {
+    const { glyph } = applyPlugin()
+    expect(glyph).not.toBeNull()
+    const { container } = render(React.createElement(glyph!, { size: 18 }))
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('width')).toBe('18')
+    expect(svg?.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('labels the sidebar entry through the locale service', () => {
+    const { registered } = applyPlugin()
+    const entry = registered.find(slot => slot.name === 'sidebar.panellist')
+    expect((entry!.label as () => string)()).toBe(zh.nav)
   })
 
   it('registers both dictionaries under its own namespace', () => {
@@ -107,13 +155,24 @@ describe('ui-memo client entry point', () => {
     expect(document.querySelector('style[data-dsh-plugin="memo"]')).toBeNull()
   })
 
-  it('registers the section component as an element, not a bare call', () => {
+  it('registers the panel component as an element, not a bare call', () => {
     // Regression: the entry point used to call `MemoBoard({...})` directly, so
     // the component's hooks ran outside a render and React threw
     // "Invalid hook call" as soon as the section opened.
     const { element } = applyPlugin()
     expect(React.isValidElement(element)).toBe(true)
     expect(typeof element).toBe('object')
+  })
+
+  it('returns to the conversation panel when the board closes', async () => {
+    const { element, selectedPanels } = applyPlugin()
+    render(element)
+    await waitFor(() => { expect(screen.getByRole('button', { name: zh.close })).toBeTruthy() })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.close }))
+    // Closing is a navigation, not local component state: the layout owns which
+    // panel is selected.
+    expect(selectedPanels).toEqual(['conversation'])
   })
 
   it('renders the board into the shell so every feature is reachable', async () => {

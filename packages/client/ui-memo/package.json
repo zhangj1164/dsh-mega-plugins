@@ -1,6 +1,6 @@
 {
   "name": "dsh-client-ui-memo",
-  "description": "Memo settings section for DeepSeek Harness: a four-dimension (week/month/quarter/year) card board over the memo Host Remote, with AI analysis, report export, and GitHub issue generation",
+  "description": "Memo panel for DeepSeek Harness: a sidebar entry and main panel with a four-dimension (week/month/quarter/year) card board over the memo Host Remote, with AI analysis, report export, and GitHub issue generation",
   "version": "0.1.0",
   "type": "module",
   "main": "lib/index.js",
