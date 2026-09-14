@@ -21,6 +21,8 @@ export type MemoKey =
   | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
+  // Result cards
+  | 'collapse' | 'expand' | 'closeResult'
 
 export const zh: Record<MemoKey, string> = {
   entryLabel: '备忘',
@@ -68,6 +70,9 @@ export const zh: Record<MemoKey, string> = {
   analyzeLogs: '日志分析',
   logAnalysisTitle: '日志分析报告',
   openPrefilledIssue: '打开预填 Issue',
+  collapse: '折叠',
+  expand: '展开',
+  closeResult: '关闭此卡片',
 }
 
 export const en: Record<MemoKey, string> = {
@@ -116,4 +121,7 @@ export const en: Record<MemoKey, string> = {
   analyzeLogs: 'Analyze Logs',
   logAnalysisTitle: 'Log Analysis Report',
   openPrefilledIssue: 'Open Prefilled Issue',
+  collapse: 'Collapse',
+  expand: 'Expand',
+  closeResult: 'Close this card',
 }

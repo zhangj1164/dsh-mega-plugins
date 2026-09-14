@@ -40,9 +40,27 @@ export const CSS_TEXT = `
 .dsh-memo-headActions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   margin-left: auto;
 }
+/* Header actions carry an icon and a label, so they need room for both. */
+.dsh-memo-headBtn {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+}
+.dsh-memo-headBtn:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-headBtn:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-headBtn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 
 /* ── Dimension switch (周 / 月 / 季度 / 年) ── */
 .dsh-memo-dims {
@@ -298,6 +316,18 @@ export const CSS_TEXT = `
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: 14px;
   background: var(--dsw-alias-bg-layer-1);
+}
+/* Title on the left, collapse and close on the right. */
+.dsh-memo-resultHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dsh-memo-resultActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
 }
 .dsh-memo-subtitle {
   margin: 0;

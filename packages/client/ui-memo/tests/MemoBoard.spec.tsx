@@ -99,21 +99,39 @@ describe('MemoBoard header', () => {
     expect(screen.getByRole('heading', { name: zh.panelTitle })).toBeTruthy()
   })
 
-  it('puts the Add Issue button before the Close button, both icon-only', async () => {
+  it('orders Add Issue, Analyze Logs, Close in the header, each with an icon and a label', async () => {
     const { close } = await renderBoard()
     const addIssue = screen.getByRole('button', { name: zh.addIssue })
+    const analyzeLogs = screen.getByRole('button', { name: zh.analyzeLogs })
     const closeButton = screen.getByRole('button', { name: zh.close })
 
-    // The requirement is positional: Add Issue moves next to Close and each
-    // carries an icon. DOM order is what a reader perceives, so assert it.
-    expect(addIssue.compareDocumentPosition(closeButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(addIssue.getAttribute('data-tip')).toBe(zh.addIssue)
-    expect(closeButton.getAttribute('data-tip')).toBe(zh.close)
-    expect(addIssue.querySelector('svg')).not.toBeNull()
-    expect(closeButton.querySelector('svg')).not.toBeNull()
+    // The requirement is positional: all three sit together in the header, each
+    // carrying an icon and its label, and Close stays rightmost. DOM order is
+    // what a reader perceives, so assert it.
+    const order = [addIssue, analyzeLogs, closeButton]
+    for (let index = 0; index < order.length - 1; index += 1) {
+      const current = order[index]!
+      expect(current.compareDocumentPosition(order[index + 1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+    for (const button of order) {
+      expect(button.querySelector('svg')).not.toBeNull()
+      // The label is visible text now, not a tooltip: the accessible name comes
+      // from the button's own contents.
+      expect(button.textContent?.trim().length).toBeGreaterThan(0)
+    }
 
     fireEvent.click(closeButton)
     expect(close).toHaveBeenCalledOnce()
+  })
+
+  it('offers log analysis from the header rather than from the tools row', async () => {
+    const { rpc } = await renderBoard({ logAnalysis: { report: issueReport(), issueUrl: 'https://example.test/i' } })
+    const header = screen.getByRole('heading', { name: zh.panelTitle }).closest('header')
+    const analyzeLogs = screen.getByRole('button', { name: zh.analyzeLogs })
+
+    expect(header?.contains(analyzeLogs)).toBe(true)
+    fireEvent.click(analyzeLogs)
+    await waitFor(() => { expect(rpc.calls.some(call => call.endpoint === 'memo/analyzeLogs')).toBe(true) })
   })
 
   it('toggles the issue editor from the header button', async () => {
@@ -363,6 +381,77 @@ describe('MemoBoard analysis and reporting', () => {
     await waitFor(() => { expect(screen.getByRole('alert')).toBeTruthy() })
     fireEvent.click(screen.getByRole('button', { name: zh.dismiss }))
     await waitFor(() => { expect(screen.queryByRole('alert')).toBeNull() })
+  })
+})
+
+describe('MemoBoard result cards', () => {
+  /** Run the default analysis and return the card it rendered into. */
+  async function analysisCard() {
+    const rendered = await renderBoard()
+    fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
+    await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+    const card = screen.getByText(zh.analysisResult).closest('section')
+    expect(card).not.toBeNull()
+    return { ...rendered, card: card! }
+  }
+
+  it('collapses and expands a result card from its own header icon', async () => {
+    const { card } = await analysisCard()
+    const toggle = within(card).getByRole('button', { name: zh.collapse })
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(card.querySelector('.dsh-memo-pre')).not.toBeNull()
+
+    fireEvent.click(toggle)
+    expect(card.querySelector('.dsh-memo-pre')).toBeNull()
+    // The same affordance now offers to bring the body back.
+    const expand = within(card).getByRole('button', { name: zh.expand })
+    expect(expand.getAttribute('aria-expanded')).toBe('false')
+
+    fireEvent.click(expand)
+    expect(card.querySelector('.dsh-memo-pre')).not.toBeNull()
+  })
+
+  it('removes a result card from its own close icon', async () => {
+    const { card, controller } = await analysisCard()
+    fireEvent.click(within(card).getByRole('button', { name: zh.closeResult }))
+    await waitFor(() => { expect(controller.getSnapshot().analysis).toBeNull() })
+    expect(screen.queryByText(zh.analysisResult)).toBeNull()
+  })
+
+  it('removes the report and the log analysis the same way', async () => {
+    const { controller } = await renderBoard({
+      logAnalysis: { report: issueReport({ title: 'crash', body: 'details', labels: [] }), issueUrl: 'https://example.test/i' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.exportReport }))
+    await waitFor(() => { expect(screen.getByText(zh.reportResult)).toBeTruthy() })
+    const reportCard = screen.getByText(zh.reportResult).closest('section')!
+    fireEvent.click(within(reportCard).getByRole('button', { name: zh.closeResult }))
+    await waitFor(() => { expect(controller.getSnapshot().report).toBeNull() })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.analyzeLogs }))
+    await waitFor(() => { expect(screen.getByText(zh.logAnalysisTitle)).toBeTruthy() })
+    // The card's own action survives the new header controls.
+    expect(screen.getByRole('button', { name: zh.openPrefilledIssue })).toBeTruthy()
+    const logCard = screen.getByText(zh.logAnalysisTitle).closest('section')!
+    fireEvent.click(within(logCard).getByRole('button', { name: zh.closeResult }))
+    await waitFor(() => { expect(controller.getSnapshot().logAnalysis).toBeNull() })
+  })
+
+  it('collapses each card independently', async () => {
+    await renderBoard()
+    fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
+    await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+    fireEvent.click(screen.getByRole('button', { name: zh.exportReport }))
+    await waitFor(() => { expect(screen.getByText(zh.reportResult)).toBeTruthy() })
+
+    const analysisSection = screen.getByText(zh.analysisResult).closest('section')!
+    const reportSection = screen.getByText(zh.reportResult).closest('section')!
+
+    fireEvent.click(within(analysisSection).getByRole('button', { name: zh.collapse }))
+    expect(analysisSection.querySelector('.dsh-memo-pre')).toBeNull()
+    // Collapsing one card must not touch the other.
+    expect(reportSection.querySelector('.dsh-memo-pre')).not.toBeNull()
   })
 })
 

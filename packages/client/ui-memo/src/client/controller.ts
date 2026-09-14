@@ -519,6 +519,26 @@ export class MemoController {
     this.set({ error: null })
   }
 
+  /**
+   * Dismiss the analysis result.
+   *
+   * Results are view state rather than stored data, so closing a result card is
+   * a local clear and never touches the host.
+   */
+  clearAnalysis(): void {
+    this.set({ analysis: null })
+  }
+
+  /** Dismiss the exported report. */
+  clearReport(): void {
+    this.set({ report: null })
+  }
+
+  /** Dismiss the log analysis result. */
+  clearLogAnalysis(): void {
+    this.set({ logAnalysis: null })
+  }
+
   /** Stop publishing state. */
   dispose(): void {
     this.disposed = true

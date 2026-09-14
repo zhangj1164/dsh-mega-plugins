@@ -51,12 +51,13 @@ The browser never selects a model. The controller sends **no** `provider` and **
 - **Card grid** in the official Agent preset style: fixed-width columns, equal-height rows, fixed-size cards
 - **Card actions**: 查看 (read-only detail dialog), 编辑 (edit dialog), 复制 (duplicate into the same period), 删除 (confirmation dialog)
 - **Composer** with a dashed full-width creator button, disabled while the draft is empty
-- **AI analysis** with a type switch (梳理 / 总结 / 分析) and an inline result panel
+- **AI analysis** with a type switch (梳理 / 总结 / 分析) and an inline result card
 - **Report export** for the selected period
-- **Log analysis** and an **open pre-filled issue** action
+- **Log analysis** into a pre-filled GitHub issue, triggered from the header because its output is an issue rather than a report about memos
 - **Issue editor**: natural-language input, LLM optimization, and a GitHub open action built from the configured repository
 - **Copy full body**: copies the untruncated report, so a body shortened to fit GitHub's URL limit is still available to paste
-- **Add Issue and Close** as icon-only buttons in the board header, Close rightmost, each with a tooltip
+- **Result cards** for analysis, report, and log analysis: each carries a collapse toggle and a close icon in its own top-right corner. Collapsing is presentation state in the component; closing clears that result, since results are view state rather than stored data.
+- **Add Issue, Log Analysis, Close** as icon-and-label buttons in the board header, Close rightmost
 
 ## Configuration
 
@@ -70,7 +71,7 @@ This package is included in the `dsh-memo` bundle's `cordis.patch.yml` as the `u
 
 ## Tests
 
-`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the Add Issue / Close ordering, each card action, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so both slot registrations, the sidebar glyph, the panel-switch on close, the locale dictionaries, the style disposal, and the panel component itself are covered where the shell actually reaches them.
+`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the header button order, each card action, the collapse and close affordances of every result card, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so both slot registrations, the sidebar glyph, the panel-switch on close, the locale dictionaries, the style disposal, and the panel component itself are covered where the shell actually reaches them.
 
 ## Known Limitations
 
