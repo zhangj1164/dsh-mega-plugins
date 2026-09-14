@@ -8,7 +8,7 @@
 
 纯 UI 界面插件：主机端 `apply` 为空，仅使插件出现在主机 `cordis.yml` / Loader 中；浏览器端通过 `exports["./client"]` 交付，由 `package.json` 的 `dsh.client` 声明发现。
 
-看板以 `settings.section` 条目注册——这是 DSH 为"每个列表项一个设置页"提供的扩展点，也是官方 Agent 预设页所用的同一位置。导航行、弹窗与关闭入口均由外壳提供，因此本插件不注入任何全局 DOM、不监听侧边栏、不自行定位面板。
+看板是一等的主面板。`sidebar.panellist` 条目为它提供侧边栏按钮——该按钮本身、其无障碍名称与选中态都由侧边栏掌控，因此本插件只贡献一个 `currentColor` 图标；键控的 `main` 条目在该面板 id 被选中时渲染看板。关闭看板会通过 `ctx.layout` 选中保留的 `conversation` 面板，因为面板选择权属于 layout 服务而非组件内部状态。本插件不注入任何全局 DOM、不监听侧边栏、不自行定位面板。
 
 ## 维度与历史
 
@@ -70,7 +70,7 @@
 
 ## 测试
 
-`tests/logic.spec.ts` 覆盖纯粹的周期与卡片选择逻辑；`tests/controller.spec.ts` 以假 Remote 驱动控制器；`tests/MemoBoard.spec.tsx` 在 jsdom 中渲染看板并覆盖全部交互功能，包括"添加 Issue / 关闭"的位置关系、每张卡片的操作、分析与导出操作，以及"任何请求都不得携带模型路由"这一回归；`tests/entry.spec.tsx` 以替代的客户端上下文执行真实浏览器端入口，因此 `settings.section` 注册、语言词典、样式销毁以及分区组件本身都在外壳真正触达的位置得到覆盖。
+`tests/logic.spec.ts` 覆盖纯粹的周期与卡片选择逻辑；`tests/controller.spec.ts` 以假 Remote 驱动控制器；`tests/MemoBoard.spec.tsx` 在 jsdom 中渲染看板并覆盖全部交互功能，包括"添加 Issue / 关闭"的位置关系、每张卡片的操作、分析与导出操作，以及"任何请求都不得携带模型路由"这一回归；`tests/entry.spec.tsx` 以替代的客户端上下文执行真实浏览器端入口，因此两个槽位注册、侧边栏图标、关闭时的面板切换、语言词典、样式销毁以及面板组件本身都在外壳真正触达的位置得到覆盖。
 
 ## 已知限制
 

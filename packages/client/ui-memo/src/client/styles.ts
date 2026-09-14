@@ -18,7 +18,8 @@ export const CSS_TEXT = `
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 4px 0 24px;
+  /* A main panel: it owns its own insets now that no settings modal wraps it. */
+  padding: 16px 20px 24px;
   color: var(--dsw-alias-text-1);
   font-size: 13px;
 }

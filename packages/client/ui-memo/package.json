@@ -1,6 +1,6 @@
 {
   "name": "dsh-client-ui-memo",
-  "description": "Memo settings section for DeepSeek Harness: a four-dimension (week/month/quarter/year) card board over the memo Host Remote, with AI analysis, report export, and GitHub issue generation",
+  "description": "Memo panel for DeepSeek Harness: a sidebar entry and main panel with a four-dimension (week/month/quarter/year) card board over the memo Host Remote, with AI analysis, report export, and GitHub issue generation",
   "version": "0.1.0",
   "type": "module",
   "main": "lib/index.js",
@@ -26,6 +26,7 @@
         "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-connection",
         "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout",
         "@deepseek-ai/dsh-client-ui-theme"
       ],
       "platform": "web"
@@ -49,6 +50,7 @@
     "@deepseek-ai/dsh-client-connection": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-runtime": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-layout": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-ui-theme": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-invariants": "^0.1.5-rc.1",
     "dsh-github-issue": "workspace:^",
@@ -61,6 +63,7 @@
     "@deepseek-ai/dsh-client-connection": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-runtime": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-layout": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-client-ui-theme": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-invariants": "^0.1.5-rc.1",
     "@testing-library/react": "^16.3.2",

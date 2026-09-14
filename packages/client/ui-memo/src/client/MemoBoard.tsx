@@ -1,15 +1,15 @@
 /**
- * Memo board: the `settings.section` page that owns the whole memo surface.
+ * Memo board: the `main` panel that owns the whole memo surface.
  *
  * Layout follows the official Agent preset section: a fixed-width card grid
  * (`minmax(268px, 1fr)` with `grid-auto-rows: 1fr`, so every card in a row is
  * the same height), a dashed full-width creator affordance, and icon-only card
  * actions revealed with `data-tip` tooltips.
  *
- * The board is a section page rather than a floating panel, so it inherits
- * the settings shell's navigation, close affordance, and theming. All color
- * comes from `--dsw-alias-*` tokens, which follow the active theme without any
- * JavaScript.
+ * The board is a main panel selected by its sidebar entry, so it owns its own
+ * header and insets while panel selection stays with the layout service. All
+ * color comes from `--dsw-alias-*` tokens, which follow the active theme
+ * without any JavaScript.
  *
  * @module dsh-client-ui-memo/client/MemoBoard
  */
