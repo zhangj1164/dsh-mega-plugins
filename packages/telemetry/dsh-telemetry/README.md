@@ -11,6 +11,32 @@ Local-only in-process telemetry tracker for DeepSeek Harness. Records operation 
 | Config | Default | Meaning |
 |---|---|---|
 | `maxEventsPerQuery` | `500` | Maximum events returned by one `listEvents` call. |
+| `redact` | `true` | Whether to redact sensitive text before an event is stored. |
+| `redactionMarker` | `[redacted:{rule}]` | Replacement written in place of every match; `{rule}` becomes the matching rule's name. |
+| `redactionRules` | the five families below | The rule set: `{ name, pattern, flags? }`, applied in order. |
+
+## Write-time redaction
+
+The fields that carry the most diagnostic value — `error.message`, `error.stack`, and free-form `metadata` — are exactly the ones that pick up absolute paths, addresses, and credentials on the way through. Those records are also what the log-analysis feature reads and pastes into a GitHub issue, so a secret captured here leaves the machine on the next report.
+
+Redaction therefore happens **before the write**, in `src/redaction.ts`, and is irreversible. Rules are applied in order, so a more specific pattern runs ahead of a generic one and supplies the more informative marker: a token is also long and base64-shaped, and gets labelled `credential` because that rule runs first.
+
+| Rule | Catches |
+|---|---|
+| `email` | `jane.doe+work@example.co.uk` |
+| `credential` | `Bearer …` / `Basic …`, prefixed keys (`sk-`, `ghp_`, `github_pat_`, `xox…`), and `api_key=` / `password:` / `secret=` assignments |
+| `home-path` | `/Users/…`, `/home/…`, `/root/…`, `/var/…`, `/tmp/…`, `/opt/…`, `/mnt/…`, `/etc/…`, and `C:\Users\…` |
+| `windows-path` | any other absolute Windows path |
+| `ipv4` / `ipv6` | literal addresses |
+| `hex` / `base64` | long blobs (32+ hex characters, 40+ base64 characters) |
+
+Two deliberate limits on how far the default rules reach. A bare path segment such as `/api` is **not** touched: a rule set that also chews up the channel and endpoint names it will be asked to explain is a rule set nobody can debug with. And a home path stops at a colon, so a stack frame's `path:line:column` keeps its position — the position is the part that makes the path worth logging.
+
+Only strings are rewritten. Non-string leaves keep their value and their type, so redaction removes secrets rather than reshaping the log. Values that are neither plain data nor strings are stringified rather than passed through unexamined. `metadata` absent stays absent instead of becoming `{}`, because the durable schema treats those differently.
+
+**What is not redacted:** `pluginId`, `action`, `category`, `result`, `sessionId`, `error.code`, and `error.featureCodeRef`. These are the plugin's own grouping keys; redacting them would protect nothing the plugin did not already choose to publish while destroying the grouping that makes the log analyzable. A deployment that needs one of them covered can add a rule.
+
+**Rules are configuration, not a constant.** The balance between "keeps secrets out" and "keeps enough to debug" is deployment-specific, and an over-broad rule loses triage information permanently — which is why the rule set is a `Config` field and why only new records are affected. A rule whose pattern fails to compile is dropped rather than thrown: a typo in configuration must not stop the host recording anything at all.
 
 ## Service methods
 
