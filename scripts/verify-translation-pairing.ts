@@ -128,7 +128,11 @@ const META_LINE = /^([^:#]+\.md): ([0-9a-f]{40})$/
 
 function parsePairingRecord(content: string, paths: PairPaths): PairingRecord | undefined {
   const hashes = new Map<string, string>()
-  for (const line of content.split('\n')) {
+  for (const raw of content.split('\n')) {
+    // A Windows checkout materializes this file with CRLF, which the `$`
+    // anchor below would otherwise never match. Trim the terminator so the
+    // record parses identically on every platform.
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw
     if (line === '' || line.startsWith('#')) continue
     const match = META_LINE.exec(line)
     if (!match?.[1] || !match[2] || hashes.has(match[1])) return undefined
