@@ -1,0 +1,491 @@
+/**
+ * Memo board: the `settings.section` page that owns the whole memo surface.
+ *
+ * Layout follows the official Agent preset section: a fixed-width card grid
+ * (`minmax(268px, 1fr)` with `grid-auto-rows: 1fr`, so every card in a row is
+ * the same height), a dashed full-width creator affordance, and icon-only card
+ * actions revealed with `data-tip` tooltips.
+ *
+ * The board is a section page rather than a floating panel, so it inherits
+ * the settings shell's navigation, close affordance, and theming. All color
+ * comes from `--dsw-alias-*` tokens, which follow the active theme without any
+ * JavaScript.
+ *
+ * @module dsh-client-ui-memo/client/MemoBoard
+ */
+
+import * as React from 'react'
+import type { MemoAnalysisType } from 'dsh-memo/client'
+import type { MemoController, MemoViewState } from './controller.ts'
+import { PERIODS, periodDisplay, type MemoCard } from './logic.ts'
+import type { MemoKey } from './locales.ts'
+
+/** Translate function for this plugin's dictionary. */
+export type Translate = (key: MemoKey) => string
+
+/** Props the board receives from its slot registration. */
+export interface MemoBoardProps {
+  /** The memo controller. */
+  readonly controller: MemoController
+  /** Translate function bound to this plugin's namespace. */
+  readonly t: Translate
+  /** Close the settings panel (owned by the shell). */
+  readonly close: () => void
+  /** Open a URL in a new tab. */
+  readonly openUrl: (url: string) => void
+  /** Repository that receives issues created from this board. */
+  readonly repoUrl: string
+}
+
+/** The three analysis modes, in display order. */
+const ANALYSIS_TYPES: readonly { type: MemoAnalysisType; key: MemoKey }[] = [
+  { type: '梳理', key: 'organize' },
+  { type: '总结', key: 'summarize' },
+  { type: '分析', key: 'analyzeLabel' },
+]
+
+/** Icon paths, sized for a 16px viewBox and stroked with `currentColor`. */
+const ICON = {
+  addIssue: 'M8 2.5v11M2.5 8h11',
+  close: 'M3.5 3.5l9 9M12.5 3.5l-9 9',
+  view: 'M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8s-2.5 4.5-6.5 4.5S1.5 8 1.5 8z M8 6.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z',
+  edit: 'M11.2 2.3l2.5 2.5-8 8-3 .5.5-3z',
+  copy: 'M5.5 5.5V2.5h8v8h-3M2.5 5.5h8v8h-8z',
+  trash: 'M2.5 4.5h11M6 4.5V2.5h4v2M4 4.5l.7 9h6.6l.7-9M6.5 7v4M9.5 7v4',
+} as const
+
+/** One inline icon. */
+function Icon({ path, size = 16 }: { path: string; size?: number }): React.ReactElement {
+  return React.createElement('svg', {
+    viewBox: '0 0 16 16', width: size, height: size, fill: 'none',
+    stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round', strokeLinejoin: 'round',
+    'aria-hidden': 'true', focusable: 'false',
+  }, React.createElement('path', { d: path }))
+}
+
+/**
+ * The memo settings page.
+ * @param props - controller, translator, and shell affordances.
+ * @returns the board element.
+ */
+export function MemoBoard({ controller, t, close, openUrl, repoUrl }: MemoBoardProps): React.ReactElement {
+  const view = useView(controller)
+  const [draft, setDraft] = React.useState('')
+  const [analysisType, setAnalysisType] = React.useState<MemoAnalysisType>('梳理')
+  const [openCard, setOpenCard] = React.useState<MemoCard | null>(null)
+  const [editing, setEditing] = React.useState<{ card: MemoCard; text: string } | null>(null)
+  const [pendingDelete, setPendingDelete] = React.useState<MemoCard | null>(null)
+  const [showIssueEditor, setShowIssueEditor] = React.useState(false)
+  const [issueText, setIssueText] = React.useState('')
+  const [copied, setCopied] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (view.status === 'cold') void controller.refresh()
+  }, [view.status, controller])
+
+  const submitDraft = async (): Promise<void> => {
+    if (await controller.addCard(draft)) setDraft('')
+  }
+
+  const submitEdit = async (): Promise<void> => {
+    if (editing === null) return
+    if (await controller.updateCard(editing.card, editing.text)) setEditing(null)
+  }
+
+  const copyCard = async (card: MemoCard): Promise<void> => {
+    if (await controller.duplicateCard(card, t('copySuffix'))) {
+      setCopied(card.id)
+      // Confirmation is transient: the clipboard is a convenience, the
+      // duplicate in the grid is the real feedback.
+      setTimeout(() => setCopied(current => (current === card.id ? null : current)), 2000)
+    }
+  }
+
+  const openIssue = (): void => {
+    const report = view.issueReport
+    if (report === null) return
+    const params = new URLSearchParams()
+    params.set('title', report.title)
+    params.set('body', report.body)
+    if (report.labels.length > 0) params.set('labels', report.labels.join(','))
+    openUrl(`${repoUrl.replace(/\/+$/u, '')}/issues/new?${params.toString()}`)
+  }
+
+  return React.createElement('section', { className: 'dsh-memo', 'aria-label': t('panelTitle') },
+    // ── Board header: title, Add Issue, close ──
+    React.createElement('header', { className: 'dsh-memo-head' },
+      React.createElement('h2', { className: 'dsh-memo-title' }, t('panelTitle')),
+      React.createElement('div', { className: 'dsh-memo-headActions' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-iconBtn',
+          'data-tip': t('addIssue'),
+          'aria-label': t('addIssue'),
+          disabled: view.busy,
+          onClick: () => setShowIssueEditor(open => !open),
+        }, React.createElement(Icon, { path: ICON.addIssue })),
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-iconBtn',
+          'data-tip': t('close'),
+          'aria-label': t('close'),
+          onClick: close,
+        }, React.createElement(Icon, { path: ICON.close })),
+      ),
+    ),
+
+    view.error !== null
+      ? React.createElement('div', { className: 'dsh-memo-error', role: 'alert' },
+          React.createElement('span', null, view.error),
+          React.createElement('button', {
+            type: 'button', className: 'dsh-memo-linkBtn', onClick: () => controller.clearError(),
+          }, t('dismiss')))
+      : null,
+
+    // ── Dimension switch (周/月/季/年) ──
+    React.createElement('nav', { className: 'dsh-memo-dims', role: 'tablist', 'aria-label': t('period') },
+      ...PERIODS.map(period => React.createElement('button', {
+        key: period,
+        type: 'button',
+        role: 'tab',
+        'aria-selected': view.selection.period === period,
+        className: 'dsh-memo-dim',
+        'data-active': view.selection.period === period ? '' : undefined,
+        disabled: view.busy,
+        onClick: () => void controller.selectPeriod(period),
+      }, t(periodKey(period)))),
+    ),
+
+    // ── History chips of the active dimension ──
+    view.periods.length > 0
+      ? React.createElement('div', { className: 'dsh-memo-history', role: 'tablist', 'aria-label': t('history') },
+          ...view.periods.map(entry => React.createElement('button', {
+            key: entry.label,
+            type: 'button',
+            role: 'tab',
+            'aria-selected': entry.label === view.selection.label,
+            className: 'dsh-memo-chip',
+            'data-active': entry.label === view.selection.label ? '' : undefined,
+            'data-current': entry.current ? '' : undefined,
+            onClick: () => void controller.selectLabel(entry.label),
+          }, periodDisplay(entry.period, entry.label))))
+      : null,
+
+    // ── Creator: the dashed full-width affordance from the preset grid ──
+    React.createElement('div', { className: 'dsh-memo-composer' },
+      React.createElement('textarea', {
+        className: 'dsh-memo-input',
+        value: draft,
+        placeholder: t('addPlaceholder'),
+        'aria-label': t('addPlaceholder'),
+        disabled: view.busy,
+        rows: 2,
+        onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => setDraft(event.target.value),
+      }),
+      React.createElement('button', {
+        type: 'button',
+        className: 'dsh-memo-creator',
+        disabled: view.busy || draft.trim().length === 0,
+        onClick: () => void submitDraft(),
+      }, React.createElement(Icon, { path: ICON.addIssue }), t('addEntry')),
+    ),
+
+    // ── Card grid ──
+    view.status === 'loading' && view.cards.length === 0
+      ? React.createElement('div', { className: 'dsh-memo-empty' }, t('loading'))
+      : view.cards.length === 0
+        ? React.createElement('div', { className: 'dsh-memo-empty' },
+            view.totalCards === 0 ? t('noEntries') : t('noCardsInPeriod'))
+        : React.createElement('div', { className: 'dsh-memo-grid' },
+            ...view.cards.map(card => React.createElement(CardTile, {
+              key: card.id,
+              card,
+              t,
+              copied: copied === card.id,
+              disabled: view.busy,
+              onOpen: () => setOpenCard(card),
+              onEdit: () => setEditing({ card, text: card.content }),
+              onCopy: () => void copyCard(card),
+              onDelete: () => setPendingDelete(card),
+            }))),
+
+    // ── Analysis ──
+    React.createElement('div', { className: 'dsh-memo-tools' },
+      React.createElement('div', { className: 'dsh-memo-analysisTypes', role: 'group', 'aria-label': t('analyze') },
+        ...ANALYSIS_TYPES.map(entry => React.createElement('button', {
+          key: entry.type,
+          type: 'button',
+          className: 'dsh-memo-chip',
+          'data-active': analysisType === entry.type ? '' : undefined,
+          disabled: view.busy,
+          onClick: () => setAnalysisType(entry.type),
+        }, t(entry.key)))),
+      React.createElement('div', { className: 'dsh-memo-actions' },
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
+          onClick: () => void controller.analyze(analysisType),
+        }, t('analyze')),
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
+          onClick: () => void controller.exportReport(),
+        }, t('exportReport')),
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
+          onClick: () => void controller.analyzeLogs(),
+        }, t('analyzeLogs')),
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
+          onClick: () => void controller.refresh(),
+        }, t('refresh')),
+      ),
+    ),
+
+    view.analysis !== null
+      ? React.createElement('section', { className: 'dsh-memo-result' },
+          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('analysisResult')),
+          React.createElement('pre', { className: 'dsh-memo-pre' }, view.analysis))
+      : null,
+
+    view.report !== null
+      ? React.createElement('section', { className: 'dsh-memo-result' },
+          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('reportResult')),
+          React.createElement('pre', { className: 'dsh-memo-pre' }, view.report))
+      : null,
+
+    view.logAnalysis !== null
+      ? React.createElement('section', { className: 'dsh-memo-result' },
+          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('logAnalysisTitle')),
+          React.createElement('pre', { className: 'dsh-memo-pre' }, view.logAnalysis.report.body),
+          React.createElement('button', {
+            type: 'button', className: 'dsh-memo-btn',
+            onClick: () => openUrl(view.logAnalysis!.issueUrl),
+          }, t('openPrefilledIssue')))
+      : null,
+
+    // ── Issue editor ──
+    showIssueEditor
+      ? React.createElement('section', { className: 'dsh-memo-result' },
+          React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('issueEditorTitle')),
+          React.createElement('textarea', {
+            className: 'dsh-memo-input',
+            value: issueText,
+            placeholder: t('issuePlaceholder'),
+            'aria-label': t('issuePlaceholder'),
+            disabled: view.busy,
+            rows: 3,
+            onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => setIssueText(event.target.value),
+          }),
+          React.createElement('div', { className: 'dsh-memo-actions' },
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-btn', disabled: view.busy || issueText.trim().length === 0,
+              onClick: () => void controller.optimizeIssue(issueText),
+            }, t('optimizeIssue')),
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-btn', disabled: view.busy || view.issueReport === null,
+              onClick: openIssue,
+            }, t('openGithub')),
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-btn',
+              onClick: () => { setIssueText(''); setShowIssueEditor(false) },
+            }, t('clearIssue')),
+          ),
+          view.issueReport !== null
+            ? React.createElement('pre', { className: 'dsh-memo-pre' },
+                `${view.issueReport.title}\n\n${view.issueReport.body}`)
+            : null)
+      : null,
+
+    // ── Detail modal ──
+    openCard !== null
+      ? React.createElement(DetailDialog, {
+          card: openCard,
+          t,
+          onClose: () => setOpenCard(null),
+          onEdit: () => { setEditing({ card: openCard, text: openCard.content }); setOpenCard(null) },
+        })
+      : null,
+
+    // ── Edit dialog ──
+    editing !== null
+      ? React.createElement(EditDialog, {
+          text: editing.text,
+          busy: view.busy,
+          t,
+          onChange: text => setEditing({ card: editing.card, text }),
+          onCancel: () => setEditing(null),
+          onConfirm: () => void submitEdit(),
+        })
+      : null,
+
+    // ── Delete confirmation ──
+    pendingDelete !== null
+      ? React.createElement(ConfirmDialog, {
+          message: t('confirmDeleteText'),
+          confirmLabel: t('deleteEntry'),
+          cancelLabel: t('cancel'),
+          busy: view.busy,
+          onCancel: () => setPendingDelete(null),
+          onConfirm: () => {
+            const target = pendingDelete
+            setPendingDelete(null)
+            void controller.deleteCard(target)
+          },
+        })
+      : null,
+  )
+}
+
+/** One card in the grid. */
+function CardTile({ card, t, copied, disabled, onOpen, onEdit, onCopy, onDelete }: {
+  card: MemoCard
+  t: Translate
+  copied: boolean
+  disabled: boolean
+  onOpen: () => void
+  onEdit: () => void
+  onCopy: () => void
+  onDelete: () => void
+}): React.ReactElement {
+  return React.createElement('article', { className: 'dsh-memo-card' },
+    React.createElement('div', { className: 'dsh-memo-cardMain' },
+      React.createElement('button', {
+        type: 'button',
+        className: 'dsh-memo-cardBody',
+        onClick: onOpen,
+        'aria-label': t('viewCard'),
+      }, React.createElement('span', { className: 'dsh-memo-cardText' }, card.content)),
+      React.createElement('div', { className: 'dsh-memo-cardMeta' },
+        React.createElement('span', { className: 'dsh-memo-cardWeek' }, periodDisplay('week', card.weekId)),
+        React.createElement('time', { className: 'dsh-memo-cardTime', dateTime: new Date(card.createdAt).toISOString() },
+          new Date(card.createdAt).toLocaleString())),
+    ),
+    React.createElement('div', { className: 'dsh-memo-cardFoot' },
+      React.createElement(CardAction, { tip: t('viewCard'), path: ICON.view, onClick: onOpen, disabled }),
+      React.createElement(CardAction, { tip: t('editEntry'), path: ICON.edit, onClick: onEdit, disabled }),
+      React.createElement(CardAction, {
+        tip: copied ? t('copied') : t('duplicateEntry'),
+        path: ICON.copy,
+        onClick: onCopy,
+        disabled,
+      }),
+      React.createElement(CardAction, { tip: t('deleteEntry'), path: ICON.trash, onClick: onDelete, disabled, danger: true }),
+    ),
+  )
+}
+
+/** One icon-only card action with a tooltip. */
+function CardAction({ tip, path, onClick, disabled, danger = false }: {
+  tip: string
+  path: string
+  onClick: () => void
+  disabled: boolean
+  danger?: boolean
+}): React.ReactElement {
+  return React.createElement('button', {
+    type: 'button',
+    className: danger ? 'dsh-memo-iconBtn dsh-memo-iconBtn--danger' : 'dsh-memo-iconBtn',
+    'data-tip': tip,
+    'aria-label': tip,
+    disabled,
+    onClick,
+  }, React.createElement(Icon, { path }))
+}
+
+/** Read-only detail view of one card. */
+function DetailDialog({ card, t, onClose, onEdit }: {
+  card: MemoCard
+  t: Translate
+  onClose: () => void
+  onEdit: () => void
+}): React.ReactElement {
+  return React.createElement('div', { className: 'dsh-memo-overlay', role: 'presentation', onClick: onClose },
+    React.createElement('div', {
+      className: 'dsh-memo-dialog',
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-label': t('viewCard'),
+      onClick: (event: React.MouseEvent) => event.stopPropagation(),
+    },
+      React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('viewCard')),
+      React.createElement('div', { className: 'dsh-memo-cardMeta' },
+        React.createElement('span', { className: 'dsh-memo-cardWeek' }, periodDisplay('week', card.weekId)),
+        React.createElement('time', { dateTime: new Date(card.createdAt).toISOString() },
+          new Date(card.createdAt).toLocaleString())),
+      React.createElement('pre', { className: 'dsh-memo-pre' }, card.content),
+      React.createElement('div', { className: 'dsh-memo-actions' },
+        React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onEdit }, t('editEntry')),
+        React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onClose }, t('close'))),
+    ))
+}
+
+/** Edit dialog for one card. */
+function EditDialog({ text, busy, t, onChange, onCancel, onConfirm }: {
+  text: string
+  busy: boolean
+  t: Translate
+  onChange: (text: string) => void
+  onCancel: () => void
+  onConfirm: () => void
+}): React.ReactElement {
+  return React.createElement('div', { className: 'dsh-memo-overlay', role: 'presentation' },
+    React.createElement('div', {
+      className: 'dsh-memo-dialog', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('editEntry'),
+    },
+      React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('editEntry')),
+      React.createElement('textarea', {
+        className: 'dsh-memo-input',
+        value: text,
+        'aria-label': t('editEntry'),
+        disabled: busy,
+        rows: 5,
+        autoFocus: true,
+        onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => onChange(event.target.value),
+      }),
+      React.createElement('p', { className: 'dsh-memo-hint' }, t('forceConfirmText')),
+      React.createElement('div', { className: 'dsh-memo-actions' },
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn', disabled: busy || text.trim().length === 0, onClick: onConfirm,
+        }, t('confirm')),
+        React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onCancel }, t('cancel'))),
+    ))
+}
+
+/** Generic confirmation dialog. */
+function ConfirmDialog({ message, confirmLabel, cancelLabel, busy, onCancel, onConfirm }: {
+  message: string
+  confirmLabel: string
+  cancelLabel: string
+  busy: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}): React.ReactElement {
+  return React.createElement('div', { className: 'dsh-memo-overlay', role: 'presentation' },
+    React.createElement('div', {
+      className: 'dsh-memo-dialog', role: 'alertdialog', 'aria-modal': 'true', 'aria-label': confirmLabel,
+    },
+      React.createElement('p', { className: 'dsh-memo-hint' }, message),
+      React.createElement('div', { className: 'dsh-memo-actions' },
+        React.createElement('button', {
+          type: 'button', className: 'dsh-memo-btn dsh-memo-btn--danger', disabled: busy, onClick: onConfirm,
+        }, confirmLabel),
+        React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onCancel }, cancelLabel)),
+    ))
+}
+
+/** Map a dimension to its locale key. */
+function periodKey(period: string): MemoKey {
+  if (period === 'week') return 'periodWeek'
+  if (period === 'month') return 'periodMonth'
+  if (period === 'quarter') return 'periodQuarter'
+  return 'periodYear'
+}
+
+/** Subscribe a component to the controller. */
+function useView(controller: MemoController): MemoViewState {
+  const [state, setState] = React.useState<MemoViewState>(controller.getSnapshot)
+  React.useEffect(() => {
+    setState(controller.getSnapshot())
+    return controller.subscribe(() => setState(controller.getSnapshot()))
+  }, [controller])
+  return state
+}

@@ -20,10 +20,18 @@ import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
-import type { StreamChunk, GenerateOptions } from '@deepseek-ai/dsh-llm'
-import { createUserMessage, type Message } from '@deepseek-ai/dsh-llm'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
 import type { TelemetryFailureGroup } from 'dsh-telemetry/types'
+import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
+import {
+  isoWeekParts,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
 import { memoDomainSpec } from './spec.ts'
 import type { MemoWeekRow } from './spec.ts'
 import type {
@@ -47,6 +55,8 @@ import type {
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
+  MemoListPeriodsRequest,
+  MemoListPeriodsResult,
   MemoMemoFailure,
   MemoReadExternalPathRequest,
   MemoUpdateEntryRequest,
@@ -61,6 +71,19 @@ import type {
 export type * from './types.ts'
 export { memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema } from './spec.ts'
 export type { MemoWeekRow } from './spec.ts'
+export { streamLlmText } from './llm-text.ts'
+export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
+export {
+  isPeriodLabel,
+  isoWeekParts,
+  mondayOfWeekId,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
 
 /** Deployment configuration for the memo service. */
 export interface Config {
@@ -69,11 +92,24 @@ export interface Config {
    * sets this to the memo plugin's GitHub project address.
    */
   readonly repoUrl: string
+  /**
+   * The registered DSH provider route that AI analysis calls use. Leave it
+   * unset to follow this deployment's `agentDefaultModel` selection; set it
+   * to pin memo analysis to a specific route.
+   */
+  readonly provider?: string
+  /**
+   * The model id that AI analysis calls use. Leave it unset to follow this
+   * deployment's `agentDefaultModel` selection.
+   */
+  readonly model?: string
 }
 
 /** Schemastery configuration for the memo service. */
 export const Config: s<Config> = s.object({
   repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
+  provider: s.string(),
+  model: s.string(),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -145,28 +181,19 @@ function appendToLedger(entry: MemoMemoryEntry): void {
 
 /**
  * Compute the ISO-8601 week id and range for a given date.
- * Monday is the start of the week; Sunday is the end.
+ * Monday is the start of the week; Sunday is the end. The week-year comes
+ * from the week's Thursday, so a week at a year boundary is labelled with the
+ * year that owns it rather than the calendar year of its Monday.
  * @param date - the reference date (defaults to now).
  * @returns the week id, start, and end timestamps.
  */
 function computeWeekBounds(date: Date = new Date()): { weekId: string; weekStart: number; weekEnd: number } {
-  const dayOfWeek = date.getDay() // 0=Sun, 1=Mon, ..., 6=Sat
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  const monday = new Date(date)
-  monday.setHours(0, 0, 0, 0)
-  monday.setDate(monday.getDate() + mondayOffset)
+  const monday = startOfIsoWeek(date)
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
   sunday.setHours(23, 59, 59, 999)
-  const year = monday.getFullYear()
-  const thursday = new Date(monday)
-  thursday.setDate(monday.getDate() + 3)
-  const firstThursday = new Date(thursday.getFullYear(), 0, 4)
-  const firstThursdayDay = firstThursday.getDay()
-  const firstMonday = new Date(firstThursday)
-  firstMonday.setDate(firstThursday.getDate() - (firstThursdayDay === 0 ? 6 : firstThursdayDay - 1))
-  const weekNumber = Math.floor((thursday.getTime() - firstMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
-  const weekId = `${String(year)}-W${String(weekNumber).padStart(2, '0')}`
+  const { weekYear, week } = isoWeekParts(date)
+  const weekId = `${String(weekYear)}-W${String(week).padStart(2, '0')}`
   return { weekId, weekStart: monday.getTime(), weekEnd: sunday.getTime() }
 }
 
@@ -194,6 +221,10 @@ export class MemoService extends TypertRemoteService {
   static Config = Config
 
   private readonly repoUrl: string
+  /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
+  private readonly provider?: string
+  /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
+  private readonly model?: string
   private table?: KvTable<string, MemoWeekRow>
 
   /**
@@ -203,6 +234,8 @@ export class MemoService extends TypertRemoteService {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'memo')
     this.repoUrl = config.repoUrl
+    this.provider = config.provider
+    this.model = config.model
   }
 
   /** Open and own the one memo domain. */
@@ -217,7 +250,7 @@ export class MemoService extends TypertRemoteService {
   /**
    * Get or create the current week's memo. If the current ISO week already
    * has a stored week, it is returned; otherwise a new empty week is created.
-   * @param request - provider/model route stored for later AI calls (unused).
+   * @param request - optional provider/model route override, unused by this call.
    * @returns the current week.
    */
   @Remote('getOrCreateCurrentWeek')
@@ -375,10 +408,55 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
+   * Resolve the model route for one AI call. The caller's explicit request
+   * wins, then this service's validated `Config`, then the deployment's
+   * `agentDefaultModel` selection — the single existing source of truth for
+   * "which model does this deployment use". Nothing is hardcoded, so a
+   * deployment can retarget memo analysis from `cordis.yml` alone.
+   * @param request - the caller's optional route override.
+   * @returns the provider and model to call, either of which may be empty.
+   */
+  private resolveRoute(request: { readonly provider?: string; readonly model?: string }): LlmRoute {
+    const configured = { provider: this.provider, model: this.model }
+    const fallback = this.ctx.get('agentDefaultModel')?.currentSelection()
+    return {
+      provider: request.provider ?? configured.provider ?? fallback?.provider ?? '',
+      model: request.model ?? configured.model ?? fallback?.model ?? '',
+    }
+  }
+
+  /**
+   * Turn one failed model call into this service's business failure, keeping
+   * the DSH machine-routing code and message so a misconfigured route is
+   * distinguishable from a genuinely empty model response.
+   * @param feature - the telemetry action name the failure is recorded under.
+   * @param route - the route that was attempted.
+   * @param failure - the preserved DSH failure facts.
+   * @returns the business failure to return to the caller.
+   */
+  private llmFailure(feature: string, route: LlmRoute, failure: LlmTextResult & { ok: false }): MemoMemoFailure {
+    const detail = failure.failure
+    const message = `model call to provider "${route.provider}" model "${route.model}" failed: ${detail.code}: ${detail.message}`
+    this.trackError(
+      feature,
+      { code: detail.code, message: detail.message, featureCodeRef: `memo:${feature}` },
+      { provider: route.provider, model: route.model, ...(detail.status === undefined ? {} : { status: detail.status }) },
+    )
+    return this.failure({
+      code: 'llm-failure',
+      failureCode: detail.code,
+      message,
+      provider: route.provider,
+      model: route.model,
+      ...(detail.status === undefined ? {} : { status: detail.status }),
+    })
+  }
+
+  /**
    * Analyze memo entries for a period using the configured model. The analysis
    * type controls the system prompt: 梳理 (organize), 总结 (summarize), 分析
    * (analyze).
-   * @param request - period, label, analysis type, and model route.
+   * @param request - period, label, analysis type, and optional model route.
    * @returns the analysis result.
    */
   @Remote('analyze')
@@ -388,20 +466,21 @@ export class MemoService extends TypertRemoteService {
     if (entries.length === 0) {
       return this.failure({ code: 'no-entries', message: `no memo entries found for ${request.periodLabel}` })
     }
+    const route = this.resolveRoute(request)
     const systemPrompt = ANALYSIS_PROMPTS[request.analysisType]
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
-    const body = await this.streamModelText(request.provider, request.model, systemPrompt, userText)
-    if (body === undefined) {
-      this.trackError('analyze', { code: 'LLM_FAILURE', message: 'model produced no output', featureCodeRef: 'memo:analyze' })
-      return this.failure({ code: 'llm-failure', message: 'the model produced no output' })
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, systemPrompt, userText)
+    if (!result.ok) {
+      return this.llmFailure('analyze', route, result)
     }
+    const body = result.text
     const analysis: MemoAnalysis = {
       period: request.period,
       periodLabel: request.periodLabel,
       summary: body,
       generatedAt: Date.now(),
-      modelProvider: request.provider,
-      modelName: request.model,
+      modelProvider: route.provider,
+      modelName: route.model,
     }
     this.track('analyze', 'success', { period: request.period, periodLabel: request.periodLabel, analysisType: request.analysisType })
     appendToLedger({
@@ -417,7 +496,7 @@ export class MemoService extends TypertRemoteService {
 
   /**
    * Export a work report for a period as Markdown.
-   * @param request - period, label, and model route.
+   * @param request - period, label, and optional model route.
    * @returns the Markdown report.
    */
   @Remote('exportReport')
@@ -427,14 +506,14 @@ export class MemoService extends TypertRemoteService {
     if (entries.length === 0) {
       return this.failure({ code: 'no-entries', message: `no memo entries found for ${request.periodLabel}` })
     }
+    const route = this.resolveRoute(request)
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
-    const body = await this.streamModelText(request.provider, request.model, REPORT_EXPORT_PROMPT, userText)
-    if (body === undefined) {
-      this.trackError('exportReport', { code: 'LLM_FAILURE', message: 'model produced no output', featureCodeRef: 'memo:exportReport' })
-      return this.failure({ code: 'llm-failure', message: 'the model produced no output' })
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, REPORT_EXPORT_PROMPT, userText)
+    if (!result.ok) {
+      return this.llmFailure('exportReport', route, result)
     }
     this.track('exportReport', 'success', { period: request.period, periodLabel: request.periodLabel })
-    return { ok: true, value: body }
+    return { ok: true, value: result.text }
   }
 
   /**
@@ -474,7 +553,7 @@ export class MemoService extends TypertRemoteService {
   async analyzeLogs(request: MemoAnalyzeLogsRequest): Promise<MemoAnalyzeLogsResult> {
     const telemetry = this.ctx.get('telemetry')
     if (telemetry === undefined) {
-      return this.failure({ code: 'llm-failure', message: 'the telemetry service is not available' })
+      return this.failure({ code: 'github-issue-failure', message: 'the telemetry service is not available' })
     }
     const githubIssue = this.ctx.get('githubIssue')
     if (githubIssue === undefined) {
@@ -482,6 +561,7 @@ export class MemoService extends TypertRemoteService {
     }
     const pluginId = request.pluginId ?? TELEMETRY_PLUGIN_ID
     const analysis = telemetry.analyzeForPlugin(pluginId)
+    const route = this.resolveRoute(request)
     const reportResult = await githubIssue.generateReport({
       pluginId,
       totalEvents: analysis.totalEvents,
@@ -492,8 +572,8 @@ export class MemoService extends TypertRemoteService {
         ...(g.latest.error?.code !== undefined ? { errorCode: g.latest.error.code } : {}),
         ...(g.latest.error?.message !== undefined ? { errorMessage: g.latest.error.message } : {}),
       })),
-      provider: request.provider,
-      model: request.model,
+      provider: route.provider,
+      model: route.model,
     })
     if (!reportResult.ok) {
       return this.failure({ code: 'github-issue-failure', message: reportResult.error.message })
@@ -541,29 +621,62 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Whether a week id matches a period label. Week periods match the full
-   * weekId; month/quarter/year periods match a prefix.
-   * @param weekId - the ISO week id.
-   * @param period - the period kind.
-   * @param periodLabel - the period label.
-   * @returns whether the week belongs to the period.
+   * List the memo timeline in one dimension, newest period first.
+   *
+   * This is the host-side source of truth for four-dimension navigation: the
+   * UI asks for `week`/`month`/`quarter`/`year` and receives the navigable
+   * periods **plus** the week ids each one contains, so the UI never has to
+   * re-implement calendar math that could disagree with storage.
+   *
+   * Periods that contain no stored week are still listed — an empty period is
+   * a valid place to add the first card, and omitting it would make the
+   * timeline skip months the user can see on a calendar.
+   *
+   * @param request - the dimension and how many periods to return.
+   * @returns the periods, newest first.
    */
-  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
-    if (period === 'week') return weekId === periodLabel
-    if (period === 'month') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'quarter') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'year') return weekId.startsWith(periodLabel)
-    return false
+  @Remote('listPeriods')
+  listPeriods(request: MemoListPeriodsRequest): MemoListPeriodsResult {
+    const table = this.requireTable()
+    const stored = new Set<string>()
+    for (const [weekId] of table.entries()) stored.add(weekId)
+
+    const limit = Math.max(1, Math.min(request.limit ?? 26, 400))
+    const now = new Date()
+    const currentLabel = periodLabelFor(request.period, now)
+    const periods: MemoPeriodEntry[] = []
+    for (let offset = 0; offset < limit; offset += 1) {
+      const label = shiftPeriod(request.period, currentLabel, -offset)
+      if (label === undefined) break
+      const weekIds = weekIdsInPeriod(request.period, label)
+      const range = periodBounds(request.period, label) ?? { start: 0, end: 0 }
+      periods.push(Object.freeze({
+        id: label,
+        label,
+        period: request.period,
+        start: range.start,
+        end: range.end,
+        current: label === currentLabel,
+        weekCount: weekIds.filter(weekId => stored.has(weekId)).length,
+        weekIds: Object.freeze(weekIds),
+      }))
+    }
+    this.track('listPeriods', 'success', { period: request.period, limit })
+    return { ok: true, value: Object.freeze(periods) }
   }
 
   /**
-   * Stream one model call and collect the text output.
-   * @param provider - registered provider route.
-   * @param model - model id.
-   * @param system - system prompt text.
-   * @param userText - user message text.
-   * @returns the concatenated text, or `undefined` on empty or errored output.
+   * Whether a week id is attributed to a period label.
+   * @param weekId - the ISO week id.
+   * @param period - the period kind.
+   * @param periodLabel - the period label.
+   * @returns whether the week's Monday falls inside the period.
    */
+  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
+    if (period !== 'week' && period !== 'month' && period !== 'quarter' && period !== 'year') return false
+    return weekIdBelongsToPeriod(weekId, period, periodLabel)
+  }
+
   /**
    * List long-term memory entries (persisted AI analyses from the JSON ledger).
    * This is the "long-term memory" feature: every successful `analyze` call
@@ -589,30 +702,6 @@ export class MemoService extends TypertRemoteService {
     }
   }
 
-  private async streamModelText(provider: string, model: string, system: string, userText: string): Promise<string | undefined> {
-    const llm = this.ctx.get('llm')
-    if (llm === undefined) return undefined
-    const message = createUserMessage({
-      content: [{ type: 'text', text: userText }],
-      source: { kind: 'user' },
-    })
-    const options: GenerateOptions = {
-      provider,
-      model,
-      messages: [message as Message],
-      system,
-    }
-    let text = ''
-    for await (const chunk of llm.stream(options) as AsyncIterable<StreamChunk>) {
-      if (chunk.type === 'text-delta') {
-        text += chunk.text
-      } else if (chunk.type === 'finish' && (chunk.reason.kind === 'error' || chunk.reason.kind === 'aborted')) {
-        return undefined
-      }
-    }
-    return text.length > 0 ? text : undefined
-  }
-
   /** Track one telemetry event for this plugin. */
   private track(action: string, result: 'success' | 'failure', metadata?: Record<string, unknown>): void {
     const input: { pluginId: string; action: string; result: 'success' | 'failure'; metadata?: Record<string, unknown> } = {
@@ -622,9 +711,23 @@ export class MemoService extends TypertRemoteService {
     this.ctx.get('telemetry')?.track(input)
   }
 
-  /** Track one telemetry error event for this plugin. */
-  private trackError(action: string, error: { code: string; message: string; featureCodeRef?: string }): void {
-    this.ctx.get('telemetry')?.trackError({ pluginId: TELEMETRY_PLUGIN_ID, action, error })
+  /**
+   * Track one telemetry failure for this plugin.
+   * @param action - the feature that failed.
+   * @param error - the failure code, message, and optional feature anchor.
+   * @param metadata - extra structured context, such as the attempted route.
+   */
+  private trackError(
+    action: string,
+    error: { code: string; message: string; featureCodeRef?: string },
+    metadata?: Record<string, unknown>,
+  ): void {
+    this.ctx.get('telemetry')?.trackError({
+      pluginId: TELEMETRY_PLUGIN_ID,
+      action,
+      error,
+      ...(metadata === undefined ? {} : { metadata }),
+    })
   }
 
   /** Build a frozen failure result from code and message. */

@@ -2,53 +2,75 @@
 
 [English](README.md) | 中文
 
-备忘面板的浏览器端 UI 插件，由 memo Host Remote 提供按周组织的个人备忘服务，支持 AI 分析、报告导出、日志分析和 Issue 创建。
+备忘面板的浏览器端 UI 插件：以 memo Host Remote 为后端的四维度（周 / 月 / 季度 / 年）卡片看板，支持 AI 分析、报告导出、日志分析和 Issue 创建。
 
 ## 插件
 
-纯 UI 界面插件：主机端 `apply` 为空，仅使插件出现在主机 cordis.yml / Loader 中；浏览器端通过 `exports["./client"]` 交付，由 package.json 的 `dsh.client` 声明发现。
+纯 UI 界面插件：主机端 `apply` 为空，仅使插件出现在主机 `cordis.yml` / Loader 中；浏览器端通过 `exports["./client"]` 交付，由 `package.json` 的 `dsh.client` 声明发现。
 
-## 跨包引用（补充 1）
+看板以 `settings.section` 条目注册——这是 DSH 为"每个列表项一个设置页"提供的扩展点，也是官方 Agent 预设页所用的同一位置。导航行、弹窗与关闭入口均由外壳提供，因此本插件不注入任何全局 DOM、不监听侧边栏、不自行定位面板。
 
-该 UI 插件声明了**两个**工作区依赖——回答补充 1 的问题：
+## 维度与历史
 
-- **dsh-memo**（`workspace:^`）— memo Host Remote 服务。控制器通过 RPC 通道调用 `memo/getOrCreateCurrentWeek`、`memo/addEntry`、`memo/updateEntry`、`memo/deleteEntry`、`memo/analyze`、`memo/exportReport` 和 `memo/analyzeLogs`。
-- **dsh-github-issue**（`workspace:^`）— GitHub-issue Host Remote 服务。控制器**直接**调用 `githubIssue/optimizeIssue`（不经过 memo）来实现"添加 Issue"编辑器功能（需求 11）。这就是补充 1 所问的跨包引用：UI 包可以引用任何 Host Remote 服务，而不仅限于最初构建时关联的服务。
+看板提供四个维度，每个维度各自维护历史，切换维度时历史列表随之切换：
 
-`dsh-telemetry` 服务**不**从 UI 直接引用——它仅为主机端服务。UI 通过 `memo/analyzeLogs` 间接读取遥测数据，该方法内部调用 `telemetry.analyzeForPlugin()` 并将结果返回给客户端。
+| 维度 | 周期标签 | 历史条目 |
+|---|---|---|
+| 周 | `2026-W37` | 最近 24 个 ISO 周 |
+| 月 | `2026-09` | 最近 24 个月 |
+| 季度 | `2026-Q3` | 最近 24 个季度 |
+| 年 | `2026` | 最近 24 年 |
+
+历史列表由主机提供（`memo/listPeriods`），而不是在浏览器端重新计算，因此主机用于分析的周期边界与看板展示的边界不会出现偏差。
+
+**周期归属规则。** 一周归属于包含其**周四**的周期（ISO 8601 规则）。因此月与季度都恰好把一年的周切分一次，既不遗漏也不重叠；跨月边界的那一周只归属于一个周期而不是两个。一周可容纳任意数量的卡片，卡片归属其所在周对应的周期，因此同一张卡片可以在多个维度下出现，而在存储中仍是一条记录。
 
 ## 控制器方法
 
 | 方法 | 服务 | 行为 |
 |---|---|---|
-| `refresh()` | memo | 通过 `listWeeks` 加载周列表，最新优先。 |
-| `addEntry(content)` | memo | 调用 `getOrCreateCurrentWeek` 然后 `addEntry`，类型为 `text`。 |
-| `updateEntry(weekId, entryId, content, force)` | memo | 更新条目；历史周需要 `force=true`（需求 3）。 |
-| `deleteEntry(weekId, entryId, force)` | memo | 删除条目；历史周需要 `force=true`（需求 3）。 |
-| `selectWeek(index)` | — | 从历史列表中选择一周（需求 3）。 |
-| `analyze(type, period)` | memo | 对一个周期内的条目运行 AI 分析（梳理/总结/分析）（需求 4）。 |
-| `exportReport(period)` | memo | 导出 Markdown 报告并触发 `.md` 下载（需求 6）。 |
-| `optimizeIssue(description)` | githubIssue | 将自然语言问题描述优化为结构化报告（需求 11）。 |
-| `analyzeLogs()` | memo | 读取遥测失败记录并生成带预填 URL 的 GitHub issue 报告（需求 8、9）。 |
-| `openUrl(url)` | — | 在新标签页中打开 URL（需求 9：预填 issue 页）。 |
+| `refresh(period?)` | memo | 加载周列表与周期时间线，再据此推导所选周期的卡片。 |
+| `selectPeriod(period)` | memo | 切换维度并重新加载该维度的历史。 |
+| `selectLabel(label)` | — | 选中某个历史周期，将看板收窄到该周期。 |
+| `addCard(content)` | memo | 向所选周期的目标周添加一条文本记录。 |
+| `updateCard(card, content)` | memo | 更新卡片；非当前周期会置 `force` 标记。 |
+| `duplicateCard(card, suffix)` | memo | 将卡片复制到同一周，并为副本追加后缀。 |
+| `deleteCard(card)` | memo | 删除卡片。 |
+| `analyze(type)` | memo | 对所选周期运行 AI 分析（梳理 / 总结 / 分析）。 |
+| `exportReport()` | memo | 为所选周期导出 Markdown 报告。 |
+| `analyzeLogs()` | memo | 读取遥测失败记录并生成带预填 URL 的 GitHub issue 报告。 |
+| `optimizeIssue(description)` | githubIssue | 将自然语言描述优化为结构化报告。 |
+
+## 模型路由解析
+
+浏览器端从不选择模型。控制器**不**发送 `provider` 与 `model` 字段，因此路由由主机先从部署配置、再从会话默认值解析；若均未注册则返回精确的失败原因。携带硬编码 provider 名称的请求只可能在恰好注册了该名称的那一个部署上成功。
 
 ## UI 功能
 
-- **文本录入**，带添加按钮（需求 1）
-- **历史周选择器**，带历史周标记（需求 2、3）
-- **条目编辑/删除**，历史周需通过提权确认对话框（需求 3）
-- **周期选择器**（周/月/季度/年），用于分析和导出（需求 4）
-- **AI 分析**按钮：梳理、总结、分析（需求 4）
-- **报告导出**，自动下载 `.md` 文件（需求 6）
-- **日志分析**按钮：从遥测数据生成 GitHub issue 报告（需求 8）
-- **打开预填 Issue** 按钮：跳转到 GitHub 并预填报告（需求 9）
-- **添加 Issue 编辑器**：自然语言输入 + LLM 优化 + GitHub 打开（需求 11）
+- **四个维度页签**（周 / 月 / 季度 / 年），各自带历史标签，并标记当前周期
+- **卡片网格**，采用官方 Agent 预设风格：固定列宽、等高行、固定尺寸卡片
+- **卡片操作**：查看（只读详情弹窗）、编辑（编辑弹窗）、复制（复制到同一周期）、删除（确认弹窗）
+- **输入区**，带虚线通栏创建按钮，草稿为空时禁用
+- **AI 分析**，可切换类型（梳理 / 总结 / 分析），结果就地展示
+- **报告导出**，针对所选周期
+- **日志分析**与**打开预填 Issue** 操作
+- **Issue 编辑器**：自然语言输入、LLM 优化，并按配置的仓库打开 GitHub
+- **添加 Issue 与关闭**为看板头部仅图标按钮，关闭在最右侧，均带提示
+
+## 配置
+
+| 字段 | 默认值 | 用途 |
+|---|---|---|
+| `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | 接收看板创建 Issue 的仓库。 |
 
 ## Bundle 层
 
 该包包含在 `dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行。无需单独 bundle。
 
+## 测试
+
+`tests/logic.spec.ts` 覆盖纯粹的周期与卡片选择逻辑；`tests/controller.spec.ts` 以假 Remote 驱动控制器；`tests/MemoBoard.spec.tsx` 在 jsdom 中渲染看板并覆盖全部交互功能，包括"添加 Issue / 关闭"的位置关系、每张卡片的操作、分析与导出操作，以及"任何请求都不得携带模型路由"这一回归；`tests/entry.spec.tsx` 以替代的客户端上下文执行真实浏览器端入口，因此 `settings.section` 注册、语言词典、样式销毁以及分区组件本身都在外壳真正触达的位置得到覆盖。
+
 ## 已知限制
 
 - **仅文本录入** — 当前 UI 支持文本条目；图片和文件附件类型在后端已有定义，但尚未接入 UI。
-- **侧边栏 DOM 注入** — DSH 侧边栏未为外部插件提供插槽，因此侧边栏入口按钮通过 MutationObserver 注入。

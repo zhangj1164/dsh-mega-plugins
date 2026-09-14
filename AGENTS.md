@@ -37,6 +37,26 @@ pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
 node --test .github/issue-management/policy.test.mjs  # run issue policy tests (23 tests)
 ```
 
+## Mandatory workflow
+
+`main` is always releasable. Nothing reaches it except through a reviewed pull request, and every pull request starts from a branch cut off the latest `main`. This rule is not advisory: the agent or human doing the work follows it, and the reviewer enforces it.
+
+1. **Sync `main` first.** `git fetch origin && git switch main && git pull --ff-only origin main`. Never branch from a stale `main`, and never develop directly on `main`.
+2. **Cut a branch.** `<kind>/<short-slug>`, using the same kind as the change's label — for example `fix/memo-llm-failure-passthrough`, `feat/ui-memo-settings-section`, `docs/agents-workflow`. One branch carries one coherent change.
+3. **Do the work on the branch,** including tests and documentation. Commit in small, reviewable steps.
+4. **Run the whole gate suite locally** with `pnpm run gates` and get it green before opening the pull request. A red gate is never pushed for CI to discover.
+5. **For UI changes, verify in the running DSH Web** at `http://127.0.0.1:3080` after rebuilding the affected bundles. A passing unit test is necessary but not sufficient for a user-visible change.
+6. **Open a pull request** that references at least one issue, carries exactly one `kind/*` label and at least one `area/*` label, and states what was verified and how. The pull request template lists the required sections.
+7. **Merge only after the gates pass on the pull request.** Squash-merge into `main`, then delete the branch.
+
+### Every change starts from an issue
+
+Work that begins from a GitHub issue follows the same path as any other change: read the issue, then create the branch from `main`, implement, and open a pull request that closes the issue. An issue is a work item, not a licence to commit to `main` — the same branch → pull request → gates → merge sequence applies, with no exception for maintainers, for "small" changes, or for automation.
+
+### Do not let a gate guard its own fix
+
+The issue-policy workflow checks out `policy.mjs` from the default branch, so a fix to the policy itself cannot be validated on the pull request that introduces it. Land policy fixes on `main` first (through their own pull request), then re-run the blocked pull request. Do not weaken a gate to make it pass.
+
 ## Design principles
 
 - **一切皆插件（Everything is a plugin）**：贯彻 DSH 的核心理念。所有功能以 Cordis 插件形式交付——通过 `ctx.plugin()` 挂载，通过 `Service` / `TypertRemoteService` 暴露能力，通过 `inject` 声明依赖，通过 `ctx.get()` 读取可选服务。禁止在插件边界之外引入裸函数模块或全局单例。新增行为优先寻找 DSH 文档化的扩展点（Service、Event、Tool、Slot、Waterfall），而非修改现有插件内部逻辑。

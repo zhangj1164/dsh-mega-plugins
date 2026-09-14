@@ -70,10 +70,10 @@ export interface MemoWeek {
 
 /** Request to get or create the current week. */
 export interface MemoGetCurrentWeekRequest {
-  /** Provider route for AI operations (stored for later analysis calls). */
-  readonly provider: string
-  /** Model id for AI operations (stored for later analysis calls). */
-  readonly model: string
+  /** Provider route override, stored for later analysis calls; may be omitted. */
+  readonly provider?: string
+  /** Model id override, stored for later analysis calls; may be omitted. */
+  readonly model?: string
 }
 
 /** Result of getting or creating the current week. */
@@ -153,10 +153,10 @@ export interface MemoAnalyzeRequest {
   readonly periodLabel: string
   /** Analysis type: 梳理 (organize), 总结 (summarize), or 分析 (analyze). */
   readonly analysisType: MemoAnalysisType
-  /** Provider route for the model call. */
-  readonly provider: string
-  /** Model id for the model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of analysis. */
@@ -168,10 +168,10 @@ export type MemoAnalyzeResult =
 export interface MemoExportReportRequest {
   readonly period: MemoAnalysisPeriod
   readonly periodLabel: string
-  /** Provider route for the model call. */
-  readonly provider: string
-  /** Model id for the model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of exporting a report. */
@@ -183,10 +183,10 @@ export type MemoExportReportResult =
 export interface MemoReadExternalPathRequest {
   /** The external file path to read. */
   readonly path: string
-  /** Provider route (unused for the read itself, stored for analysis context). */
-  readonly provider: string
-  /** Model id (unused for the read itself, stored for analysis context). */
-  readonly model: string
+  /** Provider route override for later analysis context; may be omitted. */
+  readonly provider?: string
+  /** Model id override for later analysis context; may be omitted. */
+  readonly model?: string
 }
 
 /** Result of reading an external path. */
@@ -200,10 +200,10 @@ export interface MemoAnalyzeLogsRequest {
   readonly pluginId?: string
   /** GitHub repository URL for the prefill (defaults to the service config). */
   readonly repoUrl?: string
-  /** Provider route for the report generation model call. */
-  readonly provider: string
-  /** Model id for the report generation model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of log analysis. */
@@ -228,7 +228,18 @@ export type MemoMemoFailure =
   | { readonly code: 'entry-not-found'; readonly message: string; readonly entryId: string }
   | { readonly code: 'past-week-requires-force'; readonly message: string; readonly weekId: string }
   | { readonly code: 'no-entries'; readonly message: string }
-  | { readonly code: 'llm-failure'; readonly message: string }
+  | {
+    readonly code: 'llm-failure'
+    /** DSH provider-neutral machine-routing code (`NO_ADAPTER`, `AUTH`, `EMPTY_RESPONSE`, …). */
+    readonly failureCode?: string
+    readonly message: string
+    /** The provider route the failed call was sent to. */
+    readonly provider?: string
+    /** The model id the failed call was sent to. */
+    readonly model?: string
+    /** HTTP status returned by the provider, when DSH supplied one. */
+    readonly status?: number
+  }
   | { readonly code: 'fs-unavailable'; readonly message: string }
   | { readonly code: 'approval-denied'; readonly message: string }
   | { readonly code: 'github-issue-failure'; readonly message: string }
@@ -271,3 +282,36 @@ export interface MemoListMemoryRequest {
 export type MemoListMemoryResult =
   | { readonly ok: true; readonly value: readonly MemoMemoryEntry[] }
   | { readonly ok: false; readonly error: { readonly code: 'ledger-error'; readonly message: string } }
+
+/** One navigable period in the memo timeline. */
+export interface MemoPeriodEntry {
+  /** Stable identity of the period: the week id for week periods, the label for the rest. */
+  readonly id: string
+  /** The canonical period label (`2026-W36`, `2026-09`, `2026-Q3`, `2026`). */
+  readonly label: string
+  /** The dimension this entry belongs to. */
+  readonly period: MemoAnalysisPeriod
+  /** Epoch milliseconds of the period's first day, local midnight. */
+  readonly start: number
+  /** Epoch milliseconds of the period's last day, end of day. */
+  readonly end: number
+  /** Whether the period is still current at the time of the request. */
+  readonly current: boolean
+  /** How many stored weeks fall inside this period. */
+  readonly weekCount: number
+  /** The ISO week ids inside this period, ascending. */
+  readonly weekIds: readonly string[]
+}
+
+/** Request to list the memo timeline in one dimension. */
+export interface MemoListPeriodsRequest {
+  /** The dimension to list. */
+  readonly period: MemoAnalysisPeriod
+  /** How many periods to return, counting back from the current one. */
+  readonly limit?: number
+}
+
+/** Result of listing the memo timeline. */
+export type MemoListPeriodsResult =
+  | { readonly ok: true; readonly value: readonly MemoPeriodEntry[] }
+  | { readonly ok: false; readonly error: { readonly code: 'not-initialized'; readonly message: string } }

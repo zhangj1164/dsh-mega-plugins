@@ -1,109 +1,117 @@
 /**
- * Locale dictionaries for the memo UI.
+ * Locale dictionaries for the memo board. Every user-visible string lives
+ * here, including the ones only tests read, so the board never inlines prose.
  * @module dsh-client-ui-memo/client/locales
  */
 
 export type MemoKey =
-  | 'entryLabel' | 'entryTooltip' | 'panelTitle' | 'close'
-  | 'currentWeek' | 'addPlaceholder' | 'addEntry' | 'analyze' | 'exportReport' | 'refresh'
-  | 'noEntries' | 'noWeeks' | 'loading'
-  | 'organize' | 'summarize' | 'analyzeLabel'
-  | 'analysisResult' | 'reportResult' | 'entries'
-  // Period selector (req 4)
-  | 'periodWeek' | 'periodMonth' | 'periodQuarter' | 'periodYear' | 'period'
-  // Week history (req 3)
-  | 'weekHistory' | 'editEntry' | 'deleteEntry' | 'forceConfirm' | 'forceConfirmText' | 'confirm' | 'cancel'
-  // Issue editor (req 11)
-  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'issueOptimized' | 'openGithub' | 'clearIssue'
-  // Log analysis (req 8, 9)
-  | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue' | 'noFailures'
+  // Shell / header
+  | 'entryLabel' | 'entryTooltip' | 'panelTitle' | 'close' | 'nav'
+  // Dimensions
+  | 'period' | 'periodWeek' | 'periodMonth' | 'periodQuarter' | 'periodYear' | 'history'
+  // Cards
+  | 'addPlaceholder' | 'addEntry' | 'noEntries' | 'noCardsInPeriod' | 'loading'
+  | 'viewCard' | 'editEntry' | 'duplicateEntry' | 'deleteEntry' | 'copied' | 'copySuffix'
+  // Confirmation / errors
+  | 'forceConfirmText' | 'confirm' | 'cancel' | 'confirmDeleteText' | 'dismiss'
+  // Analysis
+  | 'organize' | 'summarize' | 'analyzeLabel' | 'analyze' | 'exportReport' | 'refresh'
+  | 'analysisResult' | 'reportResult'
+  // Issue editor
+  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue'
+  // Log analysis
+  | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
 
 export const zh: Record<MemoKey, string> = {
   entryLabel: '备忘',
-  entryTooltip: '打开备忘面板',
+  entryTooltip: '打开备忘',
   panelTitle: '备忘',
+  nav: '备忘',
   close: '关闭',
-  currentWeek: '本周备忘',
-  addPlaceholder: '写一条备忘…',
-  addEntry: '添加',
-  analyze: 'AI 分析',
-  exportReport: '导出报告',
-  refresh: '刷新',
-  noEntries: '还没有条目',
-  noWeeks: '没有找到任何周',
-  loading: '加载中…',
-  organize: '梳理',
-  summarize: '总结',
-  analyzeLabel: '分析',
-  analysisResult: '分析结果',
-  reportResult: '报告',
-  entries: '条目',
   period: '周期',
   periodWeek: '周',
   periodMonth: '月',
   periodQuarter: '季度',
   periodYear: '年',
-  weekHistory: '历史周',
+  history: '历史',
+  addPlaceholder: '写一条备忘…',
+  addEntry: '添加备忘',
+  noEntries: '还没有任何备忘，先在上方添加一条',
+  noCardsInPeriod: '这个周期内还没有备忘卡片',
+  loading: '加载中…',
+  viewCard: '查看',
   editEntry: '编辑',
+  duplicateEntry: '复制',
   deleteEntry: '删除',
-  forceConfirm: '提权确认',
-  forceConfirmText: '修改历史备忘会导致 AI 分析结果变化。确定要继续吗？',
+  copied: '已复制',
+  copySuffix: '（副本）',
+  forceConfirmText: '该卡片属于历史周期，保存后 AI 分析结果可能变化。',
   confirm: '确认',
   cancel: '取消',
+  confirmDeleteText: '删除这条备忘？此操作不可撤销。',
+  dismiss: '知道了',
+  organize: '梳理',
+  summarize: '总结',
+  analyzeLabel: '分析',
+  analyze: 'AI 分析',
+  exportReport: '导出报告',
+  refresh: '刷新',
+  analysisResult: '分析结果',
+  reportResult: '报告',
   addIssue: '添加 Issue',
   issueEditorTitle: 'Issue 编辑器',
   issuePlaceholder: '用自然语言描述问题…',
   optimizeIssue: '优化 Issue',
-  issueOptimized: '优化结果',
   openGithub: '在 GitHub 打开',
   clearIssue: '清除',
   analyzeLogs: '日志分析',
   logAnalysisTitle: '日志分析报告',
   openPrefilledIssue: '打开预填 Issue',
-  noFailures: '没有发现失败记录',
 }
 
 export const en: Record<MemoKey, string> = {
   entryLabel: 'Memo',
-  entryTooltip: 'Open memo panel',
+  entryTooltip: 'Open memo',
   panelTitle: 'Memo',
+  nav: 'Memo',
   close: 'Close',
-  currentWeek: 'Current Week',
-  addPlaceholder: 'Write a memo entry…',
-  addEntry: 'Add',
-  analyze: 'AI Analyze',
-  exportReport: 'Export Report',
-  refresh: 'Refresh',
-  noEntries: 'No entries yet',
-  noWeeks: 'No weeks found',
-  loading: 'Loading…',
-  organize: 'Organize',
-  summarize: 'Summarize',
-  analyzeLabel: 'Analyze',
-  analysisResult: 'Analysis',
-  reportResult: 'Report',
-  entries: 'entries',
   period: 'Period',
   periodWeek: 'Week',
   periodMonth: 'Month',
   periodQuarter: 'Quarter',
   periodYear: 'Year',
-  weekHistory: 'Week History',
+  history: 'History',
+  addPlaceholder: 'Write a memo…',
+  addEntry: 'Add memo',
+  noEntries: 'No memos yet — add one above',
+  noCardsInPeriod: 'No memo cards in this period',
+  loading: 'Loading…',
+  viewCard: 'View',
   editEntry: 'Edit',
+  duplicateEntry: 'Duplicate',
   deleteEntry: 'Delete',
-  forceConfirm: 'Privilege Confirm',
-  forceConfirmText: 'Editing a past memo will change AI analysis results. Continue?',
+  copied: 'Copied',
+  copySuffix: '(copy)',
+  forceConfirmText: 'This card belongs to a past period, so saving it may change AI analysis results.',
   confirm: 'Confirm',
   cancel: 'Cancel',
+  confirmDeleteText: 'Delete this memo? This cannot be undone.',
+  dismiss: 'Dismiss',
+  organize: 'Organize',
+  summarize: 'Summarize',
+  analyzeLabel: 'Analyze',
+  analyze: 'AI Analyze',
+  exportReport: 'Export Report',
+  refresh: 'Refresh',
+  analysisResult: 'Analysis',
+  reportResult: 'Report',
   addIssue: 'Add Issue',
   issueEditorTitle: 'Issue Editor',
   issuePlaceholder: 'Describe the problem in natural language…',
   optimizeIssue: 'Optimize Issue',
-  issueOptimized: 'Optimized Result',
   openGithub: 'Open on GitHub',
   clearIssue: 'Clear',
   analyzeLogs: 'Analyze Logs',
   logAnalysisTitle: 'Log Analysis Report',
   openPrefilledIssue: 'Open Prefilled Issue',
-  noFailures: 'No failures recorded',
 }
