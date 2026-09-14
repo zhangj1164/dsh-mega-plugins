@@ -220,6 +220,21 @@ export const CSS_TEXT = `
   background: var(--dsw-alias-bg-layer-2);
 }
 .dsh-memo-cardTime { white-space: nowrap; }
+/* Archived cards stay readable but visibly settled: the muted surface and the
+   tag are the whole difference, so an archived quarter reads as one block
+   without hiding anything. */
+.dsh-memo-card[data-archived] {
+  opacity: 0.72;
+  background: var(--dsw-alias-bg-layer-3);
+  border-style: dashed;
+}
+.dsh-memo-archivedTag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-text-3);
+  white-space: nowrap;
+}
 .dsh-memo-cardFoot {
   display: flex;
   align-items: center;

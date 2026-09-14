@@ -119,6 +119,25 @@ function periodRange(period: MemoAnalysisPeriod, label: string): { start: Date; 
 }
 
 /**
+ * The week ids a period owns, by the host's Thursday rule: enumerate every day
+ * in the period and keep the week whose Thursday lands inside it.
+ */
+function weekIdsForPeriod(period: MemoAnalysisPeriod, label: string): string[] {
+  const range = periodRange(period, label)
+  const weekIds = new Set<string>()
+  for (const cursor = new Date(range.start); cursor.getTime() < range.endExclusive.getTime(); cursor.setDate(cursor.getDate() + 1)) {
+    const thursday = new Date(cursor)
+    const weekday = thursday.getDay()
+    thursday.setDate(thursday.getDate() + (weekday === 0 ? -3 : 4 - weekday))
+    if (thursday.getTime() < range.start.getTime() || thursday.getTime() >= range.endExclusive.getTime()) continue
+    const monday = new Date(thursday)
+    monday.setDate(thursday.getDate() - 3)
+    weekIds.add(isoWeekId(monday))
+  }
+  return [...weekIds].sort()
+}
+
+/**
  * Build the period timeline for a dimension, newest first, starting at the
  * period containing `now`. Week ids come from the same Thursday rule the host
  * uses.
@@ -144,18 +163,6 @@ function buildPeriods(period: MemoAnalysisPeriod, limit: number, now: Date): Mem
   for (let index = 0; index < limit; index += 1) {
     const label = labelFor(shifted(now, -index))
     const range = periodRange(period, label)
-    // Enumerate every day in the period; the days whose Thursday lands inside
-    // name the weeks that belong to it.
-    const weekIds = new Set<string>()
-    for (const cursor = new Date(range.start); cursor.getTime() < range.endExclusive.getTime(); cursor.setDate(cursor.getDate() + 1)) {
-      const thursday = new Date(cursor)
-      const weekday = thursday.getDay()
-      thursday.setDate(thursday.getDate() + (weekday === 0 ? -3 : 4 - weekday))
-      if (thursday.getTime() < range.start.getTime() || thursday.getTime() >= range.endExclusive.getTime()) continue
-      const monday = new Date(thursday)
-      monday.setDate(thursday.getDate() - 3)
-      weekIds.add(isoWeekId(monday))
-    }
     entries.push({
       id: label,
       label,
@@ -164,7 +171,7 @@ function buildPeriods(period: MemoAnalysisPeriod, limit: number, now: Date): Mem
       end: range.endExclusive.getTime() - 1,
       current: label === currentLabel,
       weekCount: 0,
-      weekIds: [...weekIds].sort(),
+      weekIds: weekIdsForPeriod(period, label),
     })
   }
   return entries
@@ -201,6 +208,8 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
   const calls: RecordedCall[] = []
   const ok = (value: unknown): Envelope => ({ ok: true, value })
   const fail = (code: string, message: string): Envelope => ({ ok: false, error: { code, message } })
+  // Quarter label to archivedAt, mirroring the host's archive table.
+  const archived = new Map<string, number>()
 
   const handle = (endpoint: string, request: Record<string, unknown>): Envelope => {
     const method = endpoint.slice(endpoint.indexOf('/') + 1)
@@ -218,6 +227,25 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
         ...entry,
         weekCount: entry.weekIds.filter(weekId => weeks.has(weekId)).length,
       })))
+    }
+    if (method === 'listArchivedQuarters') {
+      return ok([...archived.entries()]
+        .map(([label, archivedAt]) => ({ label, archivedAt, weekIds: weekIdsForPeriod('quarter', label) }))
+        .sort((a, b) => a.label.localeCompare(b.label)))
+    }
+    if (method === 'archiveQuarter') {
+      const label = String(request.label)
+      // The host only accepts a canonical quarter label, so the fake must too —
+      // otherwise a client that sent a period label would pass here and fail
+      // against the real service.
+      if (!/^\d{4}-Q[1-4]$/u.test(label)) return fail('invalid-quarter-label', `not a quarter: ${label}`)
+      archived.set(label, Date.now())
+      return ok({ label, archivedAt: archived.get(label)!, weekIds: weekIdsForPeriod('quarter', label) })
+    }
+    if (method === 'unarchiveQuarter') {
+      const label = String(request.label)
+      const existed = archived.delete(label)
+      return ok({ label, archived: existed })
     }
     if (method === 'getOrCreateCurrentWeek') {
       const existing = weeks.get(currentWeekId)

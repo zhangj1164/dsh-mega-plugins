@@ -47,6 +47,8 @@ The history list comes from the host (`memo/listPeriods`), never from a browser-
 | `exportReport()` | memo | Exports a Markdown report for the selected period. |
 | `analyzeLogs()` | memo | Reads telemetry failures and generates a GitHub issue report with a prefill URL. |
 | `optimizeIssue(description)` | githubIssue | Optimizes a natural-language description into a structured report. |
+| `archiveCurrentQuarter()` | memo | Archives the quarter the board is showing. A no-op in any other dimension. |
+| `unarchiveQuarter(label)` | memo | Takes a quarter out of the archive, restoring its cards to editable. |
 
 ## Model route resolution
 
@@ -65,6 +67,7 @@ The browser never selects a model. The controller sends **no** `provider` and **
 - **Copy full body**: copies the untruncated report, so a body shortened to fit GitHub's URL limit is still available to paste
 - **Result cards** for analysis, report, and log analysis: each carries a collapse toggle and a close icon in its own top-right corner. Collapsing is presentation state in the component; closing clears that result, since results are view state rather than stored data.
 - **Add Issue, Log Analysis, Close** as icon-and-label buttons in the board header, Close rightmost
+- **Quarter archive**: 归档本季度 in the tools row (only on the quarter dimension, the one place a quarter label is unambiguous). An archived quarter's cards go read-only in **every** dimension — 编辑, 复制 and 删除 are withheld, since all three would change a quarter the user declared closed — while 查看 keeps working. The edit slot becomes 取消归档, which releases the whole quarter because that is the unit that was archived. Archived cards are muted with dashed borders and carry an 已归档 tag.
 
 ## Configuration
 

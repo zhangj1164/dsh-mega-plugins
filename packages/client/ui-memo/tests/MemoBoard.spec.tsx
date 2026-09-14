@@ -440,6 +440,99 @@ describe('MemoBoard analysis and reporting', () => {
   })
 })
 
+describe('MemoBoard quarter archive', () => {
+  /** Render one memo in the current week, then archive the current quarter. */
+  async function archivedBoard() {
+    const rendered = await renderBoard(seedWeek(['archived memo']))
+    fireEvent.click(screen.getByRole('tab', { name: '季度' }))
+    await waitFor(() => { expect(rendered.controller.getSnapshot().selection.period).toBe('quarter') })
+    fireEvent.click(screen.getByRole('button', { name: zh.archiveQuarter }))
+    await waitFor(() => { expect(rendered.controller.getSnapshot().archivedQuarters).toHaveLength(1) })
+    return rendered
+  }
+
+  it('offers the archive action only where a quarter label is unambiguous', async () => {
+    await renderBoard(seedWeek(['memo']))
+    // On the week dimension there is no single quarter the label could name.
+    expect(screen.queryByRole('button', { name: zh.archiveQuarter })).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: '季度' }))
+    await waitFor(() => { expect(screen.getByRole('button', { name: zh.archiveQuarter })).toBeTruthy() })
+  })
+
+  it('marks the archived quarter’s cards read-only', async () => {
+    await archivedBoard()
+    const card = cards()[0]!
+
+    expect(card.hasAttribute('data-archived')).toBe(true)
+    expect(within(card).getByText(zh.archivedTag)).toBeTruthy()
+    // Editing, duplicating and deleting would all change a closed quarter.
+    expect(within(card).queryByRole('button', { name: zh.editEntry })).toBeNull()
+    expect(within(card).queryByRole('button', { name: zh.duplicateEntry })).toBeNull()
+    expect(within(card).queryByRole('button', { name: zh.deleteEntry })).toBeNull()
+    // The edit slot became the way out of the archive; reading still works.
+    const foot = card.querySelector('.dsh-memo-cardFoot') as HTMLElement
+    // Exactly the two that cannot change the quarter: read it, or reopen it.
+    expect(foot.querySelectorAll('button')).toHaveLength(2)
+    expect(within(foot).getByRole('button', { name: zh.unarchiveQuarter })).toBeTruthy()
+    expect(within(foot).getByRole('button', { name: zh.viewCard })).toBeTruthy()
+  })
+
+  it('keeps the same cards read-only in every other dimension', async () => {
+    // The acceptance criterion: archiving is a property of the quarter, not of
+    // the dimension the user happened to archive from.
+    const { controller } = await archivedBoard()
+    for (const dimension of ['周', '月', '年']) {
+      fireEvent.click(screen.getByRole('tab', { name: dimension }))
+      await waitFor(() => { expect(controller.getSnapshot().cards).toHaveLength(1) })
+      const card = cards()[0]!
+      expect(card.hasAttribute('data-archived')).toBe(true)
+      expect(within(card).queryByRole('button', { name: zh.editEntry })).toBeNull()
+      expect(within(card).getByRole('button', { name: zh.unarchiveQuarter })).toBeTruthy()
+    }
+  })
+
+  it('restores editing when the quarter is unarchived', async () => {
+    const { controller } = await archivedBoard()
+    fireEvent.click(within(cards()[0]!).getByRole('button', { name: zh.unarchiveQuarter }))
+    await waitFor(() => { expect(controller.getSnapshot().archivedQuarters).toHaveLength(0) })
+
+    const card = cards()[0]!
+    expect(card.hasAttribute('data-archived')).toBe(false)
+    expect(within(card).queryByText(zh.archivedTag)).toBeNull()
+    expect(within(card).getByRole('button', { name: zh.editEntry })).toBeTruthy()
+    expect(within(card).getByRole('button', { name: zh.deleteEntry })).toBeTruthy()
+  })
+
+  it('leaves a card outside the archived quarter editable', async () => {
+    // 200 days back is always a different quarter, so the archive must not
+    // reach it — including when that quarter sits in another year.
+    const olderWeek = weekIdDaysAgo(200)
+    const { controller } = await renderBoard(seedWeeks({ [weekIdDaysAgo(0)]: ['now'], [olderWeek]: ['earlier'] }))
+    fireEvent.click(screen.getByRole('tab', { name: '季度' }))
+    await waitFor(() => { expect(controller.getSnapshot().selection.period).toBe('quarter') })
+    fireEvent.click(screen.getByRole('button', { name: zh.archiveQuarter }))
+    await waitFor(() => { expect(controller.getSnapshot().archivedQuarters).toHaveLength(1) })
+    expect(controller.getSnapshot().archivedWeekIds.has(olderWeek)).toBe(false)
+
+    fireEvent.click(screen.getByRole('tab', { name: '周' }))
+    await waitFor(() => { expect(controller.getSnapshot().selection.period).toBe('week') })
+    const olderYear = olderWeek.slice(0, 4)
+    if (controller.getSnapshot().year !== olderYear) {
+      fireEvent.change(screen.getByRole('combobox', { name: zh.yearFilter }), { target: { value: olderYear } })
+      await waitFor(() => { expect(controller.getSnapshot().year).toBe(olderYear) })
+    }
+    fireEvent.click(screen.getByRole('tab', { name: `W${olderWeek.slice(6)}` }))
+    await waitFor(() => { expect(controller.getSnapshot().selection.label).toBe(olderWeek) })
+
+    expect(screen.getByText('earlier')).toBeTruthy()
+    const card = cards()[0]!
+    expect(card.hasAttribute('data-archived')).toBe(false)
+    expect(within(card).getByRole('button', { name: zh.editEntry })).toBeTruthy()
+    expect(within(card).queryByRole('button', { name: zh.unarchiveQuarter })).toBeNull()
+  })
+})
+
 describe('MemoBoard result cards', () => {
   /** Run the default analysis and return the card it rendered into. */
   async function analysisCard() {

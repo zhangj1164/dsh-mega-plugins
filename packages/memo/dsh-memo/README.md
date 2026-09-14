@@ -52,6 +52,21 @@ When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_
 | `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
 | `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
+| `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
+| `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
+| `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
+
+## Quarter archive
+
+Archiving a quarter is a durable marker, not a move: the memo weeks stay exactly where they are, and an archived quarter is one row in its own storage domain (`memo_archive`, table `quarters`) holding `{ label, archivedAt }`. Nothing is copied, so unarchiving cannot lose content and an archive can never disagree with the memo table.
+
+`listArchivedQuarters` returns each quarter's week ids, resolved on the host through the same period calendar that decides which weeks a quarter owns. A client only has to build a `Set` from them to know which cards are read-only, which is what makes an archive hold in **all four dimensions** without the client ever mapping a week onto a quarter across a year boundary.
+
+The week ids are deliberately **not** stored. They follow deterministically from the label, so persisting them would be persisting a derivable copy that goes wrong the day the calendar is corrected — and would silently un-archive or over-archive cards at that point.
+
+**The request names a quarter, never a period.** "The quarter containing the period you are looking at" has no single answer: a year spans four quarters, and a week's Monday can sit in the previous quarter while the week belongs to the quarter holding its Thursday. Resolving a quarter from a period's start timestamp would therefore archive the wrong quarter for the week and year dimensions alike, so the archive action is offered where a quarter label is unambiguous and is never guessed anywhere else.
+
+The domain is separate from `memo` rather than a second table beside `weeks`, so a problem opening the archive can never stop the memo table from opening. The name is `memo_archive`, not `memo-archive`: a storage-domain name must match `/^[a-z][a-z0-9_]*$/`.
 
 ## Four-dimension periods
 

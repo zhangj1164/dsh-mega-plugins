@@ -33,8 +33,8 @@ import {
   weekIdBelongsToPeriod,
   weekIdsInPeriod,
 } from './period.ts'
-import { memoDomainSpec } from './spec.ts'
-import type { MemoWeekRow } from './spec.ts'
+import { memoArchiveDomainSpec, memoDomainSpec } from './spec.ts'
+import type { ArchivedQuarterRow, MemoWeekRow } from './spec.ts'
 import type {
   MemoAddEntryRequest,
   MemoAddEntryResult,
@@ -44,6 +44,8 @@ import type {
   MemoAnalyzeResult,
   MemoAnalysis,
   MemoAnalysisType,
+  MemoArchiveQuarterResult,
+  MemoArchivedQuarter,
   MemoDeleteEntryRequest,
   MemoDeleteEntryResult,
   MemoEntry,
@@ -53,13 +55,16 @@ import type {
   MemoGetCurrentWeekResult,
   MemoGetWeekRequest,
   MemoGetWeekResult,
+  MemoListArchivedQuartersResult,
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
   MemoListPeriodsRequest,
   MemoListPeriodsResult,
   MemoMemoFailure,
+  MemoQuarterLabelRequest,
   MemoReadExternalPathRequest,
+  MemoUnarchiveQuarterResult,
   MemoUpdateEntryRequest,
   MemoUpdateEntryResult,
   MemoWeek,
@@ -70,8 +75,8 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
-export { memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema } from './spec.ts'
-export type { MemoWeekRow } from './spec.ts'
+export { memoArchiveDomainSpec, memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema, archivedQuarterSchema } from './spec.ts'
+export type { ArchivedQuarterRow, MemoWeekRow } from './spec.ts'
 export { streamLlmText } from './llm-text.ts'
 export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
 export {
@@ -124,6 +129,9 @@ const TELEMETRY_PLUGIN_ID = 'memo'
 
 /** Ledger schema version for forward-compatible migrations. */
 const LEDGER_SCHEMA_VERSION = 1
+
+/** Canonical quarter label, the only key shape the archive accepts. */
+const QUARTER_LABEL_PATTERN = /^\d{4}-Q[1-4]$/u
 
 /**
  * Resolve the DSH home directory: the environment override wins, the platform
@@ -238,6 +246,7 @@ export class MemoService extends TypertRemoteService {
   /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
   private readonly model?: string
   private table?: KvTable<string, MemoWeekRow>
+  private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
   /**
    * @param ctx - Host context carrying the storage-domain, telemetry, and github-issue services.
@@ -250,13 +259,104 @@ export class MemoService extends TypertRemoteService {
     this.model = config.model
   }
 
-  /** Open and own the one memo domain. */
+  /** Open and own the memo domain and the archive domain beside it. */
   protected async [Service.init](): Promise<void> {
     const domain = await this.ctx.storageDomain.open(memoDomainSpec)
     this.ctx.effect(() => async () => {
       await domain.close()
     }, 'memo.domainClose')
     this.table = domain.table('weeks')
+
+    const archiveDomain = await this.ctx.storageDomain.open(memoArchiveDomainSpec)
+    this.ctx.effect(() => async () => {
+      await archiveDomain.close()
+    }, 'memo.archiveDomainClose')
+    this.archiveTable = archiveDomain.table('quarters')
+  }
+
+  /**
+   * Archive one quarter by its label.
+   *
+   * The caller names a quarter label rather than a period it happens to be
+   * viewing: only a quarter label identifies a quarter. A year spans four of
+   * them, and a week's Monday can sit in the previous quarter while the week
+   * itself belongs to the quarter holding its Thursday — so "the quarter
+   * containing the period you are looking at" has no single answer, and
+   * guessing one from a period's start would archive the wrong quarter.
+   *
+   * @param request - the quarter label.
+   * @returns the archived quarter, with the week ids the host resolved.
+   */
+  @Remote('archiveQuarter')
+  async archiveQuarter(request: MemoQuarterLabelRequest): Promise<MemoArchiveQuarterResult> {
+    const label = request?.label
+    if (typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)) {
+      return this.failure({
+        code: 'invalid-quarter-label',
+        message: `memo: "${String(label)}" is not a quarter label`,
+        label: String(label ?? ''),
+      })
+    }
+    const archivedAt = Date.now()
+    await this.requireArchiveTable().put(label, { label, archivedAt })
+    this.track('archiveQuarter', 'success', { label })
+    return { ok: true, value: this.archivedQuarter(label, archivedAt) }
+  }
+
+  /**
+   * Remove a quarter from the archive, restoring its cards to editable.
+   * @param request - the quarter label.
+   * @returns the label and whether a row was actually removed.
+   */
+  @Remote('unarchiveQuarter')
+  async unarchiveQuarter(request: MemoQuarterLabelRequest): Promise<MemoUnarchiveQuarterResult> {
+    const label = request?.label
+    if (typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)) {
+      return this.failure({
+        code: 'invalid-quarter-label',
+        message: `memo: "${String(label)}" is not a quarter label`,
+        label: String(label ?? ''),
+      })
+    }
+    const archived = await this.requireArchiveTable().delete(label)
+    this.track('unarchiveQuarter', 'success', { label, archived })
+    return { ok: true, value: { label, archived } }
+  }
+
+  /**
+   * List every archived quarter, oldest first.
+   *
+   * Each entry carries the quarter's week ids resolved through the host's own
+   * calendar, so a client decides read-only cards by building a `Set` and never
+   * by re-deriving which weeks a quarter owns.
+   *
+   * @returns the archived quarters, oldest first.
+   */
+  @Remote('listArchivedQuarters')
+  listArchivedQuarters(): MemoListArchivedQuartersResult {
+    const rows = [...this.requireArchiveTable().entries()]
+      .map(([label, row]) => ({ label, archivedAt: row.archivedAt }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    const quarters = rows.map(row => this.archivedQuarter(row.label, row.archivedAt))
+    this.track('listArchivedQuarters', 'success', { count: quarters.length })
+    return { ok: true, value: Object.freeze(quarters) }
+  }
+
+  /** Build one archived quarter with its week ids resolved by the host calendar. */
+  private archivedQuarter(label: string, archivedAt: number): MemoArchivedQuarter {
+    return Object.freeze({
+      label,
+      archivedAt,
+      weekIds: Object.freeze(weekIdsInPeriod('quarter', label)),
+    })
+  }
+
+  /** Resolve the initialized archive table or fail a broken service lifecycle. */
+  private requireArchiveTable(): KvTable<string, ArchivedQuarterRow> {
+    if (this.archiveTable === undefined) {
+      throw new Error('memo: archive domain is not initialized')
+    }
+    return this.archiveTable
   }
 
   /**

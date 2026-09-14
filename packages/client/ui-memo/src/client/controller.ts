@@ -31,6 +31,7 @@
 import type {
   MemoAnalysisPeriod,
   MemoAnalysisType,
+  MemoArchivedQuarter,
   MemoEntry,
   MemoPeriodEntry,
   MemoWeek,
@@ -163,6 +164,16 @@ export interface MemoViewState {
   issueReport: GithubIssueReport | null
   /** Log-analysis report plus its pre-filled issue URL. */
   logAnalysis: { report: GithubIssueReport; issueUrl: string } | null
+  /**
+   * The week ids inside archived quarters, resolved by the host.
+   *
+   * A membership test, not a calendar: the host already decided which weeks a
+   * quarter owns, so a card is read-only exactly when its own week id is in
+   * here — which is what makes archiving hold across all four dimensions.
+   */
+  archivedWeekIds: ReadonlySet<string>
+  /** The archived quarters themselves, oldest first. */
+  archivedQuarters: readonly MemoArchivedQuarter[]
   /** Whether a request is in flight. */
   busy: boolean
 }
@@ -196,6 +207,8 @@ export function createInitialState(): MemoViewState {
     report: null,
     issueReport: null,
     logAnalysis: null,
+    archivedWeekIds: new Set<string>(),
+    archivedQuarters: [],
     busy: false,
   }
 }
@@ -279,6 +292,8 @@ export class MemoController {
         return
       }
 
+      const archived = await this.readArchivedQuarters()
+
       const fallbackLabel = periods[0]?.label ?? ''
       const restored = period === undefined
         ? readSelection(this.storage, { period: dimension, label: fallbackLabel })
@@ -310,6 +325,8 @@ export class MemoController {
         selection,
         cards: cardsInPeriod(cards, active?.weekIds ?? []),
         totalCards: cards.length,
+        archivedWeekIds: archived.weekIds,
+        archivedQuarters: archived.quarters,
         busy: false,
         error: null,
       })
@@ -317,6 +334,112 @@ export class MemoController {
     } catch (e) {
       this.set({ status: 'error', error: describeError(e), busy: false })
     }
+  }
+
+  /**
+   * Read the archived quarters and the week ids they cover.
+   *
+   * A failure here is reported as no archive rather than as a board error: the
+   * archive is a read-only overlay on the cards, so a missing answer must never
+   * hide memos the user can otherwise see. The one visible consequence is that
+   * cards stop being read-only, which the message on screen explains.
+   *
+   * @returns the archived quarters and the merged week ids.
+   */
+  private async readArchivedQuarters(): Promise<{ quarters: readonly MemoArchivedQuarter[]; weekIds: ReadonlySet<string> }> {
+    const result = await callMemo<readonly MemoArchivedQuarter[]>(this.rpc, 'listArchivedQuarters', {})
+    if (!result.ok || !Array.isArray(result.value)) return { quarters: [], weekIds: new Set<string>() }
+    const quarters = result.value.map(entry => Object.freeze({
+      label: entry.label,
+      archivedAt: entry.archivedAt,
+      weekIds: Object.freeze([...entry.weekIds]),
+    }))
+    const weekIds = new Set<string>()
+    for (const quarter of quarters) for (const weekId of quarter.weekIds) weekIds.add(weekId)
+    return { quarters: Object.freeze(quarters), weekIds }
+  }
+
+  /**
+   * Archive the quarter the board is currently showing.
+   *
+   * Only a quarter dimension names a quarter, so this is a no-op anywhere else.
+   * "The quarter containing the period you are looking at" has no single answer
+   * — a year spans four, and a week's Monday can fall in the previous quarter
+   * while the week belongs to the one holding its Thursday — so the archive
+   * action is offered where the label is unambiguous and never guessed.
+   *
+   * @returns whether the quarter was archived.
+   */
+  async archiveCurrentQuarter(): Promise<boolean> {
+    const { selection } = this._state
+    if (selection.period !== 'quarter' || selection.label === '') return false
+    this.set({ busy: true, error: null })
+    try {
+      const result = await callMemo<MemoArchivedQuarter>(this.rpc, 'archiveQuarter', { label: selection.label })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return false
+      }
+      const archived = await this.readArchivedQuarters()
+      this.set({ busy: false, archivedWeekIds: archived.weekIds, archivedQuarters: archived.quarters })
+      return true
+    } catch (e) {
+      this.set({ busy: false, error: describeError(e) })
+      return false
+    }
+  }
+
+  /**
+   * Take a quarter out of the archive, restoring its cards to editable.
+   * @param label - the quarter label to unarchive.
+   * @returns whether the quarter was unarchived.
+   */
+  async unarchiveQuarter(label: string): Promise<boolean> {
+    this.set({ busy: true, error: null })
+    try {
+      const result = await callMemo<{ label: string; archived: boolean }>(this.rpc, 'unarchiveQuarter', { label })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return false
+      }
+      const archived = await this.readArchivedQuarters()
+      this.set({ busy: false, archivedWeekIds: archived.weekIds, archivedQuarters: archived.quarters })
+      return true
+    } catch (e) {
+      this.set({ busy: false, error: describeError(e) })
+      return false
+    }
+  }
+
+  /**
+   * Whether a card sits in an archived quarter and is therefore read-only.
+   * @param card - the card to test.
+   * @returns whether the card is archived.
+   */
+  isArchived(card: MemoCard): boolean {
+    return this._state.archivedWeekIds.has(card.weekId)
+  }
+
+  /**
+   * The archived quarter a card belongs to, so its action knows which label to
+   * unarchive — a card only carries its week id, not its quarter.
+   * @param card - the card to place.
+   * @returns the owning archived quarter, or `undefined`.
+   */
+  archivedQuarterOf(card: MemoCard): MemoArchivedQuarter | undefined {
+    return this._state.archivedQuarters.find(quarter => quarter.weekIds.includes(card.weekId))
+  }
+
+  /**
+   * The archived quarter the board is currently showing, if any.
+   * @returns the quarter label, or `undefined`.
+   */
+  archivedQuarterLabel(): string | undefined {
+    const { selection } = this._state
+    if (selection.period !== 'quarter') return undefined
+    return this._state.archivedQuarters.some(quarter => quarter.label === selection.label)
+      ? selection.label
+      : undefined
   }
 
   /**

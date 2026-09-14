@@ -61,6 +61,8 @@ const ICON = {
   analyzeLogs: 'M2.5 3.5h11v9h-11zM4.75 6.25l1.5 1.5-1.5 1.5M8.25 9.5h2.75',
   collapse: 'M4 10l4-4 4 4',
   expand: 'M4 6l4 4 4-4',
+  archive: 'M2.5 3.5h11v2.5h-11zM3.5 6v6.5h9V6M6.5 8.5h3',
+  unarchive: 'M2.5 3.5h11v2.5h-11zM3.5 6v6.5h9V6M8 12V7.5M6.25 9.25L8 7.5l1.75 1.75',
 } as const
 
 /** One inline icon. */
@@ -312,10 +314,18 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
               t,
               copied: copied === card.id,
               disabled: view.busy,
+              archived: view.archivedWeekIds.has(card.weekId),
               onOpen: () => setOpenCard(card),
               onEdit: () => setEditing({ card, text: card.content }),
               onCopy: () => void copyCard(card),
               onDelete: () => setPendingDelete(card),
+              onUnarchive: () => {
+                // A card knows its week, not its quarter; the host-resolved
+                // archive does the mapping, and unarchiving releases the whole
+                // quarter because that is the unit that was archived.
+                const quarter = controller.archivedQuarterOf(card)
+                if (quarter !== undefined) void controller.unarchiveQuarter(quarter.label)
+              },
             }))),
 
     // ── Analysis ──
@@ -342,6 +352,25 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
           onClick: () => void controller.refresh(),
         }, t('refresh')),
+        // Archiving names a quarter, and only the quarter dimension names one,
+        // so the action appears where the label is unambiguous instead of
+        // guessing a quarter out of whichever period happens to be on screen.
+        view.selection.period === 'quarter'
+          ? React.createElement('button', {
+              type: 'button',
+              className: 'dsh-memo-btn',
+              'data-active': controller.archivedQuarterLabel() === undefined ? undefined : '',
+              disabled: view.busy,
+              onClick: () => {
+                const archivedLabel = controller.archivedQuarterLabel()
+                void (archivedLabel === undefined
+                  ? controller.archiveCurrentQuarter()
+                  : controller.unarchiveQuarter(archivedLabel))
+              },
+            }, controller.archivedQuarterLabel() === undefined
+              ? t('archiveQuarter')
+              : t('unarchiveQuarter'))
+          : null,
       ),
     ),
 
@@ -458,17 +487,24 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
 }
 
 /** One card in the grid. */
-function CardTile({ card, t, copied, disabled, onOpen, onEdit, onCopy, onDelete }: {
+function CardTile({ card, t, copied, disabled, archived, onOpen, onEdit, onCopy, onDelete, onUnarchive }: {
   card: MemoCard
   t: Translate
   copied: boolean
   disabled: boolean
+  archived: boolean
   onOpen: () => void
   onEdit: () => void
   onCopy: () => void
   onDelete: () => void
+  onUnarchive: () => void
 }): React.ReactElement {
-  return React.createElement('article', { className: 'dsh-memo-card' },
+  return React.createElement('article', {
+    className: 'dsh-memo-card',
+    // Archived cards stay readable and stay openable; only what would change
+    // the quarter is withheld.
+    'data-archived': archived ? '' : undefined,
+  },
     React.createElement('div', { className: 'dsh-memo-cardMain' },
       React.createElement('button', {
         type: 'button',
@@ -478,19 +514,30 @@ function CardTile({ card, t, copied, disabled, onOpen, onEdit, onCopy, onDelete 
       }, React.createElement('span', { className: 'dsh-memo-cardText' }, card.content)),
       React.createElement('div', { className: 'dsh-memo-cardMeta' },
         React.createElement('span', { className: 'dsh-memo-cardWeek' }, periodDisplay('week', card.weekId)),
+        archived
+          ? React.createElement('span', { className: 'dsh-memo-archivedTag' }, t('archivedTag'))
+          : null,
         React.createElement('time', { className: 'dsh-memo-cardTime', dateTime: new Date(card.createdAt).toISOString() },
           new Date(card.createdAt).toLocaleString())),
     ),
     React.createElement('div', { className: 'dsh-memo-cardFoot' },
       React.createElement(CardAction, { tip: t('viewCard'), path: ICON.view, onClick: onOpen, disabled }),
-      React.createElement(CardAction, { tip: t('editEntry'), path: ICON.edit, onClick: onEdit, disabled }),
-      React.createElement(CardAction, {
-        tip: copied ? t('copied') : t('duplicateEntry'),
-        path: ICON.copy,
-        onClick: onCopy,
-        disabled,
-      }),
-      React.createElement(CardAction, { tip: t('deleteEntry'), path: ICON.trash, onClick: onDelete, disabled, danger: true }),
+      archived
+        // The edit slot becomes the way out of the archive: an archived card has
+        // nothing to edit, and delete/duplicate would change an archive the user
+        // has declared closed.
+        ? React.createElement(CardAction, { tip: t('unarchiveQuarter'), path: ICON.unarchive, onClick: onUnarchive, disabled })
+        : [
+            React.createElement(CardAction, { key: 'edit', tip: t('editEntry'), path: ICON.edit, onClick: onEdit, disabled }),
+            React.createElement(CardAction, {
+              key: 'copy',
+              tip: copied ? t('copied') : t('duplicateEntry'),
+              path: ICON.copy,
+              onClick: onCopy,
+              disabled,
+            }),
+            React.createElement(CardAction, { key: 'delete', tip: t('deleteEntry'), path: ICON.trash, onClick: onDelete, disabled, danger: true }),
+          ],
     ),
   )
 }
