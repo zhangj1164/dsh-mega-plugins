@@ -504,6 +504,46 @@ describe('MemoBoard quarter archive', () => {
     expect(within(card).getByRole('button', { name: zh.deleteEntry })).toBeTruthy()
   })
 
+  it('withholds editing from the detail dialog of an archived card', async () => {
+    // The card's own edit button is gone, so the dialog must not put editing
+    // back one click away.
+    await archivedBoard()
+    fireEvent.click(within(cards()[0]!).getAllByRole('button', { name: zh.viewCard })[0]!)
+    const dialog = await screen.findByRole('dialog')
+
+    expect(within(dialog).queryByRole('button', { name: zh.editEntry })).toBeNull()
+    expect(within(dialog).getByRole('button', { name: zh.unarchiveQuarter })).toBeTruthy()
+    expect(within(dialog).getByText(zh.archivedTag)).toBeTruthy()
+    // Reading the memo is still the dialog's job.
+    expect(within(dialog).getByText('archived memo')).toBeTruthy()
+  })
+
+  it('unarchives from the detail dialog, which puts editing back', async () => {
+    const { controller } = await archivedBoard()
+    fireEvent.click(within(cards()[0]!).getAllByRole('button', { name: zh.viewCard })[0]!)
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: zh.unarchiveQuarter }))
+
+    await waitFor(() => { expect(controller.getSnapshot().archivedQuarters).toHaveLength(0) })
+    expect(within(cards()[0]!).getByRole('button', { name: zh.editEntry })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('disables the composer and offers the way out when the target is archived', async () => {
+    await archivedBoard()
+    const composer = document.querySelector('.dsh-memo-composer') as HTMLElement
+    const input = within(composer).getByRole('textbox') as HTMLTextAreaElement
+
+    expect(input.disabled).toBe(true)
+    expect(input.placeholder).toBe(zh.archivedComposerHint)
+    expect(isDisabled(creatorButton())).toBe(true)
+    // The block explains itself and carries its own way out.
+    expect(within(composer).getByText(zh.archivedComposerHint)).toBeTruthy()
+    fireEvent.click(within(composer).getByRole('button', { name: zh.unarchiveQuarter }))
+
+    await waitFor(() => { expect(input.disabled).toBe(false) })
+    expect(input.placeholder).toBe(zh.addPlaceholder)
+  })
+
   it('leaves a card outside the archived quarter editable', async () => {
     // 200 days back is always a different quarter, so the archive must not
     // reach it — including when that quarter sits in another year.

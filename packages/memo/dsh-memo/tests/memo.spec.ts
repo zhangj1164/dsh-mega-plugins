@@ -449,7 +449,7 @@ describe('MemoService quarter archive', () => {
     const quarter = listed.value[1]!
     expect(quarter.current).toBe(false)
 
-    const archived = await ctx.memo.archiveQuarter({ period: 'quarter', label: quarter.label })
+    const archived = await ctx.memo.archiveQuarter({ label: quarter.label })
     expect(archived.ok).toBe(true)
     if (!archived.ok) return
 
@@ -467,8 +467,8 @@ describe('MemoService quarter archive', () => {
     const first = listed.value[0]!
     const second = listed.value[1]!
 
-    await ctx.memo.archiveQuarter({ period: 'quarter', label: first.label })
-    await ctx.memo.archiveQuarter({ period: 'quarter', label: second.label })
+    await ctx.memo.archiveQuarter({ label: first.label })
+    await ctx.memo.archiveQuarter({ label: second.label })
     const both = ctx.memo.listArchivedQuarters()
     expect(both.ok).toBe(true)
     if (!both.ok) return
@@ -537,5 +537,120 @@ describe('MemoService quarter archive', () => {
     expect(stored.ok).toBe(true)
     if (!stored.ok) return
     expect(stored.value).toHaveLength(0)
+  })
+})
+
+describe('MemoService archived-quarter write guard', () => {
+  it('refuses add, update and delete inside an archived quarter, and changes nothing', async () => {
+    // Read-only has to be the host's rule, not the browser's: the same Remote
+    // methods are reachable by any client, and an archive can land while an edit
+    // dialog is already open.
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    expect(listed.ok).toBe(true)
+    if (!listed.ok) return
+    const quarter = listed.value[1]!
+    const weekId = quarter.weekIds[0]!
+
+    const seeded = await ctx.memo.addEntry({ weekId, type: 'text', content: 'before archive' })
+    expect(seeded.ok).toBe(true)
+    if (!seeded.ok) return
+
+    const archived = await ctx.memo.archiveQuarter({ label: quarter.label })
+    expect(archived.ok).toBe(true)
+    if (!archived.ok) return
+
+    const refusedAdd = await ctx.memo.addEntry({ weekId, type: 'text', content: 'after archive' })
+    expect(refusedAdd.ok).toBe(false)
+    if (refusedAdd.ok) return
+    expect(refusedAdd.error.code).toBe('quarter-archived')
+    expect(refusedAdd.error.weekId).toBe(weekId)
+
+    const refusedUpdate = await ctx.memo.updateEntry({
+      weekId, entryId: seeded.value.id, content: 'edited', force: true,
+    })
+    expect(refusedUpdate.ok).toBe(false)
+    if (refusedUpdate.ok) return
+    expect(refusedUpdate.error.code).toBe('quarter-archived')
+
+    const refusedDelete = await ctx.memo.deleteEntry({ weekId, entryId: seeded.value.id, force: true })
+    expect(refusedDelete.ok).toBe(false)
+    if (refusedDelete.ok) return
+    expect(refusedDelete.error.code).toBe('quarter-archived')
+
+    // A refused call wrote nothing at all.
+    const week = ctx.memo.getWeek({ weekId })
+    expect(week.ok).toBe(true)
+    if (!week.ok) return
+    expect(week.value.entries.map(entry => entry.content)).toEqual(['before archive'])
+
+    // Unarchiving is the only way back to writable, and it does restore it.
+    await ctx.memo.unarchiveQuarter({ label: quarter.label })
+    const allowed = await ctx.memo.updateEntry({
+      weekId, entryId: seeded.value.id, content: 'edited', force: true,
+    })
+    expect(allowed.ok).toBe(true)
+  })
+
+  it('refuses a write in every week the archived quarter owns', async () => {
+    // The quarter's ownership is decided by the Thursday rule, so a week whose
+    // Monday falls in the previous quarter must still be closed.
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    if (!listed.ok) return
+    const quarter = listed.value[1]!
+    await ctx.memo.archiveQuarter({ label: quarter.label })
+
+    for (const weekId of quarter.weekIds) {
+      const refused = await ctx.memo.addEntry({ weekId, type: 'text', content: 'nope' })
+      expect(refused.ok).toBe(false)
+      if (refused.ok) return
+      expect(refused.error.code).toBe('quarter-archived')
+    }
+  })
+
+  it('leaves weeks outside every archived quarter writable', async () => {
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    if (!listed.ok) return
+    const current = listed.value[0]!
+    const older = listed.value[1]!
+    expect(current.current).toBe(true)
+
+    await ctx.memo.archiveQuarter({ label: older.label })
+
+    const today = await ctx.memo.getOrCreateCurrentWeek({})
+    expect(today.ok).toBe(true)
+    if (!today.ok) return
+    const added = await ctx.memo.addEntry({ weekId: today.value.weekId, type: 'text', content: 'today' })
+    expect(added.ok).toBe(true)
+  })
+
+  it('closes the current quarter too when that is the one archived', async () => {
+    // "Archive this quarter" is a legitimate action on the current quarter, and
+    // it closes today as well. The client disables the composer in that state
+    // and points at the unarchive action, so this is a stated consequence rather
+    // than a surprise.
+    const { ctx } = await harness()
+    const listed = ctx.memo.listPeriods({ period: 'quarter', limit: 4 })
+    if (!listed.ok) return
+    const current = listed.value[0]!
+    expect(current.current).toBe(true)
+
+    const today = await ctx.memo.getOrCreateCurrentWeek({})
+    expect(today.ok).toBe(true)
+    if (!today.ok) return
+    const seeded = await ctx.memo.addEntry({ weekId: today.value.weekId, type: 'text', content: 'mine' })
+    expect(seeded.ok).toBe(true)
+
+    await ctx.memo.archiveQuarter({ label: current.label })
+    const refused = await ctx.memo.addEntry({ weekId: today.value.weekId, type: 'text', content: 'later' })
+    expect(refused.ok).toBe(false)
+    if (refused.ok) return
+    expect(refused.error.code).toBe('quarter-archived')
+
+    await ctx.memo.unarchiveQuarter({ label: current.label })
+    const allowed = await ctx.memo.addEntry({ weekId: today.value.weekId, type: 'text', content: 'later' })
+    expect(allowed.ok).toBe(true)
   })
 })

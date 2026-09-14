@@ -68,6 +68,12 @@ The week ids are deliberately **not** stored. They follow deterministically from
 
 The domain is separate from `memo` rather than a second table beside `weeks`, so a problem opening the archive can never stop the memo table from opening. The name is `memo_archive`, not `memo-archive`: a storage-domain name must match `/^[a-z][a-z0-9_]*$/`.
 
+**An archived quarter is read-only on the host.** `addEntry`, `updateEntry` and `deleteEntry` all refuse a week inside an archived quarter with the failure code `quarter-archived`, and refuse it before touching the table, so a refused call changes nothing at all. Read-only is enforced here rather than only in the browser because the same Remote methods are reachable by any client, and because an archive can land while an edit dialog is already open.
+
+The guard asks `weekIdBelongsToPeriod(weekId, 'quarter', label)` — the same Thursday rule that resolved the quarter's week ids — so the answer cannot drift from the calendar that produced them. The cost is one pass over the archived rows, which are a handful of quarters at most, on a user-initiated write.
+
+A consequence worth stating: archiving the **current** quarter closes today as well, since "archive this quarter" is a legitimate action on the quarter in progress. The client disables its composer in that state and points at the unarchive action, so the way out is always one click away.
+
 ## Four-dimension periods
 
 The memo UI navigates weeks, months, quarters, and years over the same cards. `dsh-memo/period` owns that calendar math so the host and the UI cannot disagree about which card belongs where.

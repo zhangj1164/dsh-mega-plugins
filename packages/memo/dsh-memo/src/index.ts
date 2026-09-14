@@ -351,6 +351,30 @@ export class MemoService extends TypertRemoteService {
     })
   }
 
+  /**
+   * The failure to return for a write that targets a week inside an archived
+   * quarter, or `undefined` when the week is writable.
+   *
+   * Read-only is enforced here rather than only in the browser because the same
+   * Remote methods are reachable by any client, and because an archive can land
+   * while a dialog is already open. The quarter a week belongs to is decided by
+   * {@link weekIdBelongsToPeriod} — the same Thursday rule that decides which
+   * weeks a quarter owns — so the guard cannot drift from the calendar that
+   * resolved those weeks in the first place.
+   * @param weekId - the week the write targets.
+   * @returns the failure, or `undefined` when the week may be written.
+   */
+  private archivedWeekFailure(weekId: string): MemoMemoFailure | undefined {
+    const archived = [...this.requireArchiveTable().entries()]
+      .some(([label]) => weekIdBelongsToPeriod(weekId, 'quarter', label))
+    if (!archived) return undefined
+    return {
+      code: 'quarter-archived',
+      message: `week "${weekId}" is inside an archived quarter; unarchive the quarter before changing its memos`,
+      weekId,
+    }
+  }
+
   /** Resolve the initialized archive table or fail a broken service lifecycle. */
   private requireArchiveTable(): KvTable<string, ArchivedQuarterRow> {
     if (this.archiveTable === undefined) {
@@ -426,6 +450,8 @@ export class MemoService extends TypertRemoteService {
   @Remote('addEntry')
   async addEntry(request: MemoAddEntryRequest): Promise<MemoAddEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const existing = table.get(request.weekId)
     const now = Date.now()
     const entry: MemoEntry = {
@@ -469,6 +495,8 @@ export class MemoService extends TypertRemoteService {
   @Remote('updateEntry')
   async updateEntry(request: MemoUpdateEntryRequest): Promise<MemoUpdateEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const row = table.get(request.weekId)
     if (row === undefined) {
       return this.failure({ code: 'week-not-found', message: `week "${request.weekId}" not found`, weekId: request.weekId })
@@ -512,6 +540,8 @@ export class MemoService extends TypertRemoteService {
   @Remote('deleteEntry')
   async deleteEntry(request: MemoDeleteEntryRequest): Promise<MemoDeleteEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const row = table.get(request.weekId)
     if (row === undefined) {
       return this.failure({ code: 'week-not-found', message: `week "${request.weekId}" not found`, weekId: request.weekId })
