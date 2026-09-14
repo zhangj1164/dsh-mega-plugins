@@ -8,7 +8,7 @@
 
 纯 UI 界面插件：主机端 `apply` 为空，仅使插件出现在主机 `cordis.yml` / Loader 中；浏览器端通过 `exports["./client"]` 交付，由 `package.json` 的 `dsh.client` 声明发现。
 
-看板是一等的主面板。`sidebar.panellist` 条目为它提供侧边栏按钮——该按钮本身、其无障碍名称与选中态都由侧边栏掌控，因此本插件只贡献一个 `currentColor` 图标；键控的 `main` 条目在该面板 id 被选中时渲染看板。关闭看板会通过 `ctx.layout` 选中保留的 `conversation` 面板，因为面板选择权属于 layout 服务而非组件内部状态。本插件不注入任何全局 DOM、不监听侧边栏、不自行定位面板。
+看板是一等的主面板。`sidebar.panellist` 条目为它提供侧边栏按钮——该按钮本身、其无障碍名称与选中态都由侧边栏掌控，因此本插件只贡献一个 `currentColor` 图标；键控的 `main` 条目在该面板 id 被选中时渲染看板。关闭看板会通过 `ctx.layout` 选中保留的 `conversation` 面板，因为面板选择权属于 layout 服务而非组件内部状态。插件在 `inject` 中声明 `layout`，但不为它增加 npm 依赖：该服务由外壳提供、经上下文访问，与本包对待 `dsh-client-ui-slots` 的方式一致。本插件不注入任何全局 DOM、不监听侧边栏、不自行定位面板。
 
 ## 维度与历史
 
