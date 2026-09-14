@@ -1,45 +1,51 @@
 /**
- * Browser-local controller for the memo panel. Calls Host Remote methods
- * through the Connection RPC channel (no generated TYPERT_REMOTE descriptor
- * required). Publishes immutable views through a subscribe/getSnapshot pair.
+ * Browser-local controller for the memo board. Calls Host Remote methods over
+ * the Connection RPC channel (no generated TYPERT_REMOTE descriptor needed)
+ * and publishes immutable views through a subscribe/getSnapshot pair.
  *
- * ## Cross-package references (supplement 1)
+ * ## What the controller deliberately does not do
  *
- * The controller calls **two** Host services through the same RPC channel:
+ * It does not choose a model route. `provider`/`model` are absent from every
+ * request here: the host service resolves the route from its own `Config` or
+ * from the deployment's `agentDefaultModel`. Hardcoding them in the browser
+ * was the original defect: the browser cannot know which adapters a
+ * deployment has registered, and a wrong guess surfaces as an opaque failure.
  *
- * - `memo/*` — the memo service (dsh-memo), which itself depends on
- *   dsh-telemetry and dsh-github-issue internally for log analysis.
- * - `githubIssue/*` — the GitHub-issue service (dsh-github-issue), called
- *   directly from the client for the "Add Issue" editor (req 11) and the
- *   pre-fill URL (req 9). This is the direct cross-package reference that
- *   supplement 1 asks about: ui-memo declares dsh-github-issue as a
- *   workspace peer and imports its client types.
+ * It also does not compute which weeks a period contains. The host's
+ * `listPeriods` returns each period with its week ids, so the board and the
+ * timeline share one calendar instead of two that can drift apart.
  *
  * ## Wire shape
  *
- * The Connection RPC channel returns the transport envelope:
- * `{ ok: true, value: <businessResult> }`.
+ * `rpc.call` returns the transport envelope `{ ok, value }`. Each Remote
+ * method returns its own business result `{ ok, value | error }`, so the full
+ * shape is `{ ok, value: { ok, value } }`. `callRemote` unwraps the transport
+ * envelope and the caller reads `.value` from the business result.
  *
- * Each Remote method returns its own business result:
- * `{ ok: true, value: MemoWeek | MemoWeek[] | MemoAnalysis | string }`.
- *
- * So the full wire shape after `rpc.call()` is:
- * ```
- * { ok: true, value: { ok: true, value: MemoWeek } }
- *          ^transport              ^business
- * ```
- *
- * `callRemote` unwraps the transport envelope and returns the business result.
- * The controller then reads `.value` from the business result.
- *
- * Each Remote method's single parameter is named `request` in the typert
- * descriptor, so all args are passed as `{ request: { ...fields } }`.
+ * Each Remote method's single parameter is named `request`, so arguments are
+ * always passed as `{ args: { request } }`.
  *
  * @module dsh-client-ui-memo/client/controller
  */
 
-import type { MemoWeek, MemoAnalysisType, MemoAnalysisPeriod, MemoEntry } from 'dsh-memo/client'
+import type {
+  MemoAnalysisPeriod,
+  MemoAnalysisType,
+  MemoEntry,
+  MemoPeriodEntry,
+  MemoWeek,
+} from 'dsh-memo/client'
 import type { GithubIssueReport } from 'dsh-github-issue/client'
+import {
+  cardsInPeriod,
+  readSelection,
+  toCards,
+  targetWeekId,
+  writeSelection,
+  type MemoCard,
+  type MemoSelection,
+  type StorageLike,
+} from './logic.ts'
 
 // ── RPC types ──────────────────────────────────────────────────────────────
 
@@ -55,8 +61,9 @@ export interface RpcCaller {
 }
 
 const API_CHANNEL = '/api'
-const PROVIDER = 'custom'
-const MODEL = 'glm-5-2-260617'
+
+/** How many periods of each dimension the board offers as history. */
+const PERIOD_HISTORY_LIMIT = 24
 
 /**
  * Call one Remote method on any service, unwrapping the transport envelope.
@@ -79,12 +86,15 @@ export async function callRemote<T>(
     }
     return { ok: false, error: envelope.error ?? { code: 'transport-failure', message: 'unknown transport error' } }
   } catch (e) {
-    return { ok: false, error: { code: 'rpc-failure', message: e instanceof Error ? e.message : String(e) } }
+    return { ok: false, error: { code: 'rpc-failure', message: describeError(e) } }
   }
 }
 
 /**
- * Call one memo Remote method (convenience wrapper for backward compatibility).
+ * Call one memo Remote method.
+ * @param rpc - the RPC caller.
+ * @param method - the Remote method name.
+ * @param request - the request payload.
  * @returns the business result `{ ok, value | error }`.
  */
 export async function callMemo<T>(
@@ -96,7 +106,11 @@ export async function callMemo<T>(
 }
 
 /**
- * Call one githubIssue Remote method (direct cross-package reference).
+ * Call one githubIssue Remote method (the cross-package reference the memo
+ * issue editor depends on).
+ * @param rpc - the RPC caller.
+ * @param method - the Remote method name.
+ * @param request - the request payload.
  * @returns the business result `{ ok, value | error }`.
  */
 export async function callGithubIssue<T>(
@@ -109,26 +123,53 @@ export async function callGithubIssue<T>(
 
 // ── View state ─────────────────────────────────────────────────────────────
 
+/** Published view state of the memo board. */
 export interface MemoViewState {
+  /** Load lifecycle of the board data. */
   status: 'cold' | 'loading' | 'ready' | 'error'
+  /** Every stored week, newest first. */
   weeks: MemoWeek[]
-  /** Currently selected week index (0 = newest). */
-  selectedWeekIndex: number
+  /** The active dimension and label. */
+  selection: MemoSelection
+  /** Navigable periods of the active dimension, newest first. */
+  periods: MemoPeriodEntry[]
+  /** Cards in the active period, newest first. */
+  cards: MemoCard[]
+  /** Total number of stored cards, so the UI can distinguish "empty" from "all gone". */
+  totalCards: number
+  /** Last error message, or `null`. */
   error: string | null
+  /** AI analysis text for the active period. */
   analysis: string | null
+  /** Exported Markdown report. */
   report: string | null
-  /** Optimized issue report from the "Add Issue" editor (req 11). */
+  /** Optimized issue report from the issue editor. */
   issueReport: GithubIssueReport | null
-  /** Log analysis result with prefill URL (req 8, 9). */
+  /** Log-analysis report plus its pre-filled issue URL. */
   logAnalysis: { report: GithubIssueReport; issueUrl: string } | null
+  /** Whether a request is in flight. */
   busy: boolean
 }
 
+/** Options for constructing a controller. */
+export interface MemoControllerOptions {
+  /** The RPC caller from the connection service. */
+  readonly rpc: RpcCaller
+  /** Storage for the last-viewed selection. Defaults to `localStorage`. */
+  readonly storage?: StorageLike | undefined
+  /** Injectable clock, so period defaults are testable. */
+  readonly now?: (() => Date) | undefined
+}
+
+/** Create the initial view state. */
 export function createInitialState(): MemoViewState {
   return {
     status: 'cold',
     weeks: [],
-    selectedWeekIndex: 0,
+    selection: { period: 'week', label: '' },
+    periods: [],
+    cards: [],
+    totalCards: 0,
     error: null,
     analysis: null,
     report: null,
@@ -140,14 +181,26 @@ export function createInitialState(): MemoViewState {
 
 // ── Controller ─────────────────────────────────────────────────────────────
 
+/** Drives the memo board: data loading, period navigation, and card edits. */
 export class MemoController {
   private _state: MemoViewState = createInitialState()
   private listeners = new Set<() => void>()
   private disposed = false
+  private readonly rpc: RpcCaller
+  private readonly storage: StorageLike | undefined
+  private readonly now: () => Date
 
-  constructor(private readonly rpc: RpcCaller) {}
+  /**
+   * @param options - the RPC caller plus optional storage and clock overrides.
+   */
+  constructor(options: MemoControllerOptions) {
+    this.rpc = options.rpc
+    this.storage = options.storage ?? defaultStorage()
+    this.now = options.now ?? (() => new Date())
+  }
 
   getSnapshot = (): MemoViewState => this._state
+
   subscribe = (fn: () => void): (() => void) => {
     this.listeners.add(fn)
     return () => { this.listeners.delete(fn) }
@@ -163,216 +216,311 @@ export class MemoController {
     this.emit()
   }
 
-  /** The currently selected week (defaults to the newest). */
-  get currentWeek(): MemoWeek | undefined {
-    return this._state.weeks[this._state.selectedWeekIndex]
+  /** The week a new card would be stored in for the active selection. */
+  get targetWeek(): string | undefined {
+    const weekIds = this._state.periods.find(entry => entry.label === this._state.selection.label)?.weekIds ?? []
+    return targetWeekId(this._state.selection, weekIds, this._state.weeks[0]?.weekId)
   }
 
-  /** Select a different week from the list (req 3: view history). */
-  selectWeek(index: number): void {
-    if (index < 0 || index >= this._state.weeks.length) return
-    this.set({ selectedWeekIndex: index, analysis: null, report: null })
+  /** The period entry for the active selection, when the host listed it. */
+  get activePeriod(): MemoPeriodEntry | undefined {
+    return this._state.periods.find(entry => entry.label === this._state.selection.label)
   }
 
-  async refresh(): Promise<void> {
-    this.set({ status: 'loading', error: null })
+  /**
+   * Load weeks, the timeline of the active dimension, and recompute the cards.
+   *
+   * The selection defaults to the host's current period of that dimension and
+   * is restored from storage when a previous selection is still valid.
+   *
+   * @param period - optional dimension to switch to before loading.
+   */
+  async refresh(period?: MemoAnalysisPeriod): Promise<void> {
+    const dimension = period ?? this._state.selection.period
+    this.set({ status: 'loading', error: null, selection: { ...this._state.selection, period: dimension } })
     try {
-      const r = await callMemo<readonly MemoWeek[]>(this.rpc, 'listWeeks', {})
-      if (r.ok) {
-        const weeks = Array.isArray(r.value) ? [...r.value] : []
-        this.set({ status: 'ready', weeks, busy: false })
-      } else {
-        this.set({ status: 'error', error: r.error.message, busy: false })
+      const weeksResult = await callMemo<readonly MemoWeek[]>(this.rpc, 'listWeeks', {})
+      if (!weeksResult.ok) {
+        this.set({ status: 'error', error: weeksResult.error.message, busy: false })
+        return
       }
-    } catch (e) {
-      this.set({ status: 'error', error: e instanceof Error ? e.message : String(e), busy: false })
-    }
-  }
+      const weeks = Array.isArray(weeksResult.value) ? [...weeksResult.value] : []
 
-  async addEntry(content: string): Promise<void> {
-    if (!content.trim()) return
-    this.set({ busy: true, error: null })
-    try {
-      const wk = await callMemo<MemoWeek>(this.rpc, 'getOrCreateCurrentWeek', {})
-      if (!wk.ok) { this.set({ busy: false, error: wk.error.message }); return }
-
-      const week = wk.value
-      if (!week?.weekId) { this.set({ busy: false, error: 'getOrCreateCurrentWeek: missing weekId' }); return }
-
-      const add = await callMemo<MemoEntry>(this.rpc, 'addEntry', { weekId: week.weekId, type: 'text', content: content.trim() })
-      if (add.ok) {
-        await this.refresh()
-      } else {
-        this.set({ busy: false, error: add.error.message })
+      const periodsResult = await callMemo<readonly MemoPeriodEntry[]>(this.rpc, 'listPeriods', {
+        period: dimension,
+        limit: PERIOD_HISTORY_LIMIT,
+      })
+      const periods = periodsResult.ok && Array.isArray(periodsResult.value) ? [...periodsResult.value] : []
+      if (!periodsResult.ok) {
+        this.set({ status: 'error', error: periodsResult.error.message, busy: false })
+        return
       }
+
+      const fallbackLabel = periods[0]?.label ?? ''
+      const restored = period === undefined
+        ? readSelection(this.storage, { period: dimension, label: fallbackLabel })
+        : { period: dimension, label: fallbackLabel }
+      const label = periods.some(entry => entry.label === restored.label) ? restored.label : fallbackLabel
+      const selection: MemoSelection = { period: dimension, label }
+
+      const cards = toCards(weeks)
+      const active = periods.find(entry => entry.label === label)
+      this.set({
+        status: 'ready',
+        weeks,
+        periods,
+        selection,
+        cards: cardsInPeriod(cards, active?.weekIds ?? []),
+        totalCards: cards.length,
+        busy: false,
+        error: null,
+      })
+      writeSelection(this.storage, selection)
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ status: 'error', error: describeError(e), busy: false })
     }
   }
 
   /**
-   * Update an entry's content. If the week is not the current week, the
-   * backend requires force=true (req 3: past-week force gate). The controller
-   * passes force through so the UI can prompt the user.
-   * @param weekId - the week containing the entry.
-   * @param entryId - the entry to update.
-   * @param content - the new content.
-   * @param force - must be true for past weeks (acknowledges stale analysis).
+   * Switch the active dimension, keeping the host's current period for it.
+   * @param period - the dimension to show.
    */
-  async updateEntry(weekId: string, entryId: string, content: string, force: boolean): Promise<boolean> {
-    if (!content.trim()) return false
+  async selectPeriod(period: MemoAnalysisPeriod): Promise<void> {
+    if (period === this._state.selection.period) return
+    this.set({ analysis: null, report: null })
+    await this.refresh(period)
+  }
+
+  /**
+   * Show another period of the active dimension.
+   * @param label - the period label to select.
+   */
+  async selectLabel(label: string): Promise<void> {
+    if (label === this._state.selection.label) return
+    const selection: MemoSelection = { period: this._state.selection.period, label }
+    const active = this._state.periods.find(entry => entry.label === label)
+    const cards = toCards(this._state.weeks)
+    this.set({
+      selection,
+      cards: cardsInPeriod(cards, active?.weekIds ?? []),
+      analysis: null,
+      report: null,
+      error: null,
+    })
+    writeSelection(this.storage, selection)
+  }
+
+  /**
+   * Add a card to the active period.
+   * @param content - the card text.
+   * @returns whether the card was stored.
+   */
+  async addCard(content: string): Promise<boolean> {
+    const trimmed = content.trim()
+    if (!trimmed) return false
     this.set({ busy: true, error: null })
     try {
-      const r = await callMemo<MemoEntry>(this.rpc, 'updateEntry', { weekId, entryId, content: content.trim(), force })
-      if (r.ok) {
-        await this.refresh()
-        return true
+      const weekId = this.targetWeek
+      if (weekId === undefined) {
+        this.set({ busy: false, error: 'no target week for the selected period' })
+        return false
       }
-      this.set({ busy: false, error: r.error.message })
-      return false
+      const result = await callMemo<MemoEntry>(this.rpc, 'addEntry', { weekId, type: 'text', content: trimmed })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return false
+      }
+      await this.refresh()
+      return true
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
       return false
     }
   }
 
   /**
-   * Delete an entry from a week. Past weeks require force=true (req 3).
-   * @param weekId - the week containing the entry.
-   * @param entryId - the entry to delete.
-   * @param force - must be true for past weeks.
+   * Update a card's content.
+   * @param card - the card to update.
+   * @param content - the new text.
+   * @returns whether the update succeeded.
    */
-  async deleteEntry(weekId: string, entryId: string, force: boolean): Promise<boolean> {
+  async updateCard(card: MemoCard, content: string): Promise<boolean> {
+    const trimmed = content.trim()
+    if (!trimmed) return false
     this.set({ busy: true, error: null })
     try {
-      const r = await callMemo<boolean>(this.rpc, 'deleteEntry', { weekId, entryId, force })
-      if (r.ok) {
-        await this.refresh()
-        return true
+      const result = await callMemo<MemoEntry>(this.rpc, 'updateEntry', {
+        weekId: card.weekId,
+        entryId: card.id,
+        content: trimmed,
+        force: true,
+      })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return false
       }
-      this.set({ busy: false, error: r.error.message })
-      return false
+      await this.refresh()
+      return true
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
       return false
     }
   }
 
   /**
-   * Analyze memo entries for the selected week or a broader period (req 4).
-   * @param analysisType - 梳理 (organize), 总结 (summarize), or 分析 (analyze).
-   * @param period - the analysis period (week/month/quarter/year).
+   * Duplicate a card into the same period.
+   * @param card - the card to copy.
+   * @param suffix - text appended so the copy is visibly distinct.
+   * @returns whether the copy was stored.
    */
-  async analyze(analysisType: MemoAnalysisType, period: MemoAnalysisPeriod = 'week'): Promise<void> {
+  async duplicateCard(card: MemoCard, suffix: string): Promise<boolean> {
+    return this.addCard(duplicateText(card.content, suffix))
+  }
+
+  /**
+   * Delete a card.
+   * @param card - the card to delete.
+   * @returns whether the delete succeeded.
+   */
+  async deleteCard(card: MemoCard): Promise<boolean> {
+    this.set({ busy: true, error: null })
+    try {
+      const result = await callMemo<boolean>(this.rpc, 'deleteEntry', {
+        weekId: card.weekId,
+        entryId: card.id,
+        force: true,
+      })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return false
+      }
+      await this.refresh()
+      return true
+    } catch (e) {
+      this.set({ busy: false, error: describeError(e) })
+      return false
+    }
+  }
+
+  /**
+   * Analyze the active period.
+   * @param analysisType - organize (梳理), summarize (总结), or analyze (分析).
+   */
+  async analyze(analysisType: MemoAnalysisType): Promise<void> {
     this.set({ busy: true, error: null, analysis: null })
     try {
-      const cw = this.currentWeek
-      if (!cw) { this.set({ busy: false, error: 'No week selected' }); return }
-
-      const r = await callMemo<{ summary: string }>(this.rpc, 'analyze', {
-        period,
-        periodLabel: cw.weekId,
+      const result = await callMemo<{ summary: string }>(this.rpc, 'analyze', {
+        period: this._state.selection.period,
+        periodLabel: this._state.selection.label,
         analysisType,
-        provider: PROVIDER,
-        model: MODEL,
       })
-      if (r.ok && r.value) {
-        this.set({ busy: false, analysis: r.value.summary })
+      if (result.ok && result.value) {
+        this.set({ busy: false, analysis: result.value.summary })
       } else {
-        this.set({ busy: false, error: r.error.message })
+        this.set({ busy: false, error: result.ok ? 'analysis returned no text' : result.error.message })
       }
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
     }
   }
 
   /**
-   * Export a work report as Markdown and trigger a .md file download (req 6).
-   * @param period - the report period (week/month/quarter/year).
+   * Export a Markdown report for the active period and download it.
+   * @returns the report text, or `undefined` on failure.
    */
-  async exportReport(period: MemoAnalysisPeriod = 'week'): Promise<void> {
+  async exportReport(): Promise<string | undefined> {
     this.set({ busy: true, error: null, report: null })
     try {
-      const cw = this.currentWeek
-      if (!cw) { this.set({ busy: false, error: 'No week selected' }); return }
-
-      const r = await callMemo<string>(this.rpc, 'exportReport', {
-        period,
-        periodLabel: cw.weekId,
-        provider: PROVIDER,
-        model: MODEL,
+      const result = await callMemo<string>(this.rpc, 'exportReport', {
+        period: this._state.selection.period,
+        periodLabel: this._state.selection.label,
       })
-      if (r.ok) {
-        this.set({ busy: false, report: r.value })
-        downloadMarkdown(r.value, `memo-report-${cw.weekId}.md`)
-      } else {
-        this.set({ busy: false, error: r.error.message })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return undefined
       }
+      this.set({ busy: false, report: result.value })
+      downloadMarkdown(result.value, `memo-report-${this._state.selection.label}.md`)
+      return result.value
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
+      return undefined
     }
   }
 
   /**
-   * Optimize a natural-language issue description into a structured GitHub
-   * issue report (req 11). Calls the githubIssue service directly — this is
-   * the cross-package reference that supplement 1 asks about.
-   * @param description - the user's raw natural-language description.
+   * Optimize a natural-language description into a GitHub issue report.
+   * @param description - the raw description.
    */
   async optimizeIssue(description: string): Promise<void> {
-    if (!description.trim()) return
+    const trimmed = description.trim()
+    if (!trimmed) return
     this.set({ busy: true, error: null, issueReport: null })
     try {
-      const r = await callGithubIssue<GithubIssueReport>(this.rpc, 'optimizeIssue', {
-        description: description.trim(),
-        provider: PROVIDER,
-        model: MODEL,
-      })
-      if (r.ok) {
-        this.set({ busy: false, issueReport: r.value })
+      const result = await callGithubIssue<GithubIssueReport>(this.rpc, 'optimizeIssue', { description: trimmed })
+      if (result.ok) {
+        this.set({ busy: false, issueReport: result.value })
       } else {
-        this.set({ busy: false, error: r.error.message })
+        this.set({ busy: false, error: result.error.message })
       }
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
     }
   }
 
-  /**
-   * Analyze telemetry logs for the memo plugin and generate a GitHub issue
-   * report with a pre-filled issue-creation URL (req 8, 9). Calls the memo
-   * service's analyzeLogs method, which internally uses dsh-telemetry and
-   * dsh-github-issue.
-   */
+  /** Analyze this plugin's telemetry failures and build a pre-filled issue. */
   async analyzeLogs(): Promise<void> {
     this.set({ busy: true, error: null, logAnalysis: null })
     try {
-      const r = await callMemo<{ report: GithubIssueReport; issueUrl: string }>(this.rpc, 'analyzeLogs', {
-        provider: PROVIDER,
-        model: MODEL,
-      })
-      if (r.ok && r.value) {
-        this.set({ busy: false, logAnalysis: r.value })
+      const result = await callMemo<{ report: GithubIssueReport; issueUrl: string }>(this.rpc, 'analyzeLogs', {})
+      if (result.ok && result.value) {
+        this.set({ busy: false, logAnalysis: result.value })
       } else {
-        this.set({ busy: false, error: r.error.message })
+        this.set({ busy: false, error: result.ok ? 'log analysis returned no report' : result.error.message })
       }
     } catch (e) {
-      this.set({ busy: false, error: e instanceof Error ? e.message : String(e) })
+      this.set({ busy: false, error: describeError(e) })
     }
   }
 
-  /** Open a URL in a new tab (req 9: jump to GitHub pre-filled issue page). */
-  openUrl(url: string): void {
-    if (typeof window !== 'undefined') window.open(url, '_blank', 'noopener,noreferrer')
+  /** Clear the last error. */
+  clearError(): void {
+    this.set({ error: null })
   }
 
-  dispose(): void { this.disposed = true; this.listeners.clear() }
+  /** Stop publishing state. */
+  dispose(): void {
+    this.disposed = true
+    this.listeners.clear()
+  }
 }
 
-// ── Utilities ──────────────────────────────────────────────────────────────
+/** The browser's localStorage, when the environment provides one. */
+function defaultStorage(): StorageLike | undefined {
+  try {
+    return typeof localStorage === 'undefined' ? undefined : localStorage
+  } catch {
+    return undefined
+  }
+}
 
 /**
- * Trigger a Markdown file download in the browser (req 6: export as .md).
+ * Render a thrown value as a message for the error banner.
+ * @param error - the thrown value.
+ * @returns a human-readable description.
+ */
+function describeError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+
+/** Append a suffix that marks a duplicated card as a copy. */
+function duplicateText(content: string, suffix: string): string {
+  return `${content}\n\n${suffix}`
+}
+
+/**
+ * Trigger a Markdown file download in the browser.
  * @param content - the Markdown text.
  * @param filename - the download filename.
  */
@@ -389,6 +537,4 @@ export function downloadMarkdown(content: string, filename: string): void {
   URL.revokeObjectURL(url)
 }
 
-// ── Export types for tests ─────────────────────────────────────────────────
-
-export type { TransportEnvelope, BusinessResult, MemoWeek, MemoAnalysisType, MemoAnalysisPeriod, MemoEntry, GithubIssueReport }
+export type { TransportEnvelope, BusinessResult, MemoWeek, MemoAnalysisType, MemoAnalysisPeriod, MemoEntry, GithubIssueReport, MemoPeriodEntry, MemoCard, MemoSelection }
