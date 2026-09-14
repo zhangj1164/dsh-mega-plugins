@@ -8,7 +8,7 @@ export type MemoKey =
   // Shell / header
   | 'entryLabel' | 'entryTooltip' | 'panelTitle' | 'close' | 'nav'
   // Dimensions
-  | 'period' | 'periodWeek' | 'periodMonth' | 'periodQuarter' | 'periodYear' | 'history'
+  | 'period' | 'periodWeek' | 'periodMonth' | 'periodQuarter' | 'periodYear' | 'history' | 'yearFilter'
   // Cards
   | 'addPlaceholder' | 'addEntry' | 'noEntries' | 'noCardsInPeriod' | 'loading'
   | 'viewCard' | 'editEntry' | 'duplicateEntry' | 'deleteEntry' | 'copied' | 'copySuffix'
@@ -36,6 +36,7 @@ export const zh: Record<MemoKey, string> = {
   periodQuarter: '季度',
   periodYear: '年',
   history: '历史',
+  yearFilter: '年份',
   addPlaceholder: '写一条备忘…',
   addEntry: '添加备忘',
   noEntries: '还没有任何备忘，先在上方添加一条',
@@ -87,6 +88,7 @@ export const en: Record<MemoKey, string> = {
   periodQuarter: 'Quarter',
   periodYear: 'Year',
   history: 'History',
+  yearFilter: 'Year',
   addPlaceholder: 'Write a memo…',
   addEntry: 'Add memo',
   noEntries: 'No memos yet — add one above',

@@ -246,6 +246,54 @@ describe('MemoController card mutations', () => {
   })
 })
 
+describe('MemoController period tags and year switching', () => {
+  it('offers a tag only for a period holding a memo, plus the current one', async () => {
+    const lastWeek = isoWeekId(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    const { controller } = await harness({ weeks: { [lastWeek]: { entries: [{ id: 'e1', content: 'then', createdAt: 1 }] } } })
+    const view = controller.getSnapshot()
+
+    // The host returns the whole timeline; the board narrows it to two tags.
+    expect(view.periods.length).toBeGreaterThan(2)
+    expect(view.visiblePeriods.map(entry => entry.label)).toEqual([
+      view.selection.label,
+      lastWeek,
+    ])
+  })
+
+  it('always keeps the current period, so an empty week is still reachable', async () => {
+    const { controller } = await harness()
+    const view = controller.getSnapshot()
+    // Nothing is stored, and the only tag is the current period.
+    expect(view.visiblePeriods).toHaveLength(1)
+    expect(view.visiblePeriods[0]?.current).toBe(true)
+    expect(view.visiblePeriods[0]?.label).toBe(view.selection.label)
+  })
+
+  it('switches the year within the loaded timeline and picks a tag of that year', async () => {
+    const oldWeek = isoWeekId(new Date(Date.now() - 400 * 24 * 60 * 60 * 1000))
+    const { rpc, controller } = await harness({ weeks: { [oldWeek]: { entries: [{ id: 'e1', content: 'then', createdAt: 1 }] } } })
+    const before = rpc.calls.filter(call => call.endpoint === 'memo/listPeriods').length
+
+    const olderYear = controller.getSnapshot().years[controller.getSnapshot().years.length - 1]!
+    expect(olderYear).not.toBe(String(new Date().getFullYear()))
+    controller.selectYear(olderYear)
+
+    const view = controller.getSnapshot()
+    expect(view.year).toBe(olderYear)
+    expect(view.selection.label.slice(0, 4)).toBe(olderYear)
+    expect(view.cards.map(card => card.content)).toEqual(['then'])
+    // The timeline was already local, so switching years costs no host call.
+    expect(rpc.calls.filter(call => call.endpoint === 'memo/listPeriods').length).toBe(before)
+  })
+
+  it('ignores a year it does not offer', async () => {
+    const { controller } = await harness()
+    const year = controller.getSnapshot().year
+    controller.selectYear('1999')
+    expect(controller.getSnapshot().year).toBe(year)
+  })
+})
+
 describe('MemoController analysis, export, and issues', () => {
   it('analyzes the selected period and exposes the summary', async () => {
     const { rpc, controller } = await harness()

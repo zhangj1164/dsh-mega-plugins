@@ -14,12 +14,18 @@ The board is a first-class main panel. A `sidebar.panellist` entry gives it the 
 
 The board offers four dimensions. Each keeps its own history, and switching dimension switches the history list with it:
 
-| Dimension | Period label | History entries |
-|---|---|---|
-| Week | `2026-W37` | the last 24 ISO weeks |
-| Month | `2026-09` | the last 24 months |
-| Quarter | `2026-Q3` | the last 24 quarters |
-| Year | `2026` | the last 24 years |
+| Dimension | Period label | Fetch window | Tags shown |
+|---|---|---|---|
+| Week | `2026-W37` | the last 400 ISO weeks | ≤ 10 per year |
+| Month | `2026-09` | the last 400 months | ≤ 10 per year |
+| Quarter | `2026-Q3` | the last 400 quarters | ≤ 10 per year |
+| Year | `2026` | the last 400 years | ≤ 10 |
+
+The whole timeline is fetched once per dimension — 400 is the host's own clamp, so this is everything the host will give — and both the tag rule and the year switcher are computed from it in the browser. A dimension therefore costs the same one call whether the user stays in one year or moves across all of them.
+
+**Which periods become tags.** A period is tagged when it holds at least one memo, plus the current period, which is always tagged so an empty new week is still reachable. Newest first, capped at 10 per dimension and year; anything older is reached by switching year. Emptiness is decided from the cards, not from the host's `weekCount`, because the host creates a zero-entry row for the current week — a positive `weekCount` means the week has a row, not that it has a memo.
+
+**Year switcher.** Sitting at the right of the dimension switch, it offers only years that hold a tag, newest first, with the current year always present even before anything is stored. Every option therefore leads somewhere. Switching year is a local operation: it re-selects a tag within that year and makes no host call.
 
 The history list comes from the host (`memo/listPeriods`), never from a browser-side calendar, so the period boundaries the host uses for analysis and the ones the board displays can never drift apart.
 
@@ -32,6 +38,7 @@ The history list comes from the host (`memo/listPeriods`), never from a browser-
 | `refresh(period?)` | memo | Loads weeks and the period timeline, then derives the cards of the selected period. |
 | `selectPeriod(period)` | memo | Switches dimension and reloads that dimension's history. |
 | `selectLabel(label)` | — | Selects one history period and narrows the board to it. |
+| `selectYear(year)` | — | Shows another year's tags and re-selects a tag inside that year. |
 | `addCard(content)` | memo | Adds a text entry to the selected period's target week. |
 | `updateCard(card, content)` | memo | Updates a card; `force` is set for periods that are not current. |
 | `duplicateCard(card, suffix)` | memo | Copies a card into the same week, appending a suffix to the copy. |
@@ -47,7 +54,7 @@ The browser never selects a model. The controller sends **no** `provider` and **
 
 ## UI features
 
-- **Four dimension tabs** (周 / 月 / 季度 / 年), each with its own history chips and a marker for the current period
+- **Four dimension tabs** (周 / 月 / 季度 / 年) with a **year switcher** on the same row: a dimension tags only the periods that hold a memo plus the current period, at most 10 per year, so an empty historical week never becomes a tag
 - **Card grid** in the official Agent preset style: fixed-width columns, equal-height rows, fixed-size cards
 - **Card actions**: 查看 (read-only detail dialog), 编辑 (edit dialog), 复制 (duplicate into the same period), 删除 (confirmation dialog)
 - **Composer** with a dashed full-width creator button, disabled while the draft is empty
@@ -71,7 +78,7 @@ This package is included in the `dsh-memo` bundle's `cordis.patch.yml` as the `u
 
 ## Tests
 
-`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the header button order, each card action, the collapse and close affordances of every result card, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so both slot registrations, the sidebar glyph, the panel-switch on close, the locale dictionaries, the style disposal, and the panel component itself are covered where the shell actually reaches them.
+`tests/logic.spec.ts` covers the pure period, tag, and year logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the header button order, the tag rule and the year switcher, each card action, the collapse and close affordances of every result card, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so both slot registrations, the sidebar glyph, the panel-switch on close, the locale dictionaries, the style disposal, and the panel component itself are covered where the shell actually reaches them.
 
 ## Known Limitations
 
