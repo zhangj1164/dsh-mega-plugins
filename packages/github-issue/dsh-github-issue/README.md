@@ -28,11 +28,51 @@ Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a
 
 - **Req 8** — `generateReport` turns telemetry failure analysis into a uniform GitHub issue report that correlates each failure group against the plugin's feature code.
 - **Req 9** — `prefilledIssueUrl` builds a pre-filled GitHub issue-creation URL so the user can jump to the project's new-issue page with the report already filled in.
-- **Req 10** — Packaged as a standalone DSH plugin: any developer can install the `dsh-github-issue` profile and wire it into their own UI plugin. The memo bundle's `cordis.patch.yml` inserts it as a plain dependency.
+- **Req 10** — Packaged as a standalone DSH plugin: this package declares its own `dsh.bundle` with `cordis.patch.yml`, so a deployment can install it on its own and any UI plugin can reach it. See "Adopting this plugin" below.
 - **Req 11** — `optimizeIssue` rewrites a natural-language description into a structured issue using the configured model and a built-in structuring prompt. The `ui-memo` package calls this directly for its "Add Issue" editor.
 - **Req 12** — Reusable: the issue report template, the prefill URL builder, and the optimization prompt are all generic and not memo-specific.
 
+## Adopting this plugin
+
+Install the package and add it to your deployment's composition:
+
+```sh
+pnpm add dsh-github-issue
+```
+
+```yaml
+# your cordis.yml, or your own bundle's patch
+- insert:
+    - id: github-issue
+      name: dsh-github-issue
+      config:
+        repoUrl: https://github.com/your-org/your-repo
+```
+
+Read the service from any plugin with `ctx.get('githubIssue')`. It is optional from the consumer's side, so guard the read:
+
+```ts
+const issues = ctx.get('githubIssue')
+if (issues !== undefined) {
+  const { report } = await issues.generateReport({ analysis, repoUrl })
+}
+```
+
+The service has no dependency on `dsh-memo`; memo is one consumer among possible others.
+
+Do not enable both the `dsh-github-issue` bundle and the `dsh-memo` bundle: each inserts an entry with the id `github-issue`, and the loader rejects a duplicate entry id. The memo bundle already inserts this service, so a memo deployment needs no extra step.
+
+## Exports
+
+Every subpath resolves to the flat `lib/*.js` layout tsdown emits.
+
+| Subpath | Contents |
+|---|---|
+| `dsh-github-issue` | The `GithubIssueService` plugin and its Config. |
+| `dsh-github-issue/types` | Wire types: `GithubIssueReport`, request and result shapes. |
+| `dsh-github-issue/client` | The browser-facing type face. |
+| `dsh-github-issue/invariant` | Invariant definitions. |
+
 ## Known Limitations
 
-- **No bundle layer** — this package declares no `dsh.bundle`; it is installed as a plain dependency and activated by the memo bundle's `cordis.patch.yml`.
 - **Model dependency** — `inject: ['llm']` means the service will not activate without an LLM provider.

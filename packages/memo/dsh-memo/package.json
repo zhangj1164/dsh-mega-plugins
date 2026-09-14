@@ -29,7 +29,8 @@
     "./period": {
       "types": "./lib/period.d.ts",
       "default": "./lib/period.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "lib/**/*.js",

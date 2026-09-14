@@ -50,6 +50,11 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ['packages/*/*/tests/**/*.spec.{ts,tsx}'],
+    // Package tests live beside their package; gate tests describe the repo's
+    // own scripts, so they live beside the script they cover.
+    include: [
+      'packages/*/*/tests/**/*.spec.{ts,tsx}',
+      'scripts/tests/**/*.spec.ts',
+    ],
   },
 })

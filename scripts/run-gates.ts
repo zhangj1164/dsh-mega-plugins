@@ -175,6 +175,12 @@ export function gatesForMode(selected: Mode): Gate[] {
       return [
         pnpmScript('test', 'test'),
         pnpmScript('build', 'build'),
+        // Export targets are promises about build output, so this gate reads
+        // the artifacts and must wait for the build that produces them.
+        pnpmScript('package-exports', 'verify-package-exports', {
+          label: 'package exports',
+          needs: ['build'],
+        }),
         ...hygieneLeafGates({ artifactNeeds: ['build'] }),
         ...docSyncLeafGates(),
         nodeGate('issue-policy', ['.github/issue-management/policy.test.mjs'], {
