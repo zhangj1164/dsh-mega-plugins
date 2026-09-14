@@ -181,6 +181,10 @@ export function gatesForMode(selected: Mode): Gate[] {
           label: 'package exports',
           needs: ['build'],
         }),
+        // Bundle patches are source files, so this gate needs no build.
+        pnpmScript('bundle-entries', 'verify-bundle-entries', {
+          label: 'bundle entries',
+        }),
         ...hygieneLeafGates({ artifactNeeds: ['build'] }),
         ...docSyncLeafGates(),
         nodeGate('issue-policy', ['.github/issue-management/policy.test.mjs'], {

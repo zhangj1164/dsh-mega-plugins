@@ -60,7 +60,7 @@ if (issues !== undefined) {
 
 该服务不依赖 `dsh-memo`；备忘只是可能的消费者之一。
 
-不要同时启用 `dsh-github-issue` bundle 与 `dsh-memo` bundle：两者都会插入 id 为 `github-issue` 的条目，而加载器会拒绝重复的条目 id。memo bundle 本身已经会插入该服务，因此备忘部署无需额外操作。
+不要同时启用 `dsh-github-issue` bundle 与 `dsh-memo` bundle：两者都会插入 id 为 `github-issue` 的条目，而加载器会拒绝重复的条目 id。memo bundle 本身已经会插入该服务，因此备忘部署无需额外操作。两个 patch 文件都在该 id 上带有 `not both` 标记，仓库的 `verify-bundle-entries` 门禁要求这一点：只要某个条目 id 被一个以上的 workspace bundle 插入，除非每个相关 patch 都记录了这条互斥，否则门禁失败。
 
 ## 导出
 
