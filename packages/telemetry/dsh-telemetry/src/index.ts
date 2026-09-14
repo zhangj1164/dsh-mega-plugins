@@ -19,6 +19,14 @@ import s from '@deepseek-ai/schemastery'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
 import { telemetryDomainSpec } from './spec.ts'
 import type { TelemetryEventRow } from './spec.ts'
+import {
+  compileRules,
+  DEFAULT_REDACTION_MARKER,
+  DEFAULT_REDACTION_RULES,
+  redactMetadata,
+  redactText,
+  type RedactionRule,
+} from './redaction.ts'
 import type {
   TelemetryAnalysis,
   TelemetryErrorInput,
@@ -32,6 +40,15 @@ import type {
 export type * from './types.ts'
 export { telemetryDomainSpec, telemetryEventSchema } from './spec.ts'
 export type { TelemetryEventRow } from './spec.ts'
+export {
+  compileRules,
+  DEFAULT_REDACTION_MARKER,
+  DEFAULT_REDACTION_RULES,
+  redactMetadata,
+  redactText,
+  redactValue,
+} from './redaction.ts'
+export type { RedactionOptions, RedactionRule } from './redaction.ts'
 
 /** Deployment policy for local telemetry retention. */
 export interface Config {
@@ -40,11 +57,37 @@ export interface Config {
    * when the log is large; the deployment raises it for deeper analysis.
    */
   readonly maxEventsPerQuery: number
+  /**
+   * Whether to redact sensitive text before an event is stored. Disabling it
+   * stores events verbatim, which is what a deployment debugging its own
+   * redaction rules needs — and what makes those records unsafe to paste into
+   * an issue.
+   */
+  readonly redact: boolean
+  /**
+   * Replacement written in place of every match. `{rule}` is substituted with
+   * the matching rule's name, so a reader sees which family was removed rather
+   * than only that something was.
+   */
+  readonly redactionMarker: string
+  /**
+   * The rule set. Applied in order, so the defaults put the more specific
+   * patterns — a token is also long and base64-shaped — ahead of the generic
+   * ones and give the more informative marker.
+   */
+  readonly redactionRules: readonly RedactionRule[]
 }
 
 /** Schemastery configuration for the telemetry service. */
 export const Config: s<Config> = s.object({
   maxEventsPerQuery: s.number().step(1).min(1).default(500),
+  redact: s.boolean().default(true),
+  redactionMarker: s.string().default(DEFAULT_REDACTION_MARKER),
+  redactionRules: s.array(s.object({
+    name: s.string().required(),
+    pattern: s.string().required(),
+    flags: s.string(),
+  })).default([...DEFAULT_REDACTION_RULES]),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -65,6 +108,7 @@ export class TelemetryService extends Service {
   static Config = Config
 
   private readonly maxEventsPerQuery: number
+  private readonly redactionRules: ReturnType<typeof compileRules>
   private table?: KvTable<string, TelemetryEventRow>
   private readonly pendingWrites: Set<Promise<void>> = new Set()
 
@@ -75,6 +119,15 @@ export class TelemetryService extends Service {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'telemetry')
     this.maxEventsPerQuery = config.maxEventsPerQuery
+    // Compiled once: rules are read on every user action, and a write path is
+    // the wrong place to rebuild regular expressions.
+    this.redactionRules = config.redact
+      ? compileRules({
+          enabled: config.redact,
+          marker: config.redactionMarker,
+          rules: config.redactionRules,
+        })
+      : []
   }
 
   /** Open and own the one telemetry domain. */
@@ -102,7 +155,7 @@ export class TelemetryService extends Service {
       category: input.category ?? 'user-action',
       result: input.result ?? 'success',
       ...(input.sessionId === undefined ? {} : { sessionId: input.sessionId }),
-      ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
+      ...this.redactedMetadata(input.metadata),
     }
     void this.trackWrite(this.requireTable().put(event.id, event))
   }
@@ -122,8 +175,8 @@ export class TelemetryService extends Service {
       category: 'error',
       result: 'failure',
       ...(input.sessionId === undefined ? {} : { sessionId: input.sessionId }),
-      ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
-      error: input.error,
+      ...this.redactedMetadata(input.metadata),
+      error: this.redactedError(input.error),
     }
     void this.trackWrite(this.requireTable().put(event.id, event))
   }
@@ -202,6 +255,39 @@ export class TelemetryService extends Service {
   private trackWrite(write: Promise<void>): void {
     this.pendingWrites.add(write)
     void write.then(() => { this.pendingWrites.delete(write) }, () => { this.pendingWrites.delete(write) })
+  }
+
+  /**
+   * Redact a metadata map for storage.
+   *
+   * Spread into the row, so an absent map contributes no key at all rather than
+   * an `undefined` one — the durable schema treats those differently.
+   * @param metadata - the caller-supplied metadata, if any.
+   * @returns the spreadable fragment.
+   */
+  private redactedMetadata(metadata: Record<string, unknown> | undefined): { metadata?: Record<string, unknown> } {
+    const redacted = redactMetadata(metadata, this.redactionRules)
+    return redacted === undefined ? {} : { metadata: redacted }
+  }
+
+  /**
+   * Redact an error record for storage.
+   *
+   * Only the free text is redacted. `code` and `featureCodeRef` are the plugin's
+   * own grouping keys: redacting them would not protect anything the plugin did
+   * not already choose to publish, and would destroy the grouping that makes the
+   * log analyzable.
+   * @param error - the error record to redact.
+   * @returns the redacted record.
+   */
+  private redactedError(error: TelemetryErrorRecord): TelemetryErrorRecord {
+    if (this.redactionRules.length === 0) return error
+    return {
+      code: error.code,
+      message: redactText(error.message, this.redactionRules),
+      ...(error.stack === undefined ? {} : { stack: redactText(error.stack, this.redactionRules) }),
+      ...(error.featureCodeRef === undefined ? {} : { featureCodeRef: error.featureCodeRef }),
+    }
   }
 
   /** Resolve the initialized durable table or fail a broken service lifecycle. */

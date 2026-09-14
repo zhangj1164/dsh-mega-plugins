@@ -11,6 +11,32 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 | 配置 | 默认值 | 含义 |
 |---|---|---|
 | `maxEventsPerQuery` | `500` | 一次 `listEvents` 调用返回的最大事件数。 |
+| `redact` | `true` | 是否在写入事件前对敏感文本脱敏。 |
+| `redactionMarker` | `[redacted:{rule}]` | 每处命中替换成的文本；`{rule}` 会替换为命中的规则名。 |
+| `redactionRules` | 下列五类规则 | 规则集：`{ name, pattern, flags? }`，按顺序应用。 |
+
+## 写入时脱敏
+
+最有排障价值的字段——`error.message`、`error.stack`，以及调用方自由填写的 `metadata`——恰恰是最容易在流转中带上绝对路径、地址与凭据的那几个。而这些记录也正是「日志分析」功能读取、并粘贴进 GitHub issue 的内容，因此这里捕获到的密钥会随下一次报告离开本机。
+
+所以脱敏发生在**写入之前**，实现在 `src/redaction.ts`，且不可逆。规则按顺序应用，因此更具体的模式排在通用模式之前，并由它给出更有信息量的标记：token 同时也是「长且形似 base64」的串，因为 token 规则先跑，所以它被标为 `credential`。
+
+| 规则 | 命中内容 |
+|---|---|
+| `email` | `jane.doe+work@example.co.uk` |
+| `credential` | `Bearer …` / `Basic …`、带前缀的密钥（`sk-`、`ghp_`、`github_pat_`、`xox…`），以及 `api_key=` / `password:` / `secret=` 这类赋值 |
+| `home-path` | `/Users/…`、`/home/…`、`/root/…`、`/var/…`、`/tmp/…`、`/opt/…`、`/mnt/…`、`/etc/…`，以及 `C:\Users\…` |
+| `windows-path` | 其他任意 Windows 绝对路径 |
+| `ipv4` / `ipv6` | 字面地址 |
+| `hex` / `base64` | 长串（32 个以上十六进制字符、40 个以上 base64 字符） |
+
+默认规则的触达范围有两处刻意收敛。像 `/api` 这样的裸路径片段**不**会被处理：一个连自己将来要解释的 channel 与 endpoint 名都一并打码的规则集，是没人能用来排障的规则集。家目录路径在冒号处停止，因此栈帧里的 `path:line:column` 会保留位置信息——正是位置让这条路径值得记录。
+
+只有字符串会被改写。非字符串叶子保持原值与类型，因此脱敏是「移除密钥」而不是「重塑日志」。既不是普通数据也不是字符串的值会被字符串化，而不是原样放过。`metadata` 缺失时仍然缺失，不会变成 `{}`——持久化 schema 对二者是区别对待的。
+
+**不脱敏的字段**：`pluginId`、`action`、`category`、`result`、`sessionId`、`error.code`、`error.featureCodeRef`。这些是插件自己的分组键；对它们脱敏既保护不了插件本就未选择公开的任何东西，又会摧毁让日志可分析的分组能力。确需覆盖其中某项的部署可以自行加一条规则。
+
+**规则是配置，不是常量。** 「挡住密钥」与「留够排障信息」之间的平衡因部署而异，而过宽的规则会永久损失排查线索——这正是规则集是 `Config` 字段、且只影响新记录的原因。模式编译失败的规则会被丢弃而不是抛出：配置里的一个笔误不该让宿主记录不了任何东西。
 
 ## 服务方法
 

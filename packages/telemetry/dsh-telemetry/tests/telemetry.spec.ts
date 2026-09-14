@@ -22,6 +22,98 @@ async function harness(): Promise<TestHarness> {
   return h
 }
 
+/** A harness with the given telemetry Config overrides. */
+async function harnessWith(config: Record<string, unknown>): Promise<TestHarness> {
+  const h = await setupHarness(undefined, config)
+  harnesses.push(h)
+  return h
+}
+
+describe('TelemetryService write-time redaction', () => {
+  it('removes secrets from an error message and stack before storing them', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.trackError({
+      pluginId: 'memo',
+      action: 'addEntry',
+      error: {
+        code: 'storage-error',
+        featureCodeRef: 'memo.storage',
+        message: 'cannot write /Users/zjlzld/.dsh/memo.json for jane@example.com',
+        stack: 'Error: EACCES\n    at open (C:\\Users\\zjlzld\\.dsh\\memo.json:12:5)',
+      },
+    })
+    await ctx.telemetry.flush()
+    const [event] = ctx.telemetry.listEvents({ pluginId: 'memo' })
+
+    expect(event?.error?.message).toBe('cannot write [redacted:home-path] for [redacted:email]')
+    expect(event?.error?.stack).toBe('Error: EACCES\n    at open ([redacted:home-path]:12:5)')
+    // The grouping keys survive, or the log stops being analyzable.
+    expect(event?.error?.code).toBe('storage-error')
+    expect(event?.error?.featureCodeRef).toBe('memo.storage')
+  })
+
+  it('removes secrets nested anywhere inside metadata', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.track({
+      pluginId: 'memo',
+      action: 'analyze',
+      metadata: {
+        route: { provider: 'custom', endpoint: 'http://10.0.0.7:8080/v1' },
+        attempts: [3, { note: 'from /home/me/notes.md' }],
+      },
+    })
+    await ctx.telemetry.flush()
+    const [event] = ctx.telemetry.listEvents({ pluginId: 'memo' })
+
+    expect(event?.metadata).toEqual({
+      route: { provider: 'custom', endpoint: 'http://[redacted:ipv4]:8080/v1' },
+      attempts: [3, { note: 'from [redacted:home-path]' }],
+    })
+    // The numeric leaf keeps its type rather than becoming a string.
+    expect(typeof (event?.metadata?.attempts as unknown[])[0]).toBe('number')
+  })
+
+  it('stores events verbatim when redaction is turned off', async () => {
+    const { ctx } = await harnessWith({ redact: false })
+    ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry', metadata: { path: '/Users/me/x.md' } })
+    await ctx.telemetry.flush()
+    expect(ctx.telemetry.listEvents({ pluginId: 'memo' })[0]?.metadata).toEqual({ path: '/Users/me/x.md' })
+  })
+
+  it('applies a deployment-supplied rule set instead of the defaults', async () => {
+    const { ctx } = await harnessWith({
+      redactionMarker: '<{rule}>',
+      redactionRules: [{ name: 'ticket', pattern: 'JIRA-\\d+' }],
+    })
+    ctx.telemetry.track({
+      pluginId: 'memo',
+      action: 'addEntry',
+      metadata: { subject: 'JIRA-4210 for jane@example.com' },
+    })
+    await ctx.telemetry.flush()
+    // The custom rule fires; the default email rule is gone because the rule
+    // set is the deployment's, not an addition to ours.
+    expect(ctx.telemetry.listEvents({ pluginId: 'memo' })[0]?.metadata).toEqual({
+      subject: '<ticket> for jane@example.com',
+    })
+  })
+
+  it('leaves already-stored events alone', async () => {
+    // Redaction is a write-time policy: it changes what is recorded next, never
+    // what was recorded before.
+    const first = await harnessWith({ redact: false })
+    first.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry', metadata: { path: '/Users/me/x.md' } })
+    await first.ctx.telemetry.flush()
+    const root = first.root
+    await first.disposeKeepRoot()
+    harnesses.splice(harnesses.indexOf(first), 1)
+
+    const reopened = await setupHarness(root)
+    harnesses.push(reopened)
+    expect(reopened.ctx.telemetry.listEvents({ pluginId: 'memo' })[0]?.metadata).toEqual({ path: '/Users/me/x.md' })
+  })
+})
+
 describe('TelemetryService track and query', () => {
   it('records a success event durably', async () => {
     const { ctx } = await harness()

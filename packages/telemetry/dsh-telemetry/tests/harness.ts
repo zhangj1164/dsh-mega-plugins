@@ -15,14 +15,14 @@ export interface TestHarness {
   disposeKeepRoot(): Promise<void>
 }
 
-export async function setupHarness(root?: string): Promise<TestHarness> {
+export async function setupHarness(root?: string, config: Record<string, unknown> = {}): Promise<TestHarness> {
   const storageRoot = root ?? await mkdtemp(join(tmpdir(), 'dsh-telemetry-test-'))
   const ctx = new Context()
   try {
     await ctx.plugin(Storage)
     await ctx.plugin(StorageJson, { root: storageRoot })
     await ctx.plugin(StorageDomain, { backend: 'json' })
-    await ctx.plugin(TelemetryService, { maxEventsPerQuery: 500 })
+    await ctx.plugin(TelemetryService, { maxEventsPerQuery: 500, ...config })
   } catch (error) {
     await ctx.fiber.dispose()
     if (root === undefined) await rm(storageRoot, { recursive: true, force: true })
