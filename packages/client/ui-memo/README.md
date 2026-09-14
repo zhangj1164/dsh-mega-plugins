@@ -55,6 +55,7 @@ The browser never selects a model. The controller sends **no** `provider` and **
 - **Report export** for the selected period
 - **Log analysis** and an **open pre-filled issue** action
 - **Issue editor**: natural-language input, LLM optimization, and a GitHub open action built from the configured repository
+- **Copy full body**: copies the untruncated report, so a body shortened to fit GitHub's URL limit is still available to paste
 - **Add Issue and Close** as icon-only buttons in the board header, Close rightmost, each with a tooltip
 
 ## Configuration

@@ -41,6 +41,10 @@ export async function setupHarness(options: {
   readonly repoUrl?: string
   readonly llmText?: string
   readonly emptyLlm?: boolean
+  /** Override the prefill URL budget, so shortening is testable without a huge body. */
+  readonly maxPrefillUrlLength?: number
+  /** Override the note appended when the body is shortened. */
+  readonly prefillTruncationNote?: string
 } = {}): Promise<TestHarness> {
   const ctx = new Context()
   const repoUrl = options.repoUrl ?? 'https://github.com/test/repo'
@@ -50,7 +54,11 @@ export async function setupHarness(options: {
     } else {
       await ctx.plugin(MockLlmService, { text: options.llmText ?? '## \u767b\u5f55\u5931\u8d25\n\n<details><summary>\u590d\u73b0</summary>\n\nBlank page\n\n</details>' })
     }
-    await ctx.plugin(GithubIssueService, { repoUrl })
+    await ctx.plugin(GithubIssueService, {
+      repoUrl,
+      ...(options.maxPrefillUrlLength === undefined ? {} : { maxPrefillUrlLength: options.maxPrefillUrlLength }),
+      ...(options.prefillTruncationNote === undefined ? {} : { prefillTruncationNote: options.prefillTruncationNote }),
+    })
   } catch (error) {
     await ctx.fiber.dispose()
     throw error

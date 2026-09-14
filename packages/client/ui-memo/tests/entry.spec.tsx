@@ -156,7 +156,9 @@ describe('ui-memo client entry point', () => {
     await waitFor(() => { expect(screen.getByText(zh.openGithub)).toBeTruthy() })
 
     fireEvent.click(screen.getByRole('button', { name: zh.openGithub }))
-    expect(open).toHaveBeenCalledOnce()
+    // Opening is asynchronous now: the URL is requested from the github-issue
+    // service, which owns the length limit.
+    await waitFor(() => { expect(open).toHaveBeenCalledOnce() })
     expect(String(open.mock.calls[0]?.[0])).toContain('https://example.test/repo/issues/new?')
     expect(open.mock.calls[0]?.[2]).toContain('noopener')
     open.mockRestore()

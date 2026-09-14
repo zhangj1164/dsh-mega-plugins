@@ -11,13 +11,15 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | Config | Default | Meaning |
 |---|---|---|
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | Default repository URL for issue prefill when a request omits `repoUrl`. |
+| `maxPrefillUrlLength` | `7000` | Longest pre-filled issue URL to produce, counted in characters. GitHub refuses a request URL that is too long and shows an error page instead of the new-issue form, and it publishes no stable constant for the boundary, so this carries headroom and is deployment-tunable. `0` disables shortening. |
+| `prefillTruncationNote` | a Chinese note | Appended to the issue body when the URL had to be shortened, so the reader knows the body is partial. |
 
 ## Remote methods
 
 | Method | Behavior |
 |---|---|
 | `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. |
-| `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. |
+| `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
 | `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `llm-failure` when the model produces no output. |
 
 ## Issue report template

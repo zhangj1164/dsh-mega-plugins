@@ -53,6 +53,67 @@ describe('GithubIssueService prefilledIssueUrl', () => {
     const url = new URL(result.value)
     expect(url.pathname).toBe('/default/repo/issues/new')
   })
+
+  it('shortens the body so the URL stays within the configured budget', async () => {
+    const note = '\n\n[truncated]'
+    const { service } = await harness({ maxPrefillUrlLength: 400, prefillTruncationNote: note })
+    const body = 'x'.repeat(2000)
+    const result = service.prefilledIssueUrl({
+      repoUrl: 'https://github.com/owner/repo',
+      report: { title: 't', body, labels: ['bug'] },
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.length).toBeLessThanOrEqual(400)
+    const sent = new URL(result.value).searchParams.get('body') ?? ''
+    expect(sent.endsWith(note)).toBe(true)
+    // What survives must be a real prefix of the report, not scrambled text.
+    expect(body.startsWith(sent.slice(0, -note.length))).toBe(true)
+    expect(sent.length).toBeLessThan(body.length)
+  })
+
+  it('spends the same budget on the title and labels as on the body', async () => {
+    // A body-only rule would allow a 400-character body here and still emit a
+    // URL well past the limit, which is the failure this guards.
+    const { service } = await harness({ maxPrefillUrlLength: 400, prefillTruncationNote: '[cut]' })
+    const result = service.prefilledIssueUrl({
+      repoUrl: 'https://github.com/owner/repo',
+      report: { title: 'T'.repeat(80), body: 'x'.repeat(2000), labels: ['L'.repeat(40)] },
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.length).toBeLessThanOrEqual(400)
+    const url = new URL(result.value)
+    expect(url.searchParams.get('title')).toBe('T'.repeat(80))
+    expect(url.searchParams.get('labels')).toBe('L'.repeat(40))
+  })
+
+  it('reduces the body to the note when the title alone exceeds the budget', async () => {
+    const note = '[cut]'
+    const { service } = await harness({ maxPrefillUrlLength: 120, prefillTruncationNote: note })
+    const result = service.prefilledIssueUrl({
+      repoUrl: 'https://github.com/owner/repo',
+      report: { title: 'T'.repeat(200), body: 'body', labels: [] },
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // The title names the report and cannot be shortened without lying about it,
+    // so the body gives up everything it can and the URL stays as short as
+    // possible; the limit is then unreachable by construction.
+    expect(new URL(result.value).searchParams.get('body')).toBe(note)
+  })
+
+  it('leaves the body alone when shortening is disabled', async () => {
+    const { service } = await harness({ maxPrefillUrlLength: 0 })
+    const body = 'x'.repeat(2000)
+    const result = service.prefilledIssueUrl({
+      repoUrl: 'https://github.com/owner/repo',
+      report: { title: 't', body, labels: [] },
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(new URL(result.value).searchParams.get('body')).toBe(body)
+  })
 })
 
 describe('GithubIssueService optimizeIssue', () => {

@@ -76,7 +76,7 @@ export function apply(ctx: ClientContext, config: Config = { repoUrl: DEFAULT_RE
     return
   }
 
-  const controller = new MemoController({ rpc: connection.rpc })
+  const controller = new MemoController({ rpc: connection.rpc, repoUrl })
   ctx.effect(() => () => controller.dispose(), 'ui-memo: controller')
 
   ctx.on('connection/reset', () => { void controller.refresh() })
@@ -97,6 +97,6 @@ export function apply(ctx: ClientContext, config: Config = { repoUrl: DEFAULT_RE
     t: (key: MemoKey) => ctx.locale.bind(NS)(key),
     close,
     openUrl: (url: string) => { window.open(url, '_blank', 'noopener,noreferrer') },
-    repoUrl,
+    copyText: (text: string) => navigator.clipboard.writeText(text),
   })))
 }

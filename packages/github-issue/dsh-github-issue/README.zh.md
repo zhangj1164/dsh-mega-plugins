@@ -11,13 +11,15 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | 配置 | 默认值 | 含义 |
 |---|---|---|
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | 请求未提供 `repoUrl` 时使用的默认仓库 URL。 |
+| `maxPrefillUrlLength` | `7000` | 生成的预填 issue URL 长度上限（字符）。GitHub 对过长的请求 URL 不打开新建 issue 表单而是返回错误页，且未公开稳定的边界常量，因此该值留有余量并可由部署方调整。`0` 表示不截断。 |
+| `prefillTruncationNote` | 一段中文说明 | URL 需要缩短时追加到 issue 正文末尾，让读者知道正文是部分内容。 |
 
 ## Remote 方法
 
 | 方法 | 行为 |
 |---|---|
 | `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。 |
-| `prefilledIssueUrl(request)` | 从报告构建预填 GitHub issue 创建 URL。校验仓库 URL；失败时返回 `invalid-url`。 |
+| `prefilledIssueUrl(request)` | 从报告构建预填 GitHub issue 创建 URL。校验仓库 URL；失败时返回 `invalid-url`。当拼装出的 URL 超过 `maxPrefillUrlLength` 时缩短正文——标题与标签占用同一份额度，百分号编码还会放大它，因此判定基于 URL 而不是仅基于正文长度。 |
 | `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，模型无输出返回 `llm-failure`。 |
 
 ## Issue 报告模板
