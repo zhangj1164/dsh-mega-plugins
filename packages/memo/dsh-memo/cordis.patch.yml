@@ -1,7 +1,12 @@
 # dsh-memo bundle patch: inserts the memo suite host services and the
 # browser UI plugin into the host composition. The telemetry service is a
-# separate bundle (dsh-telemetry); install it alongside this bundle. The
-# github-issue service has no bundle of its own, so this patch inserts it.
+# separate bundle (dsh-telemetry); install it alongside this bundle.
+#
+# `dsh-github-issue` also ships its own bundle now. This patch still inserts it
+# so an existing deployment keeps working unchanged. A bundle layer cannot
+# remove an insert from an earlier layer, so do NOT also enable the
+# dsh-github-issue bundle here: both insert the id `github-issue` and the
+# loader rejects a duplicate entry id. Enable one, not both.
 
 - insert:
     - id: github-issue

@@ -26,11 +26,12 @@ scripts/
 pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
 pnpm run test                         # run all vitest tests from root (64 tests across 4 packages)
-pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (7 gates)
+pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (8 gates)
 pnpm run gates:hygiene                # export-JSDoc gate only
 pnpm run gates:doc-sync               # translation pairing + markdown links + markdown wrap
 pnpm run verify-export-jsdoc          # enforce JSDoc on every exported name
-pnpm run verify-translation-pairing   # check bilingual README consistency (6 pairs)
+pnpm run verify-package-exports       # every declared exports/types target exists in the build output
+pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
 pnpm run verify-md-links              # check relative Markdown links resolve
 pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
 node --test .github/issue-management/policy.test.mjs  # run issue policy tests (23 tests)
@@ -47,7 +48,7 @@ node --test .github/issue-management/policy.test.mjs  # run issue policy tests (
 - **Shared devDependencies at root**: tooling duplicated across packages (`vitest`, `tsdown`, `typescript`, `@types/node`) is declared once in the root `package.json` `devDependencies`, not repeated in each package. Each package declares only its own package-specific devDependencies and peer duplicates.
 - **Tests required**: every package under `packages/` must have a `tests/` directory with at least one `.spec.ts` file, and all tests must pass via `pnpm run test` (which runs `vitest run` from the repo root). The root `vitest.config.ts` discovers all packages via `packages/*/*/tests/**/*.spec.{ts,tsx}` — no per-package `vitest.config.ts` is needed, mirroring the official DSH pattern. The `gates` aggregate includes the `test` gate and fails the build on any broken test. New packages must add tests before their first release.
 - **Workspace protocol**: `dsh-memo` declares `workspace:^` / `workspace:*` for its `dsh-telemetry` and `dsh-github-issue` peer and dev dependencies.
-- **Bundle layers**: `dsh-telemetry` and `dsh-memo` declare `dsh.bundle` with `cordis.patch.yml`; `dsh-github-issue` is a plain dependency activated by the memo bundle patch.
+- **Bundle layers**: `dsh-telemetry`, `dsh-github-issue` and `dsh-memo` each declare `dsh.bundle` with their own `cordis.patch.yml`, so any of them can be installed on its own. The memo bundle patch also inserts `dsh-github-issue` for deployments that want the suite; that insertion and the standalone one are interchangeable, not additive — a deployment that installs both must not enable both rows.
 - **Standard TypeScript decorators**: `@Remote` decorators on `TypertRemoteService` subclasses require the shared `standardDecorators()` Vite plugin in `scripts/vitest-decorators.ts`, applied globally by the root `vitest.config.ts`. The plugin is a no-op for files without decorator syntax, so it applies safely to every package without per-package config.
 - **Bilingual READMEs**: every README is a complete pair (`README.md` + `README.zh.md` + `README.i18n.yaml`). After editing either side, bring the other along and re-record with `pnpm run verify-translation-pairing --write --all`.
 - **Issue management**: Issues use five native types (Bug/Feature/Idea/Research/Task) with `<details>` folding and ≤50 visible text units. PRs must reference at least one Issue, carry exactly one `kind/*` label, and at least one `area/*` label. The policy engine in `.github/issue-management/policy.mjs` enforces these rules mechanically.
