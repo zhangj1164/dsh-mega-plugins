@@ -4,9 +4,11 @@
 #
 # `dsh-github-issue` also ships its own bundle now. This patch still inserts it
 # so an existing deployment keeps working unchanged. A bundle layer cannot
-# remove an insert from an earlier layer, so do NOT also enable the
-# dsh-github-issue bundle here: both insert the id `github-issue` and the
-# loader rejects a duplicate entry id. Enable one, not both.
+# remove an insert from an earlier layer: enabling `dsh-github-issue` as well
+# would make two layers insert the id `github-issue`, and the loader rejects a
+# duplicate entry id. The two are mutually exclusive — use `not both`.
+# `dsh-memo` and `dsh-github-issue` each record this exclusion, and the
+# `verify-bundle-entries` gate fails if either stops saying so.
 
 - insert:
     - id: github-issue

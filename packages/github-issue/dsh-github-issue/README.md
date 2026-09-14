@@ -60,7 +60,7 @@ if (issues !== undefined) {
 
 The service has no dependency on `dsh-memo`; memo is one consumer among possible others.
 
-Do not enable both the `dsh-github-issue` bundle and the `dsh-memo` bundle: each inserts an entry with the id `github-issue`, and the loader rejects a duplicate entry id. The memo bundle already inserts this service, so a memo deployment needs no extra step.
+Do not enable both the `dsh-github-issue` bundle and the `dsh-memo` bundle: each inserts an entry with the id `github-issue`, and the loader rejects a duplicate entry id. The memo bundle already inserts this service, so a memo deployment needs no extra step. Both patch files carry the marker `not both` on that id, and the repository's `verify-bundle-entries` gate requires it: an entry id inserted by more than one workspace bundle fails unless every such patch records the exclusion.
 
 ## Exports
 
