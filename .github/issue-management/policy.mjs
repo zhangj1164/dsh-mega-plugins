@@ -417,9 +417,13 @@ async function graphql(query, variables) {
 async function issueSnapshot(number, status = undefined) {
   const issue = await api(`/repos/${config.organization}/${config.repository}/issues/${number}`, { allow404: true })
   if (!issue || issue.pull_request) return null
+  // Issue field values are an organization-only endpoint. In a user-owned
+  // repository it answers 404, which is not an error: there are simply no
+  // custom single-select fields, so Priority falls back to null.
   const values = await api(
     `/repos/${config.organization}/${config.repository}/issues/${number}/issue-field-values?per_page=100`,
-  )
+    { allow404: true },
+  ) ?? []
   const field = (name) => values.find((value) => value.issue_field_name === name)
   return {
     number,
