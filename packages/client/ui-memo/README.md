@@ -69,7 +69,7 @@ This package is included in the `dsh-memo` bundle's `cordis.patch.yml` as the `u
 
 ## Tests
 
-`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the Add Issue / Close ordering, each card action, the analysis and export actions, and the regression that no request may carry a model route.
+`tests/logic.spec.ts` covers the pure period and card-selection logic; `tests/controller.spec.ts` drives the controller against a fake Remote; `tests/MemoBoard.spec.tsx` renders the board in jsdom and exercises every interactive feature, including the Add Issue / Close ordering, each card action, the analysis and export actions, and the regression that no request may carry a model route; `tests/entry.spec.tsx` applies the real browser half against a stand-in client context, so the `settings.section` registration, the locale dictionaries, the style disposal, and the section component itself are covered where the shell actually reaches them.
 
 ## Known Limitations
 

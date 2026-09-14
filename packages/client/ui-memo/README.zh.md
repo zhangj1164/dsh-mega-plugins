@@ -69,7 +69,7 @@
 
 ## 测试
 
-`tests/logic.spec.ts` 覆盖纯粹的周期与卡片选择逻辑；`tests/controller.spec.ts` 以假 Remote 驱动控制器；`tests/MemoBoard.spec.tsx` 在 jsdom 中渲染看板并覆盖全部交互功能，包括"添加 Issue / 关闭"的位置关系、每张卡片的操作、分析与导出操作，以及"任何请求都不得携带模型路由"这一回归。
+`tests/logic.spec.ts` 覆盖纯粹的周期与卡片选择逻辑；`tests/controller.spec.ts` 以假 Remote 驱动控制器；`tests/MemoBoard.spec.tsx` 在 jsdom 中渲染看板并覆盖全部交互功能，包括"添加 Issue / 关闭"的位置关系、每张卡片的操作、分析与导出操作，以及"任何请求都不得携带模型路由"这一回归；`tests/entry.spec.tsx` 以替代的客户端上下文执行真实浏览器端入口，因此 `settings.section` 注册、语言词典、样式销毁以及分区组件本身都在外壳真正触达的位置得到覆盖。
 
 ## 已知限制
 
