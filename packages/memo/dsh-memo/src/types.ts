@@ -229,6 +229,7 @@ export type MemoMemoFailure =
   | { readonly code: 'entry-not-found'; readonly message: string; readonly entryId: string }
   | { readonly code: 'past-week-requires-force'; readonly message: string; readonly weekId: string }
   | { readonly code: 'invalid-quarter-label'; readonly message: string; readonly label: string }
+  | { readonly code: 'quarter-archived'; readonly message: string; readonly weekId: string }
   | { readonly code: 'no-entries'; readonly message: string }
   | {
     readonly code: 'llm-failure'

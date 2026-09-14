@@ -283,22 +283,38 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
       : null,
 
     // ── Creator: the dashed full-width affordance from the preset grid ──
+    // Archived targets cannot be written to, so the composer says why and offers
+    // the way out instead of accepting text it would then have to refuse.
     React.createElement('div', { className: 'dsh-memo-composer' },
       React.createElement('textarea', {
         className: 'dsh-memo-input',
         value: draft,
-        placeholder: t('addPlaceholder'),
-        'aria-label': t('addPlaceholder'),
-        disabled: view.busy,
+        placeholder: controller.targetArchived ? t('archivedComposerHint') : t('addPlaceholder'),
+        'aria-label': controller.targetArchived ? t('archivedComposerHint') : t('addPlaceholder'),
+        disabled: view.busy || controller.targetArchived,
         rows: 2,
         onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => setDraft(event.target.value),
       }),
       React.createElement('button', {
         type: 'button',
         className: 'dsh-memo-creator',
-        disabled: view.busy || draft.trim().length === 0,
+        disabled: view.busy || controller.targetArchived || draft.trim().length === 0,
         onClick: () => void submitDraft(),
       }, React.createElement(Icon, { path: ICON.addIssue }), t('addEntry')),
+      controller.targetArchived
+        ? React.createElement('div', { className: 'dsh-memo-archiveHint' },
+            React.createElement('span', null, t('archivedComposerHint')),
+            controller.targetArchivedQuarter() === undefined
+              ? null
+              : React.createElement('button', {
+                  type: 'button',
+                  className: 'dsh-memo-btn',
+                  onClick: () => {
+                    const quarter = controller.targetArchivedQuarter()
+                    if (quarter !== undefined) void controller.unarchiveQuarter(quarter.label)
+                  },
+                }, t('unarchiveQuarter')))
+        : null,
     ),
 
     // ── Card grid ──
@@ -451,8 +467,14 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
       ? React.createElement(DetailDialog, {
           card: openCard,
           t,
+          archived: controller.isArchived(openCard),
           onClose: () => setOpenCard(null),
           onEdit: () => { setEditing({ card: openCard, text: openCard.content }); setOpenCard(null) },
+          onUnarchive: () => {
+            const quarter = controller.archivedQuarterOf(openCard)
+            if (quarter !== undefined) void controller.unarchiveQuarter(quarter.label)
+            setOpenCard(null)
+          },
         })
       : null,
 
@@ -561,11 +583,13 @@ function CardAction({ tip, path, onClick, disabled, danger = false }: {
 }
 
 /** Read-only detail view of one card. */
-function DetailDialog({ card, t, onClose, onEdit }: {
+function DetailDialog({ card, t, archived, onClose, onEdit, onUnarchive }: {
   card: MemoCard
   t: Translate
+  archived: boolean
   onClose: () => void
   onEdit: () => void
+  onUnarchive: () => void
 }): React.ReactElement {
   return React.createElement('div', { className: 'dsh-memo-overlay', role: 'presentation', onClick: onClose },
     React.createElement('div', {
@@ -578,11 +602,19 @@ function DetailDialog({ card, t, onClose, onEdit }: {
       React.createElement('h3', { className: 'dsh-memo-subtitle' }, t('viewCard')),
       React.createElement('div', { className: 'dsh-memo-cardMeta' },
         React.createElement('span', { className: 'dsh-memo-cardWeek' }, periodDisplay('week', card.weekId)),
+        archived
+          ? React.createElement('span', { className: 'dsh-memo-archivedTag' }, t('archivedTag'))
+          : null,
         React.createElement('time', { dateTime: new Date(card.createdAt).toISOString() },
           new Date(card.createdAt).toLocaleString())),
       React.createElement('pre', { className: 'dsh-memo-pre' }, card.content),
       React.createElement('div', { className: 'dsh-memo-actions' },
-        React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onEdit }, t('editEntry')),
+        // Same rule as the card's action row: an archived card has no edit slot,
+        // it has a way out of the archive. Leaving an edit button here would put
+        // editing back one click away from the button that was withheld.
+        archived
+          ? React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onUnarchive }, t('unarchiveQuarter'))
+          : React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onEdit }, t('editEntry')),
         React.createElement('button', { type: 'button', className: 'dsh-memo-btn', onClick: onClose }, t('close'))),
     ))
 }

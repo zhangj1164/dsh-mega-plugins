@@ -235,6 +235,14 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-3);
   white-space: nowrap;
 }
+.dsh-memo-archiveHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
 .dsh-memo-cardFoot {
   display: flex;
   align-items: center;

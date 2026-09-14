@@ -403,3 +403,72 @@ describe('MemoController lifecycle', () => {
     expect(controller.getSnapshot()).not.toBe(first)
   })
 })
+
+describe('MemoController archived-quarter writes', () => {
+  /** One stored memo in the current week, with the current quarter archived. */
+  async function archived() {
+    const weekId = isoWeekId(new Date())
+    const built = await harness({ weeks: { [weekId]: { entries: [{ id: 'e1', content: 'closed', createdAt: 5 }] } } })
+    await built.controller.selectPeriod('quarter')
+    await built.controller.archiveCurrentQuarter()
+    built.rpc.clearCalls()
+    return { ...built, weekId }
+  }
+
+  it('reports the archived target and the quarter that owns it', async () => {
+    const { controller } = await archived()
+    expect(controller.targetArchived).toBe(true)
+    expect(controller.targetArchivedQuarter()).toBeDefined()
+    expect(controller.getSnapshot().archivedQuarters).toHaveLength(1)
+  })
+
+  it('refuses to add into an archived quarter and never reaches the host', async () => {
+    const { rpc, controller } = await archived()
+    expect(await controller.addCard('not allowed')).toBe(false)
+    expect(rpc.calls.filter(call => call.endpoint === 'memo/addEntry')).toHaveLength(0)
+    // The reason is shown rather than swallowed.
+    expect(controller.getSnapshot().error).not.toBeNull()
+  })
+
+  it('refuses to update or delete a card in an archived quarter', async () => {
+    const { rpc, controller } = await archived()
+    const card = controller.getSnapshot().cards[0]
+    expect(card).toBeDefined()
+    if (card === undefined) return
+
+    expect(await controller.updateCard(card, 'edited')).toBe(false)
+    expect(await controller.deleteCard(card)).toBe(false)
+    expect(rpc.calls.filter(call => call.endpoint === 'memo/updateEntry')).toHaveLength(0)
+    expect(rpc.calls.filter(call => call.endpoint === 'memo/deleteEntry')).toHaveLength(0)
+  })
+
+  it('refuses to duplicate, which stores through the same funnel as adding', async () => {
+    const { rpc, controller } = await archived()
+    const card = controller.getSnapshot().cards[0]!
+    expect(await controller.duplicateCard(card, ' (copy)')).toBe(false)
+    expect(rpc.calls.filter(call => call.endpoint === 'memo/addEntry')).toHaveLength(0)
+  })
+
+  it('writes again once the quarter is unarchived', async () => {
+    const { rpc, controller, weekId } = await archived()
+    const label = controller.targetArchivedQuarter()?.label
+    expect(label).toBeDefined()
+    await controller.unarchiveQuarter(label ?? '')
+
+    expect(controller.targetArchived).toBe(false)
+    expect(controller.targetArchivedQuarter()).toBeUndefined()
+    expect(await controller.addCard('allowed now')).toBe(true)
+    const add = rpc.calls.find(call => call.endpoint === 'memo/addEntry')
+    expect(add?.request.weekId).toBe(weekId)
+  })
+
+  it('leaves a period outside the archived quarter writable', async () => {
+    const { controller } = await archived()
+    // A month long before the archived quarter keeps its own target week.
+    const historical = controller.getSnapshot().periods[0]
+    expect(historical).toBeDefined()
+    await controller.selectPeriod('month')
+    await controller.selectLabel(controller.getSnapshot().periods[8]?.label ?? '')
+    expect(controller.targetArchived).toBe(false)
+  })
+})

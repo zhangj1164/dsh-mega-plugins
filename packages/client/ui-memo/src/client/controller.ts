@@ -443,6 +443,31 @@ export class MemoController {
   }
 
   /**
+   * The archived quarter that owns the week a new card would be stored in.
+   *
+   * Unlike {@link archivedQuarterLabel}, this answers for every dimension: a
+   * block on adding is a property of the target week, not of the tab the user
+   * happens to be looking at, and the way out has to be offered wherever the
+   * block appears.
+   * @returns the owning archived quarter, or `undefined`.
+   */
+  targetArchivedQuarter(): MemoArchivedQuarter | undefined {
+    const weekId = this.targetWeek
+    if (weekId === undefined) return undefined
+    return this._state.archivedQuarters.find(quarter => quarter.weekIds.includes(weekId))
+  }
+
+  /**
+   * Whether adding a card to the active period would write into an archived
+   * quarter, in which case the composer refuses to submit.
+   * @returns whether the target week is archived.
+   */
+  get targetArchived(): boolean {
+    const weekId = this.targetWeek
+    return weekId !== undefined && this._state.archivedWeekIds.has(weekId)
+  }
+
+  /**
    * Switch the active dimension, keeping the host's current period for it.
    * @param period - the dimension to show.
    */
@@ -512,6 +537,12 @@ export class MemoController {
   async addCard(content: string): Promise<boolean> {
     const trimmed = content.trim()
     if (!trimmed) return false
+    // The host refuses this too; refusing here as well keeps the reason in front
+    // of the user instead of surfacing a raw failure code.
+    if (this.targetArchived) {
+      this.set({ error: 'the target quarter is archived; unarchive it before adding memos' })
+      return false
+    }
     this.set({ busy: true, error: null })
     try {
       const weekId = this.targetWeek
@@ -541,6 +572,12 @@ export class MemoController {
   async updateCard(card: MemoCard, content: string): Promise<boolean> {
     const trimmed = content.trim()
     if (!trimmed) return false
+    // An archive can land while an edit dialog is open, so the guard belongs on
+    // the write as well as on the button that opened it.
+    if (this.isArchived(card)) {
+      this.set({ error: 'this card is in an archived quarter; unarchive it before editing' })
+      return false
+    }
     this.set({ busy: true, error: null })
     try {
       const result = await callMemo<MemoEntry>(this.rpc, 'updateEntry', {
@@ -577,6 +614,10 @@ export class MemoController {
    * @returns whether the delete succeeded.
    */
   async deleteCard(card: MemoCard): Promise<boolean> {
+    if (this.isArchived(card)) {
+      this.set({ error: 'this card is in an archived quarter; unarchive it before deleting' })
+      return false
+    }
     this.set({ busy: true, error: null })
     try {
       const result = await callMemo<boolean>(this.rpc, 'deleteEntry', {
