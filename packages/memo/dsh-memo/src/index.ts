@@ -25,6 +25,7 @@ import type { TelemetryFailureGroup } from 'dsh-telemetry/types'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import {
   isoWeekParts,
+  mondayOfWeekId,
   periodBounds,
   periodLabelFor,
   shiftPeriod,
@@ -180,6 +181,21 @@ function appendToLedger(entry: MemoMemoryEntry): void {
 }
 
 /**
+ * Start and end-of-day timestamps for the ISO week beginning at `monday`.
+ *
+ * The end is the Sunday's last millisecond, which is what makes stored bounds
+ * satisfy the week schema's `weekEnd > weekStart` refinement.
+ * @param monday - the week's Monday at local midnight.
+ * @returns the week's start and end timestamps.
+ */
+function weekBoundsFromMonday(monday: Date): { weekStart: number; weekEnd: number } {
+  const sunday = new Date(monday)
+  sunday.setDate(sunday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+  return { weekStart: monday.getTime(), weekEnd: sunday.getTime() }
+}
+
+/**
  * Compute the ISO-8601 week id and range for a given date.
  * Monday is the start of the week; Sunday is the end. The week-year comes
  * from the week's Thursday, so a week at a year boundary is labelled with the
@@ -188,13 +204,9 @@ function appendToLedger(entry: MemoMemoryEntry): void {
  * @returns the week id, start, and end timestamps.
  */
 function computeWeekBounds(date: Date = new Date()): { weekId: string; weekStart: number; weekEnd: number } {
-  const monday = startOfIsoWeek(date)
-  const sunday = new Date(monday)
-  sunday.setDate(sunday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
   const { weekYear, week } = isoWeekParts(date)
   const weekId = `${String(weekYear)}-W${String(week).padStart(2, '0')}`
-  return { weekId, weekStart: monday.getTime(), weekEnd: sunday.getTime() }
+  return { weekId, ...weekBoundsFromMonday(startOfIsoWeek(date)) }
 }
 
 /** Built-in system prompts for each analysis type. */
@@ -325,9 +337,24 @@ export class MemoService extends TypertRemoteService {
       createdAt: now,
       updatedAt: now,
     }
-    const week: MemoWeekRow = existing === undefined
-      ? { weekId: request.weekId, weekStart: 0, weekEnd: 0, entries: [entry], updatedAt: now }
-      : { ...existing, entries: [...existing.entries, entry], updatedAt: now }
+    // A back-filled week has no stored row yet, so its bounds must come from its
+    // id. Writing zeros here — as an earlier revision did — produced a row that
+    // the week schema rejects, and because the storage domain validates every
+    // record on open, that one row then stopped the whole plugin from booting.
+    let week: MemoWeekRow
+    if (existing === undefined) {
+      const monday = mondayOfWeekId(request.weekId)
+      if (monday === undefined) {
+        return this.failure({
+          code: 'invalid-week-id',
+          message: `"${request.weekId}" is not an ISO week id (expected YYYY-Www)`,
+          weekId: request.weekId,
+        })
+      }
+      week = { weekId: request.weekId, ...weekBoundsFromMonday(monday), entries: [entry], updatedAt: now }
+    } else {
+      week = { ...existing, entries: [...existing.entries, entry], updatedAt: now }
+    }
     await table.put(request.weekId, week)
     this.track('addEntry', 'success', { weekId: request.weekId, entryId: entry.id })
     return { ok: true, value: Object.freeze({ ...entry }) }
