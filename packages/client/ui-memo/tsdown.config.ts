@@ -4,9 +4,12 @@ import ts from 'typescript'
 /**
  * Self-contained build for the memo client UI package.
  *
- * Produces two faces:
+ * Produces three outputs:
  * 1. Node half: `lib/index.js` and `lib/invariant.js` (ESM + .d.ts)
  * 2. Client half: `lib/client.js` (CJS wrapped in window.__ModuleLoader__.load)
+ * 3. Client types: `lib/client.d.ts`, the `./client` face's declarations —
+ *    rolldown emits no declaration chunk for a bundled CJS browser face, so
+ *    this is a separate declarations-only pass.
  *
  * Mirrors the DSH framework's `clientBundle` output format so the browser
  * module loader can fetch and execute the client bundle.
@@ -94,6 +97,25 @@ export default defineConfig([
       banner: `window.__ModuleLoader__.load({ id: "dsh-client-ui-memo", factory: (require) => {`,
       footer: 'return module.exports; } });',
       intro: 'var module = { exports: {} }; var exports = module.exports;',
+    },
+  },
+  // Client declarations: ESM `.d.ts` only. The browser half above is a CJS
+  // bundle wrapped for the shell's module loader, for which rolldown emits no
+  // declaration chunk; this pass produces the `./client` types face.
+  {
+    entry: { client: 'src/client/index.ts' },
+    outDir: 'lib',
+    format: ['esm'],
+    platform: 'browser',
+    target: 'es2024',
+    dts: { emitDtsOnly: true },
+    clean: false,
+    fixedExtension: false,
+    sourcemap: false,
+    minify: false,
+    deps: {
+      neverBundle: isClientExternal,
+      alwaysBundle: (specifier: string) => !isClientExternal(specifier),
     },
   },
 ])

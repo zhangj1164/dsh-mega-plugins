@@ -11,10 +11,10 @@
  *
  * - `default` targets must exist. These are the runtime faces a consumer
  *   resolves, so a missing one is always a defect.
- * - `types` targets must exist unless the package declares a browser client
- *   face through `dsh.client` and its build disables declaration output for
- *   that face. A bundled client face declares no ambient types, the same
- *   shape the official DSH client UI packages ship.
+ * - `types` targets must exist — for every package, including one that ships a
+ *   browser client face through `dsh.client`. A bundled client face still has
+ *   a public type surface, and a declaration that is never emitted is a broken
+ *   promise rather than a packaging choice.
  */
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -29,8 +29,9 @@ export interface Violation {
 
 interface PackageManifest {
   name?: string
+  main?: unknown
+  types?: unknown
   exports?: unknown
-  dsh?: { client?: unknown }
 }
 
 /** A package selected for checking: its directory and parsed manifest. */
@@ -92,20 +93,6 @@ function declarations(exportsField: unknown): [string, string, 'default' | 'type
 }
 
 /**
- * Decide whether a missing `types` target is tolerable for one package.
- *
- * A package that ships a browser client face through `dsh.client` bundles that
- * face for the shell's module loader and emits no declarations for it. That is
- * the documented shape of the official DSH client UI packages, so a missing
- * client declaration file is a packaging choice rather than a broken promise.
- * @param manifest - parsed package manifest.
- * @returns true when the package is allowed to omit client declarations.
- */
-function toleratesMissingTypes(manifest: PackageManifest): boolean {
-  return manifest.dsh?.client !== undefined
-}
-
-/**
  * Check one package's export map.
  * @param candidate - package directory and manifest.
  * @returns every violation found.
@@ -114,11 +101,9 @@ export function checkPackage(candidate: Candidate): Violation[] {
   const { dir, manifest } = candidate
   const name = manifest.name ?? dir
   const violations: Violation[] = []
-  const lenient = toleratesMissingTypes(manifest)
 
   for (const [label, target, condition] of declarations(manifest.exports)) {
     if (existsSync(resolveTarget(dir, target))) continue
-    if (condition === 'types' && lenient) continue
     const kind = condition === 'types' ? 'types' : 'runtime'
     violations.push({
       package: name,
@@ -131,7 +116,6 @@ export function checkPackage(candidate: Candidate): Violation[] {
   for (const [field, value] of rootFields) {
     if (typeof value !== 'string') continue
     if (existsSync(resolveTarget(dir, value))) continue
-    if (field === 'types' && lenient) continue
     violations.push({ package: name, detail: `${field} target ${value} does not exist` })
   }
 
@@ -147,9 +131,8 @@ function checkAll(): Violation[] {
 }
 
 function main(): number {
-  // No exclusions: every workspace package must keep its promises. A package
-  // that legitimately omits client declarations declares `dsh.client`, which
-  // checkPackage already honors.
+  // No exclusions: every workspace package must keep its promises, including
+  // the declarations for a bundled client face.
   const violations = checkAll()
   const names = [...new Set(violations.map(violation => violation.package))]
 
