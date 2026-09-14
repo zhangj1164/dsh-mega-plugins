@@ -65,20 +65,34 @@ describe('checkPackage', () => {
     expect(violations[0]!.detail).toContain('exports["./types"]')
   })
 
-  it('tolerates an absent client declaration when the package ships a client face', () => {
-    expect(checkPackage(candidate(
+  it('rejects an absent client declaration even when the package ships a client face', () => {
+    // A bundled browser face still owes its consumers declarations: the shape
+    // that shipped was `./client` naming a `lib/client.d.ts` no build emitted.
+    const violations = checkPackage(candidate(
       { './client': { types: './lib/client.d.ts', default: './package.json' } },
       { dsh: { client: { platform: 'web' } } },
-    ))).toEqual([])
+    ))
+    expect(violations).toHaveLength(1)
+    expect(violations[0]!.detail).toContain('types target ./lib/client.d.ts does not exist')
   })
 
-  it('still rejects a missing client runtime target for a client-face package', () => {
+  it('rejects a missing client runtime target for a client-face package', () => {
     const violations = checkPackage(candidate(
       { './client': { types: './lib/client.d.ts', default: './lib/client.js' } },
       { dsh: { client: { platform: 'web' } } },
     ))
+    expect(violations).toHaveLength(2)
+    expect(violations[0]!.detail).toContain('types target')
+    expect(violations[1]!.detail).toContain('runtime target')
+  })
+
+  it('rejects a missing root types field for a client-face package', () => {
+    const violations = checkPackage(candidate({}, {
+      types: './lib/client.d.ts',
+      dsh: { client: { platform: 'web' } },
+    }))
     expect(violations).toHaveLength(1)
-    expect(violations[0]!.detail).toContain('runtime target')
+    expect(violations[0]!.detail).toBe('types target ./lib/client.d.ts does not exist')
   })
 
   it('treats a bare string export as a runtime target', () => {
