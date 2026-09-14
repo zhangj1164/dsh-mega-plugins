@@ -25,7 +25,7 @@ function boardProps(controller: MemoController) {
     t: (key: MemoKey): string => zh[key],
     close: vi.fn(),
     openUrl: vi.fn(),
-    repoUrl: REPO_URL,
+    copyText: vi.fn(async () => undefined),
   }
 }
 
@@ -37,11 +37,13 @@ function boardProps(controller: MemoController) {
  */
 async function renderBoard(options: FakeRpcOptions = {}) {
   const rpc = createFakeRpc(options)
-  const controller = new MemoController({ rpc: { call: rpc.call }, storage: fakeStorage() })
+  // The board sends issues to the repository the controller is configured with,
+  // and the controller hands it to the github-issue service.
+  const controller = new MemoController({ rpc: { call: rpc.call }, repoUrl: REPO_URL, storage: fakeStorage() })
   const props = boardProps(controller)
   render(React.createElement(MemoBoard, props))
   await waitFor(() => { expect(controller.getSnapshot().status).toBe('ready') })
-  return { rpc, controller, openUrl: props.openUrl, close: props.close }
+  return { rpc, controller, openUrl: props.openUrl, close: props.close, copyText: props.copyText }
 }
 
 /** The rendered memo cards. Result panels are sections, so they cannot leak in. */
@@ -366,7 +368,7 @@ describe('MemoBoard analysis and reporting', () => {
 
 describe('MemoBoard issue editor', () => {
   it('optimizes a description and opens the prefilled issue on the configured repository', async () => {
-    const { controller, openUrl } = await renderBoard({ issueReport: issueReport({ title: 'crash', body: 'details', labels: ['bug'] }) })
+    const { rpc, controller, openUrl } = await renderBoard({ issueReport: issueReport({ title: 'crash', body: 'details', labels: ['bug'] }) })
     fireEvent.click(screen.getByRole('button', { name: zh.addIssue }))
 
     fireEvent.change(screen.getByRole('textbox', { name: zh.issuePlaceholder }), { target: { value: 'it crashes' } })
@@ -378,12 +380,31 @@ describe('MemoBoard issue editor', () => {
     expect(isDisabled(open)).toBe(false)
     fireEvent.click(open!)
 
-    expect(openUrl).toHaveBeenCalledOnce()
+    await waitFor(() => { expect(openUrl).toHaveBeenCalledOnce() })
     const url = String(openUrl.mock.calls[0]?.[0])
-    // The repository comes from configuration, never from a literal in the UI.
+    // The URL comes from the github-issue service, which owns the length limit,
+    // so the board must forward its configured repository rather than compose
+    // the URL itself.
+    const prefillCall = rpc.calls.find(call => call.endpoint === 'githubIssue/prefilledIssueUrl')
+    expect(prefillCall?.request.repoUrl).toBe(REPO_URL)
     expect(url.startsWith(`${REPO_URL}/issues/new?`)).toBe(true)
     expect(url).toContain('title=crash')
     expect(url).toContain('labels=bug')
+  })
+
+  it('copies the untruncated report body for a body the URL had to shorten', async () => {
+    const report = issueReport({ title: 'crash', body: 'x'.repeat(50), labels: ['bug'] })
+    const { copyText } = await renderBoard({ issueReport: report })
+    fireEvent.click(screen.getByRole('button', { name: zh.addIssue }))
+    fireEvent.change(screen.getByRole('textbox', { name: zh.issuePlaceholder }), { target: { value: 'it crashes' } })
+    fireEvent.click(screen.getByRole('button', { name: zh.optimizeIssue }))
+    await waitFor(() => { expect(screen.getByText(zh.copyIssueBody)).toBeTruthy() })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.copyIssueBody }))
+    await waitFor(() => { expect(copyText).toHaveBeenCalledOnce() })
+    // The full body, not the URL-shortened one, so a reader can still paste it.
+    expect(copyText).toHaveBeenCalledWith(`crash\n\n${'x'.repeat(50)}`)
+    await waitFor(() => { expect(screen.getByText(zh.copied)).toBeTruthy() })
   })
 
   it('refuses to optimize an empty description', async () => {

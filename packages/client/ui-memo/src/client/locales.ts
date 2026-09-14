@@ -18,7 +18,7 @@ export type MemoKey =
   | 'organize' | 'summarize' | 'analyzeLabel' | 'analyze' | 'exportReport' | 'refresh'
   | 'analysisResult' | 'reportResult'
   // Issue editor
-  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue'
+  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
 
@@ -64,6 +64,7 @@ export const zh: Record<MemoKey, string> = {
   optimizeIssue: '优化 Issue',
   openGithub: '在 GitHub 打开',
   clearIssue: '清除',
+  copyIssueBody: '复制完整正文',
   analyzeLogs: '日志分析',
   logAnalysisTitle: '日志分析报告',
   openPrefilledIssue: '打开预填 Issue',
@@ -111,6 +112,7 @@ export const en: Record<MemoKey, string> = {
   optimizeIssue: 'Optimize Issue',
   openGithub: 'Open on GitHub',
   clearIssue: 'Clear',
+  copyIssueBody: 'Copy full body',
   analyzeLogs: 'Analyze Logs',
   logAnalysisTitle: 'Log Analysis Report',
   openPrefilledIssue: 'Open Prefilled Issue',

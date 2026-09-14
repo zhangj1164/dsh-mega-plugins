@@ -29,13 +29,19 @@ export interface MemoBoardProps {
   readonly controller: MemoController
   /** Translate function bound to this plugin's namespace. */
   readonly t: Translate
-  /** Close the settings panel (owned by the shell). */
+  /** Close the panel (owned by the shell). */
   readonly close: () => void
   /** Open a URL in a new tab. */
   readonly openUrl: (url: string) => void
-  /** Repository that receives issues created from this board. */
-  readonly repoUrl: string
+  /** Copy text to the clipboard. Injected so the board stays testable. */
+  readonly copyText: (text: string) => Promise<void>
 }
+
+/**
+ * Sentinel key for the issue-body copy confirmation. Card ids are UUIDs, so
+ * this can never collide with the per-card `copied` state.
+ */
+const ISSUE_BODY_COPY_KEY = 'issue-body'
 
 /** The three analysis modes, in display order. */
 const ANALYSIS_TYPES: readonly { type: MemoAnalysisType; key: MemoKey }[] = [
@@ -68,7 +74,7 @@ function Icon({ path, size = 16 }: { path: string; size?: number }): React.React
  * @param props - controller, translator, and shell affordances.
  * @returns the board element.
  */
-export function MemoBoard({ controller, t, close, openUrl, repoUrl }: MemoBoardProps): React.ReactElement {
+export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoardProps): React.ReactElement {
   const view = useView(controller)
   const [draft, setDraft] = React.useState('')
   const [analysisType, setAnalysisType] = React.useState<MemoAnalysisType>('梳理')
@@ -101,14 +107,34 @@ export function MemoBoard({ controller, t, close, openUrl, repoUrl }: MemoBoardP
     }
   }
 
-  const openIssue = (): void => {
+  /**
+   * Open the pre-filled issue editor on GitHub.
+   *
+   * The URL comes from the github-issue service, which shortens the body when
+   * the URL would exceed what GitHub accepts; composing it here instead would
+   * bypass that limit.
+   */
+  const openIssue = async (): Promise<void> => {
+    const url = await controller.issuePrefillUrl()
+    if (url !== null) openUrl(url)
+  }
+
+  /**
+   * Copy the untruncated report, so a body shortened for the URL is still
+   * available to paste into the issue form.
+   */
+  const copyIssueBody = async (): Promise<void> => {
     const report = view.issueReport
     if (report === null) return
-    const params = new URLSearchParams()
-    params.set('title', report.title)
-    params.set('body', report.body)
-    if (report.labels.length > 0) params.set('labels', report.labels.join(','))
-    openUrl(`${repoUrl.replace(/\/+$/u, '')}/issues/new?${params.toString()}`)
+    try {
+      await copyText(`${report.title}\n\n${report.body}`)
+    } catch {
+      // A blocked or absent clipboard is not worth failing the board over: the
+      // report stays on screen for manual selection.
+      return
+    }
+    setCopied(ISSUE_BODY_COPY_KEY)
+    setTimeout(() => setCopied(current => (current === ISSUE_BODY_COPY_KEY ? null : current)), 2000)
   }
 
   return React.createElement('section', { className: 'dsh-memo', 'aria-label': t('panelTitle') },
@@ -282,8 +308,12 @@ export function MemoBoard({ controller, t, close, openUrl, repoUrl }: MemoBoardP
             }, t('optimizeIssue')),
             React.createElement('button', {
               type: 'button', className: 'dsh-memo-btn', disabled: view.busy || view.issueReport === null,
-              onClick: openIssue,
+              onClick: () => void openIssue(),
             }, t('openGithub')),
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-btn', disabled: view.issueReport === null,
+              onClick: () => void copyIssueBody(),
+            }, copied === ISSUE_BODY_COPY_KEY ? t('copied') : t('copyIssueBody')),
             React.createElement('button', {
               type: 'button', className: 'dsh-memo-btn',
               onClick: () => { setIssueText(''); setShowIssueEditor(false) },

@@ -155,6 +155,8 @@ export interface MemoViewState {
 export interface MemoControllerOptions {
   /** The RPC caller from the connection service. */
   readonly rpc: RpcCaller
+  /** Repository that receives issues created from the board. */
+  readonly repoUrl: string
   /** Storage for the last-viewed selection. Defaults to `localStorage`. */
   readonly storage?: StorageLike | undefined
   /** Injectable clock, so period defaults are testable. */
@@ -187,6 +189,7 @@ export class MemoController {
   private listeners = new Set<() => void>()
   private disposed = false
   private readonly rpc: RpcCaller
+  private readonly repoUrl: string
   private readonly storage: StorageLike | undefined
   private readonly now: () => Date
 
@@ -195,6 +198,7 @@ export class MemoController {
    */
   constructor(options: MemoControllerOptions) {
     this.rpc = options.rpc
+    this.repoUrl = options.repoUrl
     this.storage = options.storage ?? defaultStorage()
     this.now = options.now ?? (() => new Date())
   }
@@ -465,6 +469,33 @@ export class MemoController {
       }
     } catch (e) {
       this.set({ busy: false, error: describeError(e) })
+    }
+  }
+
+  /**
+   * The pre-filled issue URL for the current optimized report.
+   *
+   * The github-issue service builds this URL rather than the board, because
+   * that service owns the URL length limit: it shortens the body when GitHub
+   * would refuse the request, and a client that composed the URL itself would
+   * bypass that rule and reproduce the failure.
+   *
+   * @returns the URL, or `null` when there is no report or the service refused.
+   */
+  async issuePrefillUrl(): Promise<string | null> {
+    const report = this._state.issueReport
+    if (report === null) return null
+    try {
+      const result = await callGithubIssue<string>(this.rpc, 'prefilledIssueUrl', {
+        repoUrl: this.repoUrl,
+        report,
+      })
+      if (result.ok) return result.value
+      this.set({ error: result.error.message })
+      return null
+    } catch (e) {
+      this.set({ error: describeError(e) })
+      return null
     }
   }
 

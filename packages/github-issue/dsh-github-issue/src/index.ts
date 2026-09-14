@@ -22,6 +22,7 @@ import type {
   GithubIssueOptimizeResult,
   GithubIssuePrefillRequest,
   GithubIssuePrefillResult,
+  GithubIssueReport,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -34,11 +35,27 @@ export interface Config {
    * `repoUrl`. The deployment sets this to the real project repository.
    */
   readonly repoUrl: string
+  /**
+   * Longest pre-filled issue URL to produce, counted in characters.
+   *
+   * GitHub refuses a request URL that is too long and shows an error page
+   * instead of the new-issue form, and it publishes no stable constant for the
+   * boundary, so this is a deployment-tunable value carrying headroom rather
+   * than a hardcoded number.
+   */
+  readonly maxPrefillUrlLength: number
+  /**
+   * Appended to the issue body when the URL had to be shortened to fit
+   * {@link Config.maxPrefillUrlLength}, so the reader knows the body is partial.
+   */
+  readonly prefillTruncationNote: string
 }
 
 /** Schemastery configuration for the GitHub-issue service. */
 export const Config: s<Config> = s.object({
   repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
+  maxPrefillUrlLength: s.number().default(7000),
+  prefillTruncationNote: s.string().default('\n\n> （正文过长，已截断以适配 GitHub 的 URL 长度限制。完整正文见备忘面板的「复制完整正文」。）'),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -114,6 +131,8 @@ export class GithubIssueService extends TypertRemoteService {
   static Config = Config
 
   private readonly repoUrl: string
+  private readonly maxPrefillUrlLength: number
+  private readonly prefillTruncationNote: string
 
   /**
    * @param ctx - Host context carrying the llm service.
@@ -122,6 +141,8 @@ export class GithubIssueService extends TypertRemoteService {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'githubIssue')
     this.repoUrl = config.repoUrl
+    this.maxPrefillUrlLength = config.maxPrefillUrlLength
+    this.prefillTruncationNote = config.prefillTruncationNote
   }
 
   /**
@@ -146,6 +167,12 @@ export class GithubIssueService extends TypertRemoteService {
 
   /**
    * Build a pre-filled GitHub issue-creation URL from a report.
+   *
+   * The body is shortened when the finished URL would exceed the configured
+   * limit. The check is on the URL rather than on the body alone because the
+   * title and labels spend the same budget and percent-encoding inflates it,
+   * so a body-length rule would still produce a URL GitHub refuses.
+   *
    * @param request - the repository URL and the report to prefill.
    * @returns the prefill URL or an invalid-URL failure.
    */
@@ -155,11 +182,10 @@ export class GithubIssueService extends TypertRemoteService {
     if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/u.test(repoUrl)) {
       return { ok: false, error: { code: 'invalid-url', message: `repoUrl "${repoUrl}" is not a valid GitHub repository URL` } }
     }
-    const params = new URLSearchParams()
-    params.set('title', request.report.title)
-    params.set('body', request.report.body)
-    params.set('labels', request.report.labels.join(','))
-    return { ok: true, value: `${repoUrl}/issues/new?${params.toString()}` }
+    return {
+      ok: true,
+      value: buildPrefillUrl(repoUrl, request.report, this.maxPrefillUrlLength, this.prefillTruncationNote),
+    }
   }
 
   /**
@@ -249,6 +275,57 @@ function buildReportUserPrompt(request: GithubIssueGenerateReportRequest): strin
 function extractTitle(body: string): string | undefined {
   const match = /^##\s+(.+?)$/mu.exec(body)
   return match?.[1]?.trim()
+}
+
+/**
+ * Upper bound on the shortening passes in {@link buildPrefillUrl}. Each pass
+ * removes at least the overflow it measured, so a handful of passes converge;
+ * the bound exists only so a pathological input cannot spin.
+ */
+const MAX_PREFILL_TRUNCATION_PASSES = 32
+
+/**
+ * Build the pre-filled new-issue URL, shortening the body so the URL stays
+ * within `maxLength`.
+ *
+ * The budget is checked on the composed URL rather than on the body alone,
+ * because the title and labels spend the same budget and percent-encoding
+ * inflates whatever they contain; a body-length rule would still emit a URL
+ * GitHub refuses. Each pass removes at least the overflow it measured, which
+ * can overshoot when characters encode to more than one URL character, and
+ * overshooting only shortens the body further.
+ *
+ * @param repoUrl - the repository URL, already validated by the caller.
+ * @param report - the report to prefill.
+ * @param maxLength - the longest acceptable URL; `0` or less disables shortening.
+ * @param note - appended to the body when shortening was necessary.
+ * @returns the pre-filled issue URL.
+ */
+function buildPrefillUrl(repoUrl: string, report: GithubIssueReport, maxLength: number, note: string): string {
+  const compose = (body: string): string => {
+    const params = new URLSearchParams()
+    params.set('title', report.title)
+    params.set('body', body)
+    if (report.labels.length > 0) params.set('labels', report.labels.join(','))
+    return `${repoUrl}/issues/new?${params.toString()}`
+  }
+
+  const full = compose(report.body)
+  if (maxLength <= 0 || full.length <= maxLength) return full
+
+  let keep = report.body.length
+  let candidate = compose(`${report.body.slice(0, keep)}${note}`)
+  for (
+    let pass = 0;
+    pass < MAX_PREFILL_TRUNCATION_PASSES && candidate.length > maxLength && keep > 0;
+    pass += 1
+  ) {
+    keep = Math.max(0, keep - Math.max(1, candidate.length - maxLength))
+    candidate = compose(`${report.body.slice(0, keep)}${note}`)
+  }
+  // Reachable only when the note alone exceeds the limit. Sending the note is
+  // then the most that fits, which beats emitting a URL GitHub rejects.
+  return candidate.length <= maxLength ? candidate : compose(note)
 }
 
 export default GithubIssueService

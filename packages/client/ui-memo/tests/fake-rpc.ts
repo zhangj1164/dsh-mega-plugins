@@ -294,6 +294,17 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       if (options.issueReport === undefined) return fail('llm-failure', 'no adapter registered for provider "unregistered"')
       return ok(options.issueReport)
     }
+    if (endpoint === 'githubIssue/prefilledIssueUrl') {
+      const report = request.report as GithubIssueReport | undefined
+      if (report === undefined) return fail('invalid-url', 'no report to prefill')
+      // Mirror the host's composition so the board's assertions stay about the
+      // request it forwards (repoUrl and report) rather than about a stub.
+      const params = new URLSearchParams()
+      params.set('title', report.title)
+      params.set('body', report.body)
+      if (report.labels.length > 0) params.set('labels', report.labels.join(','))
+      return ok(`${String(request.repoUrl ?? '')}/issues/new?${params.toString()}`)
+    }
     return fail('not-found', `unhandled endpoint ${endpoint}`)
   }
 
