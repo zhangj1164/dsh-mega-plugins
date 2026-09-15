@@ -243,32 +243,93 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-3);
   font-size: 12px;
 }
-.dsh-memo-model {
-  display: flex;
+/* ── Split button: the analysis action, with its model on the right ── */
+.dsh-memo-split {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  flex-wrap: wrap;
+  gap: 0;
 }
-.dsh-memo-model-label {
-  font-size: 12px;
+.dsh-memo-split:focus-within .dsh-memo-splitModel { color: var(--dsw-alias-text-1); }
+/* The two halves read as one control: squared inner corners, a shared border. */
+.dsh-memo-splitRun {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 0;
+}
+.dsh-memo-splitCaret {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: 1;
+}
+.dsh-memo-splitModel {
+  max-width: 220px;
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--dsw-alias-text-3);
+  font-size: 12px;
 }
-.dsh-memo-select {
+.dsh-memo-splitHint {
+  margin-left: 8px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+/* Anchored under the button: a popover surface, so it uses the overlay token
+   the theme documents for exactly this, and scrolls rather than overflowing
+   the panel when a deployment registers many models. */
+.dsh-memo-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  max-width: 360px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px;
+  border-radius: 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-overlay, var(--dsw-alias-bg-layer-1));
+  box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0, 0, 0, 0.18));
+}
+.dsh-memo-menuGroup {
+  padding: 6px 8px 4px;
+  color: var(--dsw-alias-text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dsh-memo-menuItem {
   appearance: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-text-2);
   font: inherit;
   font-size: 12px;
-  max-width: 260px;
-  padding: 4px 8px;
+  text-align: left;
+  padding: 6px 8px 6px 22px;
   border-radius: 8px;
   cursor: pointer;
-  color: var(--dsw-alias-text-2);
-  background: var(--dsw-alias-bg-layer-1);
-  border: 0.5px solid var(--dsw-alias-border-l2);
+  position: relative;
 }
-.dsh-memo-select:disabled { opacity: 0.5; cursor: default; }
-.dsh-memo-select:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
-.dsh-memo-model-hint {
+.dsh-memo-menuItem:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-text-1); }
+.dsh-memo-menuItem:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
+.dsh-memo-menuItem[aria-checked='true'] { color: var(--dsw-alias-text-1); }
+.dsh-memo-menuItem[aria-checked='true']:before {
+  content: '✓';
+  position: absolute;
+  left: 8px;
+  color: var(--dsw-alias-brand-primary);
+}
+.dsh-memo-menuNote {
+  padding: 4px 8px 6px 22px;
   color: var(--dsw-alias-text-3);
   font-size: 12px;
 }

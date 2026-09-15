@@ -387,46 +387,68 @@ describe('MemoController publishes no model route', () => {
 })
 
 describe('MemoController model choice', () => {
-  it('reports the route the host resolved and the models it advertises', async () => {
+  it('reports the default route alongside every registered provider', async () => {
     const { controller } = await harness()
     const state = controller.getSnapshot()
 
     expect(state.routeProvider).toBe('test-provider')
     expect(state.routeModel).toBe('test-model')
-    expect(state.models.map(model => model.id)).toEqual(['test-model', 'test-model-pro'])
+    expect(state.providers.map(provider => provider.id)).toEqual(['test-provider'])
+    expect(state.providers[0]?.models.map(model => model.id)).toEqual(['test-model', 'test-model-pro'])
     expect(state.catalogError).toBeUndefined()
     expect(state.modelChoice).toBeUndefined()
   })
 
-  it('sends the chosen model on analysis and export, and still never the provider', async () => {
-    const { rpc, controller } = await harness()
-    expect(controller.selectModel('test-model-pro')).toBe(true)
+  it('lists a provider the default route does not belong to', async () => {
+    // The whole point of the feature: switching across providers, which means the
+    // registry — not the resolved route — is what the picker offers.
+    const { controller } = await harness({
+      providers: [
+        { id: 'test-provider', name: 'Default', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
+      ],
+    })
+    const state = controller.getSnapshot()
+
+    expect(state.providers.map(provider => provider.name)).toEqual(['Default', 'ark'])
+    expect(state.providers[1]?.models.map(model => model.id)).toEqual(['glm-5-2-260617'])
+    expect(state.routeProvider).toBe('test-provider')
+  })
+
+  it('sends the chosen provider and model on analysis and export', async () => {
+    const { rpc, controller } = await harness({
+      providers: [
+        { id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
+      ],
+    })
+    expect(controller.selectModel({ provider: 'cu', model: 'glm-5-2-260617' })).toBe(true)
 
     await controller.analyze('分析')
     await controller.exportReport()
 
     const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
-    expect(analyze?.request.model).toBe('test-model-pro')
-    // Only the model is chosen. The route stays the host's decision, so the
-    // browser still cannot send a provider a deployment never registered.
-    expect(analyze?.request.provider).toBeUndefined()
+    expect(analyze?.request.provider).toBe('cu')
+    expect(analyze?.request.model).toBe('glm-5-2-260617')
     const report = rpc.calls.find(call => call.endpoint === 'memo/exportReport')
-    expect(report?.request.model).toBe('test-model-pro')
-    expect(report?.request.provider).toBeUndefined()
+    expect(report?.request.provider).toBe('cu')
+    expect(report?.request.model).toBe('glm-5-2-260617')
   })
 
-  it('records which model produced the analysis', async () => {
-    const { controller } = await harness()
-    controller.selectModel('test-model-pro')
+  it('records which provider and model produced the analysis', async () => {
+    const { controller } = await harness({
+      providers: [{ id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] }],
+    })
+    controller.selectModel({ provider: 'cu', model: 'glm-5-2-260617' })
     await controller.analyze('分析')
 
-    expect(controller.getSnapshot().analysisModel).toBe('test-model-pro')
-    expect(controller.getSnapshot().analysisProvider).toBe('test-provider')
+    expect(controller.getSnapshot().analysisProvider).toBe('cu')
+    expect(controller.getSnapshot().analysisModel).toBe('glm-5-2-260617')
   })
 
-  it('omits the model again once the choice is cleared', async () => {
+  it('omits both halves again once the choice is cleared', async () => {
     const { rpc, controller } = await harness()
-    controller.selectModel('test-model-pro')
+    controller.selectModel({ provider: 'test-provider', model: 'test-model-pro' })
     expect(controller.selectModel(undefined)).toBe(true)
 
     await controller.analyze('分析')
@@ -434,10 +456,10 @@ describe('MemoController model choice', () => {
     expectNoModelRouteInRequests(rpc.calls)
   })
 
-  it('remembers the choice with its provider across reloads', async () => {
+  it('remembers the choice across reloads, provider included', async () => {
     const storage = fakeStorage()
     const first = await harness({}, storage)
-    first.controller.selectModel('test-model-pro')
+    first.controller.selectModel({ provider: 'test-provider', model: 'test-model-pro' })
 
     // A second controller over the same storage is what a page reload looks like.
     const second = await harness({}, storage)
@@ -451,9 +473,9 @@ describe('MemoController model choice', () => {
     expect(third.controller.getSnapshot().modelChoice).toBeUndefined()
   })
 
-  it('drops a choice made under a provider the deployment no longer resolves', async () => {
-    // A model id means nothing outside its own provider, so a stale choice must
-    // not silently retarget analysis after the deployment switched providers.
+  it('drops a choice whose provider the deployment no longer registers', async () => {
+    // A model id means nothing outside its own provider, and a removed provider
+    // cannot serve anything, so the stale choice must not be sent.
     const storage = fakeStorage({
       'dsh-memo:model': JSON.stringify({ provider: 'retired-provider', model: 'test-model-pro' }),
     })
@@ -464,35 +486,71 @@ describe('MemoController model choice', () => {
     expectNoModelRouteInRequests(rpc.calls)
   })
 
-  it('refuses to pin a model while no provider is known', async () => {
-    const rpc = createFakeRpc({
-      failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } },
+  it('keeps a choice when the registry could not be read', async () => {
+    // The registry is unknown here, not empty, and a transient read failure must
+    // not silently retarget the user's analysis.
+    const storage = fakeStorage({
+      'dsh-memo:model': JSON.stringify({ provider: 'test-provider', model: 'test-model-pro' }),
     })
-    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
-    await controller.refresh()
+    const { rpc, controller } = await harness({
+      failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } },
+    }, storage)
 
-    expect(controller.selectModel('test-model-pro')).toBe(false)
+    expect(controller.getSnapshot().modelChoice).toEqual({
+      provider: 'test-provider',
+      model: 'test-model-pro',
+    })
+    await controller.analyze('分析')
+    const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
+    expect(analyze?.request.provider).toBe('test-provider')
+    expect(analyze?.request.model).toBe('test-model-pro')
+  })
+
+  it('refuses to pin a provider the registry does not list', async () => {
+    const { controller } = await harness()
+    expect(controller.selectModel({ provider: 'never-registered', model: 'test-model' })).toBe(false)
     expect(controller.getSnapshot().modelChoice).toBeUndefined()
   })
 
-  it('stays usable, and says why, when the catalog cannot be read', async () => {
+  it('refuses a choice with an empty half', async () => {
+    const { controller } = await harness()
+    expect(controller.selectModel({ provider: '', model: 'test-model' })).toBe(false)
+    expect(controller.selectModel({ provider: 'test-provider', model: '' })).toBe(false)
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+  })
+
+  it('stays usable, and says why, when the registry cannot be read', async () => {
     const { controller } = await harness({
       failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } },
     })
     const state = controller.getSnapshot()
 
-    expect(state.models).toEqual([])
+    expect(state.providers).toEqual([])
     expect(state.catalogError).toBeTruthy()
-    // A missing catalog disables a picker; it is not a board error, and the
+    // A missing registry disables a picker; it is not a board error, and the
     // memos stay on screen.
     expect(state.status).toBe('ready')
     expect(state.error).toBeNull()
   })
 
-  it('distinguishes a provider that advertises nothing from a broken catalog', async () => {
-    const { controller } = await harness({ models: [] })
-    expect(controller.getSnapshot().models).toEqual([])
+  it('tells an empty registry apart from a broken one', async () => {
+    const { controller } = await harness({ providers: [] })
+    expect(controller.getSnapshot().providers).toEqual([])
     expect(controller.getSnapshot().catalogError).toBeUndefined()
+  })
+
+  it('carries a provider-level failure without losing the other providers', async () => {
+    const { controller } = await harness({
+      providers: [
+        { id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'broken', name: 'Broken', models: [], error: 'endpoint is unreachable' },
+      ],
+    })
+    const state = controller.getSnapshot()
+
+    expect(state.catalogError).toBeUndefined()
+    expect(state.providers[1]?.error).toBe('endpoint is unreachable')
+    expect(state.providers[0]?.models.map(model => model.id)).toEqual(['test-model'])
   })
 })
 

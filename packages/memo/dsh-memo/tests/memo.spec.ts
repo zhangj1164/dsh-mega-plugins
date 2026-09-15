@@ -656,7 +656,7 @@ describe('MemoService archived-quarter write guard', () => {
 })
 
 describe('MemoService model catalog', () => {
-  it('reports the resolved route and the models its provider advertises', async () => {
+  it('reports the resolved route alongside every registered provider', async () => {
     const { ctx } = await harness()
     const result = await ctx.memo.listModels({})
 
@@ -664,8 +664,56 @@ describe('MemoService model catalog', () => {
     expect(result.value.provider).toBe(TEST_ROUTE.provider)
     expect(result.value.model).toBe(TEST_ROUTE.model)
     expect(result.value.catalogError).toBeUndefined()
-    expect(result.value.models.map(model => model.id)).toEqual([TEST_ROUTE.model, 'test-model-pro'])
-    expect(result.value.models[0]?.name).toBe('Test Model')
+    expect(result.value.providers.map(provider => provider.id)).toEqual([TEST_ROUTE.provider])
+    expect(result.value.providers[0]?.models.map(model => model.id))
+      .toEqual([TEST_ROUTE.model, 'test-model-pro'])
+    expect(result.value.providers[0]?.models[0]?.name).toBe('Test Model')
+  })
+
+  it('lists every registered provider in registration order, with its own models', async () => {
+    const { ctx } = await harness({
+      llm: {
+        extraProviders: [
+          { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
+          { id: 'deepseek-cu', models: [{ id: 'deepseek-flash', name: 'ds-4.1' }] },
+        ],
+      },
+    })
+    const result = await ctx.memo.listModels({})
+
+    expect(result.value.providers.map(provider => provider.id))
+      .toEqual([TEST_ROUTE.provider, 'cu', 'deepseek-cu'])
+    // The display name is what a selector shows, so it has to survive; a
+    // provider without one falls back to its id rather than to an empty label.
+    expect(result.value.providers.map(provider => provider.name))
+      .toEqual([TEST_ROUTE.provider, 'ark', 'deepseek-cu'])
+    expect(result.value.providers[1]?.models.map(model => model.name)).toEqual(['glm-5.2'])
+    // The resolved route stays the deployment's, not the first catalog's.
+    expect(result.value.provider).toBe(TEST_ROUTE.provider)
+  })
+
+  it('keeps every other provider when one catalog throws', async () => {
+    // One adapter that cannot answer must not hide the models the others are
+    // willing to serve, and must not turn the whole registry into an error.
+    const { ctx } = await harness({
+      llm: {
+        extraProviders: [
+          { id: 'broken', name: 'Broken', models: [], throws: 'endpoint is unreachable' },
+          { id: 'deepseek-cu', models: [{ id: 'deepseek-pro', name: 'ds-4' }] },
+        ],
+      },
+    })
+    const result = await ctx.memo.listModels({})
+
+    expect(result.ok).toBe(true)
+    expect(result.value.catalogError).toBeUndefined()
+    expect(result.value.providers.map(provider => provider.id))
+      .toEqual([TEST_ROUTE.provider, 'broken', 'deepseek-cu'])
+    const broken = result.value.providers[1]
+    expect(broken?.error).toBe('endpoint is unreachable')
+    expect(broken?.models).toEqual([])
+    expect(result.value.providers[2]?.error).toBeUndefined()
+    expect(result.value.providers[0]?.models.length).toBe(2)
   })
 
   it('follows agentDefaultModel when the service Config pins no route', async () => {
@@ -676,37 +724,39 @@ describe('MemoService model catalog', () => {
 
     expect(result.value.provider).toBe(TEST_ROUTE.provider)
     expect(result.value.model).toBe('test-model-pro')
-    expect(result.value.models.length).toBe(2)
+    expect(result.value.providers[0]?.models.length).toBe(2)
   })
 
-  it('reports an empty catalog without an error when the provider advertises nothing', async () => {
-    // An unregistered route and a broken catalog are different states: only the
-    // second one is a reason to tell the user something went wrong.
+  it('reports an empty provider catalog without an error when it advertises nothing', async () => {
+    // A provider that advertises nothing and a catalog that could not be read
+    // are different states: only the second one is worth telling the user about.
     const { ctx } = await harness({ llm: { catalog: [] } })
     const result = await ctx.memo.listModels({})
 
     expect(result.ok).toBe(true)
-    expect(result.value.models).toEqual([])
     expect(result.value.catalogError).toBeUndefined()
+    expect(result.value.providers[0]?.models).toEqual([])
+    expect(result.value.providers[0]?.error).toBeUndefined()
   })
 
-  it('degrades to an empty catalog when the catalog query throws', async () => {
+  it('records a throwing provider as that provider\'s own error', async () => {
     const { ctx } = await harness({ llm: { catalogThrows: 'provider endpoint is unreachable' } })
     const result = await ctx.memo.listModels({})
 
-    // Still a successful result: a missing catalog disables a picker, while a
-    // failure here would take the whole board down with it.
+    // Still a successful result: a missing catalog disables one group in a
+    // picker, while a failure here would take the whole board down with it.
     expect(result.ok).toBe(true)
-    expect(result.value.models).toEqual([])
-    expect(result.value.catalogError).toBe('provider endpoint is unreachable')
+    expect(result.value.catalogError).toBeUndefined()
+    expect(result.value.providers[0]?.error).toBe('provider endpoint is unreachable')
+    expect(result.value.providers[0]?.models).toEqual([])
   })
 
-  it('degrades to an empty catalog when no llm service is mounted', async () => {
+  it('degrades to an empty registry when no llm service is mounted', async () => {
     const { ctx } = await harness({ withoutLlm: true })
     const result = await ctx.memo.listModels({})
 
     expect(result.ok).toBe(true)
-    expect(result.value.models).toEqual([])
+    expect(result.value.providers).toEqual([])
     expect(result.value.catalogError).toContain('llm')
   })
 

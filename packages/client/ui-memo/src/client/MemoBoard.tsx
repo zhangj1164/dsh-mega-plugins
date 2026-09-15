@@ -15,9 +15,9 @@
  */
 
 import * as React from 'react'
-import type { MemoAnalysisType } from 'dsh-memo/client'
+import type { MemoAnalysisType, MemoModelInfo, MemoModelProvider } from 'dsh-memo/client'
 import type { MemoController, MemoViewState } from './controller.ts'
-import { PERIODS, periodDisplay, type MemoCard } from './logic.ts'
+import { PERIODS, periodDisplay, type MemoCard, type MemoModelChoice } from './logic.ts'
 import type { MemoKey } from './locales.ts'
 
 /** Translate function for this plugin's dictionary. */
@@ -356,10 +356,16 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           onClick: () => setAnalysisType(entry.type),
         }, t(entry.key)))),
       React.createElement('div', { className: 'dsh-memo-actions' },
-        React.createElement('button', {
-          type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
-          onClick: () => void controller.analyze(analysisType),
-        }, t('analyze')),
+        // The model switcher rides on the analysis action itself: the model is
+        // what that action will use, so keeping them apart made the user's
+        // second decision look unrelated to their first.
+        React.createElement(ModelSplitButton, {
+          key: 'analyze',
+          controller,
+          view,
+          t,
+          onAnalyze: () => void controller.analyze(analysisType),
+        }),
         React.createElement('button', {
           type: 'button', className: 'dsh-memo-btn', disabled: view.busy,
           onClick: () => void controller.exportReport(),
@@ -386,38 +392,6 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
             }, controller.archivedQuarterLabel() === undefined
               ? t('archiveQuarter')
               : t('unarchiveQuarter'))
-          : null,
-      ),
-      // ── Which model answers, and which one could ──
-      //
-      // The list is the host's: a browser cannot enumerate a provider's models,
-      // and hardcoding one is the defect this panel exists to avoid. The
-      // provider itself is never chosen here — only a model inside it — so the
-      // deployment keeps deciding the route.
-      React.createElement('div', { className: 'dsh-memo-model' },
-        React.createElement('span', { className: 'dsh-memo-model-label' }, t('modelLabel')),
-        React.createElement('select', {
-          className: 'dsh-memo-select',
-          value: view.modelChoice?.model ?? '',
-          'aria-label': t('modelLabel'),
-          disabled: view.busy || view.models.length === 0,
-          title: view.catalogError ?? `${view.routeProvider} · ${view.routeModel}`,
-          onChange: (event: React.ChangeEvent<HTMLSelectElement>) => {
-            const next = event.target.value
-            controller.selectModel(next.length === 0 ? undefined : next)
-          },
-        },
-          React.createElement('option', { value: '' },
-            `${t('followDefault')} (${routeSummary(view.routeProvider, view.routeModel, t('noModelRoute'))})`),
-          // A pinned model stays selectable even when the catalog no longer
-          // lists it: DSH's catalog is advisory, so absence is not rejection.
-          ...[...view.models, ...pinnedModel(view)]
-            .map(model => React.createElement('option', { key: model.id, value: model.id },
-              model.name.length > 0 ? `${model.name} (${model.id})` : model.id)),
-        ),
-        view.models.length === 0
-          ? React.createElement('span', { className: 'dsh-memo-model-hint' },
-              view.catalogError === undefined ? t('noModelRoute') : t('modelCatalogEmpty'))
           : null,
       ),
     ),
@@ -543,6 +517,178 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           },
         })
       : null,
+  )
+}
+
+/** Props of {@link ModelSplitButton}. */
+interface ModelSplitButtonProps {
+  /** The controller that records and applies the chosen route. */
+  readonly controller: MemoController
+  /** The current board state. */
+  readonly view: MemoViewState
+  /** Locale lookup. */
+  readonly t: (key: MemoKey) => string
+  /** Runs the analysis the primary half of the button stands for. */
+  readonly onAnalyze: () => void
+}
+
+/**
+ * The analysis action with the model it will use attached to it.
+ *
+ * A split button, because its two halves answer two questions about one action:
+ * the left runs it, the right says which model it would use and offers the
+ * others. Keeping the choice in a separate control made it look unrelated to the
+ * action it governs.
+ *
+ * The menu lists every provider the *host* reported. A browser can enumerate
+ * neither providers nor their models, and inventing one is the defect that once
+ * made every analysis call fail, so a selection here is always picked from the
+ * deployment's own registry — never typed, guessed, or hardcoded.
+ */
+function ModelSplitButton({ controller, view, t, onAnalyze }: ModelSplitButtonProps): React.ReactElement {
+  const [open, setOpen] = React.useState(false)
+  const caret = React.useRef<HTMLButtonElement | null>(null)
+  const menu = React.useRef<HTMLDivElement | null>(null)
+
+  const choice = view.modelChoice
+  const defaultLabel = routeSummary(view.routeProvider, view.routeModel, t('noModelRoute'))
+  const effectiveLabel = choice === undefined
+    ? defaultLabel
+    : routeSummary(choice.provider, choice.model, choice.model)
+  // "The registry could not be read" and "the deployment registered nothing" are
+  // both unswitchable, but only the first has a reason worth showing.
+  const switchable = view.providers.length > 0
+
+  // A menu that closes only by picking an item is a trap, so a press anywhere
+  // else and Escape both close it and hand focus back to the control that
+  // opened it.
+  React.useEffect(() => {
+    if (!open) return undefined
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target as Node | null
+      if (target !== null && (menu.current?.contains(target) === true || caret.current?.contains(target) === true)) {
+        return
+      }
+      setOpen(false)
+    }
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      caret.current?.focus()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  // Focus lands on the current choice, so a keyboard user opens the menu on the
+  // answer to "which model is this?" instead of at its top.
+  React.useEffect(() => {
+    if (!open) return undefined
+    const checked = menu.current?.querySelector<HTMLButtonElement>('[role="menuitemradio"][aria-checked="true"]')
+    const target = checked ?? menu.current?.querySelector<HTMLButtonElement>('[role="menuitemradio"]')
+    target?.focus()
+    return undefined
+  }, [open])
+
+  const choose = (next: MemoModelChoice | undefined): void => {
+    controller.selectModel(next)
+    setOpen(false)
+    caret.current?.focus()
+  }
+
+  const onMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Home' && event.key !== 'End') return
+    const items = Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [])
+    if (items.length === 0) return
+    event.preventDefault()
+    const active = items.findIndex(item => item === document.activeElement)
+    const next = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? items.length - 1
+        : event.key === 'ArrowDown'
+          ? (active + 1) % items.length
+          : (active <= 0 ? items.length - 1 : active - 1)
+    items[next]?.focus()
+  }
+
+  const items: React.ReactElement[] = [
+    React.createElement('button', {
+      key: 'follow-default',
+      type: 'button',
+      role: 'menuitemradio',
+      className: 'dsh-memo-menuItem',
+      'aria-checked': choice === undefined ? 'true' : 'false',
+      onClick: () => choose(undefined),
+    }, `${t('followDefault')} (${defaultLabel})`),
+  ]
+  for (const provider of view.providers) {
+    items.push(React.createElement('div', {
+      key: `provider:${provider.id}`,
+      role: 'presentation',
+      className: 'dsh-memo-menuGroup',
+    }, provider.name.length > 0 ? provider.name : provider.id))
+    // A pinned model the catalog no longer lists stays offered: declaring a
+    // choice invalid would silently change which model answers.
+    const models = [...provider.models, ...pinnedModel(provider, view)]
+    if (models.length === 0) {
+      // A provider that could not be read stays visible with its reason. Hiding
+      // it would read as "this provider is gone", which is a different claim.
+      items.push(React.createElement('div', {
+        key: `empty:${provider.id}`,
+        className: 'dsh-memo-menuNote',
+      }, provider.error ?? t('providerEmpty')))
+      continue
+    }
+    for (const model of models) {
+      const selected = choice !== undefined && choice.provider === provider.id && choice.model === model.id
+      items.push(React.createElement('button', {
+        key: `model:${provider.id}:${model.id}`,
+        type: 'button',
+        role: 'menuitemradio',
+        className: 'dsh-memo-menuItem',
+        'aria-checked': selected ? 'true' : 'false',
+        onClick: () => choose({ provider: provider.id, model: model.id }),
+      }, modelLabel(model)))
+    }
+  }
+
+  return React.createElement('div', { className: 'dsh-memo-split' },
+    React.createElement('button', {
+      type: 'button',
+      className: 'dsh-memo-btn dsh-memo-splitRun',
+      disabled: view.busy,
+      onClick: onAnalyze,
+    }, t('analyze')),
+    React.createElement('button', {
+      ref: caret,
+      type: 'button',
+      className: 'dsh-memo-btn dsh-memo-splitCaret',
+      disabled: view.busy || !switchable,
+      'aria-haspopup': 'menu',
+      'aria-expanded': open ? 'true' : 'false',
+      'aria-label': t('modelLabel'),
+      title: effectiveLabel,
+      onClick: () => setOpen(current => !current),
+    }, '\u25be'),
+    React.createElement('span', { className: 'dsh-memo-splitModel', title: effectiveLabel }, effectiveLabel),
+    open && switchable
+      ? React.createElement('div', {
+          ref: menu,
+          className: 'dsh-memo-menu',
+          role: 'menu',
+          'aria-label': t('modelLabel'),
+          onKeyDown: onMenuKeyDown,
+        }, ...items)
+      : null,
+    switchable
+      ? null
+      : React.createElement('span', { className: 'dsh-memo-splitHint' },
+          view.catalogError === undefined ? t('noModelRoute') : t('modelCatalogEmpty')),
   )
 }
 
@@ -720,10 +866,10 @@ function periodKey(period: string): MemoKey {
 }
 
 /**
- * Render the route the host resolved, for the "follow default" option.
- * @param provider - the resolved provider route.
- * @param model - the resolved model id.
- * @param fallback - text to use when no route is configured.
+ * Render a route for display.
+ * @param provider - the provider route key.
+ * @param model - the model id.
+ * @param fallback - text to use when either half is missing.
  * @returns `provider · model`, or the fallback.
  */
 function routeSummary(provider: string, model: string, fallback: string): string {
@@ -732,19 +878,29 @@ function routeSummary(provider: string, model: string, fallback: string): string
 }
 
 /**
- * The pinned model as a catalog entry, when the host's catalog omits it.
+ * A label for one model entry.
+ * @param model - the model entry to label.
+ * @returns `name (id)`, or just the id when the provider names it nothing.
+ */
+function modelLabel(model: MemoModelInfo): string {
+  return model.name.length > 0 ? `${model.name} (${model.id})` : model.id
+}
+
+/**
+ * The pinned model as an entry, when the provider's catalog omits it.
  *
- * The pinned id has to stay selectable or the control would display the wrong
- * value. DSH calls its catalog advisory — an unlisted model is not an invalid
- * one — so absence must not silently drop the user's choice either.
+ * The pinned id has to stay selectable or the menu could not display the value
+ * it is actually using. DSH calls its catalog advisory — an unlisted model is
+ * not an invalid one — so absence must not silently drop the user's choice.
  *
+ * @param provider - the provider whose group is being built.
  * @param view - the current board state.
  * @returns one entry to append, or none when the catalog already lists it.
  */
-function pinnedModel(view: MemoViewState): { id: string; name: string }[] {
+function pinnedModel(provider: MemoModelProvider, view: MemoViewState): MemoModelInfo[] {
   const choice = view.modelChoice
-  if (choice === undefined) return []
-  if (view.models.some(model => model.id === choice.model)) return []
+  if (choice === undefined || choice.provider !== provider.id) return []
+  if (provider.models.some(model => model.id === choice.model)) return []
   return [{ id: choice.model, name: '' }]
 }
 

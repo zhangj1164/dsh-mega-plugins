@@ -24,7 +24,7 @@ AI calls resolve their route in one order, and nothing is hardcoded:
 
 When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_MODEL_ROUTE'` instead of silently producing nothing.
 
-`listModels` reports levels 2–3 as the *resolved* route, plus every model that route advertises, so a caller can show which model a call would use and switch to a sibling. The catalog comes from the `llm` service: DSH exposes `listModels` to the host only, so a browser cannot enumerate models and must never be handed a hardcoded list. Everything that can go wrong (no `llm` service, no provider, a catalog query that throws) degrades to an empty catalog inside a **successful** result with a `catalogError` reason — a missing catalog disables a picker, while a failed call would take the whole board down. The catalog is advisory in DSH: membership never validates a request, so an unlisted model id is not a rejected one.
+`listModels` reports levels 2–3 as the *resolved* route, then every **registered** provider with the models it advertises, so a caller can show which model a call would use and switch to any other route the deployment really has. Dormant routes a plugin merely declared are left out: they cannot carry a call, so offering one would offer a choice that must fail. Everything that can go wrong is reported inside a **successful** result: a provider whose own catalog throws keeps its own `error` while the others stay usable, and only a registry that could not be read at all sets `catalogError` — a failed picker is not a failed board. The registry and catalogs come from the `llm` service because DSH exposes `listProviders` and `listModels` to the host only; a browser can enumerate neither, and must never be handed a hardcoded list. Both are advisory in DSH: membership never validates a request, so an unlisted model id is not a rejected one.
 
 ## Failure reporting
 
@@ -59,7 +59,7 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
-| `listModels(request)` | Reports the route AI calls would use and the models that route advertises. Never fails: a missing catalog comes back as an empty one with `catalogError`. |
+| `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
 
 ## Quarter archive
 
