@@ -64,7 +64,7 @@ The switcher rides on the analysis action as a split button: the left half runs 
 - **Card actions**: 查看 (read-only detail dialog), 编辑 (edit dialog), 复制 (duplicate into the same period), 删除 (confirmation dialog)
 - **Composer** with a dashed full-width creator button, disabled while the draft is empty
 - **AI analysis** with a type switch (梳理 / 总结 / 分析) and an inline result card
-- **Model switcher** on the analysis button: a split button whose caret opens every provider the host registered, grouped, with the current choice checked. The button itself shows the route in effect, and the analysis card names the model that actually answered. Choosing one affects these AI calls only; 跟随默认 clears the pin and restores the deployment's route
+- **Model switcher** on the analysis button: one button split by a hairline, whose caret opens every provider the host registered, grouped, with the current choice checked. The caret's tooltip names the route in effect — following the deployment's default is the ordinary case, so it takes no permanent label — and the analysis card names the model that actually answered. Choosing one affects these AI calls only; 跟随默认 clears the pin and restores the deployment's route
 - **Report export** for the selected period
 - **Log analysis** into a pre-filled GitHub issue, triggered from the header because its output is an issue rather than a report about memos
 - **Issue editor**: natural-language input, LLM optimization, and a GitHub open action built from the configured repository

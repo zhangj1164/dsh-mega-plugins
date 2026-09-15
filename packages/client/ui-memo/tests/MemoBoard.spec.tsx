@@ -742,16 +742,18 @@ describe('MemoBoard model switcher', () => {
     return within(screen.getByRole('menu')).getByRole('menuitemradio', { name: text })
   }
 
-  it('rides the switcher on the analysis action as a split button', async () => {
+  it('rides the switcher on the analysis action as one split button', async () => {
     await renderBoard()
 
-    // The action is still one button, and the caret is a second one next to it.
+    // The action and the caret are two hit areas of one control.
     expect(screen.getByRole('button', { name: zh.analyze })).toBeTruthy()
     expect(caret().getAttribute('aria-haspopup')).toBe('menu')
     expect(caret().getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByRole('menu')).toBeNull()
-    // Without opening anything, the board already says which model it would use.
-    expect(screen.getByText('test-provider · test-model')).toBeTruthy()
+    // The route in effect is a tooltip, not a caption: following the default is
+    // the ordinary case, so it must not spend the toolbar's width.
+    expect(caret().getAttribute('title')).toBe('test-provider · test-model')
+    expect(screen.queryByText('test-provider · test-model')).toBeNull()
   })
 
   it('lists the default route plus every provider the host registered', async () => {
@@ -787,9 +789,9 @@ describe('MemoBoard model switcher', () => {
     fireEvent.click(caret())
     fireEvent.click(itemLabel('Test Model Pro (test-model-pro)'))
 
-    // The menu closes on a choice, and the button now names the pinned route.
+    // The menu closes on a choice, and the caret now names the pinned route.
     expect(screen.queryByRole('menu')).toBeNull()
-    expect(screen.getByText('test-provider · test-model-pro')).toBeTruthy()
+    expect(caret().getAttribute('title')).toBe('test-provider · test-model-pro')
 
     fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
     await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
@@ -810,7 +812,7 @@ describe('MemoBoard model switcher', () => {
 
     fireEvent.click(caret())
     fireEvent.click(itemLabel('glm-5.2 (glm-5-2-260617)'))
-    expect(screen.getByText('cu · glm-5-2-260617')).toBeTruthy()
+    expect(caret().getAttribute('title')).toBe('cu · glm-5-2-260617')
 
     fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
     await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
@@ -875,7 +877,7 @@ describe('MemoBoard model switcher', () => {
     })
 
     expect(controller.selectModel({ provider: 'test-provider', model: 'retired-model' })).toBe(true)
-    await waitFor(() => { expect(screen.getByText('test-provider · retired-model')).toBeTruthy() })
+    await waitFor(() => { expect(caret().getAttribute('title')).toBe('test-provider · retired-model') })
     fireEvent.click(caret())
     expect(itemLabel('retired-model').getAttribute('aria-checked')).toBe('true')
   })
