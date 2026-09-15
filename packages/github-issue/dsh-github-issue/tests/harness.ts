@@ -1,14 +1,29 @@
 import { Context, Service } from '@deepseek-ai/cordis'
 import GithubIssueService from '../src/index.ts'
 
+/** What one model call was asked, so a test can assert the prompt itself. */
+export interface CapturedPrompt {
+  /** The system prompt the service sent. */
+  readonly system: string
+  /** The user text the service sent. */
+  readonly user: string
+}
+
 /** Mock LLM service that yields one text-delta then a finish. */
 class MockLlmService extends Service {
   readonly mockText: string
-  constructor(ctx: Context, config: { text: string }) {
+  readonly prompts: CapturedPrompt[]
+  constructor(ctx: Context, config: { text: string; prompts: CapturedPrompt[] }) {
     super(ctx, 'llm')
     this.mockText = config.text
+    this.prompts = config.prompts
   }
-  stream(_options: unknown) {
+  stream(options: { system?: string; messages?: readonly { content?: readonly { text?: string }[] }[] }) {
+    const user = (options.messages ?? [])
+      .flatMap(message => message.content ?? [])
+      .map(part => part.text ?? '')
+      .join('')
+    this.prompts.push({ system: options.system ?? '', user })
     const text = this.mockText
     return {
       async *[Symbol.asyncIterator]() {
@@ -34,6 +49,8 @@ class EmptyLlmService extends Service {
 export interface TestHarness {
   readonly ctx: Context
   readonly service: GithubIssueService
+  /** Every model call's prompt, in order, so a test can assert what was asked. */
+  readonly prompts: CapturedPrompt[]
   dispose(): Promise<void>
 }
 
@@ -48,11 +65,12 @@ export async function setupHarness(options: {
 } = {}): Promise<TestHarness> {
   const ctx = new Context()
   const repoUrl = options.repoUrl ?? 'https://github.com/test/repo'
+  const prompts: CapturedPrompt[] = []
   try {
     if (options.emptyLlm) {
       await ctx.plugin(EmptyLlmService)
     } else {
-      await ctx.plugin(MockLlmService, { text: options.llmText ?? '## \u767b\u5f55\u5931\u8d25\n\n<details><summary>\u590d\u73b0</summary>\n\nBlank page\n\n</details>' })
+      await ctx.plugin(MockLlmService, { text: options.llmText ?? '## \u767b\u5f55\u5931\u8d25\n\n<details><summary>\u590d\u73b0</summary>\n\nBlank page\n\n</details>', prompts })
     }
     await ctx.plugin(GithubIssueService, {
       repoUrl,
@@ -66,6 +84,7 @@ export async function setupHarness(options: {
   return {
     ctx,
     get service() { return ctx.get('githubIssue') as GithubIssueService },
+    prompts,
     async dispose() { await ctx.fiber.dispose() },
   }
 }

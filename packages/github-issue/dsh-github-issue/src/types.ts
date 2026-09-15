@@ -24,6 +24,19 @@ export interface GithubIssueGenerateReportRequest {
   readonly provider: string
   /** Model id for the model call. */
   readonly model: string
+  /**
+   * Time range the analysis read, when it read any events. A report without it
+   * cannot be told apart from one about a live incident.
+   */
+  readonly window?: GithubIssueAnalysisWindow
+}
+
+/** The time range one telemetry analysis covered. */
+export interface GithubIssueAnalysisWindow {
+  /** Timestamp (epoch ms) of the oldest event considered. */
+  readonly firstEventAt: number
+  /** Timestamp (epoch ms) of the newest event considered. */
+  readonly lastEventAt: number
 }
 
 /** One failure group input — the analysis projection of a feature-code group. */
@@ -36,6 +49,22 @@ export interface GithubIssueFailureGroupInput {
   readonly errorCode?: string
   /** The most recent failure's error message. */
   readonly errorMessage?: string
+  /** Timestamp (epoch ms) of the most recent failure, when the analysis knew it. */
+  readonly lastFailureAt?: number
+  /** Attempts of the same action recorded after the most recent failure. */
+  readonly attemptsAfterLastFailure?: number
+  /** Route the most recent failure ran on, when those events recorded one. */
+  readonly route?: GithubIssueFailureRoute
+}
+
+/** The model route a failure group ran on. */
+export interface GithubIssueFailureRoute {
+  /** Provider id the failing call used. */
+  readonly provider: string
+  /** Model id the failing call used. */
+  readonly model: string
+  /** HTTP-style status the adapter reported, when it reported one. */
+  readonly status?: number
 }
 
 /** The generated GitHub issue report. */
