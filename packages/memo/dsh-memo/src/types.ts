@@ -211,6 +211,34 @@ export type MemoAnalyzeLogsResult =
   | { readonly ok: true; readonly value: MemoLogAnalysisResult }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
+/** One failure group in the log-analysis summary. */
+export interface MemoLogAnalysisGroup {
+  /** The feature-code anchor shared by every event in this group. */
+  readonly featureCodeRef: string
+  /** Number of failures in this group. */
+  readonly count: number
+  /** The distinct error codes observed in this group. */
+  readonly errorCodes: readonly string[]
+  /** Timestamp (epoch ms) of the most recent failure in this group. */
+  readonly lastFailureAt: number
+  /** Attempts of the same action recorded after the most recent failure. */
+  readonly attemptsAfterLastFailure: number
+  /** Route the failures ran on, absent when those events recorded none. */
+  readonly route?: { readonly provider: string; readonly model: string; readonly status?: number }
+}
+
+/** The telemetry analysis summary that produced the report. */
+export interface MemoLogAnalysisSummary {
+  /** Total events recorded for the analyzed plugin. */
+  readonly totalEvents: number
+  /** Total failure events recorded for the analyzed plugin. */
+  readonly totalFailures: number
+  /** Time range the analysis read, absent when the plugin has no events. */
+  readonly window?: { readonly firstEventAt: number; readonly lastEventAt: number }
+  /** Failure events grouped by feature-code anchor. */
+  readonly failureGroups: readonly MemoLogAnalysisGroup[]
+}
+
 /** The log analysis result: the issue report and the prefill URL. */
 export interface MemoLogAnalysisResult {
   /** The generated GitHub issue report. */
@@ -218,7 +246,7 @@ export interface MemoLogAnalysisResult {
   /** The pre-filled GitHub issue-creation URL. */
   readonly issueUrl: string
   /** The telemetry analysis summary. */
-  readonly analysis: { readonly totalEvents: number; readonly totalFailures: number; readonly failureGroups: readonly unknown[] }
+  readonly analysis: MemoLogAnalysisSummary
 }
 
 /** Business failure union for memo operations. */

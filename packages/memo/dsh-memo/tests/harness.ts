@@ -186,21 +186,29 @@ class MockAgentDefaultModel extends Service {
   }
 }
 
-/** Mock telemetry service with no-op tracking. */
+/** Mock telemetry service with no-op tracking and a configurable analysis answer. */
 class MockTelemetryService extends Service {
-  constructor(ctx: Context) { super(ctx, 'telemetry') }
+  /** The analysis `analyzeForPlugin` answers with. */
+  readonly analysis: Record<string, unknown>
+  constructor(ctx: Context, config: { analysis: Record<string, unknown> }) {
+    super(ctx, 'telemetry')
+    this.analysis = config.analysis
+  }
   track(_input: unknown): void {}
   trackError(_input: unknown): void {}
   listEvents(_query: unknown): never[] { return [] }
-  analyzeForPlugin(_pluginId: string) {
-    return { pluginId: _pluginId, totalEvents: 0, totalFailures: 0, failureGroups: [] }
+  analyzeForPlugin(pluginId: string) {
+    return { pluginId, totalEvents: 0, totalFailures: 0, failureGroups: [], ...this.analysis }
   }
 }
 
-/** Mock github-issue service with stub methods. */
+/** Mock github-issue service that records the report request it was handed. */
 class MockGithubIssueService extends Service {
+  /** Every `generateReport` request, in order. */
+  readonly reportRequests: Record<string, unknown>[] = []
   constructor(ctx: Context) { super(ctx, 'githubIssue') }
-  async generateReport(_request: unknown) {
+  async generateReport(request: unknown) {
+    this.reportRequests.push(request as Record<string, unknown>)
     return { ok: true, value: { title: 'Test Report', body: 'Report body', labels: ['bug'] } }
   }
   prefilledIssueUrl(_request: unknown) {
@@ -214,6 +222,10 @@ class MockGithubIssueService extends Service {
 export interface TestHarness {
   readonly ctx: Context
   readonly root: string
+  /** The telemetry analysis the mock answers with, for log-analysis tests. */
+  readonly telemetry: MockTelemetryService
+  /** The mock github-issue service, which records the requests it received. */
+  readonly githubIssue: MockGithubIssueService
   dispose(): Promise<void>
 }
 
@@ -235,6 +247,11 @@ export interface SetupOptions {
   readonly followAgentDefault?: { readonly provider: string; readonly model: string }
   /** Mount no `llm` service at all, as a deployment without a model route. */
   readonly withoutLlm?: boolean
+  /**
+   * What the mock telemetry service's `analyzeForPlugin` answers with, so the
+   * log-analysis pipeline can be tested without a real telemetry store.
+   */
+  readonly analysis?: Record<string, unknown>
 }
 
 export async function setupHarness(options: SetupOptions = {}): Promise<TestHarness> {
@@ -248,7 +265,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     if (options.followAgentDefault !== undefined) {
       await ctx.plugin(MockAgentDefaultModel, options.followAgentDefault)
     }
-    await ctx.plugin(MockTelemetryService)
+    await ctx.plugin(MockTelemetryService, { analysis: options.analysis ?? {} })
     await ctx.plugin(MockGithubIssueService)
     const pinned = options.followAgentDefault !== undefined
       ? {}
@@ -265,6 +282,8 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
   return {
     ctx,
     root,
+    get telemetry() { return ctx.get('telemetry') as MockTelemetryService },
+    get githubIssue() { return ctx.get('githubIssue') as MockGithubIssueService },
     async dispose() {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })

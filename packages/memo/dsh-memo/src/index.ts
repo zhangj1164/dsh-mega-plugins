@@ -790,11 +790,17 @@ export class MemoService extends TypertRemoteService {
       pluginId,
       totalEvents: analysis.totalEvents,
       totalFailures: analysis.totalFailures,
+      // The window and the per-group timing are what let the report say whether
+      // a failure is still happening; the route is what lets it say where.
+      ...(analysis.window === undefined ? {} : { window: analysis.window }),
       failureGroups: analysis.failureGroups.map((g: TelemetryFailureGroup) => ({
         featureCodeRef: g.featureCodeRef,
         count: g.count,
         ...(g.latest.error?.code !== undefined ? { errorCode: g.latest.error.code } : {}),
         ...(g.latest.error?.message !== undefined ? { errorMessage: g.latest.error.message } : {}),
+        lastFailureAt: g.latest.timestamp,
+        attemptsAfterLastFailure: g.attemptsAfterLastFailure,
+        ...(g.route === undefined ? {} : { route: g.route }),
       })),
       provider: route.provider,
       model: route.model,
@@ -815,10 +821,14 @@ export class MemoService extends TypertRemoteService {
       analysis: Object.freeze({
         totalEvents: analysis.totalEvents,
         totalFailures: analysis.totalFailures,
-        failureGroups: Object.freeze(analysis.failureGroups.map((g: { featureCodeRef: string; count: number; errorCodes: readonly string[] }) => ({
+        ...(analysis.window === undefined ? {} : { window: analysis.window }),
+        failureGroups: Object.freeze(analysis.failureGroups.map((g: TelemetryFailureGroup) => ({
           featureCodeRef: g.featureCodeRef,
           count: g.count,
           errorCodes: Object.freeze(g.errorCodes),
+          lastFailureAt: g.latest.timestamp,
+          attemptsAfterLastFailure: g.attemptsAfterLastFailure,
+          ...(g.route === undefined ? {} : { route: g.route }),
         }))),
       }),
     })
