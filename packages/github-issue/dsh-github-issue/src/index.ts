@@ -49,6 +49,17 @@ export interface Config {
    * {@link Config.maxPrefillUrlLength}, so the reader knows the body is partial.
    */
   readonly prefillTruncationNote: string
+  /**
+   * Provider route for model calls; unset to follow this deployment's
+   * `agentDefaultModel` selection. Set it to pin issue generation to one route
+   * without touching memo's own route.
+   */
+  readonly provider?: string
+  /**
+   * Model id for model calls; unset to follow this deployment's
+   * `agentDefaultModel` selection.
+   */
+  readonly model?: string
 }
 
 /** Schemastery configuration for the GitHub-issue service. */
@@ -56,6 +67,8 @@ export const Config: s<Config> = s.object({
   repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
   maxPrefillUrlLength: s.number().default(7000),
   prefillTruncationNote: s.string().default('\n\n> （正文过长，已截断以适配 GitHub 的 URL 长度限制。完整正文见备忘面板的「复制完整正文」。）'),
+  provider: s.string(),
+  model: s.string(),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -96,6 +109,22 @@ const OPTIMIZE_SYSTEM_PROMPT = [
 
 /** How a fact the analysis did not carry is written, so it reads as absent data. */
 const NOT_RECORDED = 'not recorded'
+
+/**
+ * The failure returned when a request arrives without a model route.
+ *
+ * Named rather than folded into `llm-failure`: a missing route and a model that
+ * truly produced nothing are different defects with different owners. Reporting
+ * the first as the second sent a user hunting for a model problem in a request
+ * that never reached a model.
+ */
+const ROUTE_MISSING = {
+  ok: false,
+  error: {
+    code: 'route-missing',
+    message: 'no model route was supplied for this call; the caller must pass the provider and model to use',
+  },
+} as const
 
 /** The built-in system prompt that generates a report from telemetry analysis. */
 const REPORT_SYSTEM_PROMPT = [
@@ -151,6 +180,10 @@ export class GithubIssueService extends TypertRemoteService {
   private readonly repoUrl: string
   private readonly maxPrefillUrlLength: number
   private readonly prefillTruncationNote: string
+  /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
+  private readonly provider?: string
+  /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
+  private readonly model?: string
 
   /**
    * @param ctx - Host context carrying the llm service.
@@ -161,6 +194,30 @@ export class GithubIssueService extends TypertRemoteService {
     this.repoUrl = config.repoUrl
     this.maxPrefillUrlLength = config.maxPrefillUrlLength
     this.prefillTruncationNote = config.prefillTruncationNote
+    this.provider = config.provider
+    this.model = config.model
+  }
+
+  /**
+   * Resolve the model route for one model call.
+   *
+   * The caller's explicit request wins, then this service's validated `Config`,
+   * then the deployment's `agentDefaultModel` selection — the same order the
+   * memo service uses, so one deployment-level answer decides both. A blank
+   * half is treated as absent rather than as a value: it is the shape an
+   * omitted field arrives in, and letting it win would send a call with no
+   * adapter, whose failure ("the model produced no output") blames the model
+   * for a routing problem.
+   *
+   * @param request - the caller's optional route.
+   * @returns the resolved route, or `undefined` when nothing resolved one.
+   */
+  private resolveRoute(request: { readonly provider?: string; readonly model?: string }): { provider: string; model: string } | undefined {
+    const selection = this.ctx.get('agentDefaultModel')?.currentSelection()
+    const provider = firstNonBlank(request.provider, this.provider, selection?.provider)
+    const model = firstNonBlank(request.model, this.model, selection?.model)
+    if (provider === undefined || model === undefined) return undefined
+    return { provider, model }
   }
 
   /**
@@ -171,8 +228,10 @@ export class GithubIssueService extends TypertRemoteService {
    */
   @Remote('generateReport')
   async generateReport(request: GithubIssueGenerateReportRequest): Promise<GithubIssueGenerateReportResult> {
+    const route = this.resolveRoute(request)
+    if (route === undefined) return ROUTE_MISSING
     const userPrompt = buildReportUserPrompt(request)
-    const body = await this.streamModelText(request.provider, request.model, REPORT_SYSTEM_PROMPT, userPrompt)
+    const body = await this.streamModelText(route.provider, route.model, REPORT_SYSTEM_PROMPT, userPrompt)
     if (body === undefined) {
       return { ok: false, error: { code: 'llm-failure', message: 'the model produced no output' } }
     }
@@ -217,7 +276,9 @@ export class GithubIssueService extends TypertRemoteService {
     if (request.description.trim().length === 0) {
       return { ok: false, error: { code: 'empty-input', message: 'the issue description is empty' } }
     }
-    const body = await this.streamModelText(request.provider, request.model, OPTIMIZE_SYSTEM_PROMPT, request.description)
+    const route = this.resolveRoute(request)
+    if (route === undefined) return ROUTE_MISSING
+    const body = await this.streamModelText(route.provider, route.model, OPTIMIZE_SYSTEM_PROMPT, request.description)
     if (body === undefined) {
       return { ok: false, error: { code: 'llm-failure', message: 'the model produced no output' } }
     }
@@ -260,6 +321,19 @@ export class GithubIssueService extends TypertRemoteService {
     }
     return text.length > 0 ? text : undefined
   }
+}
+
+/**
+ * The first argument that carries a non-blank value.
+ *
+ * @param values - candidate values, most specific first.
+ * @returns the trimmed value, or `undefined` when all are blank or absent.
+ */
+function firstNonBlank(...values: readonly (string | undefined)[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
+  }
+  return undefined
 }
 
 /**
