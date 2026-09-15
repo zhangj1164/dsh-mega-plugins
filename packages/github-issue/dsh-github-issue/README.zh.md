@@ -22,13 +22,31 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 |---|---|
 | `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。请求携带分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数；这些字段都可选，缺省时会以 `not recorded` 传给模型，而不是省略。 |
 | `prefilledIssueUrl(request)` | 从报告构建预填 GitHub issue 创建 URL。校验仓库 URL；失败时返回 `invalid-url`。当拼装出的 URL 超过 `maxPrefillUrlLength` 时缩短正文——标题与标签占用同一份额度，百分号编码还会放大它，因此判定基于 URL 而不是仅基于正文长度。 |
-| `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，无路由可解析时返回 `route-missing`，模型无输出返回 `llm-failure`。 |
+| `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，无路由可解析时返回 `route-missing`，模型调用失败返回 `llm-failure`。 |
 
 ## 模型路由
 
 两个会调用模型的方法都按与 memo 服务相同的方式解析路由：请求里的 `provider`/`model`，其次本服务的 `Config`，最后部署的 `agentDefaultModel` 选择。因此请求里的这两个字段是可选的，客户端 UI 只在用户显式选择模型时才发送——浏览器无需为了调用成功而发布路由。
 
 空字符串按「未提供」处理而不是当作取值，这样省略的字段仍能落到部署默认值，而不会以不可用的路由发往模型。当各处都解析不出路由时，调用返回 `route-missing`，并且**不会发起任何模型调用**：没有适配器的调用不可能成功，把它报成 `llm-failure` 等于用模型的名义解释路由问题。
+
+## 失败事实
+
+失败的调用会保留 DSH 报告的内容，而不是折叠成一条消息。`llm-failure` 的消息里带着机器路由码与路由——`model call to provider "custom" model "glm-5-2-260617" failed: NO_ADAPTER: no adapter registered for provider "custom"`——因此 `NO_ADAPTER`（本部署未注册的路由）、`AUTH`、`RATE_LIMIT` 与 `EMPTY_RESPONSE`（模型确实没有产出文本）之间仍然可区分。把它们一律报成「模型没有输出」，正是让用户在从未到达模型的请求里去找模型问题的原因。
+
+流本身抛出传输错误而不是产出终止 `finish` 块时，报为 `LLM_STREAM_THREW`，而不是让异常逃逸出调用。
+
+## 遥测
+
+两个会调用模型的方法在部署装有遥测服务时都会上报，没有时行为完全相同。该服务通过 `ctx.get('telemetry')` 读取，并**刻意不**写进 `static inject`：本包可以单独作为 bundle 安装，诊断依赖绝不能成为服务拒绝激活的理由。
+
+| 事件 | 记录内容 |
+|---|---|
+| 成功的调用 | 动作 `optimizeIssue` / `generateReport`，`success`，并带上服务本次调用的路由 |
+| 失败的调用 | 保留的 DSH 码、消息与 HTTP 状态、路由，以及 `github-issue:<action>` 特性锚点 |
+| 无法解析路由的调用 | 码 `NO_MODEL_ROUTE`——与 `dsh-memo` 对同一情形使用的码一致，因此一份报告可以把两个包归到一起 |
+
+`generateReport` 还会记录它拿到的分析属于哪个插件。只记录成功的调用能回答「这些调用走的哪条路由」，却回答不了「那条路由在其出错之后是否已经变了」，所以两半都要记。
 
 ## Issue 报告模板
 
