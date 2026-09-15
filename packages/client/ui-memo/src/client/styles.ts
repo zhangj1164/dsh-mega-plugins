@@ -247,13 +247,14 @@ export const CSS_TEXT = `
 /* The chrome sits on the container, so the two halves read as a single button
    and the caret is set off by a hairline divider rather than by its own frame.
    Two-class selectors are deliberate: they have to outrank the shared
-   dsh-memo-btn rule, which the halves also carry for their type and padding. */
+   dsh-memo-btn rule, which the halves also carry for their type and padding.
+   No overflow clipping here: the model menu is anchored inside this element, so
+   clipping the hover fills would clip the popup too. The halves carry the outer
+   radii instead, which is what keeps a fill inside the rounded corners. */
 .dsh-memo-split {
   position: relative;
   display: inline-flex;
   align-items: stretch;
-  /* Clips each half's hover fill to the container's radius. */
-  overflow: hidden;
   border-radius: 10px;
   border: 0.5px solid var(--dsw-alias-border-l3);
   background: var(--dsw-alias-bg-layer-1);
@@ -261,10 +262,11 @@ export const CSS_TEXT = `
 .dsh-memo-split .dsh-memo-splitRun,
 .dsh-memo-split .dsh-memo-splitCaret {
   border: 0;
-  border-radius: 0;
   background: transparent;
 }
+.dsh-memo-split .dsh-memo-splitRun { border-radius: 10px 0 0 10px; }
 .dsh-memo-split .dsh-memo-splitCaret {
+  border-radius: 0 10px 10px 0;
   padding-left: 8px;
   padding-right: 8px;
   line-height: 1;
@@ -287,7 +289,7 @@ export const CSS_TEXT = `
   display: flex;
   flex-direction: column;
   min-width: 240px;
-  max-width: 360px;
+  max-width: 400px;
   max-height: 320px;
   overflow: auto;
   padding: 6px;
@@ -312,6 +314,10 @@ export const CSS_TEXT = `
   font: inherit;
   font-size: 12px;
   text-align: left;
+  /* One row per route: a wrapped label reads as two entries. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 6px 8px 6px 22px;
   border-radius: 8px;
   cursor: pointer;

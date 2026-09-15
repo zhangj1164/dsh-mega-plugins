@@ -155,8 +155,44 @@ describe('ui-memo client entry point', () => {
     expect(document.querySelector('style[data-dsh-plugin="memo"]')).toBeNull()
   })
 
-  it('registers the panel component as an element, not a bare call', () => {
-    // Regression: the entry point used to call `MemoBoard({...})` directly, so
+  it('keeps the model menu out of any clipped ancestor', () => {
+    // jsdom has no layout, so the one thing a test can pin down is the cause of
+    // the defect this guards: the menu is absolutely positioned *inside* the
+    // split container, so an `overflow` clip there hides the popup behind the
+    // button. Rounding the halves is how the hover fill stays inside the
+    // corners without clipping; if that changes, the popup will vanish again.
+    const { effects } = applyPlugin()
+    // Comments are stripped first: a comment immediately before a selector would
+    // otherwise ride along in the captured selector list and defeat the exact
+    // comparison below.
+    const css = (document.querySelector('style[data-dsh-plugin="memo"]')?.textContent ?? '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    // Every body whose selector list names this selector exactly, so a rule that
+    // shares a selector list with another still contributes its declarations.
+    const bodies = (selector: string): string => {
+      const found: string[] = []
+      for (const match of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+        const selectors = (match[1] ?? '').split(',').map(part => part.trim())
+        if (selectors.includes(selector)) found.push(match[2] ?? '')
+      }
+      return found.join('\n')
+    }
+
+    const container = bodies('.dsh-memo-split')
+    expect(container).not.toBe('')
+    expect(container).not.toContain('overflow')
+    expect(container).toContain('position: relative')
+    // The halves, not the container, are what round the fills now.
+    expect(bodies('.dsh-memo-split .dsh-memo-splitRun')).toContain('border-radius')
+    expect(bodies('.dsh-memo-split .dsh-memo-splitCaret')).toContain('border-radius')
+    // And the caret is still set off from the run half.
+    expect(bodies('.dsh-memo-split .dsh-memo-splitCaret')).toContain('border-left')
+    // A wrapped menu entry reads as two routes.
+    expect(bodies('.dsh-memo-menuItem')).toContain('nowrap')
+    for (const dispose of effects) dispose()
+  })
+
+  it('registers the panel component as an element, not a bare call', () => {    // Regression: the entry point used to call `MemoBoard({...})` directly, so
     // the component's hooks ran outside a render and React threw
     // "Invalid hook call" as soon as the section opened.
     const { element } = applyPlugin()
