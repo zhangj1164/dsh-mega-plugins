@@ -13,8 +13,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
-import type { StreamChunk, GenerateOptions } from '@deepseek-ai/dsh-llm'
-import { createUserMessage, type Message } from '@deepseek-ai/dsh-llm'
+import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import type {
   GithubIssueGenerateReportRequest,
   GithubIssueGenerateReportResult,
@@ -26,6 +25,7 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
+export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
 
 /** Deployment configuration for the GitHub-issue service. */
 export interface Config {
@@ -125,6 +125,32 @@ const ROUTE_MISSING = {
     message: 'no model route was supplied for this call; the caller must pass the provider and model to use',
   },
 } as const
+
+/** The plugin id these events are recorded under, alongside `memo`. */
+const TELEMETRY_PLUGIN_ID = 'github-issue'
+
+/** The DSH machine-routing code `dsh-memo` also uses when nothing resolves a route. */
+const NO_MODEL_ROUTE_CODE = 'NO_MODEL_ROUTE'
+
+/**
+ * The optional telemetry sink this service reports to.
+ *
+ * Declared structurally and read with `ctx.get`, deliberately **not** from
+ * `static inject`: a deployment may install this plugin on its own bundle
+ * without telemetry, and a diagnostic dependency must never be the reason a
+ * service refuses to activate.
+ */
+interface TelemetrySink {
+  /** Record one completed call. */
+  track(input: { pluginId: string; action: string; result: 'success' | 'failure'; metadata?: Record<string, unknown> }): void
+  /** Record one failure, with the feature anchor a report groups on. */
+  trackError(input: {
+    pluginId: string
+    action: string
+    error: { code: string; message: string; featureCodeRef?: string }
+    metadata?: Record<string, unknown>
+  }): void
+}
 
 /** The built-in system prompt that generates a report from telemetry analysis. */
 const REPORT_SYSTEM_PROMPT = [
@@ -229,16 +255,15 @@ export class GithubIssueService extends TypertRemoteService {
   @Remote('generateReport')
   async generateReport(request: GithubIssueGenerateReportRequest): Promise<GithubIssueGenerateReportResult> {
     const route = this.resolveRoute(request)
-    if (route === undefined) return ROUTE_MISSING
+    if (route === undefined) return this.routeMissing('generateReport')
     const userPrompt = buildReportUserPrompt(request)
-    const body = await this.streamModelText(route.provider, route.model, REPORT_SYSTEM_PROMPT, userPrompt)
-    if (body === undefined) {
-      return { ok: false, error: { code: 'llm-failure', message: 'the model produced no output' } }
-    }
-    const title = extractTitle(body) ?? `Telemetry failures in ${request.pluginId}`
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, REPORT_SYSTEM_PROMPT, userPrompt)
+    if (!result.ok) return this.llmFailure('generateReport', route, result)
+    const title = extractTitle(result.text) ?? `Telemetry failures in ${request.pluginId}`
+    this.track('generateReport', 'success', { pluginId: request.pluginId, ...this.routeFacts(route) })
     return {
       ok: true,
-      value: Object.freeze({ title, body, labels: Object.freeze(['bug', 'telemetry']) }),
+      value: Object.freeze({ title, body: result.text, labels: Object.freeze(['bug', 'telemetry']) }),
     }
   }
 
@@ -277,49 +302,115 @@ export class GithubIssueService extends TypertRemoteService {
       return { ok: false, error: { code: 'empty-input', message: 'the issue description is empty' } }
     }
     const route = this.resolveRoute(request)
-    if (route === undefined) return ROUTE_MISSING
-    const body = await this.streamModelText(route.provider, route.model, OPTIMIZE_SYSTEM_PROMPT, request.description)
-    if (body === undefined) {
-      return { ok: false, error: { code: 'llm-failure', message: 'the model produced no output' } }
-    }
-    const title = extractTitle(body) ?? 'New issue'
+    if (route === undefined) return this.routeMissing('optimizeIssue')
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, OPTIMIZE_SYSTEM_PROMPT, request.description)
+    if (!result.ok) return this.llmFailure('optimizeIssue', route, result)
+    const title = extractTitle(result.text) ?? 'New issue'
+    this.track('optimizeIssue', 'success', this.routeFacts(route))
     return {
       ok: true,
-      value: Object.freeze({ title, body, labels: Object.freeze(['bug']) }),
+      value: Object.freeze({ title, body: result.text, labels: Object.freeze(['bug']) }),
     }
   }
 
   /**
-   * Stream one model call and collect the text output. Returns `undefined`
-   * when the stream produced no text or terminated with an error.
-   * @param provider - registered provider route.
-   * @param model - model id.
-   * @param system - system prompt text.
-   * @param userText - user message text.
-   * @returns the concatenated text, or `undefined` on empty or errored output.
+   * Report one model failure and return the business failure.
+   *
+   * The preserved DSH code goes into both the message and the telemetry event:
+   * the message is what a user reads, and the event is what a later analysis
+   * groups on. Reporting either as a bare "the model produced no output" is how
+   * an unroutable provider was mistaken for a model that answered nothing.
+   *
+   * @param action - the method the failure happened in, and its telemetry action.
+   * @param route - the route the call was sent to.
+   * @param failure - the preserved DSH failure facts.
+   * @returns the business failure to return to the caller.
    */
-  private async streamModelText(provider: string, model: string, system: string, userText: string): Promise<string | undefined> {
-    const llm = this.ctx.get('llm')
-    if (llm === undefined) return undefined
-    const message = createUserMessage({
-      content: [{ type: 'text', text: userText }],
-      source: { kind: 'user' },
+  private llmFailure(
+    action: 'generateReport' | 'optimizeIssue',
+    route: LlmRoute,
+    failure: LlmTextResult & { ok: false },
+  ): { ok: false; error: { code: 'llm-failure'; message: string } } {
+    const detail = failure.failure
+    const message = `model call to provider "${route.provider}" model "${route.model}" failed: ${detail.code}: ${detail.message}`
+    this.trackError(
+      action,
+      { code: detail.code, message: detail.message, featureCodeRef: `${TELEMETRY_PLUGIN_ID}:${action}` },
+      { ...this.routeFacts(route), ...(detail.status === undefined ? {} : { status: detail.status }) },
+    )
+    return { ok: false, error: { code: 'llm-failure', message } }
+  }
+
+  /**
+   * Report a call that arrived with no resolvable route.
+   *
+   * Recorded as a failure rather than silently skipped: this is the defect that
+   * produced an empty model response from every click of the issue editor's
+   * optimize button, and it left no trace anywhere, so it was found by a user
+   * report instead of by the telemetry it should have written.
+   *
+   * @param action - the method the call was made to, and its telemetry action.
+   * @returns the business failure to return to the caller.
+   */
+  private routeMissing(action: 'generateReport' | 'optimizeIssue') {
+    this.trackError(
+      action,
+      { code: NO_MODEL_ROUTE_CODE, message: ROUTE_MISSING.error.message, featureCodeRef: `${TELEMETRY_PLUGIN_ID}:${action}` },
+      {},
+    )
+    return ROUTE_MISSING
+  }
+
+  /**
+   * The route facts every AI-related telemetry event carries.
+   *
+   * Success events carry them for the same reason failures do: a record that
+   * names the route only when it broke cannot say which route served the calls
+   * that worked, so a later analysis cannot tell whether the route changed.
+   *
+   * @param route - the route the call used.
+   * @returns the provider and model to merge into an event's metadata.
+   */
+  private routeFacts(route: LlmRoute): { provider: string; model: string } {
+    return { provider: route.provider, model: route.model }
+  }
+
+  /**
+   * Record one completed call, when this deployment has telemetry mounted.
+   *
+   * @param action - the method the call was made to.
+   * @param result - whether it succeeded.
+   * @param metadata - structured context, such as the route.
+   */
+  private track(action: string, result: 'success' | 'failure', metadata?: Record<string, unknown>): void {
+    const telemetry = this.ctx.get('telemetry') as TelemetrySink | undefined
+    telemetry?.track({
+      pluginId: TELEMETRY_PLUGIN_ID,
+      action,
+      result,
+      ...(metadata === undefined ? {} : { metadata }),
     })
-    const options: GenerateOptions = {
-      provider,
-      model,
-      messages: [message as Message],
-      system,
-    }
-    let text = ''
-    for await (const chunk of llm.stream(options) as AsyncIterable<StreamChunk>) {
-      if (chunk.type === 'text-delta') {
-        text += chunk.text
-      } else if (chunk.type === 'finish' && (chunk.reason.kind === 'error' || chunk.reason.kind === 'aborted')) {
-        return undefined
-      }
-    }
-    return text.length > 0 ? text : undefined
+  }
+
+  /**
+   * Record one failure, when this deployment has telemetry mounted.
+   *
+   * @param action - the method the failure happened in.
+   * @param error - the failure code, message, and feature anchor.
+   * @param metadata - structured context, such as the attempted route.
+   */
+  private trackError(
+    action: string,
+    error: { code: string; message: string; featureCodeRef?: string },
+    metadata?: Record<string, unknown>,
+  ): void {
+    const telemetry = this.ctx.get('telemetry') as TelemetrySink | undefined
+    telemetry?.trackError({
+      pluginId: TELEMETRY_PLUGIN_ID,
+      action,
+      error,
+      ...(metadata === undefined ? {} : { metadata }),
+    })
   }
 }
 
