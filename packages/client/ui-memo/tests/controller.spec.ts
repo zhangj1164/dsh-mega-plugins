@@ -415,8 +415,9 @@ describe('MemoController model choice', () => {
     expect(state.routeProvider).toBe('test-provider')
   })
 
-  it('sends the chosen provider and model on analysis and export', async () => {
+  it('sends the chosen provider and model on analysis, export, and issue optimization', async () => {
     const { rpc, controller } = await harness({
+      issueReport: issueReport(),
       providers: [
         { id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] },
         { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
@@ -426,6 +427,7 @@ describe('MemoController model choice', () => {
 
     await controller.analyze('分析')
     await controller.exportReport()
+    await controller.optimizeIssue('the optimize button crashes')
 
     const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
     expect(analyze?.request.provider).toBe('cu')
@@ -433,6 +435,24 @@ describe('MemoController model choice', () => {
     const report = rpc.calls.find(call => call.endpoint === 'memo/exportReport')
     expect(report?.request.provider).toBe('cu')
     expect(report?.request.model).toBe('glm-5-2-260617')
+    // githubIssue resolves no route by itself the way memo does, so the user's
+    // choice has to travel on this call too, or the panel would optimize on a
+    // different model than the one it just analyzed with.
+    const optimize = rpc.calls.find(call => call.endpoint === 'githubIssue/optimizeIssue')
+    expect(optimize?.request.provider).toBe('cu')
+    expect(optimize?.request.model).toBe('glm-5-2-260617')
+  })
+
+  it('shows why optimization could not run when no route resolves', async () => {
+    // The reported symptom was "the model produced no output", which names the
+    // model for a routing problem. A deployment with no route anywhere must say
+    // so, and the panel must show that reason rather than a model complaint.
+    const { controller } = await harness({ issueReport: issueReport(), noModelRoute: true })
+    await controller.optimizeIssue('the optimize button crashes')
+
+    const state = controller.getSnapshot()
+    expect(state.issueReport).toBeNull()
+    expect(state.error).toBe('no model route was supplied for this call')
   })
 
   it('records which provider and model produced the analysis', async () => {

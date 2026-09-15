@@ -55,6 +55,11 @@ export interface FakeRpcOptions {
   }[]
   /** Reason `memo/listModels` reports when the registry itself is unreadable. */
   readonly catalogError?: string
+  /**
+   * Model a deployment where no route resolves at all: `githubIssue` then has
+   * nothing to fall back on and answers `route-missing`.
+   */
+  readonly noModelRoute?: boolean
 }
 
 /** A fake RPC channel plus the state it accumulated. */
@@ -368,6 +373,15 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       return ok(options.logAnalysis)
     }
     if (endpoint === 'githubIssue/optimizeIssue') {
+      // Mirror the host's resolution: this service resolves a route of its own
+      // (request → Config → `agentDefaultModel`), so a request that omits one
+      // still succeeds while a deployment default exists. `noModelRoute` models
+      // the deployment where nothing resolves one, which is the only state that
+      // produces `route-missing`.
+      const provider = request.provider ?? (options.noModelRoute === true ? undefined : DEFAULT_ROUTE.provider)
+      const model = request.model ?? (options.noModelRoute === true ? undefined : DEFAULT_ROUTE.model)
+      if (typeof provider !== 'string' || provider.length === 0) return fail('route-missing', 'no model route was supplied for this call')
+      if (typeof model !== 'string' || model.length === 0) return fail('route-missing', 'no model route was supplied for this call')
       if (options.issueReport === undefined) return fail('llm-failure', 'no adapter registered for provider "unregistered"')
       return ok(options.issueReport)
     }
