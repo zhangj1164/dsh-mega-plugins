@@ -24,6 +24,8 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 
 解析不出路由时，调用以 `llm-failure` 且 `failureCode: 'NO_MODEL_ROUTE'` 失败，而不是静默地什么都不产出。
 
+`listModels` 把第 2、3 层解析结果作为*当前*路由上报，并附带该路由公布的全部模型，使调用方既能显示「本次会用哪个模型」，也能切到同一 provider 下的其他模型。目录来自 `llm` 服务：DSH 只把 `listModels` 暴露给宿主，因此浏览器无法枚举模型，也绝不能被塞一份硬编码清单。所有异常（未挂载 `llm`、没有 provider、目录查询抛错）都降级为**成功**结果里的空目录并附带 `catalogError` 原因——目录缺失只应让选择器禁用，而调用失败会连整个看板一起拖垮。DSH 的目录是建议性的：成员资格从不参与请求校验，所以未列出的模型 id 不等于被拒绝。
+
 ## 失败上报
 
 `analyze`、`exportReport` 以及其它基于模型的方法会保留 DSH 的失败事实，而不是把它们统统折叠成一条消息。失败时的 `llm-failure` 携带：
@@ -57,6 +59,7 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |
 | `listArchivedQuarters(request)` | 列出已归档的季度，最早的在前，每条附带宿主解析出的周 id。 |
+| `listModels(request)` | 上报 AI 调用将使用的路由，以及该路由公布的模型。不会失败：目录缺失时返回空目录并附 `catalogError`。 |
 
 ## 季度归档
 

@@ -725,3 +725,74 @@ describe('MemoBoard initial frame', () => {
     expect(screen.queryByText(zh.loading)).toBeNull()
   })
 })
+
+describe('MemoBoard model switcher', () => {
+  /** The model control, found by its accessible name. */
+  function modelSelect(): HTMLSelectElement {
+    return screen.getByRole('combobox', { name: zh.modelLabel }) as HTMLSelectElement
+  }
+
+  it('offers the resolved route plus every model the host advertises', async () => {
+    await renderBoard()
+
+    const select = modelSelect()
+    const labels = [...select.options].map(option => option.textContent ?? '')
+    // The default option names the route the host resolved, so the user can see
+    // what analysis would use without touching anything.
+    expect(labels[0]).toContain('test-provider')
+    expect(labels[0]).toContain('test-model')
+    expect(labels[0]).toContain(zh.followDefault)
+    expect(labels.slice(1)).toEqual(['Test Model (test-model)', 'Test Model Pro (test-model-pro)'])
+    expect(select.value).toBe('')
+  })
+
+  it('sends the chosen model on the next analysis and names it on the result', async () => {
+    const { rpc } = await renderBoard(seedWeek(['work']))
+
+    fireEvent.change(modelSelect(), { target: { value: 'test-model-pro' } })
+    expect(modelSelect().value).toBe('test-model-pro')
+
+    fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
+    await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+
+    const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
+    expect(analyze?.request.model).toBe('test-model-pro')
+    // The provider is still never sent: the user picked a model, not a route.
+    expect(analyze?.request.provider).toBeUndefined()
+    // And the card says which model answered.
+    expect(screen.getByText('test-provider · test-model-pro')).toBeTruthy()
+  })
+
+  it('goes back to following the default when the first option is chosen again', async () => {
+    const { rpc, controller } = await renderBoard(seedWeek(['work']))
+
+    fireEvent.change(modelSelect(), { target: { value: 'test-model-pro' } })
+    fireEvent.change(modelSelect(), { target: { value: '' } })
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
+    await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+    expect(rpc.calls.find(call => call.endpoint === 'memo/analyze')?.request.model).toBeUndefined()
+  })
+
+  it('disables the control and explains itself when the catalog cannot be read', async () => {
+    await renderBoard({ failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } } })
+
+    // Asserted on the property: `isDisabled` is button-specific by design.
+    expect(modelSelect().disabled).toBe(true)
+    expect(screen.getByText(zh.modelCatalogEmpty)).toBeTruthy()
+    // The board itself is unaffected: a missing catalog is not a board error.
+    expect(screen.queryByText(zh.loading)).toBeNull()
+    expect(screen.getByPlaceholderText(zh.addPlaceholder)).toBeTruthy()
+  })
+
+  it('keeps a pinned model selectable when the catalog stops listing it', async () => {
+    // DSH's catalog is advisory, so an unlisted model is not an invalid one —
+    // dropping the pinned id would silently change which model answers.
+    const { controller } = await renderBoard({ models: [{ id: 'test-model', name: 'Test Model' }] })
+
+    expect(controller.selectModel('retired-model')).toBe(true)
+    await waitFor(() => { expect(modelSelect().value).toBe('retired-model') })
+    expect([...modelSelect().options].map(option => option.value)).toContain('retired-model')
+  })
+})

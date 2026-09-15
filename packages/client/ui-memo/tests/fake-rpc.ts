@@ -37,6 +37,12 @@ export interface FakeRpcOptions {
   readonly issueReport?: GithubIssueReport
   /** Result of `memo/analyzeLogs`. */
   readonly logAnalysis?: { report: GithubIssueReport; issueUrl: string }
+  /** Provider route `memo/listModels` reports as resolved. */
+  readonly route?: { readonly provider: string; readonly model: string }
+  /** Models `memo/listModels` advertises for that route. */
+  readonly models?: readonly { readonly id: string; readonly name: string }[]
+  /** Reason `memo/listModels` reports for an empty catalog. */
+  readonly catalogError?: string
 }
 
 /** A fake RPC channel plus the state it accumulated. */
@@ -228,6 +234,18 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
         weekCount: entry.weekIds.filter(weekId => weeks.has(weekId)).length,
       })))
     }
+    if (method === 'listModels') {
+      const route = options.route ?? { provider: 'test-provider', model: 'test-model' }
+      const models = options.models ?? [
+        { id: 'test-model', name: 'Test Model' },
+        { id: 'test-model-pro', name: 'Test Model Pro' },
+      ]
+      return ok({
+        ...route,
+        models,
+        ...(options.catalogError === undefined ? {} : { catalogError: options.catalogError }),
+      })
+    }
     if (method === 'listArchivedQuarters') {
       return ok([...archived.entries()]
         .map(([label, archivedAt]) => ({ label, archivedAt, weekIds: weekIdsForPeriod('quarter', label) }))
@@ -309,7 +327,19 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       return ok(true)
     }
     if (method === 'analyze') {
-      return ok({ summary: `analysis:${String(request.analysisType)}`, period: request.period, periodLabel: request.periodLabel })
+      // Mirror the host's route precedence so a test can see which model the
+      // call would really have used: the request's override wins, then the
+      // route the host resolved.
+      const route = options.route ?? { provider: 'test-provider', model: 'test-model' }
+      const model = typeof request.model === 'string' && request.model.length > 0 ? request.model : route.model
+      const provider = typeof request.provider === 'string' && request.provider.length > 0 ? request.provider : route.provider
+      return ok({
+        summary: `analysis:${String(request.analysisType)}`,
+        period: request.period,
+        periodLabel: request.periodLabel,
+        modelProvider: provider,
+        modelName: model,
+      })
     }
     if (method === 'exportReport') {
       return ok(`# report for ${String(request.periodLabel)}`)
@@ -362,7 +392,14 @@ export function issueReport(overrides: Partial<GithubIssueReport> = {}): GithubI
   } as GithubIssueReport
 }
 
-/** Assert that no request carried a hardcoded model route. */
+/**
+ * Assert that no request carried a model route the user did not choose.
+ *
+ * The browser must never *decide* a route: it cannot know which adapters a
+ * deployment registered, and picking one anyway is the defect this guards. A
+ * model the user selected in the picker is not that — its catalog came from the
+ * host — so it may appear in a request, while nothing else may.
+ */
 export function expectNoModelRouteInRequests(calls: readonly RecordedCall[]): void {
   for (const call of calls) {
     expect(call.request.provider, `${call.endpoint} must not send provider`).toBeUndefined()

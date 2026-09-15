@@ -368,3 +368,55 @@ export type MemoUnarchiveQuarterResult =
 export type MemoListArchivedQuartersResult =
   | { readonly ok: true; readonly value: readonly MemoArchivedQuarter[] }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** One model the resolved provider route advertises. */
+export interface MemoModelInfo {
+  /** Model id to send as the call's model. */
+  readonly id: string
+  /** Human-readable name for selectors; a caller falls back to `id`. */
+  readonly name: string
+}
+
+/**
+ * Request for `listModels`.
+ *
+ * It carries no input, and it declares `request` for the same reason every
+ * other method does: the Remote protocol binds arguments by name.
+ */
+export interface MemoListModelsRequest {}
+
+/**
+ * The route AI analysis would use right now, plus what that route can be
+ * switched to.
+ */
+export interface MemoListModelsValue {
+  /** Provider route the next AI call would use, or `''` when unresolved. */
+  readonly provider: string
+  /** Model id the next AI call would use, or `''` when unresolved. */
+  readonly model: string
+  /**
+   * Models the provider advertises, in the registry's own order.
+   *
+   * DSH calls this catalog advisory: membership never validates a request, so a
+   * caller must not read "not listed" as "rejected".
+   */
+  readonly models: readonly MemoModelInfo[]
+  /**
+   * Why the catalog is empty, when it is empty for a reason other than the
+   * provider genuinely advertising nothing.
+   *
+   * Reported as data rather than as a failure: a missing catalog should disable
+   * a picker, not take the whole board down with it.
+   */
+  readonly catalogError?: string
+}
+
+/**
+ * Result of listing the models the resolved route can be switched to.
+ *
+ * There is deliberately no failure variant. Every degradation — no provider
+ * configured, no `llm` service mounted, a catalog query that throws — is
+ * reported inside a successful value, because a deployment without a model
+ * route must still be able to open the memo board.
+ */
+export type MemoListModelsResult = { readonly ok: true; readonly value: MemoListModelsValue }
