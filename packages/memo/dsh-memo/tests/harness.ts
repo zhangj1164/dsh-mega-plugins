@@ -186,16 +186,26 @@ class MockAgentDefaultModel extends Service {
   }
 }
 
-/** Mock telemetry service with no-op tracking and a configurable analysis answer. */
+/** One telemetry event the mock recorded, so a test can assert what was reported. */
+export interface RecordedEvent {
+  /** Which of the two recording methods produced it. */
+  readonly kind: 'track' | 'trackError'
+  /** The recorded input, verbatim. */
+  readonly input: Record<string, unknown>
+}
+
+/** Mock telemetry service that records every event and answers a configured analysis. */
 class MockTelemetryService extends Service {
   /** The analysis `analyzeForPlugin` answers with. */
   readonly analysis: Record<string, unknown>
+  /** Every recorded event, in order. */
+  readonly events: RecordedEvent[] = []
   constructor(ctx: Context, config: { analysis: Record<string, unknown> }) {
     super(ctx, 'telemetry')
     this.analysis = config.analysis
   }
-  track(_input: unknown): void {}
-  trackError(_input: unknown): void {}
+  track(input: unknown): void { this.events.push({ kind: 'track', input: input as Record<string, unknown> }) }
+  trackError(input: unknown): void { this.events.push({ kind: 'trackError', input: input as Record<string, unknown> }) }
   listEvents(_query: unknown): never[] { return [] }
   analyzeForPlugin(pluginId: string) {
     return { pluginId, totalEvents: 0, totalFailures: 0, failureGroups: [], ...this.analysis }

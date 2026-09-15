@@ -883,3 +883,99 @@ describe('MemoService model catalog', () => {
     expect(asked.error.provider).toBe('unregistered-provider')
   })
 })
+
+describe('MemoService records the route on calls that worked', () => {
+  /** The metadata of the first recorded event for one action and result. */
+  function metadataOf(events: { kind: string; input: Record<string, unknown> }[], action: string, result: string): Record<string, unknown> {
+    const event = events.find(candidate => candidate.input.action === action && candidate.input.result === result)
+    expect(event, `no ${result} event was recorded for ${action}`).toBeDefined()
+    return event!.input.metadata as Record<string, unknown>
+  }
+
+  it('records the route that served a successful analysis', async () => {
+    // Before this, the route only ever appeared on a failure, so a later
+    // analysis could say which route broke but never which route served the
+    // calls that worked — leaving "did changing the route fix it?"
+    // unanswerable from the data.
+    const { ctx, telemetry } = await harness()
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const result = await ctx.memo.analyze({ period: 'week', periodLabel: week.value.weekId, analysisType: '\u5206\u6790' })
+    expect(result.ok).toBe(true)
+
+    expect(metadataOf(telemetry.events, 'analyze', 'success')).toMatchObject({
+      provider: TEST_ROUTE.provider,
+      model: TEST_ROUTE.model,
+      period: 'week',
+      periodLabel: week.value.weekId,
+    })
+  })
+
+  it('records the route on a successful export and a model listing', async () => {
+    const { ctx, telemetry } = await harness()
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const exported = await ctx.memo.exportReport({ period: 'week', periodLabel: week.value.weekId })
+    expect(exported.ok).toBe(true)
+    await ctx.memo.listModels({})
+
+    expect(metadataOf(telemetry.events, 'exportReport', 'success')).toMatchObject({
+      provider: TEST_ROUTE.provider,
+      model: TEST_ROUTE.model,
+    })
+    expect(metadataOf(telemetry.events, 'listModels', 'success')).toMatchObject({
+      provider: TEST_ROUTE.provider,
+      model: TEST_ROUTE.model,
+    })
+  })
+
+  it('records the route on log analysis, which is itself an AI call', async () => {
+    const { ctx, telemetry } = await harness()
+
+    const result = await ctx.memo.analyzeLogs({})
+    expect(result.ok).toBe(true)
+
+    expect(metadataOf(telemetry.events, 'analyzeLogs', 'success')).toMatchObject({
+      provider: TEST_ROUTE.provider,
+      model: TEST_ROUTE.model,
+      pluginId: 'memo',
+    })
+  })
+
+  it('records a resolved-but-empty route as empty instead of omitting it', async () => {
+    // An absent route means "this event predates route recording"; an empty one
+    // means "nothing resolved". Collapsing the two would put every old event
+    // and every unroutable deployment in the same bucket.
+    const { ctx, telemetry } = await harness({ config: { provider: '', model: '' } })
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    await ctx.memo.listModels({})
+
+    const metadata = metadataOf(telemetry.events, 'listModels', 'success')
+    expect(metadata).toHaveProperty('provider', '')
+    expect(metadata).toHaveProperty('model', '')
+  })
+
+  it('records the route when a listing reports no usable provider', async () => {
+    // The failure branch is the one a user consults when the model menu is
+    // empty; without the route it cannot say whether a route was resolved.
+    const { ctx, telemetry } = await harness({ withoutLlm: true, config: { provider: 'ghost', model: 'ghost-model' } })
+
+    await ctx.memo.listModels({})
+
+    expect(metadataOf(telemetry.events, 'listModels', 'failure')).toMatchObject({
+      provider: 'ghost',
+      model: 'ghost-model',
+      reason: 'llm-unavailable',
+    })
+  })
+})
