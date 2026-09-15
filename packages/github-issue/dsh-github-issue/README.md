@@ -13,6 +13,8 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | Default repository URL for issue prefill when a request omits `repoUrl`. |
 | `maxPrefillUrlLength` | `7000` | Longest pre-filled issue URL to produce, counted in characters. GitHub refuses a request URL that is too long and shows an error page instead of the new-issue form, and it publishes no stable constant for the boundary, so this carries headroom and is deployment-tunable. `0` disables shortening. |
 | `prefillTruncationNote` | a Chinese note | Appended to the issue body when the URL had to be shortened, so the reader knows the body is partial. |
+| `provider` | unset | Provider route for model calls. Unset follows the deployment's `agentDefaultModel` selection, so a deployment can pin issue generation from `cordis.yml` alone. |
+| `model` | unset | Model id for model calls. Unset follows the same fallback as `provider`. |
 
 ## Remote methods
 
@@ -20,7 +22,13 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 |---|---|
 | `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request carries the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; all of them are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
 | `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
-| `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `llm-failure` when the model produces no output. |
+| `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `route-missing` when no route resolves, `llm-failure` when the model produces no output. |
+
+## Model route
+
+Both model-calling methods resolve their route the way the memo service does: the request's `provider`/`model`, then this service's `Config`, then the deployment's `agentDefaultModel` selection. The request fields are therefore optional, and the client UI sends them only when the user picked a model — the browser never has to publish a route for a call to work.
+
+A blank value counts as absent rather than as a value, so an omitted field still reaches the deployment default instead of travelling to the model as an unusable route. When nothing resolves a route, the call returns `route-missing` and **no model call is attempted**: a call without an adapter cannot succeed, and reporting it as `llm-failure` would name the model for a routing problem.
 
 ## Issue report template
 
