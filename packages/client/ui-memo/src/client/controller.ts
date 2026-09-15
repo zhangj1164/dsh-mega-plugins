@@ -328,7 +328,9 @@ export class MemoController {
         archivedWeekIds: archived.weekIds,
         archivedQuarters: archived.quarters,
         busy: false,
-        error: null,
+        // A board that cannot tell "archived" from "not archived" would let an
+        // archived quarter be edited without any sign of why. Say so.
+        error: archived.ok ? null : 'the archived quarters could not be read; cards are shown as editable',
       })
       writeSelection(this.storage, selection)
     } catch (e) {
@@ -339,16 +341,25 @@ export class MemoController {
   /**
    * Read the archived quarters and the week ids they cover.
    *
-   * A failure here is reported as no archive rather than as a board error: the
-   * archive is a read-only overlay on the cards, so a missing answer must never
-   * hide memos the user can otherwise see. The one visible consequence is that
-   * cards stop being read-only, which the message on screen explains.
+   * A failure here still reports no archive, because the archive is a read-only
+   * overlay on the cards and a missing answer must never hide memos the user can
+   * otherwise see. It is not silent, though: an archive that cannot be read is
+   * indistinguishable from "nothing is archived", and that ambiguity once hid a
+   * complete feature — 13 successful archives on the host, zero reads on the
+   * client, and nothing on screen to say why. The caller surfaces a warning.
    *
-   * @returns the archived quarters and the merged week ids.
+   * @returns the archived quarters, the merged week ids, and whether the read
+   * actually succeeded.
    */
-  private async readArchivedQuarters(): Promise<{ quarters: readonly MemoArchivedQuarter[]; weekIds: ReadonlySet<string> }> {
+  private async readArchivedQuarters(): Promise<{
+    quarters: readonly MemoArchivedQuarter[]
+    weekIds: ReadonlySet<string>
+    ok: boolean
+  }> {
     const result = await callMemo<readonly MemoArchivedQuarter[]>(this.rpc, 'listArchivedQuarters', {})
-    if (!result.ok || !Array.isArray(result.value)) return { quarters: [], weekIds: new Set<string>() }
+    if (!result.ok || !Array.isArray(result.value)) {
+      return { quarters: [], weekIds: new Set<string>(), ok: false }
+    }
     const quarters = result.value.map(entry => Object.freeze({
       label: entry.label,
       archivedAt: entry.archivedAt,
@@ -356,7 +367,7 @@ export class MemoController {
     }))
     const weekIds = new Set<string>()
     for (const quarter of quarters) for (const weekId of quarter.weekIds) weekIds.add(weekId)
-    return { quarters: Object.freeze(quarters), weekIds }
+    return { quarters: Object.freeze(quarters), weekIds, ok: true }
   }
 
   /**

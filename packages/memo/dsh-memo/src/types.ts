@@ -341,6 +341,19 @@ export interface MemoQuarterLabelRequest {
   readonly label: string
 }
 
+/**
+ * Request for `listArchivedQuarters`.
+ *
+ * It carries no input of its own, and it exists only because the Remote
+ * protocol binds arguments **by name**: the client always sends
+ * `{ args: { request } }`, so a method that needs no input must still declare
+ * the `request` parameter. An earlier revision declared none, and the call was
+ * rejected before the method body ran — the archive was written while the
+ * client's read of it silently returned nothing, so archiving looked like it did
+ * absolutely nothing.
+ */
+export interface MemoListArchivedQuartersRequest {}
+
 /** Result of archiving a quarter. */
 export type MemoArchiveQuarterResult =
   | { readonly ok: true; readonly value: MemoArchivedQuarter }

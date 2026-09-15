@@ -471,4 +471,22 @@ describe('MemoController archived-quarter writes', () => {
     await controller.selectLabel(controller.getSnapshot().periods[8]?.label ?? '')
     expect(controller.targetArchived).toBe(false)
   })
+
+  it('says so when the archive cannot be read instead of pretending it is empty', async () => {
+    // An unreadable archive and an empty archive look identical on screen, and
+    // that ambiguity once hid an entire feature: the host archived successfully
+    // while the client's read was rejected, so nothing ever appeared.
+    const rpc = createFakeRpc({
+      failOn: { listArchivedQuarters: { code: 'not-found', message: 'unhandled endpoint' } },
+    })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+
+    const snapshot = controller.getSnapshot()
+    expect(snapshot.archivedQuarters).toEqual([])
+    expect(snapshot.error).not.toBeNull()
+    expect(String(snapshot.error)).toContain('archived')
+    // The memos themselves stay visible and editable; only the warning appears.
+    expect(snapshot.status).toBe('ready')
+  })
 })
