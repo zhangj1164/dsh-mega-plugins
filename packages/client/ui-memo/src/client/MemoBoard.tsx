@@ -535,10 +535,14 @@ interface ModelSplitButtonProps {
 /**
  * The analysis action with the model it will use attached to it.
  *
- * A split button, because its two halves answer two questions about one action:
- * the left runs it, the right says which model it would use and offers the
- * others. Keeping the choice in a separate control made it look unrelated to the
- * action it governs.
+ * One button with two hit areas, split by a hairline: the left runs the action,
+ * the right offers the routes it could use. Keeping the choice in a separate
+ * control made it look unrelated to the action it governs.
+ *
+ * The route in effect is on the caret's tooltip rather than beside the button:
+ * following the deployment's default is the ordinary case, and a permanent label
+ * for it would spend the toolbar's width on the expected answer. Which model
+ * actually answered is still stated on the result card.
  *
  * The menu lists every provider the *host* reported. A browser can enumerate
  * neither providers nor their models, and inventing one is the defect that once
@@ -672,10 +676,11 @@ function ModelSplitButton({ controller, view, t, onAnalyze }: ModelSplitButtonPr
       'aria-haspopup': 'menu',
       'aria-expanded': open ? 'true' : 'false',
       'aria-label': t('modelLabel'),
-      title: effectiveLabel,
+      // The route in effect is a tooltip rather than a caption: following the
+      // deployment's default is the normal case, so it needs no permanent label.
+      title: switchable ? effectiveLabel : (view.catalogError ?? t('noModelRoute')),
       onClick: () => setOpen(current => !current),
     }, '\u25be'),
-    React.createElement('span', { className: 'dsh-memo-splitModel', title: effectiveLabel }, effectiveLabel),
     open && switchable
       ? React.createElement('div', {
           ref: menu,

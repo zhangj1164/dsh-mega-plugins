@@ -243,35 +243,33 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-3);
   font-size: 12px;
 }
-/* ── Split button: the analysis action, with its model on the right ── */
+/* ── Split button: one control, two hit areas ── */
+/* The chrome sits on the container, so the two halves read as a single button
+   and the caret is set off by a hairline divider rather than by its own frame.
+   Two-class selectors are deliberate: they have to outrank the shared
+   dsh-memo-btn rule, which the halves also carry for their type and padding. */
 .dsh-memo-split {
   position: relative;
   display: inline-flex;
-  align-items: center;
-  gap: 0;
+  align-items: stretch;
+  /* Clips each half's hover fill to the container's radius. */
+  overflow: hidden;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  background: var(--dsw-alias-bg-layer-1);
 }
-.dsh-memo-split:focus-within .dsh-memo-splitModel { color: var(--dsw-alias-text-1); }
-/* The two halves read as one control: squared inner corners, a shared border. */
-.dsh-memo-splitRun {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right-width: 0;
+.dsh-memo-split .dsh-memo-splitRun,
+.dsh-memo-split .dsh-memo-splitCaret {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
-.dsh-memo-splitCaret {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+.dsh-memo-split .dsh-memo-splitCaret {
   padding-left: 8px;
   padding-right: 8px;
   line-height: 1;
-}
-.dsh-memo-splitModel {
-  max-width: 220px;
-  margin-left: 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--dsw-alias-text-3);
-  font-size: 12px;
+  /* The divider: one button, two functions, split by a hairline. */
+  border-left: 0.5px solid var(--dsw-alias-border-l3);
 }
 .dsh-memo-splitHint {
   margin-left: 8px;
