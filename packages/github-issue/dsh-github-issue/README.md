@@ -20,7 +20,7 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 
 | Method | Behavior |
 |---|---|
-| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request carries the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; all of them are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
+| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request names the `pluginIds` it covers — one report spans a whole suite — plus the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; the per-group facts are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
 | `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
 | `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `route-missing` when no route resolves, `llm-failure` when the model call failed. |
 

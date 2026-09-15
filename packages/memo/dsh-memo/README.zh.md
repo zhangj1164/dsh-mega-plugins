@@ -13,6 +13,7 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | 传递给 github-issue 服务用于报告生成的 GitHub 仓库 URL。 |
 | `provider` | 未设置 | AI 调用使用的已注册 DSH provider 路由。未设置时跟随本部署的 `agentDefaultModel` 选择。 |
 | `model` | 未设置 | AI 调用的模型 id。未设置时跟随本部署的 `agentDefaultModel` 选择。 |
+| `logAnalysisPlugins` | `['memo', 'github-issue']` | `analyzeLogs` 覆盖的插件 id，按读取顺序。遥测没有枚举插件的接口，因此由部署方给出集合；默认值是这些 bundle 一起安装的套件。 |
 
 ## 模型路由解析
 
@@ -56,12 +57,16 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `analyze(request)` | 对一段时间的条目运行 AI 分析（梳理/总结/分析）。该时段无条目时返回 `no-entries`，模型调用失败时返回 `llm-failure`。 |
 | `exportReport(request)` | 使用模型导出一段时间的 Markdown 工作报告。 |
 | `readExternalPath(request)` | 读取本地文件路径并将其作为条目添加。 |
-| `analyzeLogs(request)` | 读取本插件的遥测失败记录，通过 github-issue 服务生成 GitHub issue 报告。会一并传递分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数，使报告能说明失败是否仍在发生。 |
+| `analyzeLogs(request)` | 读取所有已配置插件的遥测失败记录，通过 github-issue 服务生成**一份**覆盖全部插件的 GitHub issue 报告。会一并传递分析时间窗——各插件时间窗的并集——以及每组的路由、最近一次失败时间和之后的尝试次数，使报告能说明失败是否仍在发生。 |
 | `listPeriods(request)` | 列出某一维度（周/月/季/年）可导航的周期，最新的在前，并给出每个周期包含的周 id。 |
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |
 | `listArchivedQuarters(request)` | 列出已归档的季度，最早的在前，每条附带宿主解析出的周 id。 |
 | `listModels(request)` | 上报 AI 调用将使用的路由，随后给出每个已注册 provider 及其公布的模型。不会失败：某个 provider 读不出来时只带它自己的 `error`，整个注册表读不出来时返回空列表并附 `catalogError`。 |
+
+### 一次日志分析覆盖什么
+
+出一份报告，而不是每个插件一份：套件里的包是一起安装、一起坏、一起修的，而只覆盖 `memo` 的报告无法提到弄坏本面板 issue 编辑器的那个 `github-issue` 失败——那恰恰是没被看见的失败。总数跨插件相加，时间窗取各插件时间窗的并集，失败组合并后按失败次数排序；每组在 `featureCodeRef` 里已经带着自己的插件前缀，所以不同插件的组不会相撞。请求可以自带 `pluginIds`；部署方用 `Config.logAnalysisPlugins` 裁剪默认值。空集合会以 `no-plugins-configured` 被拒绝，而不是被当成「套件没有记录到任何东西」——「什么都没读」和「什么都没发生」不是同一个断言。
 
 ## 季度归档
 

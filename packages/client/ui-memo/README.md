@@ -45,7 +45,7 @@ The history list comes from the host (`memo/listPeriods`), never from a browser-
 | `deleteCard(card)` | memo | Deletes a card. |
 | `analyze(type)` | memo | Runs AI analysis (梳理 / 总结 / 分析) over the selected period. |
 | `exportReport()` | memo | Exports a Markdown report for the selected period. |
-| `analyzeLogs()` | memo | Reads telemetry failures and generates a GitHub issue report with a prefill URL. |
+| `analyzeLogs()` | memo | Reads telemetry failures and generates a GitHub issue report with a prefill URL. The host decides which plugins it covers, so the report spans the deployment's suite rather than this panel's own plugin. |
 | `optimizeIssue(description)` | githubIssue | Optimizes a natural-language description into a structured report. Sends the user's chosen model only when there is one: the service resolves the route itself, so the panel never has to publish one. |
 | `archiveCurrentQuarter()` | memo | Archives the quarter the board is showing. A no-op in any other dimension. |
 | `unarchiveQuarter(label)` | memo | Takes a quarter out of the archive, restoring its cards to editable. |

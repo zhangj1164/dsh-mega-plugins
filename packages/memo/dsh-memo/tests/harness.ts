@@ -32,6 +32,9 @@ export type MockChunk = MockTextDelta | MockFinishStop | MockFinishError
  */
 export const TEST_ROUTE = { provider: 'test-provider', model: 'test-model' } as const
 
+/** The plugin id memo records its own events under, mirrored for the mock. */
+const TELEMETRY_PLUGIN_ID = 'memo'
+
 /** Options controlling how the mock LLM service answers one call. */
 export interface MockLlmOptions {
   /** The one route this mock has registered. */
@@ -196,19 +199,28 @@ export interface RecordedEvent {
 
 /** Mock telemetry service that records every event and answers a configured analysis. */
 class MockTelemetryService extends Service {
-  /** The analysis `analyzeForPlugin` answers with. */
+  /** The analysis `analyzeForPlugin` answers with for `memo`. */
   readonly analysis: Record<string, unknown>
+  /** Per-plugin analyses, which win over {@link MockTelemetryService.analysis}. */
+  readonly analysisByPlugin: Record<string, Record<string, unknown>>
   /** Every recorded event, in order. */
   readonly events: RecordedEvent[] = []
-  constructor(ctx: Context, config: { analysis: Record<string, unknown> }) {
+  /** Every plugin id `analyzeForPlugin` was asked about, in order. */
+  readonly requested: string[] = []
+  constructor(ctx: Context, config: { analysis: Record<string, unknown>; analysisByPlugin: Record<string, Record<string, unknown>> }) {
     super(ctx, 'telemetry')
     this.analysis = config.analysis
+    this.analysisByPlugin = config.analysisByPlugin
   }
   track(input: unknown): void { this.events.push({ kind: 'track', input: input as Record<string, unknown> }) }
   trackError(input: unknown): void { this.events.push({ kind: 'trackError', input: input as Record<string, unknown> }) }
   listEvents(_query: unknown): never[] { return [] }
   analyzeForPlugin(pluginId: string) {
-    return { pluginId, totalEvents: 0, totalFailures: 0, failureGroups: [], ...this.analysis }
+    this.requested.push(pluginId)
+    // The plain fixture answers for `memo` alone rather than for every plugin:
+    // a suite-wide read must not clone one plugin's events onto the others.
+    const fixture = this.analysisByPlugin[pluginId] ?? (pluginId === TELEMETRY_PLUGIN_ID ? this.analysis : {})
+    return { pluginId, totalEvents: 0, totalFailures: 0, failureGroups: [], ...fixture }
   }
 }
 
@@ -258,10 +270,18 @@ export interface SetupOptions {
   /** Mount no `llm` service at all, as a deployment without a model route. */
   readonly withoutLlm?: boolean
   /**
-   * What the mock telemetry service's `analyzeForPlugin` answers with, so the
-   * log-analysis pipeline can be tested without a real telemetry store.
+   * What the mock telemetry service's `analyzeForPlugin` answers with for
+   * `memo`, so the log-analysis pipeline can be tested without a real
+   * telemetry store.
    */
   readonly analysis?: Record<string, unknown>
+  /**
+   * Per-plugin answers, for an analysis that spans more than one plugin. Each
+   * entry overrides {@link SetupOptions.analysis} for its plugin id.
+   */
+  readonly analysisByPlugin?: Record<string, Record<string, unknown>>
+  /** Memo `Config.logAnalysisPlugins`, for a deployment that trims the suite. */
+  readonly logAnalysisPlugins?: readonly string[]
 }
 
 export async function setupHarness(options: SetupOptions = {}): Promise<TestHarness> {
@@ -275,7 +295,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     if (options.followAgentDefault !== undefined) {
       await ctx.plugin(MockAgentDefaultModel, options.followAgentDefault)
     }
-    await ctx.plugin(MockTelemetryService, { analysis: options.analysis ?? {} })
+    await ctx.plugin(MockTelemetryService, { analysis: options.analysis ?? {}, analysisByPlugin: options.analysisByPlugin ?? {} })
     await ctx.plugin(MockGithubIssueService)
     const pinned = options.followAgentDefault !== undefined
       ? {}
@@ -283,7 +303,11 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
           provider: options.config?.provider ?? TEST_ROUTE.provider,
           model: options.config?.model ?? TEST_ROUTE.model,
         }
-    await ctx.plugin(MemoService, { repoUrl: 'https://github.com/test/repo', ...pinned })
+    await ctx.plugin(MemoService, {
+      repoUrl: 'https://github.com/test/repo',
+      ...pinned,
+      ...(options.logAnalysisPlugins === undefined ? {} : { logAnalysisPlugins: [...options.logAnalysisPlugins] }),
+    })
   } catch (error) {
     await ctx.fiber.dispose()
     await rm(root, { recursive: true, force: true })

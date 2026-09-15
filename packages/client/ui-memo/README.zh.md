@@ -45,7 +45,7 @@
 | `deleteCard(card)` | memo | 删除卡片。 |
 | `analyze(type)` | memo | 对所选周期运行 AI 分析（梳理 / 总结 / 分析）。 |
 | `exportReport()` | memo | 为所选周期导出 Markdown 报告。 |
-| `analyzeLogs()` | memo | 读取遥测失败记录并生成带预填 URL 的 GitHub issue 报告。 |
+| `analyzeLogs()` | memo | 读取遥测失败记录并生成带预填 URL 的 GitHub issue 报告。覆盖哪些插件由宿主决定，因此报告覆盖部署的套件，而不只是本面板自己的插件。 |
 | `optimizeIssue(description)` | githubIssue | 将自然语言描述优化为结构化报告。仅在用户显式选择了模型时才发送路由：服务自身会解析路由，因此面板无需发布路由。 |
 | `archiveCurrentQuarter()` | memo | 归档看板当前所在的季度。在其他维度下为空操作。 |
 | `unarchiveQuarter(label)` | memo | 将某季度移出归档，恢复其卡片可编辑。 |

@@ -295,7 +295,9 @@ describe('MemoService log analysis', () => {
     expect(result.ok).toBe(true)
 
     const request = githubIssue.reportRequests[0]!
-    expect(request.pluginId).toBe('memo')
+    // The suite is the default: the package that broke this panel's issue
+    // editor is `github-issue`, so a memo-only report cannot mention it.
+    expect(request.pluginIds).toEqual(['memo', 'github-issue'])
     expect(request.window).toEqual({ firstEventAt: Date.parse('2026-09-01T07:22:00Z'), lastEventAt: Date.parse('2026-09-15T08:19:00Z') })
     const group = (request.failureGroups as Record<string, unknown>[])[0]!
     expect(group.featureCodeRef).toBe('memo:analyze')
@@ -312,6 +314,7 @@ describe('MemoService log analysis', () => {
     const result = await ctx.memo.analyzeLogs({})
     expect(result.ok).toBe(true)
     if (!result.ok) return
+    expect(result.value.analysis.pluginIds).toEqual(['memo', 'github-issue'])
     expect(result.value.analysis.window).toEqual(analysis.window)
     expect(result.value.analysis.failureGroups[0]).toEqual({
       featureCodeRef: 'memo:analyze',
@@ -354,6 +357,84 @@ describe('MemoService log analysis', () => {
     expect('route' in group).toBe(false)
     // The event itself is always there, so this one cannot be absent.
     expect(group.lastFailureAt).toBe(lastFailureAt)
+  })
+
+  it('merges one analysis per plugin into a single report', async () => {
+    // The shape that matters: a suite where the package that broke the panel's
+    // own issue editor failed too. A memo-only report cannot mention it.
+    const { ctx, githubIssue } = await harness({
+      analysisByPlugin: {
+        memo: {
+          totalEvents: 3,
+          totalFailures: 2,
+          window: { firstEventAt: Date.parse('2026-09-01T00:00:00Z'), lastEventAt: Date.parse('2026-09-10T00:00:00Z') },
+          failureGroups: [{
+            featureCodeRef: 'memo:analyze',
+            count: 2,
+            latest: { timestamp: Date.parse('2026-09-10T00:00:00Z'), error: { code: 'LLM_FAILURE', message: 'no output' } },
+            attemptsAfterLastFailure: 1,
+          }],
+        },
+        'github-issue': {
+          totalEvents: 2,
+          totalFailures: 1,
+          window: { firstEventAt: Date.parse('2026-09-05T00:00:00Z'), lastEventAt: Date.parse('2026-09-15T00:00:00Z') },
+          failureGroups: [{
+            featureCodeRef: 'github-issue:optimizeIssue',
+            count: 1,
+            latest: { timestamp: Date.parse('2026-09-15T00:00:00Z'), error: { code: 'NO_MODEL_ROUTE', message: 'no route' } },
+            attemptsAfterLastFailure: 0,
+          }],
+        },
+      },
+    })
+
+    const result = await ctx.memo.analyzeLogs({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const request = githubIssue.reportRequests[0]!
+    expect(request.pluginIds).toEqual(['memo', 'github-issue'])
+    expect(request.totalEvents).toBe(5)
+    expect(request.totalFailures).toBe(3)
+    // The window is the union: a report about an incident has to cover the
+    // whole span it read, not one plugin's slice of it.
+    expect(request.window).toEqual({
+      firstEventAt: Date.parse('2026-09-01T00:00:00Z'),
+      lastEventAt: Date.parse('2026-09-15T00:00:00Z'),
+    })
+    expect((request.failureGroups as Record<string, unknown>[]).map(group => group.featureCodeRef))
+      .toEqual(['memo:analyze', 'github-issue:optimizeIssue'])
+    expect(result.value.analysis.pluginIds).toEqual(['memo', 'github-issue'])
+  })
+
+  it('reads every configured plugin and no others', async () => {
+    const { ctx, telemetry } = await harness({ logAnalysisPlugins: ['memo', 'github-issue'] })
+
+    await ctx.memo.analyzeLogs({})
+
+    expect(telemetry.requested).toEqual(['memo', 'github-issue'])
+  })
+
+  it('lets a deployment trim the suite and a call name its own plugins', async () => {
+    const trimmed = await harness({ logAnalysisPlugins: ['memo'] })
+    await trimmed.ctx.memo.analyzeLogs({})
+    expect(trimmed.githubIssue.reportRequests[0]!.pluginIds).toEqual(['memo'])
+
+    const narrowed = await harness()
+    await narrowed.ctx.memo.analyzeLogs({ pluginIds: ['github-issue'] })
+    expect(narrowed.githubIssue.reportRequests[0]!.pluginIds).toEqual(['github-issue'])
+    expect(narrowed.telemetry.requested).toEqual(['github-issue'])
+  })
+
+  it('refuses to analyze nothing instead of reporting an empty suite', async () => {
+    const { ctx } = await harness({ logAnalysisPlugins: [] })
+
+    const result = await ctx.memo.analyzeLogs({})
+
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('no-plugins-configured')
   })
 })
 
@@ -944,7 +1025,7 @@ describe('MemoService records the route on calls that worked', () => {
     expect(metadataOf(telemetry.events, 'analyzeLogs', 'success')).toMatchObject({
       provider: TEST_ROUTE.provider,
       model: TEST_ROUTE.model,
-      pluginId: 'memo',
+      pluginIds: ['memo', 'github-issue'],
     })
   })
 
