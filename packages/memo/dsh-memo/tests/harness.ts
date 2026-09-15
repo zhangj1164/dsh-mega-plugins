@@ -36,6 +36,8 @@ export const TEST_ROUTE = { provider: 'test-provider', model: 'test-model' } as 
 export interface MockLlmOptions {
   /** The one route this mock has registered. */
   readonly route?: { readonly provider: string; readonly model: string }
+  /** Display name reported for {@link MockLlmOptions.route}; defaults to its id. */
+  readonly providerName?: string
   /** Configured answer shape; defaults to one text-delta then `stop`. */
   readonly behaviour?: 'text' | 'empty' | 'route-error'
   /** Failure code and message used by the `route-error` behaviour. */
@@ -44,6 +46,21 @@ export interface MockLlmOptions {
   readonly catalog?: readonly { readonly id: string; readonly name: string }[]
   /** When set, `listModels` rejects with this message instead of answering. */
   readonly catalogThrows?: string
+  /**
+   * Further registered routes, each with its own display name, catalog, and
+   * optional failure.
+   *
+   * A test needs these to tell "the whole registry" apart from "the one route
+   * the deployment happens to default to", which is the difference this mock
+   * exists to make visible.
+   */
+  readonly extraProviders?: readonly {
+    readonly id: string
+    readonly name?: string
+    readonly models: readonly { readonly id: string; readonly name: string }[]
+    /** When set, listing this provider's models rejects with this message. */
+    readonly throws?: string
+  }[]
 }
 
 /**
@@ -57,19 +74,44 @@ export class MockLlmService extends Service {
   private readonly route: { provider: string; model: string }
   private readonly behaviour: 'text' | 'empty' | 'route-error'
   private readonly failure: { code: string; message: string; status?: number }
-  private readonly catalog: readonly { readonly id: string; readonly name: string }[]
-  private readonly catalogThrows?: string
+  private readonly registry: readonly {
+    readonly id: string
+    readonly name: string
+    readonly models: readonly { readonly id: string; readonly name: string }[]
+    readonly throws?: string
+  }[]
 
   constructor(ctx: Context, options: MockLlmOptions = {}) {
     super(ctx, 'llm')
     this.route = options.route ?? TEST_ROUTE
     this.behaviour = options.behaviour ?? 'text'
     this.failure = options.failure ?? { code: 'NO_ADAPTER', message: 'no adapter registered for provider' }
-    this.catalog = options.catalog ?? [
+    const primaryModels = options.catalog ?? [
       { id: this.route.model, name: 'Test Model' },
       { id: 'test-model-pro', name: 'Test Model Pro' },
     ]
-    this.catalogThrows = options.catalogThrows
+    this.registry = [
+      {
+        id: this.route.provider,
+        name: options.providerName ?? this.route.provider,
+        models: primaryModels,
+        ...(options.catalogThrows === undefined ? {} : { throws: options.catalogThrows }),
+      },
+      ...(options.extraProviders ?? []).map(entry => ({
+        id: entry.id,
+        name: entry.name ?? entry.id,
+        models: entry.models,
+        ...(entry.throws === undefined ? {} : { throws: entry.throws }),
+      })),
+    ]
+  }
+
+  /**
+   * Describe the routes this mock registered, in registration order.
+   * @returns provider ids and display names, exactly as DSH would report them.
+   */
+  listProviders(): readonly { readonly id: string; readonly name: string }[] {
+    return this.registry.map(entry => ({ id: entry.id, name: entry.name }))
   }
 
   /**
@@ -83,18 +125,21 @@ export class MockLlmService extends Service {
    * @returns the advertised models, or `[]` for an unregistered provider.
    */
   async listModels(provider: string): Promise<readonly { readonly id: string; readonly name: string }[]> {
-    if (this.catalogThrows !== undefined) throw new Error(this.catalogThrows)
-    if (provider !== this.route.provider) return []
-    return this.catalog
+    const entry = this.registry.find(candidate => candidate.id === provider)
+    if (entry === undefined) return []
+    if (entry.throws !== undefined) throw new Error(entry.throws)
+    return entry.models
   }
 
   stream(options: { readonly provider?: string; readonly model?: string }): AsyncIterable<MockChunk> {
     const provider = options.provider ?? ''
     const model = options.model ?? ''
-    // The mock serves exactly what it advertises: the provider route must match,
-    // and the model must be in that route's catalog. A mock that accepted any
-    // model would let a request the real runtime rejects pass every test.
-    if (provider !== this.route.provider || !this.catalog.some(entry => entry.id === model)) {
+    // The mock serves exactly what it advertises: the provider route must be
+    // registered, and the model must be in that route's catalog. A mock that
+    // accepted any model would let a request no adapter would honor pass every
+    // test.
+    const entry = this.registry.find(candidate => candidate.id === provider)
+    if (entry === undefined || !entry.models.some(candidate => candidate.id === model)) {
       const failure = {
         code: 'NO_ADAPTER',
         message: `no adapter registered for provider "${provider}"`,

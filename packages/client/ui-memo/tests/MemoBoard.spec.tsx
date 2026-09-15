@@ -727,72 +727,185 @@ describe('MemoBoard initial frame', () => {
 })
 
 describe('MemoBoard model switcher', () => {
-  /** The model control, found by its accessible name. */
-  function modelSelect(): HTMLSelectElement {
-    return screen.getByRole('combobox', { name: zh.modelLabel }) as HTMLSelectElement
+  /** The caret half of the split button, found by its accessible name. */
+  function caret(): HTMLElement {
+    return screen.getByRole('button', { name: zh.modelLabel })
   }
 
-  it('offers the resolved route plus every model the host advertises', async () => {
+  /** The model entries of the open menu, in order. */
+  function menuItems(): HTMLElement[] {
+    return within(screen.getByRole('menu')).getAllByRole('menuitemradio')
+  }
+
+  /** The label a menu entry shows. */
+  function itemLabel(text: string): HTMLElement {
+    return within(screen.getByRole('menu')).getByRole('menuitemradio', { name: text })
+  }
+
+  it('rides the switcher on the analysis action as a split button', async () => {
     await renderBoard()
 
-    const select = modelSelect()
-    const labels = [...select.options].map(option => option.textContent ?? '')
-    // The default option names the route the host resolved, so the user can see
-    // what analysis would use without touching anything.
-    expect(labels[0]).toContain('test-provider')
-    expect(labels[0]).toContain('test-model')
-    expect(labels[0]).toContain(zh.followDefault)
-    expect(labels.slice(1)).toEqual(['Test Model (test-model)', 'Test Model Pro (test-model-pro)'])
-    expect(select.value).toBe('')
+    // The action is still one button, and the caret is a second one next to it.
+    expect(screen.getByRole('button', { name: zh.analyze })).toBeTruthy()
+    expect(caret().getAttribute('aria-haspopup')).toBe('menu')
+    expect(caret().getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByRole('menu')).toBeNull()
+    // Without opening anything, the board already says which model it would use.
+    expect(screen.getByText('test-provider · test-model')).toBeTruthy()
   })
 
-  it('sends the chosen model on the next analysis and names it on the result', async () => {
+  it('lists the default route plus every provider the host registered', async () => {
+    await renderBoard({
+      providers: [
+        { id: 'test-provider', name: 'Default', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
+        { id: 'deepseek-cu', models: [{ id: 'deepseek-pro', name: 'ds-4' }] },
+      ],
+    })
+    fireEvent.click(caret())
+
+    expect(caret().getAttribute('aria-expanded')).toBe('true')
+    const labels = menuItems().map(item => item.textContent ?? '')
+    expect(labels).toEqual([
+      `${zh.followDefault} (test-provider · test-model)`,
+      'Test Model (test-model)',
+      'glm-5.2 (glm-5-2-260617)',
+      'ds-4 (deepseek-pro)',
+    ])
+    // Provider names come from the host too, and a provider without one is
+    // labelled by its id rather than by nothing.
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByText('ark')).toBeTruthy()
+    expect(within(menu).getByText('deepseek-cu')).toBeTruthy()
+    // Following the default is what the board is doing right now.
+    expect(itemLabel(`${zh.followDefault} (test-provider · test-model)`).getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('pins the chosen model and sends it with its provider on the next analysis', async () => {
     const { rpc } = await renderBoard(seedWeek(['work']))
 
-    fireEvent.change(modelSelect(), { target: { value: 'test-model-pro' } })
-    expect(modelSelect().value).toBe('test-model-pro')
+    fireEvent.click(caret())
+    fireEvent.click(itemLabel('Test Model Pro (test-model-pro)'))
+
+    // The menu closes on a choice, and the button now names the pinned route.
+    expect(screen.queryByRole('menu')).toBeNull()
+    expect(screen.getByText('test-provider · test-model-pro')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
     await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
 
     const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
+    expect(analyze?.request.provider).toBe('test-provider')
     expect(analyze?.request.model).toBe('test-model-pro')
-    // The provider is still never sent: the user picked a model, not a route.
-    expect(analyze?.request.provider).toBeUndefined()
-    // And the card says which model answered.
-    expect(screen.getByText('test-provider · test-model-pro')).toBeTruthy()
   })
 
-  it('goes back to following the default when the first option is chosen again', async () => {
-    const { rpc, controller } = await renderBoard(seedWeek(['work']))
+  it('switches to a model of another provider', async () => {
+    const { rpc } = await renderBoard({
+      ...seedWeek(['work']),
+      providers: [
+        { id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'cu', name: 'ark', models: [{ id: 'glm-5-2-260617', name: 'glm-5.2' }] },
+      ],
+    })
 
-    fireEvent.change(modelSelect(), { target: { value: 'test-model-pro' } })
-    fireEvent.change(modelSelect(), { target: { value: '' } })
-    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+    fireEvent.click(caret())
+    fireEvent.click(itemLabel('glm-5.2 (glm-5-2-260617)'))
+    expect(screen.getByText('cu · glm-5-2-260617')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
     await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+    expect(rpc.calls.find(call => call.endpoint === 'memo/analyze')?.request.provider).toBe('cu')
+  })
+
+  it('goes back to following the default when the default entry is chosen', async () => {
+    const { rpc, controller } = await renderBoard(seedWeek(['work']))
+
+    fireEvent.click(caret())
+    fireEvent.click(itemLabel('Test Model Pro (test-model-pro)'))
+    fireEvent.click(caret())
+    fireEvent.click(itemLabel(`${zh.followDefault} (test-provider · test-model)`))
+
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+    fireEvent.click(screen.getByRole('button', { name: zh.analyze }))
+    await waitFor(() => { expect(screen.getByText(zh.analysisResult)).toBeTruthy() })
+    expect(rpc.calls.find(call => call.endpoint === 'memo/analyze')?.request.provider).toBeUndefined()
     expect(rpc.calls.find(call => call.endpoint === 'memo/analyze')?.request.model).toBeUndefined()
   })
 
-  it('disables the control and explains itself when the catalog cannot be read', async () => {
+  it('closes on Escape and hands focus back to the caret', async () => {
+    await renderBoard()
+    fireEvent.click(caret())
+    expect(screen.queryByRole('menu')).not.toBeNull()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('menu')).toBeNull()
+    expect(document.activeElement).toBe(caret())
+    expect(caret().getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('closes on a press outside, but not on one inside', async () => {
+    await renderBoard()
+    fireEvent.click(caret())
+
+    // A press inside the menu must not close it: that would make every item
+    // unclickable.
+    fireEvent.pointerDown(itemLabel('Test Model (test-model)'))
+    expect(screen.queryByRole('menu')).not.toBeNull()
+
+    fireEvent.pointerDown(document.body)
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('disables the caret and explains itself when the registry cannot be read', async () => {
     await renderBoard({ failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } } })
 
-    // Asserted on the property: `isDisabled` is button-specific by design.
-    expect(modelSelect().disabled).toBe(true)
+    expect(isDisabled(caret())).toBe(true)
     expect(screen.getByText(zh.modelCatalogEmpty)).toBeTruthy()
-    // The board itself is unaffected: a missing catalog is not a board error.
+    // The board itself is unaffected: a missing registry is not a board error.
     expect(screen.queryByText(zh.loading)).toBeNull()
     expect(screen.getByPlaceholderText(zh.addPlaceholder)).toBeTruthy()
   })
 
-  it('keeps a pinned model selectable when the catalog stops listing it', async () => {
+  it('keeps a pinned model that the catalog no longer lists', async () => {
     // DSH's catalog is advisory, so an unlisted model is not an invalid one —
     // dropping the pinned id would silently change which model answers.
-    const { controller } = await renderBoard({ models: [{ id: 'test-model', name: 'Test Model' }] })
+    const { controller } = await renderBoard({
+      providers: [{ id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] }],
+    })
 
-    expect(controller.selectModel('retired-model')).toBe(true)
-    await waitFor(() => { expect(modelSelect().value).toBe('retired-model') })
-    expect([...modelSelect().options].map(option => option.value)).toContain('retired-model')
+    expect(controller.selectModel({ provider: 'test-provider', model: 'retired-model' })).toBe(true)
+    await waitFor(() => { expect(screen.getByText('test-provider · retired-model')).toBeTruthy() })
+    fireEvent.click(caret())
+    expect(itemLabel('retired-model').getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('shows a provider whose own catalog failed, next to the healthy ones', async () => {
+    await renderBoard({
+      providers: [
+        { id: 'test-provider', name: 'Default', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'broken', name: 'Broken', models: [], error: 'endpoint is unreachable' },
+      ],
+    })
+    fireEvent.click(caret())
+
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByText('Broken')).toBeTruthy()
+    // The reason wins over the generic text: hiding the provider would read as
+    // "it is gone", which is a different claim from "it could not be read".
+    expect(within(menu).getByText('endpoint is unreachable')).toBeTruthy()
+    expect(within(menu).queryByText(zh.providerEmpty)).toBeNull()
+  })
+
+  it('says a provider advertises nothing without blaming it on a failure', async () => {
+    await renderBoard({
+      providers: [
+        { id: 'test-provider', models: [{ id: 'test-model', name: 'Test Model' }] },
+        { id: 'quiet', name: 'Quiet', models: [] },
+      ],
+    })
+    fireEvent.click(caret())
+
+    expect(within(screen.getByRole('menu')).getByText(zh.providerEmpty)).toBeTruthy()
   })
 })

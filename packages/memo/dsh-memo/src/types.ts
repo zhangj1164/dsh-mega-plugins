@@ -369,12 +369,40 @@ export type MemoListArchivedQuartersResult =
   | { readonly ok: true; readonly value: readonly MemoArchivedQuarter[] }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
-/** One model the resolved provider route advertises. */
+/** One model a provider route advertises. */
 export interface MemoModelInfo {
   /** Model id to send as the call's model. */
   readonly id: string
   /** Human-readable name for selectors; a caller falls back to `id`. */
   readonly name: string
+}
+
+/**
+ * One provider route a caller may switch to, with everything it advertises.
+ *
+ * Only providers the deployment actually registered appear here. Dormant routes
+ * an adapter merely declared are deliberately absent: they cannot carry a call,
+ * so offering one would offer a selection that is guaranteed to fail.
+ */
+export interface MemoModelProvider {
+  /** Provider route key to send as the call's provider. */
+  readonly id: string
+  /** Human-readable provider name for selectors; a caller falls back to `id`. */
+  readonly name: string
+  /**
+   * Models this provider advertises, in the adapter's own order.
+   *
+   * DSH calls this catalog advisory: membership never validates a request, so a
+   * caller must not read "not listed" as "rejected".
+   */
+  readonly models: readonly MemoModelInfo[]
+  /**
+   * Why this provider's catalog is empty, when it is empty for a reason.
+   *
+   * Per provider on purpose: one adapter that throws must not hide the models
+   * every other provider is perfectly willing to serve.
+   */
+  readonly error?: string
 }
 
 /**
@@ -386,33 +414,28 @@ export interface MemoModelInfo {
 export interface MemoListModelsRequest {}
 
 /**
- * The route AI analysis would use right now, plus what that route can be
- * switched to.
+ * The route AI analysis would use right now, plus everything it can be switched
+ * to.
  */
 export interface MemoListModelsValue {
   /** Provider route the next AI call would use, or `''` when unresolved. */
   readonly provider: string
   /** Model id the next AI call would use, or `''` when unresolved. */
   readonly model: string
+  /** Every registered provider route, in registration order. */
+  readonly providers: readonly MemoModelProvider[]
   /**
-   * Models the provider advertises, in the registry's own order.
+   * Why no provider could be listed at all.
    *
-   * DSH calls this catalog advisory: membership never validates a request, so a
-   * caller must not read "not listed" as "rejected".
-   */
-  readonly models: readonly MemoModelInfo[]
-  /**
-   * Why the catalog is empty, when it is empty for a reason other than the
-   * provider genuinely advertising nothing.
-   *
-   * Reported as data rather than as a failure: a missing catalog should disable
-   * a picker, not take the whole board down with it.
+   * Distinct from a provider that advertises nothing: this says the registry
+   * itself could not be read, which is the deployment's problem rather than the
+   * caller's choice.
    */
   readonly catalogError?: string
 }
 
 /**
- * Result of listing the models the resolved route can be switched to.
+ * Result of listing the routes AI calls can be switched to.
  *
  * There is deliberately no failure variant. Every degradation — no provider
  * configured, no `llm` service mounted, a catalog query that throws — is

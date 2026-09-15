@@ -33,7 +33,7 @@ import type {
   MemoAnalysisType,
   MemoArchivedQuarter,
   MemoEntry,
-  MemoModelInfo,
+  MemoModelProvider,
   MemoPeriodEntry,
   MemoWeek,
 } from 'dsh-memo/client'
@@ -187,14 +187,18 @@ export interface MemoViewState {
   routeProvider: string
   /** Model the next AI call would use **without** an override, or `''`. */
   routeModel: string
-  /** Models the resolved provider advertises, in the registry's own order. */
-  models: readonly MemoModelInfo[]
   /**
-   * Why the catalog is empty, when it is empty for a reason.
+   * Every provider route this deployment registered, in registration order.
    *
-   * The distinction matters: "this provider advertises nothing" and "the
-   * catalog could not be read" disable the same control but deserve different
-   * words, and only the second one is worth telling the user about.
+   * The whole registry, not just the resolved route: switching across providers
+   * is the point, and only the host may say which providers exist.
+   */
+  providers: readonly MemoModelProvider[]
+  /**
+   * Why no provider could be listed, when the registry itself could not be read.
+   *
+   * Distinct from a provider that advertises nothing: this one says the list is
+   * unknown rather than empty, so a remembered choice must survive it.
    */
   catalogError: string | undefined
   /**
@@ -243,7 +247,7 @@ export function createInitialState(): MemoViewState {
     archivedQuarters: [],
     routeProvider: '',
     routeModel: '',
-    models: [],
+    providers: [],
     catalogError: undefined,
     modelChoice: undefined,
     analysisProvider: '',
@@ -369,9 +373,9 @@ export class MemoController {
         archivedQuarters: archived.quarters,
         routeProvider: route.provider,
         routeModel: route.model,
-        models: route.models,
+        providers: route.providers,
         catalogError: route.catalogError,
-        modelChoice: this.usableChoice(route.provider),
+        modelChoice: this.usableChoice(route),
         busy: false,
         // A board that cannot tell "archived" from "not archived" would let an
         // archived quarter be edited without any sign of why. Say so.
@@ -416,59 +420,72 @@ export class MemoController {
   }
 
   /**
-   * Read the model route the host would use, plus what that route can be
+   * Read the route the host would use by default, plus every route it can be
    * switched to.
    *
-   * The catalog comes from the host because a browser cannot enumerate a
-   * provider's models, and it must never be hardcoded: only the deployment knows
-   * which adapters it registered, and a guessed route surfaces as an opaque
-   * failure. Every degradation yields an empty catalog and a reason, so the
-   * board stays usable without a model route.
+   * The registry comes from the host because a browser cannot enumerate
+   * providers or their models, and it must never be hardcoded: only the
+   * deployment knows which adapters it registered, and a guessed route surfaces
+   * as an opaque failure. Every degradation yields an empty registry and a
+   * reason, so the board stays usable without a model route.
    *
-   * @returns the resolved route, its catalog, and why the catalog is empty.
+   * @returns the resolved route, every registered provider, and why the
+   * registry is empty when it is.
    */
   private async readRoute(): Promise<{
     provider: string
     model: string
-    models: readonly MemoModelInfo[]
+    providers: readonly MemoModelProvider[]
     catalogError: string | undefined
   }> {
     const result = await callMemo<{
       provider: string
       model: string
-      models: readonly MemoModelInfo[]
+      providers: readonly MemoModelProvider[]
       catalogError?: string
     }>(this.rpc, 'listModels', {})
     if (!result.ok || result.value === null || typeof result.value !== 'object') {
-      return { provider: '', model: '', models: [], catalogError: 'the model catalog could not be read' }
+      return { provider: '', model: '', providers: [], catalogError: 'the model catalog could not be read' }
     }
-    const { provider, model, models, catalogError } = result.value
+    const { provider, model, providers, catalogError } = result.value
     return {
       provider: typeof provider === 'string' ? provider : '',
       model: typeof model === 'string' ? model : '',
-      models: Array.isArray(models)
-        ? Object.freeze(models.map(entry => Object.freeze({ id: entry.id, name: entry.name })))
+      providers: Array.isArray(providers)
+        ? Object.freeze(providers.map(entry => Object.freeze({
+            id: entry.id,
+            name: entry.name,
+            models: Array.isArray(entry.models)
+              ? Object.freeze(entry.models.map(model => Object.freeze({ id: model.id, name: model.name })))
+              : [],
+            ...(entry.error === undefined ? {} : { error: entry.error }),
+          })))
         : [],
       catalogError,
     }
   }
 
   /**
-   * The remembered model choice, but only while it still belongs to the
-   * provider the host resolved.
+   * The remembered model choice, but only while it can still work.
    *
-   * A model id is provider-owned: after the deployment retargets its default
-   * provider, an override recorded under the old one would silently send
-   * analysis to a model the new provider may not serve. Such a choice is
-   * dropped from storage as well, so the stale value cannot come back.
+   * A choice names a provider this deployment registered, so it is dropped once
+   * that provider is gone — a provider that was removed cannot serve anything,
+   * and silently sending analysis to it would turn a deliberate choice into an
+   * opaque failure. When the registry itself could not be read, the list is
+   * *unknown* rather than empty, so the choice is kept: a transient read failure
+   * must not erase the user's decision.
    *
-   * @param provider - the provider the host resolved for the next call.
+   * @param route - the route and registry the host just reported.
    * @returns the choice to keep, or `undefined` to follow the resolved route.
    */
-  private usableChoice(provider: string): MemoModelChoice | undefined {
+  private usableChoice(route: {
+    providers: readonly MemoModelProvider[]
+    catalogError: string | undefined
+  }): MemoModelChoice | undefined {
     const stored = this._state.modelChoice ?? readModelChoice(this.storage)
     if (stored === undefined) return undefined
-    if (provider.length === 0 || stored.provider !== provider) {
+    const registryKnown = route.catalogError === undefined
+    if (registryKnown && !route.providers.some(provider => provider.id === stored.provider)) {
       writeModelChoice(this.storage, undefined)
       return undefined
     }
@@ -476,20 +493,27 @@ export class MemoController {
   }
 
   /**
-   * Pin the model the next analysis call uses, or clear the pin.
+   * Pin the provider and model the next AI calls use, or clear the pin.
    *
-   * Only the model is chosen: the provider stays whatever the host resolved, so
-   * this never guesses a route. Clearing it restores the deployment's own
-   * precedence (service `Config`, then `agentDefaultModel`).
+   * A choice names a provider the host reported, which is what keeps this from
+   * being the old defect in a new place: the browser picks *from* the
+   * deployment's registry rather than inventing a route. Clearing it restores
+   * the deployment's own precedence (service `Config`, then
+   * `agentDefaultModel`).
    *
-   * @param model - a model id from the host's catalog, or `undefined` to follow
-   * the resolved route again.
+   * @param choice - a provider and model the host reported, or `undefined` to
+   * follow the resolved route again.
    * @returns whether the choice was recorded.
    */
-  selectModel(model: string | undefined): boolean {
-    const provider = this._state.routeProvider
-    if (model !== undefined && model.length > 0 && provider.length === 0) return false
-    const choice = model === undefined || model.length === 0 ? undefined : { provider, model }
+  selectModel(choice: MemoModelChoice | undefined): boolean {
+    if (choice !== undefined) {
+      // Only a route the host just reported may be pinned. The point of that
+      // rule is the defect this feature is built around: a browser that invents
+      // a provider name produces NO_ADAPTER on every call, so a selection is
+      // accepted only when it names something the deployment really registered.
+      if (choice.provider.length === 0 || choice.model.length === 0) return false
+      if (!this._state.providers.some(provider => provider.id === choice.provider)) return false
+    }
     writeModelChoice(this.storage, choice)
     this.set({ modelChoice: choice })
     return true
@@ -774,21 +798,23 @@ export class MemoController {
   }
 
   /**
-   * The model to pin on the next analysis call.
+   * The route to pin on the next AI calls.
    *
-   * Only the model is ever sent, never the provider: the provider stays whatever
-   * the host resolved, so this feature cannot pick a route the deployment does
-   * not have.
+   * Both halves travel together: a model id means nothing outside the provider
+   * that owns it. The choice is re-checked against the registry the host last
+   * reported, so a provider that disappeared between two loads cannot be sent —
+   * and when the registry is unknown rather than empty, the choice is trusted,
+   * because a transient read failure must not silently change the route.
    *
-   * @returns the chosen model id, or `undefined` to follow the host's route.
+   * @returns the chosen provider and model, or `undefined` to follow the host's
+   * route.
    */
-  private modelOverride(): string | undefined {
+  private modelOverride(): MemoModelChoice | undefined {
     const choice = this._state.modelChoice
     if (choice === undefined) return undefined
-    if (this._state.routeProvider.length === 0 || choice.provider !== this._state.routeProvider) {
-      return undefined
-    }
-    return choice.model
+    if (this._state.catalogError !== undefined) return choice
+    if (!this._state.providers.some(provider => provider.id === choice.provider)) return undefined
+    return choice
   }
 
   /**
@@ -803,7 +829,7 @@ export class MemoController {
         period: this._state.selection.period,
         periodLabel: this._state.selection.label,
         analysisType,
-        ...(override === undefined ? {} : { model: override }),
+        ...(override === undefined ? {} : { provider: override.provider, model: override.model }),
       })
       if (result.ok && result.value) {
         this.set({
@@ -831,7 +857,7 @@ export class MemoController {
       const result = await callMemo<string>(this.rpc, 'exportReport', {
         period: this._state.selection.period,
         periodLabel: this._state.selection.label,
-        ...(override === undefined ? {} : { model: override }),
+        ...(override === undefined ? {} : { provider: override.provider, model: override.model }),
       })
       if (!result.ok) {
         this.set({ busy: false, error: result.error.message })

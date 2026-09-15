@@ -59,6 +59,7 @@ import type {
   MemoListArchivedQuartersRequest,
   MemoListModelsRequest,
   MemoListModelsResult,
+  MemoModelProvider,
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
@@ -616,19 +617,25 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Report the route AI analysis would use now, and the models it can be
-   * switched to.
+   * Report the route AI analysis would use now, plus every route it can be
+   * switched to and what each one advertises.
    *
    * The catalog comes from the `llm` service because DSH exposes `listModels`
-   * to the host only: a browser cannot enumerate a provider's models, and
-   * handing it a hardcoded list is the defect this feature exists to avoid —
-   * the browser cannot know which adapters a deployment registered. Everything
-   * that can go wrong degrades to an empty catalog inside a successful result,
+   * and `listProviders` to the host only: a browser cannot enumerate providers
+   * or their models, and handing it a hardcoded list is the defect this feature
+   * exists to avoid — the browser cannot know which adapters a deployment
+   * registered. Only *registered* routes are listed. An adapter may also declare
+   * providers it could activate through configuration, but a dormant one cannot
+   * carry a call, so offering it would offer a selection that must fail.
+   *
+   * Each provider's catalog is fetched independently: one adapter that throws
+   * must not hide the models every other provider is willing to serve. Anything
+   * that leaves the list empty is reported as data inside a successful result,
    * so a deployment without a model route still opens the board.
    *
    * @param request - carries no input; the Remote protocol binds arguments by
    * name, so the client's `{ args: { request } }` needs this parameter to exist.
-   * @returns the resolved route and the models its provider advertises.
+   * @returns the resolved route and every registered provider with its models.
    */
   @Remote('listModels')
   async listModels(request: MemoListModelsRequest): Promise<MemoListModelsResult> {
@@ -637,24 +644,36 @@ export class MemoService extends TypertRemoteService {
     const llm = this.ctx.get('llm') as LlmModelCatalog | undefined
     if (llm === undefined) {
       this.track('listModels', 'failure', { reason: 'llm-unavailable' })
-      return { ok: true, value: { ...route, models: [], catalogError: 'the llm service is not mounted' } }
+      return { ok: true, value: { ...route, providers: [], catalogError: 'the llm service is not mounted' } }
     }
-    if (route.provider.length === 0) {
-      this.track('listModels', 'failure', { reason: 'no-provider' })
-      return { ok: true, value: { ...route, models: [], catalogError: 'no provider route is configured' } }
-    }
+    let registered: readonly { readonly id: string; readonly name: string }[]
     try {
-      const advertised = await llm.listModels(route.provider)
-      const models = Object.freeze(advertised.map(model => Object.freeze({ id: model.id, name: model.name })))
-      this.track('listModels', 'success', { provider: route.provider, count: models.length })
-      return { ok: true, value: { ...route, models } }
+      registered = llm.listProviders()
     } catch (error) {
-      // A provider whose endpoint is unreachable must not cost the user the
-      // panel; the picker disables and says why.
       const message = error instanceof Error ? error.message : String(error)
-      this.track('listModels', 'failure', { reason: 'catalog-threw', provider: route.provider })
-      return { ok: true, value: { ...route, models: [], catalogError: message } }
+      this.track('listModels', 'failure', { reason: 'providers-threw' })
+      return { ok: true, value: { ...route, providers: [], catalogError: message } }
     }
+    if (registered.length === 0) {
+      this.track('listModels', 'failure', { reason: 'no-provider' })
+      return { ok: true, value: { ...route, providers: [], catalogError: 'no provider route is registered' } }
+    }
+    // Fetched together rather than one after another: an unreachable provider
+    // should cost the board one slow catalog, not a queue of them.
+    const providers = await Promise.all(registered.map(async (entry): Promise<MemoModelProvider> => {
+      const name = entry.name.length > 0 ? entry.name : entry.id
+      try {
+        const advertised = await llm.listModels(entry.id)
+        const models = Object.freeze(advertised.map(model => Object.freeze({ id: model.id, name: model.name })))
+        return Object.freeze({ id: entry.id, name, models })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return Object.freeze({ id: entry.id, name, models: Object.freeze([]), error: message })
+      }
+    }))
+    const count = providers.reduce((total, provider) => total + provider.models.length, 0)
+    this.track('listModels', 'success', { providers: providers.length, count })
+    return { ok: true, value: { ...route, providers: Object.freeze(providers) } }
   }
 
   /**
@@ -956,11 +975,12 @@ type ReadExternalPathResult =
 
 /**
  * Minimal shape of the DSH `llm` service this service needs in order to
- * enumerate models. Declared structurally so nothing here depends on the
- * concrete service class, and typed `readonly` because the catalog is external
- * data that must be copied rather than held.
+ * enumerate routes and models. Declared structurally so nothing here depends on
+ * the concrete service class, and typed `readonly` because the registry and its
+ * catalogs are external data that must be copied rather than held.
  */
 interface LlmModelCatalog {
+  listProviders(): readonly { readonly id: string; readonly name: string }[]
   listModels(provider: string): Promise<readonly { readonly id: string; readonly name: string }[]>
 }
 

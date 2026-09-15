@@ -18,7 +18,7 @@ export type MemoKey =
   | 'forceConfirmText' | 'confirm' | 'cancel' | 'confirmDeleteText' | 'dismiss'
   // Analysis
   | 'organize' | 'summarize' | 'analyzeLabel' | 'analyze' | 'exportReport' | 'refresh'
-  | 'analysisResult' | 'reportResult' | 'modelLabel' | 'followDefault' | 'noModelRoute' | 'modelCatalogEmpty'
+  | 'analysisResult' | 'reportResult' | 'modelLabel' | 'followDefault' | 'noModelRoute' | 'modelCatalogEmpty' | 'providerEmpty'
   // Issue editor
   | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
@@ -46,7 +46,8 @@ export const zh: Record<MemoKey, string> = {
   modelLabel: '模型',
   followDefault: '跟随默认',
   noModelRoute: '未配置模型路由',
-  modelCatalogEmpty: '读取不到该 provider 的模型列表，暂时无法切换',
+  modelCatalogEmpty: '读取不到模型注册表，暂时无法切换',
+  providerEmpty: '该 provider 没有可用模型',
   addPlaceholder: '写一条备忘…',
   addEntry: '添加备忘',
   noEntries: '还没有任何备忘，先在上方添加一条',
@@ -106,7 +107,8 @@ export const en: Record<MemoKey, string> = {
   modelLabel: 'Model',
   followDefault: 'Follow default',
   noModelRoute: 'No model route configured',
-  modelCatalogEmpty: 'This provider’s models could not be listed, so switching is unavailable',
+  modelCatalogEmpty: 'The model registry could not be read, so switching is unavailable',
+  providerEmpty: 'This provider advertises no models',
   addPlaceholder: 'Write a memo…',
   addEntry: 'Add memo',
   noEntries: 'No memos yet — add one above',

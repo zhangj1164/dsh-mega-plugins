@@ -37,11 +37,23 @@ export interface FakeRpcOptions {
   readonly issueReport?: GithubIssueReport
   /** Result of `memo/analyzeLogs`. */
   readonly logAnalysis?: { report: GithubIssueReport; issueUrl: string }
-  /** Provider route `memo/listModels` reports as resolved. */
+  /** Provider route `memo/listModels` reports as the deployment default. */
   readonly route?: { readonly provider: string; readonly model: string }
-  /** Models `memo/listModels` advertises for that route. */
-  readonly models?: readonly { readonly id: string; readonly name: string }[]
-  /** Reason `memo/listModels` reports for an empty catalog. */
+  /**
+   * Registered providers `memo/listModels` reports, in order.
+   *
+   * Defaults to the one route above with two models, which is the shape a
+   * single-adapter deployment has. A test that needs "the whole registry" — the
+   * difference this feature turns on — supplies more, or none at all.
+   */
+  readonly providers?: readonly {
+    readonly id: string
+    readonly name?: string
+    readonly models: readonly { readonly id: string; readonly name: string }[]
+    /** Reason this provider's own catalog could not be read. */
+    readonly error?: string
+  }[]
+  /** Reason `memo/listModels` reports when the registry itself is unreadable. */
   readonly catalogError?: string
 }
 
@@ -235,14 +247,15 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       })))
     }
     if (method === 'listModels') {
-      const route = options.route ?? { provider: 'test-provider', model: 'test-model' }
-      const models = options.models ?? [
-        { id: 'test-model', name: 'Test Model' },
-        { id: 'test-model-pro', name: 'Test Model Pro' },
-      ]
+      const route = options.route ?? DEFAULT_ROUTE
       return ok({
         ...route,
-        models,
+        providers: fakeRegistry(options).map(provider => ({
+          id: provider.id,
+          name: provider.name ?? provider.id,
+          models: provider.models,
+          ...(provider.error === undefined ? {} : { error: provider.error }),
+        })),
         ...(options.catalogError === undefined ? {} : { catalogError: options.catalogError }),
       })
     }
@@ -327,12 +340,18 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       return ok(true)
     }
     if (method === 'analyze') {
-      // Mirror the host's route precedence so a test can see which model the
-      // call would really have used: the request's override wins, then the
-      // route the host resolved.
-      const route = options.route ?? { provider: 'test-provider', model: 'test-model' }
+      // Mirror the host's route precedence and its registry check: an override
+      // wins, and a provider this deployment never registered fails the call the
+      // way the real runtime fails it. A fake that accepted any provider would
+      // let the defect this feature guards against pass every test.
+      const route = options.route ?? DEFAULT_ROUTE
+      const provider = typeof request.provider === 'string' && request.provider.length > 0
+        ? request.provider
+        : route.provider
       const model = typeof request.model === 'string' && request.model.length > 0 ? request.model : route.model
-      const provider = typeof request.provider === 'string' && request.provider.length > 0 ? request.provider : route.provider
+      if (!fakeRegistry(options).some(entry => entry.id === provider)) {
+        return fail('llm-failure', `no adapter registered for provider "${provider}"`)
+      }
       return ok({
         summary: `analysis:${String(request.analysisType)}`,
         period: request.period,
@@ -380,6 +399,33 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
     state: { weeks },
     clearCalls(): void { calls.length = 0 },
   }
+}
+
+/** The route the fake host reports as the deployment's default. */
+const DEFAULT_ROUTE = { provider: 'test-provider', model: 'test-model' }
+
+/**
+ * The registry the fake host reports, mirroring what `memo/listModels` answers.
+ *
+ * One provider with two models by default, which is the single-adapter shape;
+ * a test that needs a wider registry passes its own.
+ * @param options - the fake host's options.
+ * @returns the registered providers, in order.
+ */
+function fakeRegistry(options: FakeRpcOptions): readonly {
+  readonly id: string
+  readonly name?: string
+  readonly models: readonly { readonly id: string; readonly name: string }[]
+  readonly error?: string
+}[] {
+  return options.providers ?? [{
+    id: (options.route ?? DEFAULT_ROUTE).provider,
+    name: 'Test Provider',
+    models: [
+      { id: 'test-model', name: 'Test Model' },
+      { id: 'test-model-pro', name: 'Test Model Pro' },
+    ],
+  }]
 }
 
 /** A github issue report fixture. */
