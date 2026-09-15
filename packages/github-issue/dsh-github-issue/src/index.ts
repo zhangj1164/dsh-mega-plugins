@@ -94,12 +94,29 @@ const OPTIMIZE_SYSTEM_PROMPT = [
   'The first line must be a concise title prefixed with "## ".',
 ].join('\n')
 
+/** How a fact the analysis did not carry is written, so it reads as absent data. */
+const NOT_RECORDED = 'not recorded'
+
 /** The built-in system prompt that generates a report from telemetry analysis. */
 const REPORT_SYSTEM_PROMPT = [
   'You are a diagnostic report generator. Given a plugin\'s telemetry failure',
   'analysis, produce a GitHub issue report that correlates each failure group',
   'against the plugin\'s feature code. For each group, state the feature-code',
-  'anchor, the error code and message, the likely cause, and a suggested fix.',
+  'anchor, the error code and message, the route and timing the analysis gives,',
+  'a likely cause, and a suggested fix.',
+  '',
+  'Ground every statement in the analysis you were given:',
+  '- Cite only facts present in it. Never propose a mechanism the analysis does',
+  '  not evidence — do not mention sampling parameters, token budgets,',
+  '  timeouts, chunking, streaming, or response parsing unless the analysis',
+  '  names that mechanism.',
+  '- Report the analysis window, and per failure group the route, the last',
+  '  failure time, and how many attempts of the same action followed it. Say how',
+  '  old the last failure is and whether the action ran again afterwards; a',
+  '  failure that has not recurred is not a current defect.',
+  `- Write "${NOT_RECORDED}" for a fact the analysis does not carry. Never write`,
+  '  that collection needs to be added: a missing fact can be an older event as',
+  '  easily as a gap, and the report cannot tell which.',
   '',
   'The title (first line) must contain Chinese characters.',
   'Place all detail inside a default-collapsed <details> block.',
@@ -114,6 +131,7 @@ const REPORT_SYSTEM_PROMPT = [
   '### 操作 / Action',
   '### 预期行为 / Expected',
   '### 实际行为 / Actual',
+  '### 路由与时间 / Route and Timing',
   '### 可能原因 / Possible Cause',
   '### 错误日志 / Error Logs',
   '### 环境 / Environment',
@@ -247,6 +265,14 @@ export class GithubIssueService extends TypertRemoteService {
 /**
  * Build the user-facing prompt from a telemetry analysis, listing every
  * failure group with its feature-code anchor, error code, and message.
+ *
+ * The facts are stated flatly and dated: a report that receives only totals and
+ * error codes can say nothing about whether a failure still happens, and a model
+ * asked to explain it will invent mechanisms the plugin does not have. Every
+ * line here is one the plugin actually recorded, and a missing fact is labelled
+ * as missing rather than omitted, so the model can tell "not recorded" from
+ * "nothing to report".
+ *
  * @param request - the analysis input.
  * @returns the structured prompt text.
  */
@@ -255,15 +281,22 @@ function buildReportUserPrompt(request: GithubIssueGenerateReportRequest): strin
     const lines = [`- featureCodeRef: ${group.featureCodeRef}`, `  count: ${group.count}`]
     if (group.errorCode !== undefined) lines.push(`  errorCode: ${group.errorCode}`)
     if (group.errorMessage !== undefined) lines.push(`  errorMessage: ${group.errorMessage}`)
+    lines.push(`  route: ${group.route === undefined ? NOT_RECORDED : `${group.route.provider} / ${group.route.model}${group.route.status === undefined ? '' : ` (status ${group.route.status})`}`}`)
+    lines.push(`  lastFailureAt: ${group.lastFailureAt === undefined ? NOT_RECORDED : new Date(group.lastFailureAt).toISOString()}`)
+    lines.push(`  attemptsAfterLastFailure: ${group.attemptsAfterLastFailure ?? NOT_RECORDED}`)
     return lines.join('\n')
   }).join('\n')
+  const window = request.window === undefined
+    ? `Analysis window: ${NOT_RECORDED}`
+    : `Analysis window: ${new Date(request.window.firstEventAt).toISOString()} .. ${new Date(request.window.lastEventAt).toISOString()}`
   return [
     `Plugin: ${request.pluginId}`,
+    window,
     `Total events: ${request.totalEvents}`,
     `Total failures: ${request.totalFailures}`,
     '',
     'Failure groups:',
-    groups,
+    groups.length === 0 ? '(none)' : groups,
   ].join('\n')
 }
 

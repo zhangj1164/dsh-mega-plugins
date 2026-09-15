@@ -18,13 +18,15 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 
 | Method | Behavior |
 |---|---|
-| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. |
+| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request carries the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; all of them are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
 | `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
 | `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `llm-failure` when the model produces no output. |
 
 ## Issue report template
 
-Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a uniform Markdown structure. The first line is always a `## ` heading used as the issue title. The template includes sections for plugin, action, expected/actual behavior, and reproduction steps.
+Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a uniform Markdown structure. The first line is always a `## ` heading used as the issue title. The template includes sections for plugin, action, expected/actual behavior, route and timing, and reproduction steps.
+
+`generateReport` receives the analysis window and, per failure group, the route, the last failure time, and how many attempts of the same action followed it. Its system prompt requires those facts to be stated, forbids proposing a mechanism the analysis does not evidence — sampling parameters, token budgets, timeouts, chunking, and response parsing are named as examples — and requires a fact the analysis does not carry to be written as `not recorded`. Writing that collection must be added is explicitly ruled out: a missing fact can be an older event as easily as a gap, and the report cannot tell which.
 
 ## Requirement mapping
 

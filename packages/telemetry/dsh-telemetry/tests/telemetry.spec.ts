@@ -204,6 +204,87 @@ describe('TelemetryService analyzeForPlugin', () => {
     expect(analysis.totalEvents).toBe(0)
     expect(analysis.totalFailures).toBe(0)
     expect(analysis.failureGroups).toHaveLength(0)
+    // No events means no window: an empty range would read as "nothing happened
+    // in this period" rather than "there is nothing to speak of".
+    expect(analysis.window).toBeUndefined()
+  })
+
+  it('reports the window the analysis read', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.track({ pluginId: 'memo', action: 'listWeeks' })
+    ctx.telemetry.trackError({
+      pluginId: 'memo', action: 'analyze',
+      error: { code: 'E1', message: 'err1', featureCodeRef: 'memo:analyze' },
+    })
+    await ctx.telemetry.flush()
+
+    const analysis = ctx.telemetry.analyzeForPlugin('memo')
+    const timestamps = ctx.telemetry.listEvents({ pluginId: 'memo' }).map(event => event.timestamp)
+    expect(analysis.window).toBeDefined()
+    expect(analysis.window!.firstEventAt).toBe(Math.min(...timestamps))
+    expect(analysis.window!.lastEventAt).toBe(Math.max(...timestamps))
+    // Only this plugin's events bound the window, not the whole table's: a
+    // busier neighbour must not make this plugin look active.
+    ctx.telemetry.track({ pluginId: 'other', action: 'listWeeks' })
+    await ctx.telemetry.flush()
+    expect(ctx.telemetry.analyzeForPlugin('memo').window).toEqual(analysis.window)
+  })
+
+  it('counts attempts of the failing action after the last failure', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.trackError({
+      pluginId: 'memo', action: 'analyze',
+      error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+    })
+    await ctx.telemetry.flush()
+    // Unrelated reads must not be counted: they would inflate the number and
+    // present an old failure as if it sat in a busy period.
+    for (let i = 0; i < 3; i++) ctx.telemetry.track({ pluginId: 'memo', action: 'listWeeks' })
+    for (let i = 0; i < 2; i++) ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+    // Nor other plugins' attempts of the same action.
+    ctx.telemetry.track({ pluginId: 'other', action: 'analyze' })
+    await ctx.telemetry.flush()
+
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.featureCodeRef).toBe('memo:analyze')
+    expect(group.attemptsAfterLastFailure).toBe(2)
+  })
+
+  it('carries the recorded route, and only the allowlisted keys', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.trackError({
+      pluginId: 'memo', action: 'analyze',
+      error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+      metadata: { provider: 'deepseek-cu', model: 'deepseek-flash', status: 429, apiKey: 'sk-secret', notes: 'x' },
+    })
+    await ctx.telemetry.flush()
+
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    // The route survives redaction: ids like these match no rule, which is the
+    // fact that makes carrying them possible at all.
+    expect(group.route).toEqual({ provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 })
+    // Everything else stays behind. The report leaves the machine.
+    expect(JSON.stringify(group.route)).not.toContain('secret')
+    expect(Object.keys(group.route!)).toEqual(['provider', 'model', 'status'])
+  })
+
+  it('leaves the route absent when the event recorded none', async () => {
+    const { ctx } = await harness()
+    // The shape of every failure recorded before the metadata write existed.
+    ctx.telemetry.trackError({
+      pluginId: 'memo', action: 'analyze',
+      error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+    })
+    ctx.telemetry.trackError({
+      pluginId: 'memo', action: 'exportReport',
+      error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:exportReport' },
+      metadata: { provider: 'deepseek-cu' },
+    })
+    await ctx.telemetry.flush()
+
+    const groups = ctx.telemetry.analyzeForPlugin('memo').failureGroups
+    // Absent means "not recorded", never "no route".
+    expect(groups.every(group => group.route === undefined)).toBe(true)
   })
 })
 

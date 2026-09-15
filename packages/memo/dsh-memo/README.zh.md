@@ -54,7 +54,7 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `analyze(request)` | 对一段时间的条目运行 AI 分析（梳理/总结/分析）。该时段无条目时返回 `no-entries`，模型调用失败时返回 `llm-failure`。 |
 | `exportReport(request)` | 使用模型导出一段时间的 Markdown 工作报告。 |
 | `readExternalPath(request)` | 读取本地文件路径并将其作为条目添加。 |
-| `analyzeLogs(request)` | 读取本插件的遥测失败记录，通过 github-issue 服务生成 GitHub issue 报告。 |
+| `analyzeLogs(request)` | 读取本插件的遥测失败记录，通过 github-issue 服务生成 GitHub issue 报告。会一并传递分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数，使报告能说明失败是否仍在发生。 |
 | `listPeriods(request)` | 列出某一维度（周/月/季/年）可导航的周期，最新的在前，并给出每个周期包含的周 id。 |
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |

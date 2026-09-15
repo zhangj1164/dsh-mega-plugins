@@ -54,7 +54,7 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
 | `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
-| `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. |
+| `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. Passes the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |

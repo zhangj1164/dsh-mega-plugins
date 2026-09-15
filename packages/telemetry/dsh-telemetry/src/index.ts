@@ -34,6 +34,7 @@ import type {
   TelemetryEvent,
   TelemetryEventInput,
   TelemetryFailureGroup,
+  TelemetryFailureRoute,
   TelemetryQuery,
 } from './types.ts'
 
@@ -205,39 +206,69 @@ export class TelemetryService extends Service {
 
   /**
    * Analyze failure events for one plugin, grouped by feature-code anchor.
+   *
+   * The report this feeds used to say only "5 failures out of 458", which reads
+   * the same whether the failures stopped a week ago or are happening now, and
+   * gave the model nothing to explain them with beyond an error code. So each
+   * group also carries the route the failure ran on and how many attempts of the
+   * same action followed it, and the analysis carries the window it read.
+   *
    * @param pluginId - the plugin whose failures to analyze.
-   * @returns total counts and grouped failure patterns.
+   * @returns total counts, the analysis window, and grouped failure patterns.
    */
   analyzeForPlugin(pluginId: string): TelemetryAnalysis {
     const table = this.requireTable()
     let totalEvents = 0
     let totalFailures = 0
-    const groups = new Map<string, { count: number; latest: TelemetryEvent; codes: Set<string> }>()
+    let firstEventAt: number | undefined
+    let lastEventAt: number | undefined
+    const events: TelemetryEvent[] = []
+    const groups = new Map<string, { count: number; latest: TelemetryEvent; codes: Set<string>; actions: Set<string> }>()
     for (const [, row] of table.entries()) {
       if (row.pluginId !== pluginId) continue
       totalEvents++
+      if (firstEventAt === undefined || row.timestamp < firstEventAt) firstEventAt = row.timestamp
+      if (lastEventAt === undefined || row.timestamp > lastEventAt) lastEventAt = row.timestamp
+      const event = snapshotEvent(row)
+      events.push(event)
       if (row.result !== 'failure') continue
       totalFailures++
       const ref = row.error?.featureCodeRef ?? 'unknown'
       const existing = groups.get(ref)
-      const event = snapshotEvent(row)
       if (existing === undefined) {
-        groups.set(ref, { count: 1, latest: event, codes: new Set([row.error?.code ?? 'unknown']) })
+        groups.set(ref, { count: 1, latest: event, codes: new Set([row.error?.code ?? 'unknown']), actions: new Set([row.action]) })
       } else {
         existing.count++
+        // Every attempt at the same action counts, not just the last one: the
+        // group is an error pattern, and the pattern can recur from more than
+        // one entry point.
+        existing.actions.add(row.action)
         if (event.timestamp > existing.latest.timestamp) existing.latest = event
         existing.codes.add(row.error?.code ?? 'unknown')
       }
     }
     const failureGroups: TelemetryFailureGroup[] = [...groups.entries()]
-      .map(([featureCodeRef, g]) => ({
-        featureCodeRef,
-        count: g.count,
-        latest: g.latest,
-        errorCodes: [...g.codes],
-      }))
+      .map(([featureCodeRef, g]) => {
+        const route = routeFromMetadata(g.latest.metadata)
+        return {
+          featureCodeRef,
+          count: g.count,
+          latest: g.latest,
+          errorCodes: [...g.codes],
+          attemptsAfterLastFailure: events.filter(event => event.timestamp > g.latest.timestamp && g.actions.has(event.action)).length,
+          ...(route === undefined ? {} : { route }),
+        }
+      })
       .sort((a, b) => b.count - a.count)
-    return Object.freeze({ pluginId, totalEvents, totalFailures, failureGroups })
+    return Object.freeze({
+      pluginId,
+      totalEvents,
+      totalFailures,
+      failureGroups: Object.freeze(failureGroups),
+      ...(firstEventAt === undefined || lastEventAt === undefined
+        ? {}
+        : { window: Object.freeze({ firstEventAt, lastEventAt }) }),
+    })
   }
 
   /**
@@ -321,6 +352,30 @@ function snapshotError(error: TelemetryErrorRecord): TelemetryErrorRecord {
     message: error.message,
     ...(error.stack === undefined ? {} : { stack: error.stack }),
     ...(error.featureCodeRef === undefined ? {} : { featureCodeRef: error.featureCodeRef }),
+  })
+}
+
+/**
+ * Extract the model route a failure ran on, by allowlist.
+ *
+ * `metadata` is an open map that a plugin fills with anything it likes, and the
+ * report built from this analysis leaves the machine as a GitHub issue. Copying
+ * the map wholesale would export whatever a plugin happened to put there, so
+ * only these named keys cross the boundary — adding a key is a deliberate act,
+ * not a side effect of a caller's choice.
+ *
+ * @param metadata - the event's metadata, when it has any.
+ * @returns the route, or `undefined` when the event did not record a full one.
+ */
+function routeFromMetadata(metadata: Record<string, unknown> | undefined): TelemetryFailureRoute | undefined {
+  if (metadata === undefined) return undefined
+  const { provider, model, status } = metadata
+  if (typeof provider !== 'string' || provider.length === 0) return undefined
+  if (typeof model !== 'string' || model.length === 0) return undefined
+  return Object.freeze({
+    provider,
+    model,
+    ...(typeof status === 'number' && Number.isFinite(status) ? { status } : {}),
   })
 }
 

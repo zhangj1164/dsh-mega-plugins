@@ -270,6 +270,93 @@ describe('MemoService analysis and export', () => {
   })
 })
 
+describe('MemoService log analysis', () => {
+  const analysis = {
+    totalEvents: 458,
+    totalFailures: 5,
+    window: { firstEventAt: Date.parse('2026-09-01T07:22:00Z'), lastEventAt: Date.parse('2026-09-15T08:19:00Z') },
+    failureGroups: [{
+      featureCodeRef: 'memo:analyze',
+      count: 3,
+      errorCodes: ['LLM_FAILURE'],
+      latest: {
+        timestamp: Date.parse('2026-09-11T03:04:00Z'),
+        error: { code: 'LLM_FAILURE', message: 'model produced no output' },
+      },
+      attemptsAfterLastFailure: 14,
+      route: { provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 },
+    }],
+  }
+
+  it('forwards the analysis window, route, and timing to the report', async () => {
+    const { ctx, githubIssue } = await harness({ analysis })
+
+    const result = await ctx.memo.analyzeLogs({})
+    expect(result.ok).toBe(true)
+
+    const request = githubIssue.reportRequests[0]!
+    expect(request.pluginId).toBe('memo')
+    expect(request.window).toEqual({ firstEventAt: Date.parse('2026-09-01T07:22:00Z'), lastEventAt: Date.parse('2026-09-15T08:19:00Z') })
+    const group = (request.failureGroups as Record<string, unknown>[])[0]!
+    expect(group.featureCodeRef).toBe('memo:analyze')
+    expect(group.errorCode).toBe('LLM_FAILURE')
+    expect(group.errorMessage).toBe('model produced no output')
+    expect(group.lastFailureAt).toBe(Date.parse('2026-09-11T03:04:00Z'))
+    expect(group.attemptsAfterLastFailure).toBe(14)
+    expect(group.route).toEqual({ provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 })
+  })
+
+  it('exposes the same facts to the caller, not only to the report', async () => {
+    const { ctx } = await harness({ analysis })
+
+    const result = await ctx.memo.analyzeLogs({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.analysis.window).toEqual(analysis.window)
+    expect(result.value.analysis.failureGroups[0]).toEqual({
+      featureCodeRef: 'memo:analyze',
+      count: 3,
+      errorCodes: ['LLM_FAILURE'],
+      lastFailureAt: Date.parse('2026-09-11T03:04:00Z'),
+      attemptsAfterLastFailure: 14,
+      route: { provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 },
+    })
+  })
+
+  it('omits facts the analysis did not carry instead of sending empty ones', async () => {
+    // The shape of failures recorded before the route metadata existed: a group
+    // with an event but no recorded route, and a plugin with no events at all.
+    const lastFailureAt = Date.parse('2026-09-11T03:04:00Z')
+    const { ctx, githubIssue } = await harness({
+      analysis: {
+        totalEvents: 5,
+        totalFailures: 1,
+        failureGroups: [{
+          featureCodeRef: 'memo:analyze',
+          count: 1,
+          latest: { timestamp: lastFailureAt, error: { code: 'LLM_FAILURE', message: 'no output' } },
+          attemptsAfterLastFailure: 0,
+        }],
+      },
+    })
+
+    const result = await ctx.memo.analyzeLogs({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.analysis.window).toBeUndefined()
+    expect(result.value.analysis.failureGroups[0]!.route).toBeUndefined()
+
+    const request = githubIssue.reportRequests[0]!
+    // Absent, not `undefined`: a key carrying nothing would read as a recorded
+    // fact once it crosses the report boundary.
+    expect('window' in request).toBe(false)
+    const group = (request.failureGroups as Record<string, unknown>[])[0]!
+    expect('route' in group).toBe(false)
+    // The event itself is always there, so this one cannot be absent.
+    expect(group.lastFailureAt).toBe(lastFailureAt)
+  })
+})
+
 describe('MemoService model-route resolution and LLM failure reporting', () => {
   it('resolves the route from Config instead of requiring a caller-supplied value', async () => {
     const { ctx } = await harness()

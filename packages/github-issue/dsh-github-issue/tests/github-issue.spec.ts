@@ -182,4 +182,74 @@ describe('GithubIssueService generateReport', () => {
     expect(result.value.body).toContain('<details>')
     expect(result.value.labels).toContain('telemetry')
   })
+
+  it('puts the window, route, and recency of each group into the prompt', async () => {
+    const { service, prompts } = await harness()
+    const result = await service.generateReport({
+      pluginId: 'memo',
+      totalEvents: 458,
+      totalFailures: 5,
+      window: { firstEventAt: Date.parse('2026-09-01T07:22:00Z'), lastEventAt: Date.parse('2026-09-15T08:19:00Z') },
+      failureGroups: [{
+        featureCodeRef: 'memo:analyze',
+        count: 3,
+        errorCode: 'LLM_FAILURE',
+        errorMessage: 'model produced no output',
+        lastFailureAt: Date.parse('2026-09-11T03:04:00Z'),
+        attemptsAfterLastFailure: 14,
+        route: { provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 },
+      }],
+      provider: 'test',
+      model: 'test',
+    })
+    expect(result.ok).toBe(true)
+
+    const { user } = prompts[0]!
+    expect(user).toContain('Analysis window: 2026-09-01T07:22:00.000Z .. 2026-09-15T08:19:00.000Z')
+    expect(user).toContain('route: deepseek-cu / deepseek-flash (status 429)')
+    expect(user).toContain('lastFailureAt: 2026-09-11T03:04:00.000Z')
+    expect(user).toContain('attemptsAfterLastFailure: 14')
+  })
+
+  it('labels a fact the analysis does not carry as not recorded', async () => {
+    const { service, prompts } = await harness()
+    // The shape of every failure recorded before the route metadata existed.
+    await service.generateReport({
+      pluginId: 'memo',
+      totalEvents: 458,
+      totalFailures: 5,
+      failureGroups: [{ featureCodeRef: 'memo:analyze', count: 3 }],
+      provider: 'test',
+      model: 'test',
+    })
+
+    const { user } = prompts[0]!
+    expect(user).toContain('Analysis window: not recorded')
+    expect(user).toContain('route: not recorded')
+    expect(user).toContain('lastFailureAt: not recorded')
+    expect(user).toContain('attemptsAfterLastFailure: not recorded')
+  })
+
+  it('tells the model which facts it may not invent, and how to read recency', async () => {
+    const { service, prompts } = await harness()
+    await service.generateReport({
+      pluginId: 'memo',
+      totalEvents: 1,
+      totalFailures: 0,
+      failureGroups: [],
+      provider: 'test',
+      model: 'test',
+    })
+
+    // The prompt, not the model, is what kept producing plausible causes for
+    // mechanisms this plugin does not have (sampling parameters, chunking,
+    // parsing). These statements are the guard.
+    const { system } = prompts[0]!
+    expect(system).toContain('do not mention sampling parameters')
+    // Phrases are asserted inside one wrapped line: the prompt is joined with
+    // newlines, so a longer fragment would be testing the line breaks.
+    expect(system).toContain('failure that has not recurred is not a current defect')
+    expect(system).toContain('Never write')
+    expect(system).toContain('### 路由与时间 / Route and Timing')
+  })
 })

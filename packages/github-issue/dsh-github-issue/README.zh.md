@@ -18,13 +18,15 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 | 方法 | 行为 |
 |---|---|
-| `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。 |
+| `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。请求携带分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数；这些字段都可选，缺省时会以 `not recorded` 传给模型，而不是省略。 |
 | `prefilledIssueUrl(request)` | 从报告构建预填 GitHub issue 创建 URL。校验仓库 URL；失败时返回 `invalid-url`。当拼装出的 URL 超过 `maxPrefillUrlLength` 时缩短正文——标题与标签占用同一份额度，百分号编码还会放大它，因此判定基于 URL 而不是仅基于正文长度。 |
 | `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，模型无输出返回 `llm-failure`。 |
 
 ## Issue 报告模板
 
-`generateReport` 和 `optimizeIssue` 均使用内置系统提示词，固定统一的 Markdown 结构。首行始终是 `## ` 标题，用作 issue 标题。模板包含插件、操作、预期/实际行为和复现步骤等部分。
+`generateReport` 和 `optimizeIssue` 均使用内置系统提示词，固定统一的 Markdown 结构。首行始终是 `## ` 标题，用作 issue 标题。模板包含插件、操作、预期/实际行为、路由与时间，以及复现步骤等部分。
+
+`generateReport` 会收到分析时间窗，以及每组的失败路由、最近一次失败时间和之后的同动作尝试次数。它的系统提示词要求陈述这些事实，禁止提出分析未提供证据的机制——采样参数、token 预算、超时、分块与响应解析被点名为反例——并要求分析未携带的事实写作 `not recorded`。它也明确禁止写「需要补充采集」：缺失的事实既可能是旧事件，也可能是采集缺口，报告无从区分。
 
 ## 需求映射
 
