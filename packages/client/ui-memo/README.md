@@ -49,10 +49,13 @@ The history list comes from the host (`memo/listPeriods`), never from a browser-
 | `optimizeIssue(description)` | githubIssue | Optimizes a natural-language description into a structured report. |
 | `archiveCurrentQuarter()` | memo | Archives the quarter the board is showing. A no-op in any other dimension. |
 | `unarchiveQuarter(label)` | memo | Takes a quarter out of the archive, restoring its cards to editable. |
+| `selectModel(model?)` | — | Pins a model inside the resolved provider for the next AI call, or clears the pin when called with no argument. |
 
 ## Model route resolution
 
-The browser never selects a model. The controller sends **no** `provider` and **no** `model` field, so the host resolves the route from the deployment's configuration and then from the session default, returning a precise failure when none is registered. A request carrying a hardcoded provider name can only succeed on the one deployment that happens to register it.
+The browser never selects a model route. The controller sends **no** `provider` field on any request, so the host decides the route from the deployment's configuration and then from the session default, returning a precise failure when none is registered. A request carrying a hardcoded provider name can only succeed on the one deployment that happens to register it.
+
+The model switcher does not break that rule. It reads the route and the catalog through `memo/listModels`, which the host answers from the `llm` service — the browser cannot enumerate a provider's models, and a hardcoded list is exactly the defect above. Choosing a model sends only `model`, never `provider`: the user narrows one call inside the provider the host already resolved. The choice is remembered in browser storage **together with its provider**, and is dropped when the host resolves a different one, because a model id means nothing outside its own provider. "Follow default" clears it, restoring the documented precedence. When the catalog cannot be read the control disables and says so, and the board keeps working.
 
 ## UI features
 
@@ -61,6 +64,7 @@ The browser never selects a model. The controller sends **no** `provider` and **
 - **Card actions**: 查看 (read-only detail dialog), 编辑 (edit dialog), 复制 (duplicate into the same period), 删除 (confirmation dialog)
 - **Composer** with a dashed full-width creator button, disabled while the draft is empty
 - **AI analysis** with a type switch (梳理 / 总结 / 分析) and an inline result card
+- **Model switcher** in the tools row: it names the route the host resolved, offers that provider's own models, and labels the analysis card with the model that actually answered. Choosing one affects these analysis calls only; 跟随默认 clears the pin and restores the deployment's route
 - **Report export** for the selected period
 - **Log analysis** into a pre-filled GitHub issue, triggered from the header because its output is an issue rather than a report about memos
 - **Issue editor**: natural-language input, LLM optimization, and a GitHub open action built from the configured repository

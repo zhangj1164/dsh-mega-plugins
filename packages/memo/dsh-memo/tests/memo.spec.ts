@@ -654,3 +654,95 @@ describe('MemoService archived-quarter write guard', () => {
     expect(allowed.ok).toBe(true)
   })
 })
+
+describe('MemoService model catalog', () => {
+  it('reports the resolved route and the models its provider advertises', async () => {
+    const { ctx } = await harness()
+    const result = await ctx.memo.listModels({})
+
+    expect(result.ok).toBe(true)
+    expect(result.value.provider).toBe(TEST_ROUTE.provider)
+    expect(result.value.model).toBe(TEST_ROUTE.model)
+    expect(result.value.catalogError).toBeUndefined()
+    expect(result.value.models.map(model => model.id)).toEqual([TEST_ROUTE.model, 'test-model-pro'])
+    expect(result.value.models[0]?.name).toBe('Test Model')
+  })
+
+  it('follows agentDefaultModel when the service Config pins no route', async () => {
+    const { ctx } = await harness({
+      followAgentDefault: { provider: TEST_ROUTE.provider, model: 'test-model-pro' },
+    })
+    const result = await ctx.memo.listModels({})
+
+    expect(result.value.provider).toBe(TEST_ROUTE.provider)
+    expect(result.value.model).toBe('test-model-pro')
+    expect(result.value.models.length).toBe(2)
+  })
+
+  it('reports an empty catalog without an error when the provider advertises nothing', async () => {
+    // An unregistered route and a broken catalog are different states: only the
+    // second one is a reason to tell the user something went wrong.
+    const { ctx } = await harness({ llm: { catalog: [] } })
+    const result = await ctx.memo.listModels({})
+
+    expect(result.ok).toBe(true)
+    expect(result.value.models).toEqual([])
+    expect(result.value.catalogError).toBeUndefined()
+  })
+
+  it('degrades to an empty catalog when the catalog query throws', async () => {
+    const { ctx } = await harness({ llm: { catalogThrows: 'provider endpoint is unreachable' } })
+    const result = await ctx.memo.listModels({})
+
+    // Still a successful result: a missing catalog disables a picker, while a
+    // failure here would take the whole board down with it.
+    expect(result.ok).toBe(true)
+    expect(result.value.models).toEqual([])
+    expect(result.value.catalogError).toBe('provider endpoint is unreachable')
+  })
+
+  it('degrades to an empty catalog when no llm service is mounted', async () => {
+    const { ctx } = await harness({ withoutLlm: true })
+    const result = await ctx.memo.listModels({})
+
+    expect(result.ok).toBe(true)
+    expect(result.value.models).toEqual([])
+    expect(result.value.catalogError).toContain('llm')
+  })
+
+  it('lets one call override the model without touching the configured route', async () => {
+    // This is the seam the switcher depends on: the override wins for the call
+    // that carries it, and nothing else in the deployment changes.
+    const { ctx } = await harness()
+    const week = await ctx.memo.getOrCreateCurrentWeek({})
+    if (!week.ok) return
+    await ctx.memo.addEntry({ weekId: week.value.weekId, type: 'text', content: 'work' })
+    await settle()
+
+    const overridden = await ctx.memo.analyze({
+      period: 'week',
+      periodLabel: week.value.weekId,
+      analysisType: '\u5206\u6790',
+      model: 'test-model-pro',
+    })
+    expect(overridden.ok).toBe(true)
+    if (!overridden.ok) return
+    expect(overridden.value.modelName).toBe('test-model-pro')
+
+    const before = await ctx.memo.listModels({})
+    expect(before.value.model).toBe(TEST_ROUTE.model)
+
+    const asked = await ctx.memo.analyze({
+      period: 'week',
+      periodLabel: week.value.weekId,
+      analysisType: '\u5206\u6790',
+      provider: 'unregistered-provider',
+      model: 'whatever',
+    })
+    expect(asked.ok).toBe(false)
+    if (asked.ok) return
+    expect(asked.error.code).toBe('llm-failure')
+    if (asked.error.code !== 'llm-failure') return
+    expect(asked.error.provider).toBe('unregistered-provider')
+  })
+})

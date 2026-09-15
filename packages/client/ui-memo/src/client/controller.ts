@@ -33,20 +33,24 @@ import type {
   MemoAnalysisType,
   MemoArchivedQuarter,
   MemoEntry,
+  MemoModelInfo,
   MemoPeriodEntry,
   MemoWeek,
 } from 'dsh-memo/client'
 import type { GithubIssueReport } from 'dsh-github-issue/client'
 import {
   cardsInPeriod,
+  readModelChoice,
   readSelection,
   selectableYears,
   toCards,
   targetWeekId,
   visiblePeriods,
+  writeModelChoice,
   writeSelection,
   yearOf,
   type MemoCard,
+  type MemoModelChoice,
   type MemoSelection,
   type StorageLike,
 } from './logic.ts'
@@ -174,6 +178,34 @@ export interface MemoViewState {
   archivedWeekIds: ReadonlySet<string>
   /** The archived quarters themselves, oldest first. */
   archivedQuarters: readonly MemoArchivedQuarter[]
+  /**
+   * Provider route the next AI call would use, as the host resolved it.
+   *
+   * Read from the host rather than guessed: only the host knows which adapters
+   * this deployment registered.
+   */
+  routeProvider: string
+  /** Model the next AI call would use **without** an override, or `''`. */
+  routeModel: string
+  /** Models the resolved provider advertises, in the registry's own order. */
+  models: readonly MemoModelInfo[]
+  /**
+   * Why the catalog is empty, when it is empty for a reason.
+   *
+   * The distinction matters: "this provider advertises nothing" and "the
+   * catalog could not be read" disable the same control but deserve different
+   * words, and only the second one is worth telling the user about.
+   */
+  catalogError: string | undefined
+  /**
+   * The model this browser pinned, together with the provider it belongs to,
+   * or `undefined` to follow the deployment's resolved route.
+   */
+  modelChoice: MemoModelChoice | undefined
+  /** Provider of the model that produced {@link MemoViewState.analysis}. */
+  analysisProvider: string
+  /** Model that produced {@link MemoViewState.analysis}, or `''` when unknown. */
+  analysisModel: string
   /** Whether a request is in flight. */
   busy: boolean
 }
@@ -209,6 +241,13 @@ export function createInitialState(): MemoViewState {
     logAnalysis: null,
     archivedWeekIds: new Set<string>(),
     archivedQuarters: [],
+    routeProvider: '',
+    routeModel: '',
+    models: [],
+    catalogError: undefined,
+    modelChoice: undefined,
+    analysisProvider: '',
+    analysisModel: '',
     busy: false,
   }
 }
@@ -293,6 +332,7 @@ export class MemoController {
       }
 
       const archived = await this.readArchivedQuarters()
+      const route = await this.readRoute()
 
       const fallbackLabel = periods[0]?.label ?? ''
       const restored = period === undefined
@@ -327,6 +367,11 @@ export class MemoController {
         totalCards: cards.length,
         archivedWeekIds: archived.weekIds,
         archivedQuarters: archived.quarters,
+        routeProvider: route.provider,
+        routeModel: route.model,
+        models: route.models,
+        catalogError: route.catalogError,
+        modelChoice: this.usableChoice(route.provider),
         busy: false,
         // A board that cannot tell "archived" from "not archived" would let an
         // archived quarter be edited without any sign of why. Say so.
@@ -368,6 +413,86 @@ export class MemoController {
     const weekIds = new Set<string>()
     for (const quarter of quarters) for (const weekId of quarter.weekIds) weekIds.add(weekId)
     return { quarters: Object.freeze(quarters), weekIds, ok: true }
+  }
+
+  /**
+   * Read the model route the host would use, plus what that route can be
+   * switched to.
+   *
+   * The catalog comes from the host because a browser cannot enumerate a
+   * provider's models, and it must never be hardcoded: only the deployment knows
+   * which adapters it registered, and a guessed route surfaces as an opaque
+   * failure. Every degradation yields an empty catalog and a reason, so the
+   * board stays usable without a model route.
+   *
+   * @returns the resolved route, its catalog, and why the catalog is empty.
+   */
+  private async readRoute(): Promise<{
+    provider: string
+    model: string
+    models: readonly MemoModelInfo[]
+    catalogError: string | undefined
+  }> {
+    const result = await callMemo<{
+      provider: string
+      model: string
+      models: readonly MemoModelInfo[]
+      catalogError?: string
+    }>(this.rpc, 'listModels', {})
+    if (!result.ok || result.value === null || typeof result.value !== 'object') {
+      return { provider: '', model: '', models: [], catalogError: 'the model catalog could not be read' }
+    }
+    const { provider, model, models, catalogError } = result.value
+    return {
+      provider: typeof provider === 'string' ? provider : '',
+      model: typeof model === 'string' ? model : '',
+      models: Array.isArray(models)
+        ? Object.freeze(models.map(entry => Object.freeze({ id: entry.id, name: entry.name })))
+        : [],
+      catalogError,
+    }
+  }
+
+  /**
+   * The remembered model choice, but only while it still belongs to the
+   * provider the host resolved.
+   *
+   * A model id is provider-owned: after the deployment retargets its default
+   * provider, an override recorded under the old one would silently send
+   * analysis to a model the new provider may not serve. Such a choice is
+   * dropped from storage as well, so the stale value cannot come back.
+   *
+   * @param provider - the provider the host resolved for the next call.
+   * @returns the choice to keep, or `undefined` to follow the resolved route.
+   */
+  private usableChoice(provider: string): MemoModelChoice | undefined {
+    const stored = this._state.modelChoice ?? readModelChoice(this.storage)
+    if (stored === undefined) return undefined
+    if (provider.length === 0 || stored.provider !== provider) {
+      writeModelChoice(this.storage, undefined)
+      return undefined
+    }
+    return stored
+  }
+
+  /**
+   * Pin the model the next analysis call uses, or clear the pin.
+   *
+   * Only the model is chosen: the provider stays whatever the host resolved, so
+   * this never guesses a route. Clearing it restores the deployment's own
+   * precedence (service `Config`, then `agentDefaultModel`).
+   *
+   * @param model - a model id from the host's catalog, or `undefined` to follow
+   * the resolved route again.
+   * @returns whether the choice was recorded.
+   */
+  selectModel(model: string | undefined): boolean {
+    const provider = this._state.routeProvider
+    if (model !== undefined && model.length > 0 && provider.length === 0) return false
+    const choice = model === undefined || model.length === 0 ? undefined : { provider, model }
+    writeModelChoice(this.storage, choice)
+    this.set({ modelChoice: choice })
+    return true
   }
 
   /**
@@ -649,19 +774,44 @@ export class MemoController {
   }
 
   /**
+   * The model to pin on the next analysis call.
+   *
+   * Only the model is ever sent, never the provider: the provider stays whatever
+   * the host resolved, so this feature cannot pick a route the deployment does
+   * not have.
+   *
+   * @returns the chosen model id, or `undefined` to follow the host's route.
+   */
+  private modelOverride(): string | undefined {
+    const choice = this._state.modelChoice
+    if (choice === undefined) return undefined
+    if (this._state.routeProvider.length === 0 || choice.provider !== this._state.routeProvider) {
+      return undefined
+    }
+    return choice.model
+  }
+
+  /**
    * Analyze the active period.
    * @param analysisType - organize (梳理), summarize (总结), or analyze (分析).
    */
   async analyze(analysisType: MemoAnalysisType): Promise<void> {
-    this.set({ busy: true, error: null, analysis: null })
+    this.set({ busy: true, error: null, analysis: null, analysisProvider: '', analysisModel: '' })
     try {
-      const result = await callMemo<{ summary: string }>(this.rpc, 'analyze', {
+      const override = this.modelOverride()
+      const result = await callMemo<{ summary: string; modelProvider?: string; modelName?: string }>(this.rpc, 'analyze', {
         period: this._state.selection.period,
         periodLabel: this._state.selection.label,
         analysisType,
+        ...(override === undefined ? {} : { model: override }),
       })
       if (result.ok && result.value) {
-        this.set({ busy: false, analysis: result.value.summary })
+        this.set({
+          busy: false,
+          analysis: result.value.summary,
+          analysisProvider: result.value.modelProvider ?? '',
+          analysisModel: result.value.modelName ?? '',
+        })
       } else {
         this.set({ busy: false, error: result.ok ? 'analysis returned no text' : result.error.message })
       }
@@ -677,9 +827,11 @@ export class MemoController {
   async exportReport(): Promise<string | undefined> {
     this.set({ busy: true, error: null, report: null })
     try {
+      const override = this.modelOverride()
       const result = await callMemo<string>(this.rpc, 'exportReport', {
         period: this._state.selection.period,
         periodLabel: this._state.selection.label,
+        ...(override === undefined ? {} : { model: override }),
       })
       if (!result.ok) {
         this.set({ busy: false, error: result.error.message })

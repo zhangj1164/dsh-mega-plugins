@@ -181,6 +181,61 @@ export function writeSelection(storage: StorageLike | undefined, selection: Memo
   }
 }
 
+/** Storage key for the model this browser pinned for AI analysis. */
+export const MODEL_STORAGE_KEY = 'dsh-memo:model'
+
+/** A model chosen for AI analysis, remembered with the provider it belongs to. */
+export interface MemoModelChoice {
+  /** Provider route that owns the model. */
+  readonly provider: string
+  /** Model id to send with the next analysis call. */
+  readonly model: string
+}
+
+/**
+ * Read the remembered model choice.
+ *
+ * The provider is stored beside the model because a model id only means
+ * something inside its own provider: restoring a bare id after the deployment
+ * retargeted its default would send analysis to a model that provider may not
+ * serve. Anything unreadable degrades to "no choice" rather than to an error,
+ * matching how a stale period selection is handled.
+ *
+ * @param storage - the storage to read from (usually `localStorage`).
+ * @returns the remembered choice, or `undefined` when there is none.
+ */
+export function readModelChoice(storage: StorageLike | undefined): MemoModelChoice | undefined {
+  if (storage === undefined) return undefined
+  try {
+    const raw = storage.getItem(MODEL_STORAGE_KEY)
+    if (raw === null || raw.length === 0) return undefined
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return undefined
+    const { provider, model } = parsed as { provider?: unknown; model?: unknown }
+    if (typeof provider !== 'string' || typeof model !== 'string') return undefined
+    if (provider.length === 0 || model.length === 0) return undefined
+    return { provider, model }
+  } catch {
+    // Unreadable storage or malformed JSON is not worth failing the board over.
+    return undefined
+  }
+}
+
+/**
+ * Persist the chosen model, or forget it when the choice is `undefined`.
+ * @param storage - the storage to write to (usually `localStorage`).
+ * @param choice - the choice to remember, or `undefined` to forget it.
+ */
+export function writeModelChoice(storage: StorageLike | undefined, choice: MemoModelChoice | undefined): void {
+  if (storage === undefined) return
+  try {
+    // An empty value is how "no choice" is encoded: StorageLike has no removeItem.
+    storage.setItem(MODEL_STORAGE_KEY, choice === undefined ? '' : JSON.stringify(choice))
+  } catch {
+    // A full or blocked storage is not worth failing the board over.
+  }
+}
+
 /** Per-dimension label formats, mirrored from the host's pinned formats. */
 const LABEL_PATTERNS: Record<MemoAnalysisPeriod, RegExp> = {
   week: /^\d{4}-W\d{2}$/u,

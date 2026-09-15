@@ -24,6 +24,8 @@ AI calls resolve their route in one order, and nothing is hardcoded:
 
 When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_MODEL_ROUTE'` instead of silently producing nothing.
 
+`listModels` reports levels 2–3 as the *resolved* route, plus every model that route advertises, so a caller can show which model a call would use and switch to a sibling. The catalog comes from the `llm` service: DSH exposes `listModels` to the host only, so a browser cannot enumerate models and must never be handed a hardcoded list. Everything that can go wrong (no `llm` service, no provider, a catalog query that throws) degrades to an empty catalog inside a **successful** result with a `catalogError` reason — a missing catalog disables a picker, while a failed call would take the whole board down. The catalog is advisory in DSH: membership never validates a request, so an unlisted model id is not a rejected one.
+
 ## Failure reporting
 
 `analyze`, `exportReport`, and any other model-backed method preserve the DSH failure facts instead of collapsing them into one message. A failed `llm-failure` carries:
@@ -57,6 +59,7 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
+| `listModels(request)` | Reports the route AI calls would use and the models that route advertises. Never fails: a missing catalog comes back as an empty one with `catalogError`. |
 
 ## Quarter archive
 

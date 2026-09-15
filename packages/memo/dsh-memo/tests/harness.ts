@@ -40,6 +40,10 @@ export interface MockLlmOptions {
   readonly behaviour?: 'text' | 'empty' | 'route-error'
   /** Failure code and message used by the `route-error` behaviour. */
   readonly failure?: { readonly code: string; readonly message: string; readonly status?: number }
+  /** Models the registered route advertises; defaults to two entries. */
+  readonly catalog?: readonly { readonly id: string; readonly name: string }[]
+  /** When set, `listModels` rejects with this message instead of answering. */
+  readonly catalogThrows?: string
 }
 
 /**
@@ -53,18 +57,44 @@ export class MockLlmService extends Service {
   private readonly route: { provider: string; model: string }
   private readonly behaviour: 'text' | 'empty' | 'route-error'
   private readonly failure: { code: string; message: string; status?: number }
+  private readonly catalog: readonly { readonly id: string; readonly name: string }[]
+  private readonly catalogThrows?: string
 
   constructor(ctx: Context, options: MockLlmOptions = {}) {
     super(ctx, 'llm')
     this.route = options.route ?? TEST_ROUTE
     this.behaviour = options.behaviour ?? 'text'
     this.failure = options.failure ?? { code: 'NO_ADAPTER', message: 'no adapter registered for provider' }
+    this.catalog = options.catalog ?? [
+      { id: this.route.model, name: 'Test Model' },
+      { id: 'test-model-pro', name: 'Test Model Pro' },
+    ]
+    this.catalogThrows = options.catalogThrows
+  }
+
+  /**
+   * Advertise the models of one provider route.
+   *
+   * A provider this mock never registered answers with an empty catalog rather
+   * than an error, mirroring DSH's rule that catalog membership is advisory:
+   * absence of a model is never a request rejection.
+   *
+   * @param provider - the provider route to inspect.
+   * @returns the advertised models, or `[]` for an unregistered provider.
+   */
+  async listModels(provider: string): Promise<readonly { readonly id: string; readonly name: string }[]> {
+    if (this.catalogThrows !== undefined) throw new Error(this.catalogThrows)
+    if (provider !== this.route.provider) return []
+    return this.catalog
   }
 
   stream(options: { readonly provider?: string; readonly model?: string }): AsyncIterable<MockChunk> {
     const provider = options.provider ?? ''
     const model = options.model ?? ''
-    if (provider !== this.route.provider || model !== this.route.model) {
+    // The mock serves exactly what it advertises: the provider route must match,
+    // and the model must be in that route's catalog. A mock that accepted any
+    // model would let a request the real runtime rejects pass every test.
+    if (provider !== this.route.provider || !this.catalog.some(entry => entry.id === model)) {
       const failure = {
         code: 'NO_ADAPTER',
         message: `no adapter registered for provider "${provider}"`,
@@ -90,6 +120,24 @@ function chunkStream(chunks: readonly MockChunk[]): AsyncIterable<MockChunk> {
     async *[Symbol.asyncIterator]() {
       for (const chunk of chunks) yield chunk
     },
+  }
+}
+
+/** Mock `agentDefaultModel` service: one fixed selection, no settings write. */
+class MockAgentDefaultModel extends Service {
+  private readonly selection: { readonly provider: string; readonly model: string }
+
+  constructor(ctx: Context, selection: { readonly provider: string; readonly model: string }) {
+    super(ctx, 'agentDefaultModel')
+    this.selection = selection
+  }
+
+  /**
+   * Read the deployment's default selection.
+   * @returns a detached provider and model.
+   */
+  currentSelection(): { readonly provider: string; readonly model: string } {
+    return { ...this.selection }
   }
 }
 
@@ -130,9 +178,18 @@ export interface SetupOptions {
   readonly llm?: MockLlmOptions
   /**
    * Extra memo `Config` fields. The harness always pins `provider`/`model` to
-   * {@link TEST_ROUTE} so the service resolves a route the mock registered.
+   * {@link TEST_ROUTE} so the service resolves a route the mock registered —
+   * unless {@link SetupOptions.followAgentDefault} asks for the opposite.
    */
   readonly config?: { readonly provider?: string; readonly model?: string }
+  /**
+   * Mount a mock `agentDefaultModel` carrying this selection and leave the memo
+   * `Config` route unset, so the service has to fall back to the deployment's
+   * default the way a real deployment with no pinned route does.
+   */
+  readonly followAgentDefault?: { readonly provider: string; readonly model: string }
+  /** Mount no `llm` service at all, as a deployment without a model route. */
+  readonly withoutLlm?: boolean
 }
 
 export async function setupHarness(options: SetupOptions = {}): Promise<TestHarness> {
@@ -142,14 +199,19 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     await ctx.plugin(Storage)
     await ctx.plugin(StorageJson, { root })
     await ctx.plugin(StorageDomain, { backend: 'json' })
-    await ctx.plugin(MockLlmService, options.llm ?? {})
+    if (options.withoutLlm !== true) await ctx.plugin(MockLlmService, options.llm ?? {})
+    if (options.followAgentDefault !== undefined) {
+      await ctx.plugin(MockAgentDefaultModel, options.followAgentDefault)
+    }
     await ctx.plugin(MockTelemetryService)
     await ctx.plugin(MockGithubIssueService)
-    await ctx.plugin(MemoService, {
-      repoUrl: 'https://github.com/test/repo',
-      provider: options.config?.provider ?? TEST_ROUTE.provider,
-      model: options.config?.model ?? TEST_ROUTE.model,
-    })
+    const pinned = options.followAgentDefault !== undefined
+      ? {}
+      : {
+          provider: options.config?.provider ?? TEST_ROUTE.provider,
+          model: options.config?.model ?? TEST_ROUTE.model,
+        }
+    await ctx.plugin(MemoService, { repoUrl: 'https://github.com/test/repo', ...pinned })
   } catch (error) {
     await ctx.fiber.dispose()
     await rm(root, { recursive: true, force: true })

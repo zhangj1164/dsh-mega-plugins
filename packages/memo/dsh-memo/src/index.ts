@@ -57,6 +57,8 @@ import type {
   MemoGetWeekResult,
   MemoListArchivedQuartersResult,
   MemoListArchivedQuartersRequest,
+  MemoListModelsRequest,
+  MemoListModelsResult,
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
@@ -614,6 +616,48 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
+   * Report the route AI analysis would use now, and the models it can be
+   * switched to.
+   *
+   * The catalog comes from the `llm` service because DSH exposes `listModels`
+   * to the host only: a browser cannot enumerate a provider's models, and
+   * handing it a hardcoded list is the defect this feature exists to avoid —
+   * the browser cannot know which adapters a deployment registered. Everything
+   * that can go wrong degrades to an empty catalog inside a successful result,
+   * so a deployment without a model route still opens the board.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the resolved route and the models its provider advertises.
+   */
+  @Remote('listModels')
+  async listModels(request: MemoListModelsRequest): Promise<MemoListModelsResult> {
+    void request
+    const route = this.resolveRoute({})
+    const llm = this.ctx.get('llm') as LlmModelCatalog | undefined
+    if (llm === undefined) {
+      this.track('listModels', 'failure', { reason: 'llm-unavailable' })
+      return { ok: true, value: { ...route, models: [], catalogError: 'the llm service is not mounted' } }
+    }
+    if (route.provider.length === 0) {
+      this.track('listModels', 'failure', { reason: 'no-provider' })
+      return { ok: true, value: { ...route, models: [], catalogError: 'no provider route is configured' } }
+    }
+    try {
+      const advertised = await llm.listModels(route.provider)
+      const models = Object.freeze(advertised.map(model => Object.freeze({ id: model.id, name: model.name })))
+      this.track('listModels', 'success', { provider: route.provider, count: models.length })
+      return { ok: true, value: { ...route, models } }
+    } catch (error) {
+      // A provider whose endpoint is unreachable must not cost the user the
+      // panel; the picker disables and says why.
+      const message = error instanceof Error ? error.message : String(error)
+      this.track('listModels', 'failure', { reason: 'catalog-threw', provider: route.provider })
+      return { ok: true, value: { ...route, models: [], catalogError: message } }
+    }
+  }
+
+  /**
    * Analyze memo entries for a period using the configured model. The analysis
    * type controls the system prompt: 梳理 (organize), 总结 (summarize), 分析
    * (analyze).
@@ -909,6 +953,16 @@ export class MemoService extends TypertRemoteService {
 type ReadExternalPathResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/**
+ * Minimal shape of the DSH `llm` service this service needs in order to
+ * enumerate models. Declared structurally so nothing here depends on the
+ * concrete service class, and typed `readonly` because the catalog is external
+ * data that must be copied rather than held.
+ */
+interface LlmModelCatalog {
+  listModels(provider: string): Promise<readonly { readonly id: string; readonly name: string }[]>
+}
 
 /** Copy one stored week row into an owned, frozen {@link MemoWeek}. */
 function snapshotWeek(row: MemoWeekRow): MemoWeek {

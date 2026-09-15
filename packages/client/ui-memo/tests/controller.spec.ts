@@ -386,6 +386,116 @@ describe('MemoController publishes no model route', () => {
   })
 })
 
+describe('MemoController model choice', () => {
+  it('reports the route the host resolved and the models it advertises', async () => {
+    const { controller } = await harness()
+    const state = controller.getSnapshot()
+
+    expect(state.routeProvider).toBe('test-provider')
+    expect(state.routeModel).toBe('test-model')
+    expect(state.models.map(model => model.id)).toEqual(['test-model', 'test-model-pro'])
+    expect(state.catalogError).toBeUndefined()
+    expect(state.modelChoice).toBeUndefined()
+  })
+
+  it('sends the chosen model on analysis and export, and still never the provider', async () => {
+    const { rpc, controller } = await harness()
+    expect(controller.selectModel('test-model-pro')).toBe(true)
+
+    await controller.analyze('分析')
+    await controller.exportReport()
+
+    const analyze = rpc.calls.find(call => call.endpoint === 'memo/analyze')
+    expect(analyze?.request.model).toBe('test-model-pro')
+    // Only the model is chosen. The route stays the host's decision, so the
+    // browser still cannot send a provider a deployment never registered.
+    expect(analyze?.request.provider).toBeUndefined()
+    const report = rpc.calls.find(call => call.endpoint === 'memo/exportReport')
+    expect(report?.request.model).toBe('test-model-pro')
+    expect(report?.request.provider).toBeUndefined()
+  })
+
+  it('records which model produced the analysis', async () => {
+    const { controller } = await harness()
+    controller.selectModel('test-model-pro')
+    await controller.analyze('分析')
+
+    expect(controller.getSnapshot().analysisModel).toBe('test-model-pro')
+    expect(controller.getSnapshot().analysisProvider).toBe('test-provider')
+  })
+
+  it('omits the model again once the choice is cleared', async () => {
+    const { rpc, controller } = await harness()
+    controller.selectModel('test-model-pro')
+    expect(controller.selectModel(undefined)).toBe(true)
+
+    await controller.analyze('分析')
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+    expectNoModelRouteInRequests(rpc.calls)
+  })
+
+  it('remembers the choice with its provider across reloads', async () => {
+    const storage = fakeStorage()
+    const first = await harness({}, storage)
+    first.controller.selectModel('test-model-pro')
+
+    // A second controller over the same storage is what a page reload looks like.
+    const second = await harness({}, storage)
+    expect(second.controller.getSnapshot().modelChoice).toEqual({
+      provider: 'test-provider',
+      model: 'test-model-pro',
+    })
+
+    second.controller.selectModel(undefined)
+    const third = await harness({}, storage)
+    expect(third.controller.getSnapshot().modelChoice).toBeUndefined()
+  })
+
+  it('drops a choice made under a provider the deployment no longer resolves', async () => {
+    // A model id means nothing outside its own provider, so a stale choice must
+    // not silently retarget analysis after the deployment switched providers.
+    const storage = fakeStorage({
+      'dsh-memo:model': JSON.stringify({ provider: 'retired-provider', model: 'test-model-pro' }),
+    })
+    const { rpc, controller } = await harness({}, storage)
+
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+    await controller.analyze('分析')
+    expectNoModelRouteInRequests(rpc.calls)
+  })
+
+  it('refuses to pin a model while no provider is known', async () => {
+    const rpc = createFakeRpc({
+      failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } },
+    })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+
+    expect(controller.selectModel('test-model-pro')).toBe(false)
+    expect(controller.getSnapshot().modelChoice).toBeUndefined()
+  })
+
+  it('stays usable, and says why, when the catalog cannot be read', async () => {
+    const { controller } = await harness({
+      failOn: { listModels: { code: 'not-found', message: 'unhandled endpoint' } },
+    })
+    const state = controller.getSnapshot()
+
+    expect(state.models).toEqual([])
+    expect(state.catalogError).toBeTruthy()
+    // A missing catalog disables a picker; it is not a board error, and the
+    // memos stay on screen.
+    expect(state.status).toBe('ready')
+    expect(state.error).toBeNull()
+  })
+
+  it('distinguishes a provider that advertises nothing from a broken catalog', async () => {
+    const { controller } = await harness({ models: [] })
+    expect(controller.getSnapshot().models).toEqual([])
+    expect(controller.getSnapshot().catalogError).toBeUndefined()
+  })
+})
+
 describe('MemoController lifecycle', () => {
   it('stops notifying subscribers after dispose', async () => {
     const { controller } = await harness()

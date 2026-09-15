@@ -388,6 +388,38 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
               : t('unarchiveQuarter'))
           : null,
       ),
+      // ── Which model answers, and which one could ──
+      //
+      // The list is the host's: a browser cannot enumerate a provider's models,
+      // and hardcoding one is the defect this panel exists to avoid. The
+      // provider itself is never chosen here — only a model inside it — so the
+      // deployment keeps deciding the route.
+      React.createElement('div', { className: 'dsh-memo-model' },
+        React.createElement('span', { className: 'dsh-memo-model-label' }, t('modelLabel')),
+        React.createElement('select', {
+          className: 'dsh-memo-select',
+          value: view.modelChoice?.model ?? '',
+          'aria-label': t('modelLabel'),
+          disabled: view.busy || view.models.length === 0,
+          title: view.catalogError ?? `${view.routeProvider} · ${view.routeModel}`,
+          onChange: (event: React.ChangeEvent<HTMLSelectElement>) => {
+            const next = event.target.value
+            controller.selectModel(next.length === 0 ? undefined : next)
+          },
+        },
+          React.createElement('option', { value: '' },
+            `${t('followDefault')} (${routeSummary(view.routeProvider, view.routeModel, t('noModelRoute'))})`),
+          // A pinned model stays selectable even when the catalog no longer
+          // lists it: DSH's catalog is advisory, so absence is not rejection.
+          ...[...view.models, ...pinnedModel(view)]
+            .map(model => React.createElement('option', { key: model.id, value: model.id },
+              model.name.length > 0 ? `${model.name} (${model.id})` : model.id)),
+        ),
+        view.models.length === 0
+          ? React.createElement('span', { className: 'dsh-memo-model-hint' },
+              view.catalogError === undefined ? t('noModelRoute') : t('modelCatalogEmpty'))
+          : null,
+      ),
     ),
 
     view.analysis !== null
@@ -397,7 +429,13 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           t,
           onToggle: () => toggleResult('analysis'),
           onClose: () => controller.clearAnalysis(),
-        }, React.createElement('pre', { className: 'dsh-memo-pre' }, view.analysis))
+        },
+          // Which model actually answered, so "who wrote this" is never a guess.
+          view.analysisModel.length > 0
+            ? React.createElement('div', { className: 'dsh-memo-analysisModel' },
+                routeSummary(view.analysisProvider, view.analysisModel, view.analysisModel))
+            : null,
+          React.createElement('pre', { className: 'dsh-memo-pre' }, view.analysis))
       : null,
 
     view.report !== null
@@ -679,6 +717,35 @@ function periodKey(period: string): MemoKey {
   if (period === 'month') return 'periodMonth'
   if (period === 'quarter') return 'periodQuarter'
   return 'periodYear'
+}
+
+/**
+ * Render the route the host resolved, for the "follow default" option.
+ * @param provider - the resolved provider route.
+ * @param model - the resolved model id.
+ * @param fallback - text to use when no route is configured.
+ * @returns `provider · model`, or the fallback.
+ */
+function routeSummary(provider: string, model: string, fallback: string): string {
+  if (provider.length === 0 || model.length === 0) return fallback
+  return `${provider} · ${model}`
+}
+
+/**
+ * The pinned model as a catalog entry, when the host's catalog omits it.
+ *
+ * The pinned id has to stay selectable or the control would display the wrong
+ * value. DSH calls its catalog advisory — an unlisted model is not an invalid
+ * one — so absence must not silently drop the user's choice either.
+ *
+ * @param view - the current board state.
+ * @returns one entry to append, or none when the catalog already lists it.
+ */
+function pinnedModel(view: MemoViewState): { id: string; name: string }[] {
+  const choice = view.modelChoice
+  if (choice === undefined) return []
+  if (view.models.some(model => model.id === choice.model)) return []
+  return [{ id: choice.model, name: '' }]
 }
 
 /** Subscribe a component to the controller. */

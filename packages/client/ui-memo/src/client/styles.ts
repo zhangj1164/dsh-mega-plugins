@@ -243,6 +243,40 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-3);
   font-size: 12px;
 }
+.dsh-memo-model {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.dsh-memo-model-label {
+  font-size: 12px;
+  color: var(--dsw-alias-text-3);
+}
+.dsh-memo-select {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  max-width: 260px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-2);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-select:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-select:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
+.dsh-memo-model-hint {
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+.dsh-memo-analysisModel {
+  margin-bottom: 6px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
 .dsh-memo-cardFoot {
   display: flex;
   align-items: center;

@@ -18,7 +18,7 @@ export type MemoKey =
   | 'forceConfirmText' | 'confirm' | 'cancel' | 'confirmDeleteText' | 'dismiss'
   // Analysis
   | 'organize' | 'summarize' | 'analyzeLabel' | 'analyze' | 'exportReport' | 'refresh'
-  | 'analysisResult' | 'reportResult'
+  | 'analysisResult' | 'reportResult' | 'modelLabel' | 'followDefault' | 'noModelRoute' | 'modelCatalogEmpty'
   // Issue editor
   | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
@@ -43,6 +43,10 @@ export const zh: Record<MemoKey, string> = {
   unarchiveQuarter: '取消归档',
   archivedTag: '已归档',
   archivedComposerHint: '该季度已归档，取消归档后才能继续添加或编辑',
+  modelLabel: '模型',
+  followDefault: '跟随默认',
+  noModelRoute: '未配置模型路由',
+  modelCatalogEmpty: '读取不到该 provider 的模型列表，暂时无法切换',
   addPlaceholder: '写一条备忘…',
   addEntry: '添加备忘',
   noEntries: '还没有任何备忘，先在上方添加一条',
@@ -99,6 +103,10 @@ export const en: Record<MemoKey, string> = {
   unarchiveQuarter: 'Unarchive',
   archivedTag: 'Archived',
   archivedComposerHint: 'This quarter is archived. Unarchive it to add or edit memos.',
+  modelLabel: 'Model',
+  followDefault: 'Follow default',
+  noModelRoute: 'No model route configured',
+  modelCatalogEmpty: 'This provider’s models could not be listed, so switching is unavailable',
   addPlaceholder: 'Write a memo…',
   addEntry: 'Add memo',
   noEntries: 'No memos yet — add one above',
