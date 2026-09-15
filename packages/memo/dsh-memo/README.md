@@ -13,6 +13,7 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | GitHub repository URL passed to the github-issue service for report generation. |
 | `provider` | unset | Registered DSH provider route for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
 | `model` | unset | Model id for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
+| `logAnalysisPlugins` | `['memo', 'github-issue']` | Plugin ids `analyzeLogs` covers, in read order. Telemetry exposes no way to enumerate plugins, so the deployment names the set; the default is the suite these bundles install together. |
 
 ## Model route resolution
 
@@ -56,12 +57,16 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
 | `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
-| `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. Passes the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
+| `analyzeLogs(request)` | Reads telemetry failures for every configured plugin and generates one GitHub issue report over all of them via the github-issue service. Passes the analysis window — the union of the per-plugin windows — and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
+
+### What one log analysis covers
+
+One report, not one per plugin: the packages of a suite are installed, broken, and fixed together, and a report that covers only `memo` cannot mention the `github-issue` failure that broke this panel's own issue editor — which is exactly the failure that went unseen. Totals add up across plugins, the window is the union of the per-plugin windows, and failure groups arrive together sorted by failure count; each group already carries its plugin's prefix in `featureCodeRef`, so groups from different plugins cannot collide. The request may name its own `pluginIds`; a deployment trims the default with `Config.logAnalysisPlugins`. An empty set is refused with `no-plugins-configured` rather than reported as an empty suite, because a report that read nothing and a suite that recorded nothing are not the same claim.
 
 ## Quarter archive
 

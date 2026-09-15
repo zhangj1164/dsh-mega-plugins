@@ -21,7 +21,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
-import type { TelemetryFailureGroup } from 'dsh-telemetry/types'
+import type { TelemetryAnalysis, TelemetryFailureGroup } from 'dsh-telemetry/types'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import {
   isoWeekParts,
@@ -113,13 +113,27 @@ export interface Config {
    * deployment's `agentDefaultModel` selection.
    */
   readonly model?: string
+  /**
+   * The plugin ids the log analysis covers, in the order it reads them.
+   *
+   * A list rather than one id because this repository ships a suite: a report
+   * that covers only `memo` cannot mention a `github-issue` failure, and the
+   * package that broke this panel's issue editor was `github-issue`. Telemetry
+   * discovers no plugins — there is no enumeration API — so the deployment names
+   * the set, and the default is the suite these bundles install together.
+   */
+  readonly logAnalysisPlugins: readonly string[]
 }
+
+/** The plugin ids log analysis covers unless the deployment configures others. */
+const DEFAULT_LOG_ANALYSIS_PLUGINS: readonly string[] = Object.freeze(['memo', 'github-issue'])
 
 /** Schemastery configuration for the memo service. */
 export const Config: s<Config> = s.object({
   repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
   provider: s.string(),
   model: s.string(),
+  logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -151,6 +165,42 @@ function resolveDshHome(env: NodeJS.ProcessEnv = process.env, home: string = hom
 /** Resolve the memo ledger file path under $DSH_HOME/memo/. */
 function ledgerFile(): string {
   return join(resolveDshHome(), 'memo', 'ledger.json')
+}
+
+/**
+ * Merge one telemetry analysis per plugin into a single analysis over the set.
+ *
+ * Totals add up, the window is the union of the per-plugin windows, and the
+ * failure groups are concatenated — each already carries its plugin's prefix in
+ * `featureCodeRef`, so groups from different plugins cannot collide. Groups are
+ * ordered by failure count so the report leads with what failed most, which is
+ * the order a single-plugin analysis already arrives in.
+ *
+ * @param pluginIds - the plugin ids that were analyzed, in read order.
+ * @param analyses - one analysis per plugin, in the same order.
+ * @returns the merged analysis over every plugin.
+ */
+function mergeAnalyses(
+  pluginIds: readonly string[],
+  analyses: readonly TelemetryAnalysis[],
+): TelemetryAnalysis {
+  const windows = analyses
+    .map(analysis => analysis.window)
+    .filter((window): window is { firstEventAt: number; lastEventAt: number } => window !== undefined)
+  return {
+    pluginId: pluginIds.join(', '),
+    totalEvents: analyses.reduce((total, analysis) => total + analysis.totalEvents, 0),
+    totalFailures: analyses.reduce((total, analysis) => total + analysis.totalFailures, 0),
+    ...(windows.length === 0 ? {} : {
+      window: {
+        firstEventAt: Math.min(...windows.map(window => window.firstEventAt)),
+        lastEventAt: Math.max(...windows.map(window => window.lastEventAt)),
+      },
+    }),
+    failureGroups: analyses
+      .flatMap(analysis => analysis.failureGroups)
+      .sort((a, b) => b.count - a.count),
+  }
 }
 
 /** Read the persistent ledger from disk (returns an empty ledger when absent). */
@@ -249,6 +299,8 @@ export class MemoService extends TypertRemoteService {
   private readonly provider?: string
   /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
   private readonly model?: string
+  /** Plugin ids log analysis covers, in the order they are read. */
+  private readonly logAnalysisPlugins: readonly string[]
   private table?: KvTable<string, MemoWeekRow>
   private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
@@ -261,6 +313,7 @@ export class MemoService extends TypertRemoteService {
     this.repoUrl = config.repoUrl
     this.provider = config.provider
     this.model = config.model
+    this.logAnalysisPlugins = Object.freeze([...config.logAnalysisPlugins])
   }
 
   /** Open and own the memo domain and the archive domain beside it. */
@@ -767,10 +820,15 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Analyze telemetry logs for this plugin and generate a GitHub issue report.
-   * Calls the telemetry service for the failure analysis, then the github-issue
-   * service for the report and prefill URL.
-   * @param request - plugin id, repo URL, and model route.
+   * Analyze telemetry logs for this deployment's plugins and generate one
+   * GitHub issue report over all of them.
+   *
+   * One report rather than one per plugin: the packages of a suite are
+   * installed, broken, and fixed together, and a report that covers only `memo`
+   * cannot mention the `github-issue` failure that broke this panel's own issue
+   * editor — which is exactly the failure that went unseen.
+   *
+   * @param request - plugin ids, repo URL, and model route.
    * @returns the issue report, prefill URL, and analysis summary.
    */
   @Remote('analyzeLogs')
@@ -783,11 +841,17 @@ export class MemoService extends TypertRemoteService {
     if (githubIssue === undefined) {
       return this.failure({ code: 'github-issue-failure', message: 'the github-issue service is not available' })
     }
-    const pluginId = request.pluginId ?? TELEMETRY_PLUGIN_ID
-    const analysis = telemetry.analyzeForPlugin(pluginId)
+    const pluginIds = request.pluginIds ?? this.logAnalysisPlugins
+    if (pluginIds.length === 0) {
+      return this.failure({
+        code: 'no-plugins-configured',
+        message: 'no plugin is configured for log analysis; set logAnalysisPlugins or pass pluginIds',
+      })
+    }
+    const analysis = mergeAnalyses(pluginIds, pluginIds.map(pluginId => telemetry.analyzeForPlugin(pluginId)))
     const route = this.resolveRoute(request)
     const reportResult = await githubIssue.generateReport({
-      pluginId,
+      pluginIds: [...pluginIds],
       totalEvents: analysis.totalEvents,
       totalFailures: analysis.totalFailures,
       // The window and the per-group timing are what let the report say whether
@@ -819,6 +883,7 @@ export class MemoService extends TypertRemoteService {
       report: reportResult.value,
       issueUrl: urlResult.value,
       analysis: Object.freeze({
+        pluginIds: Object.freeze([...pluginIds]),
         totalEvents: analysis.totalEvents,
         totalFailures: analysis.totalFailures,
         ...(analysis.window === undefined ? {} : { window: analysis.window }),
@@ -832,7 +897,7 @@ export class MemoService extends TypertRemoteService {
         }))),
       }),
     })
-    this.track('analyzeLogs', 'success', { ...this.routeFacts(route), pluginId })
+    this.track('analyzeLogs', 'success', { ...this.routeFacts(route), pluginIds: [...pluginIds] })
     return { ok: true, value: result }
   }
 

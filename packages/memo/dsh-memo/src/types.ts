@@ -194,10 +194,13 @@ export type MemoReadExternalPathResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
-/** Request to analyze telemetry logs for this plugin. */
+/** Request to analyze telemetry logs for this deployment's plugins. */
 export interface MemoAnalyzeLogsRequest {
-  /** The plugin id whose logs to analyze (defaults to `'memo'`). */
-  readonly pluginId?: string
+  /**
+   * The plugin ids whose logs to analyze, in read order. Defaults to the
+   * service `Config`'s `logAnalysisPlugins`, which names the suite.
+   */
+  readonly pluginIds?: readonly string[]
   /** GitHub repository URL for the prefill (defaults to the service config). */
   readonly repoUrl?: string
   /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
@@ -229,13 +232,15 @@ export interface MemoLogAnalysisGroup {
 
 /** The telemetry analysis summary that produced the report. */
 export interface MemoLogAnalysisSummary {
-  /** Total events recorded for the analyzed plugin. */
+  /** The plugin ids this analysis covered, in the order they were read. */
+  readonly pluginIds: readonly string[]
+  /** Total events recorded for the analyzed plugins. */
   readonly totalEvents: number
-  /** Total failure events recorded for the analyzed plugin. */
+  /** Total failure events recorded for the analyzed plugins. */
   readonly totalFailures: number
-  /** Time range the analysis read, absent when the plugin has no events. */
+  /** Time range the analysis read, absent when none of the plugins has events. */
   readonly window?: { readonly firstEventAt: number; readonly lastEventAt: number }
-  /** Failure events grouped by feature-code anchor. */
+  /** Failure events grouped by feature-code anchor, most failures first. */
   readonly failureGroups: readonly MemoLogAnalysisGroup[]
 }
 
@@ -259,6 +264,7 @@ export type MemoMemoFailure =
   | { readonly code: 'invalid-quarter-label'; readonly message: string; readonly label: string }
   | { readonly code: 'quarter-archived'; readonly message: string; readonly weekId: string }
   | { readonly code: 'no-entries'; readonly message: string }
+  | { readonly code: 'no-plugins-configured'; readonly message: string }
   | {
     readonly code: 'llm-failure'
     /** DSH provider-neutral machine-routing code (`NO_ADAPTER`, `AUTH`, `EMPTY_RESPONSE`, …). */

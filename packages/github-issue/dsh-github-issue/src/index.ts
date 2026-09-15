@@ -259,8 +259,8 @@ export class GithubIssueService extends TypertRemoteService {
     const userPrompt = buildReportUserPrompt(request)
     const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, REPORT_SYSTEM_PROMPT, userPrompt)
     if (!result.ok) return this.llmFailure('generateReport', route, result)
-    const title = extractTitle(result.text) ?? `Telemetry failures in ${request.pluginId}`
-    this.track('generateReport', 'success', { pluginId: request.pluginId, ...this.routeFacts(route) })
+    const title = extractTitle(result.text) ?? `Telemetry failures in ${request.pluginIds.join(', ')}`
+    this.track('generateReport', 'success', { pluginIds: [...request.pluginIds], ...this.routeFacts(route) })
     return {
       ok: true,
       value: Object.freeze({ title, body: result.text, labels: Object.freeze(['bug', 'telemetry']) }),
@@ -455,7 +455,7 @@ function buildReportUserPrompt(request: GithubIssueGenerateReportRequest): strin
     ? `Analysis window: ${NOT_RECORDED}`
     : `Analysis window: ${new Date(request.window.firstEventAt).toISOString()} .. ${new Date(request.window.lastEventAt).toISOString()}`
   return [
-    `Plugin: ${request.pluginId}`,
+    `Plugins: ${request.pluginIds.length === 0 ? NOT_RECORDED : request.pluginIds.join(', ')}`,
     window,
     `Total events: ${request.totalEvents}`,
     `Total failures: ${request.totalFailures}`,

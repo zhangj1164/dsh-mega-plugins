@@ -234,7 +234,7 @@ describe('GithubIssueService optimizeIssue', () => {
   it('names a missing route on report generation too', async () => {
     const { service, llm } = await harness()
     const result = await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 1,
       totalFailures: 1,
       failureGroups: [],
@@ -252,7 +252,7 @@ describe('GithubIssueService generateReport', () => {
       llmText: '## memo \u9065\u6d4b\u5931\u8d25\n\n<details><summary>\u8bca\u65ad\u62a5\u544a</summary>\n\nTimeout\n\n</details>',
     })
     const result = await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 10,
       totalFailures: 3,
       failureGroups: [
@@ -273,7 +273,7 @@ describe('GithubIssueService generateReport', () => {
   it('puts the window, route, and recency of each group into the prompt', async () => {
     const { service, prompts } = await harness()
     const result = await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 458,
       totalFailures: 5,
       window: { firstEventAt: Date.parse('2026-09-01T07:22:00Z'), lastEventAt: Date.parse('2026-09-15T08:19:00Z') },
@@ -292,6 +292,9 @@ describe('GithubIssueService generateReport', () => {
     expect(result.ok).toBe(true)
 
     const { user } = prompts[0]!
+    // The plugins are named in the prompt: a report that covers a suite has to
+    // say which packages it read, or the reader cannot tell what was omitted.
+    expect(user).toContain('Plugins: memo')
     expect(user).toContain('Analysis window: 2026-09-01T07:22:00.000Z .. 2026-09-15T08:19:00.000Z')
     expect(user).toContain('route: deepseek-cu / deepseek-flash (status 429)')
     expect(user).toContain('lastFailureAt: 2026-09-11T03:04:00.000Z')
@@ -302,7 +305,7 @@ describe('GithubIssueService generateReport', () => {
     const { service, prompts } = await harness()
     // The shape of every failure recorded before the route metadata existed.
     await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 458,
       totalFailures: 5,
       failureGroups: [{ featureCodeRef: 'memo:analyze', count: 3 }],
@@ -320,7 +323,7 @@ describe('GithubIssueService generateReport', () => {
   it('tells the model which facts it may not invent, and how to read recency', async () => {
     const { service, prompts } = await harness()
     await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 1,
       totalFailures: 0,
       failureGroups: [],
@@ -406,11 +409,11 @@ describe('GithubIssueService telemetry', () => {
     })
   })
 
-  it('records which plugin a generated report analyzed', async () => {
+  it('records which plugins a generated report analyzed', async () => {
     const { service, telemetry } = await harness({ provider: 'test-provider', model: 'test-model' })
 
     const result = await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo', 'github-issue'],
       totalEvents: 4,
       totalFailures: 1,
       failureGroups: [],
@@ -420,7 +423,7 @@ describe('GithubIssueService telemetry', () => {
     expect(eventFor(telemetry!.events, 'generateReport')).toMatchObject({
       pluginId: 'github-issue',
       result: 'success',
-      metadata: { pluginId: 'memo', provider: 'test-provider', model: 'test-model' },
+      metadata: { pluginIds: ['memo', 'github-issue'], provider: 'test-provider', model: 'test-model' },
     })
   })
 
@@ -433,7 +436,7 @@ describe('GithubIssueService telemetry', () => {
     })
 
     const result = await service.generateReport({
-      pluginId: 'memo',
+      pluginIds: ['memo'],
       totalEvents: 4,
       totalFailures: 1,
       failureGroups: [],

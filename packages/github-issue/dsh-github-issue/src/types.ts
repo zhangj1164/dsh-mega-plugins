@@ -12,11 +12,17 @@
 
 /** Input for generating a GitHub issue report from telemetry analysis. */
 export interface GithubIssueGenerateReportRequest {
-  /** The plugin id whose failures were analyzed. */
-  readonly pluginId: string
-  /** Total events recorded for the plugin. */
+  /**
+   * The plugin ids whose failures were analyzed, in the order they were read.
+   *
+   * A list rather than one id because a suite is what a reader cares about: a
+   * report covering only `memo` cannot mention a `github-issue` failure, and the
+   * packages of one deployment fail and get fixed together.
+   */
+  readonly pluginIds: readonly string[]
+  /** Total events recorded for the analyzed plugins. */
   readonly totalEvents: number
-  /** Total failure events recorded for the plugin. */
+  /** Total failure events recorded for the analyzed plugins. */
   readonly totalFailures: number
   /** Failure groups from the telemetry analysis, joined on feature-code anchor. */
   readonly failureGroups: readonly GithubIssueFailureGroupInput[]

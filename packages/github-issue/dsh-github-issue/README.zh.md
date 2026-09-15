@@ -20,7 +20,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 | 方法 | 行为 |
 |---|---|
-| `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。请求携带分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数；这些字段都可选，缺省时会以 `not recorded` 传给模型，而不是省略。 |
+| `generateReport(request)` | 使用内置结构化提示词调用模型，从遥测失败分析生成统一的 GitHub issue 报告。返回包含标题、正文和标签的 `GithubIssueReport`。请求用 `pluginIds` 说明它覆盖哪些插件——一份报告覆盖整个套件——并携带分析时间窗，以及每组的路由、最近一次失败时间和之后的尝试次数；每组字段都可选，缺省时会以 `not recorded` 传给模型，而不是省略。 |
 | `prefilledIssueUrl(request)` | 从报告构建预填 GitHub issue 创建 URL。校验仓库 URL；失败时返回 `invalid-url`。当拼装出的 URL 超过 `maxPrefillUrlLength` 时缩短正文——标题与标签占用同一份额度，百分号编码还会放大它，因此判定基于 URL 而不是仅基于正文长度。 |
 | `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，无路由可解析时返回 `route-missing`，模型调用失败返回 `llm-failure`。 |
 
