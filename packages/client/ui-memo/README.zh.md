@@ -46,7 +46,7 @@
 | `analyze(type)` | memo | 对所选周期运行 AI 分析（梳理 / 总结 / 分析）。 |
 | `exportReport()` | memo | 为所选周期导出 Markdown 报告。 |
 | `analyzeLogs()` | memo | 读取遥测失败记录并生成带预填 URL 的 GitHub issue 报告。 |
-| `optimizeIssue(description)` | githubIssue | 将自然语言描述优化为结构化报告。 |
+| `optimizeIssue(description)` | githubIssue | 将自然语言描述优化为结构化报告。仅在用户显式选择了模型时才发送路由：服务自身会解析路由，因此面板无需发布路由。 |
 | `archiveCurrentQuarter()` | memo | 归档看板当前所在的季度。在其他维度下为空操作。 |
 | `unarchiveQuarter(label)` | memo | 将某季度移出归档，恢复其卡片可编辑。 |
 | `selectModel(choice?)` | — | 为下一次 AI 调用固定一个宿主上报过的 provider 与模型；不带参数调用则清除该固定。 |

@@ -874,6 +874,14 @@ export class MemoController {
 
   /**
    * Optimize a natural-language description into a GitHub issue report.
+   *
+   * No route is sent unless the user chose one. `dsh-github-issue` resolves the
+   * route the same way the memo service does — caller, then its `Config`, then
+   * the deployment's `agentDefaultModel` — so the browser stays out of route
+   * resolution entirely. The original defect this panel was built around was a
+   * browser-supplied route no deployment registered, which surfaced as "the
+   * model produced no output"; omitting the route here is deliberate.
+   *
    * @param description - the raw description.
    */
   async optimizeIssue(description: string): Promise<void> {
@@ -881,7 +889,11 @@ export class MemoController {
     if (!trimmed) return
     this.set({ busy: true, error: null, issueReport: null })
     try {
-      const result = await callGithubIssue<GithubIssueReport>(this.rpc, 'optimizeIssue', { description: trimmed })
+      const override = this.modelOverride()
+      const result = await callGithubIssue<GithubIssueReport>(this.rpc, 'optimizeIssue', {
+        description: trimmed,
+        ...(override === undefined ? {} : { provider: override.provider, model: override.model }),
+      })
       if (result.ok) {
         this.set({ busy: false, issueReport: result.value })
       } else {

@@ -157,6 +157,71 @@ describe('GithubIssueService optimizeIssue', () => {
     if (result.ok) return
     expect(result.error.code).toBe('llm-failure')
   })
+
+  it('resolves the route from the deployment default when the caller sends none', async () => {
+    // The defect this guards: the browser sends only a description, and a
+    // service that resolves nothing calls the model with no adapter, which
+    // surfaces as "the model produced no output" — a model-shaped message for a
+    // routing problem. The whole panel was unusable this way.
+    const { service, llm } = await harness({ defaultRoute: { provider: 'default-provider', model: 'default-model' } })
+    const result = await service.optimizeIssue({ description: 'the optimize button reports no output' })
+    expect(result.ok).toBe(true)
+    expect(llm.requests[0]).toMatchObject({ provider: 'default-provider', model: 'default-model' })
+  })
+
+  it('prefers the callers route over Config and the deployment default', async () => {
+    const { service, llm } = await harness({
+      provider: 'config-provider',
+      model: 'config-model',
+      defaultRoute: { provider: 'default-provider', model: 'default-model' },
+    })
+    await service.optimizeIssue({ description: 'explicit', provider: 'caller-provider', model: 'caller-model' })
+    expect(llm.requests[0]).toMatchObject({ provider: 'caller-provider', model: 'caller-model' })
+  })
+
+  it('prefers Config over the deployment default', async () => {
+    const { service, llm } = await harness({
+      provider: 'config-provider',
+      model: 'config-model',
+      defaultRoute: { provider: 'default-provider', model: 'default-model' },
+    })
+    await service.optimizeIssue({ description: 'configured' })
+    expect(llm.requests[0]).toMatchObject({ provider: 'config-provider', model: 'config-model' })
+  })
+
+  it('treats a blank route as absent instead of calling the model with it', async () => {
+    // Blank is the shape an omitted field takes, and it must not shadow the
+    // fallback: the deployment default still answers.
+    const { service, llm } = await harness({ defaultRoute: { provider: 'default-provider', model: 'default-model' } })
+    const result = await service.optimizeIssue({ description: 'blank', provider: '', model: '   ' })
+    expect(result.ok).toBe(true)
+    expect(llm.requests[0]).toMatchObject({ provider: 'default-provider', model: 'default-model' })
+  })
+
+  it('names a missing route instead of attempting a call without one', async () => {
+    const { service, llm } = await harness()
+    const result = await service.optimizeIssue({ description: 'nothing resolves a route' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('route-missing')
+    // No model call is attempted: it could not have succeeded, and attempting it
+    // produces the misleading "no output" that hides the real cause.
+    expect(llm.requests).toHaveLength(0)
+  })
+
+  it('names a missing route on report generation too', async () => {
+    const { service, llm } = await harness()
+    const result = await service.generateReport({
+      pluginId: 'memo',
+      totalEvents: 1,
+      totalFailures: 1,
+      failureGroups: [],
+    })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('route-missing')
+    expect(llm.requests).toHaveLength(0)
+  })
 })
 
 describe('GithubIssueService generateReport', () => {
