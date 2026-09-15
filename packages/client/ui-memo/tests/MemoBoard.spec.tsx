@@ -710,6 +710,29 @@ describe('MemoBoard issue editor', () => {
     fireEvent.click(screen.getByRole('button', { name: zh.openPrefilledIssue }))
     expect(openUrl).toHaveBeenCalledWith('https://github.test/prefill')
   })
+
+  it('offers the untruncated log-analysis body on the card the note points to', async () => {
+    // The prefill URL shortens the body and appends a note promising the full
+    // one is available. That promise is kept here or nowhere: the issue
+    // editor's copy button holds a *different* report, and is not even on
+    // screen unless the editor is open.
+    const body = '## telemetry\n\n' + 'x'.repeat(4000)
+    const { copyText } = await renderBoard({
+      logAnalysis: { report: issueReport({ title: 'telemetry', body }), issueUrl: 'https://github.test/prefill' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: zh.analyzeLogs }))
+    await waitFor(() => { expect(screen.getByText(zh.logAnalysisTitle)).toBeTruthy() })
+
+    const card = screen.getByText(zh.logAnalysisTitle).closest('section')!
+    const copy = within(card).getByRole('button', { name: zh.copyIssueBody })
+    expect(screen.queryByText(zh.issueEditorTitle)).toBeNull()
+    fireEvent.click(copy)
+
+    await waitFor(() => { expect(copyText).toHaveBeenCalledOnce() })
+    // The whole body, including the part the URL had to drop.
+    expect(copyText).toHaveBeenCalledWith(body)
+    await waitFor(() => { expect(within(card).getByText(zh.copied)).toBeTruthy() })
+  })
 })
 
 describe('MemoBoard initial frame', () => {

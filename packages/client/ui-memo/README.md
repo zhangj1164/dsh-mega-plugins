@@ -68,7 +68,7 @@ The switcher rides on the analysis action as a split button: the left half runs 
 - **Report export** for the selected period
 - **Log analysis** into a pre-filled GitHub issue, triggered from the header because its output is an issue rather than a report about memos
 - **Issue editor**: natural-language input, LLM optimization, and a GitHub open action built from the configured repository
-- **Copy full body**: copies the untruncated report, so a body shortened to fit GitHub's URL limit is still available to paste
+- **Copy full body**: each card whose pre-filled URL may have shortened a body offers the untruncated text next to that URL, so the shortening note's promise is kept on the card that carries the note — the log-analysis card copies its own report body, the issue editor its own report
 - **Result cards** for analysis, report, and log analysis: each carries a collapse toggle and a close icon in its own top-right corner. Collapsing is presentation state in the component; closing clears that result, since results are view state rather than stored data.
 - **Add Issue, Log Analysis, Close** as icon-and-label buttons in the board header, Close rightmost
 - **Quarter archive**: 归档本季度 in the tools row (only on the quarter dimension, the one place a quarter label is unambiguous). An archived quarter's cards go read-only in **every** dimension — 编辑, 复制 and 删除 are withheld, since all three would change a quarter the user declared closed — while 查看 keeps working. The edit slot becomes 取消归档, which releases the whole quarter because that is the unit that was archived. Archived cards are muted with dashed borders and carry an 已归档 tag.

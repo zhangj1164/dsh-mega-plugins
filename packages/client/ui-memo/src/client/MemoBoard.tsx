@@ -43,6 +43,13 @@ export interface MemoBoardProps {
  */
 const ISSUE_BODY_COPY_KEY = 'issue-body'
 
+/**
+ * Sentinel key for the log-analysis body copy confirmation. Distinct from
+ * {@link ISSUE_BODY_COPY_KEY} because the two copy different reports, and the
+ * confirmation must not appear on the button the user did not press.
+ */
+const LOG_BODY_COPY_KEY = 'log-body'
+
 /** The three analysis modes, in display order. */
 const ANALYSIS_TYPES: readonly { type: MemoAnalysisType; key: MemoKey }[] = [
   { type: '梳理', key: 'organize' },
@@ -198,6 +205,30 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
     }
     setCopied(ISSUE_BODY_COPY_KEY)
     setTimeout(() => setCopied(current => (current === ISSUE_BODY_COPY_KEY ? null : current)), 2000)
+  }
+
+  /**
+   * Copy the log-analysis body the pre-filled URL had to shorten.
+   *
+   * The URL carries the whole title but only as much body as the length limit
+   * allowed, and its truncation note promises a way to get the rest. That
+   * promise has to be kept where the note appears: this card, whose own report
+   * is what was shortened — not the issue editor's, which is a different
+   * report. Body only, because the body already opens with the title as its
+   * first heading, so nothing is lost by leaving the title out.
+   */
+  const copyLogAnalysisBody = async (): Promise<void> => {
+    const analysis = view.logAnalysis
+    if (analysis === null) return
+    try {
+      await copyText(analysis.report.body)
+    } catch {
+      // A blocked or absent clipboard is not worth failing the board over: the
+      // report stays on screen for manual selection.
+      return
+    }
+    setCopied(LOG_BODY_COPY_KEY)
+    setTimeout(() => setCopied(current => (current === LOG_BODY_COPY_KEY ? null : current)), 2000)
   }
 
   /** Show or hide one result card's body. */
@@ -431,10 +462,17 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           onClose: () => controller.clearLogAnalysis(),
         },
         React.createElement('pre', { className: 'dsh-memo-pre' }, view.logAnalysis.report.body),
-        React.createElement('button', {
-          type: 'button', className: 'dsh-memo-btn',
-          onClick: () => openUrl(view.logAnalysis!.issueUrl),
-        }, t('openPrefilledIssue')))
+        React.createElement('div', { className: 'dsh-memo-actions' },
+          React.createElement('button', {
+            type: 'button', className: 'dsh-memo-btn',
+            onClick: () => openUrl(view.logAnalysis!.issueUrl),
+          }, t('openPrefilledIssue')),
+          // The URL may have shortened this very body, so the way to get the
+          // rest lives next to it rather than in the issue editor's report.
+          React.createElement('button', {
+            type: 'button', className: 'dsh-memo-btn',
+            onClick: () => void copyLogAnalysisBody(),
+          }, copied === LOG_BODY_COPY_KEY ? t('copied') : t('copyIssueBody'))))
       : null,
 
     // ── Issue editor ──
