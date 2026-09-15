@@ -45,11 +45,21 @@ Only strings are rewritten. Non-string leaves keep their value and their type, s
 | `track(input)` | Records a success event (fire-and-forget KV write). |
 | `trackError(input)` | Records a failure event with `category: 'error'`, `result: 'failure'`, and the error record carrying a `featureCodeRef`. |
 | `listEvents(query)` | Synchronous read of matching events, newest first. Filters by `pluginId`, `category`, `result`, and timestamp range. |
-| `analyzeForPlugin(pluginId)` | Groups all failure events for one plugin by `featureCodeRef`, returning total counts and per-group error codes. |
+| `analyzeForPlugin(pluginId)` | Groups all failure events for one plugin by `featureCodeRef`, returning total counts, the window it read, and per-group error codes. |
 
 ## Telemetry event model
 
 Every event carries a `pluginId`, `action`, `category` (`user-action` / `system` / `error`), and `result` (`success` / `failure`). Error events carry a `TelemetryErrorRecord` with a `code`, `message`, and the agreed `featureCodeRef` — a stable code-section anchor (e.g. `"memo:analyze"`) that the log-analysis step correlates against the plugin's feature code.
+
+## Analysis facts
+
+`analyzeForPlugin` reports more than a total, because a total cannot be told apart from a current problem: the same count describes an incident from last week and one from a minute ago.
+
+- **`window`** — the time range the analysis read, absent when the plugin has no events. Only that plugin's events bound it.
+- **`attemptsAfterLastFailure`** (per group) — attempts of the group's action(s) recorded after its most recent failure. Counted by action rather than by total events: a plugin's unrelated reads would otherwise inflate the number and present an old failure as if it sat in a busy period.
+- **`route`** (per group) — the provider and model the most recent failure ran on, when that event recorded them. Distinguishing "not recorded" from "no route" matters: failures recorded before the route metadata existed carry neither.
+
+`route` is extracted by allowlist (`provider`, `model`, `status`) rather than by copying the event's `metadata`. Metadata is an open map a plugin fills with anything it likes, and reports built from this analysis leave the machine, so only these named keys cross the boundary.
 
 ## Requirement mapping
 
