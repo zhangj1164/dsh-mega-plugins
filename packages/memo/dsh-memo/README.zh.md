@@ -39,6 +39,8 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 
 ## Remote 方法
 
+每个方法都声明且只声明一个名为 `request` 的形参，即使它本身不携带任何输入。协议按**名字**绑定参数——客户端发送 `{ args: { request } }`——因此一个完全不声明形参的方法，其调用会在进入方法体之前就被拒绝。这不是外观差异：`listArchivedQuarters` 曾经不声明形参，宿主成功归档了季度，而客户端读回的结果始终为空，于是归档看起来什么也没做。现在 `tests/remote-signatures.spec.ts` 会让任何违反该规则的方法失败。
+
 | 方法 | 行为 |
 |---|---|
 | `getOrCreateCurrentWeek(request)` | 创建或返回当前周。`provider`/`model` 为可选覆盖项。 |

@@ -56,6 +56,7 @@ import type {
   MemoGetWeekRequest,
   MemoGetWeekResult,
   MemoListArchivedQuartersResult,
+  MemoListArchivedQuartersRequest,
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
@@ -330,10 +331,13 @@ export class MemoService extends TypertRemoteService {
    * calendar, so a client decides read-only cards by building a `Set` and never
    * by re-deriving which weeks a quarter owns.
    *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
    * @returns the archived quarters, oldest first.
    */
   @Remote('listArchivedQuarters')
-  listArchivedQuarters(): MemoListArchivedQuartersResult {
+  listArchivedQuarters(request: MemoListArchivedQuartersRequest): MemoListArchivedQuartersResult {
+    void request
     const rows = [...this.requireArchiveTable().entries()]
       .map(([label, row]) => ({ label, archivedAt: row.archivedAt }))
       .sort((a, b) => a.label.localeCompare(b.label))

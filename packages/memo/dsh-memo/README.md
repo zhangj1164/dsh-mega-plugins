@@ -39,6 +39,8 @@ When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_
 
 ## Remote methods
 
+Every method declares exactly one parameter named `request`, even when it carries no input. The protocol binds arguments **by name** — the client sends `{ args: { request } }` — so a method declared with no parameter at all has its call rejected before the body runs. That is not a cosmetic difference: `listArchivedQuarters` once declared none, the host archived quarters successfully while the client's read of them returned nothing, and archiving looked like it did nothing at all. `tests/remote-signatures.spec.ts` now fails on any method that breaks the rule.
+
 | Method | Behavior |
 |---|---|
 | `getOrCreateCurrentWeek(request)` | Creates or returns the current week. `provider`/`model` are optional overrides. |
