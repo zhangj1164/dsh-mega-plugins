@@ -39,6 +39,8 @@ When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_
 
 `EMPTY_RESPONSE` means the model genuinely returned no text; `NO_ADAPTER` means the configured provider is not registered in this deployment. Those two used to be indistinguishable.
 
+The telemetry event behind a failure carries the same route as metadata, and so does the event behind a call that **worked**: `analyze`, `exportReport`, `listModels`, and `analyzeLogs` all record `provider` and `model` on success. A route that resolved to nothing is recorded as an empty string, which is how an event that predates this — one with no `provider` key at all — stays distinguishable from one where nothing resolved. Recording only failures would answer "which route broke" while leaving "which route served the calls that worked, and has it changed since?" unanswerable, and the answer is in scope at success time anyway.
+
 ## Remote methods
 
 Every method declares exactly one parameter named `request`, even when it carries no input. The protocol binds arguments **by name** — the client sends `{ args: { request } }` — so a method declared with no parameter at all has its call rejected before the body runs. That is not a cosmetic difference: `listArchivedQuarters` once declared none, the host archived quarters successfully while the client's read of them returned nothing, and archiving looked like it did nothing at all. `tests/remote-signatures.spec.ts` now fails on any method that breaks the rule.

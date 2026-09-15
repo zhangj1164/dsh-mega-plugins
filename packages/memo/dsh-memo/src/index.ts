@@ -643,7 +643,7 @@ export class MemoService extends TypertRemoteService {
     const route = this.resolveRoute({})
     const llm = this.ctx.get('llm') as LlmModelCatalog | undefined
     if (llm === undefined) {
-      this.track('listModels', 'failure', { reason: 'llm-unavailable' })
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'llm-unavailable' })
       return { ok: true, value: { ...route, providers: [], catalogError: 'the llm service is not mounted' } }
     }
     let registered: readonly { readonly id: string; readonly name: string }[]
@@ -651,11 +651,11 @@ export class MemoService extends TypertRemoteService {
       registered = llm.listProviders()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      this.track('listModels', 'failure', { reason: 'providers-threw' })
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'providers-threw' })
       return { ok: true, value: { ...route, providers: [], catalogError: message } }
     }
     if (registered.length === 0) {
-      this.track('listModels', 'failure', { reason: 'no-provider' })
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'no-provider' })
       return { ok: true, value: { ...route, providers: [], catalogError: 'no provider route is registered' } }
     }
     // Fetched together rather than one after another: an unreachable provider
@@ -672,7 +672,7 @@ export class MemoService extends TypertRemoteService {
       }
     }))
     const count = providers.reduce((total, provider) => total + provider.models.length, 0)
-    this.track('listModels', 'success', { providers: providers.length, count })
+    this.track('listModels', 'success', { ...this.routeFacts(route), providers: providers.length, count })
     return { ok: true, value: { ...route, providers: Object.freeze(providers) } }
   }
 
@@ -706,7 +706,7 @@ export class MemoService extends TypertRemoteService {
       modelProvider: route.provider,
       modelName: route.model,
     }
-    this.track('analyze', 'success', { period: request.period, periodLabel: request.periodLabel, analysisType: request.analysisType })
+    this.track('analyze', 'success', { ...this.routeFacts(route), period: request.period, periodLabel: request.periodLabel, analysisType: request.analysisType })
     appendToLedger({
       id: randomUUID(),
       period: request.period,
@@ -736,7 +736,7 @@ export class MemoService extends TypertRemoteService {
     if (!result.ok) {
       return this.llmFailure('exportReport', route, result)
     }
-    this.track('exportReport', 'success', { period: request.period, periodLabel: request.periodLabel })
+    this.track('exportReport', 'success', { ...this.routeFacts(route), period: request.period, periodLabel: request.periodLabel })
     return { ok: true, value: result.text }
   }
 
@@ -832,7 +832,7 @@ export class MemoService extends TypertRemoteService {
         }))),
       }),
     })
-    this.track('analyzeLogs', 'success', { pluginId })
+    this.track('analyzeLogs', 'success', { ...this.routeFacts(route), pluginId })
     return { ok: true, value: result }
   }
 
@@ -934,6 +934,27 @@ export class MemoService extends TypertRemoteService {
       this.trackError('listMemory', { code: 'LEDGER_ERROR', message: e instanceof Error ? e.message : String(e), featureCodeRef: 'memo:ledger' })
       return { ok: false, error: { code: 'ledger-error', message: e instanceof Error ? e.message : String(e) } }
     }
+  }
+
+  /**
+   * The route facts every AI-related telemetry event carries.
+   *
+   * A failure event has always named the route it failed on, which left the
+   * answer to "was this a route problem?" recoverable only from failures: a
+   * successful call recorded no route at all, so a later analysis could not
+   * say which route served the calls that worked, nor whether the route in
+   * force had changed since a failure. Both halves are needed to compare, and
+   * the route is already resolved by the time either is recorded.
+   *
+   * A resolved but empty route is recorded as an empty string: `''` means
+   * nothing resolved, while an event that lacks the keys predates this and
+   * genuinely did not record a route.
+   *
+   * @param route - the route the call used, or would have used.
+   * @returns the provider and model to merge into an event's metadata.
+   */
+  private routeFacts(route: LlmRoute): { provider: string; model: string } {
+    return { provider: route.provider, model: route.model }
   }
 
   /** Track one telemetry event for this plugin. */
