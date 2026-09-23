@@ -54,7 +54,7 @@
     "@deepseek-ai/dsh-invariants": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-llm": "^0.1.5-rc.1",
     "@deepseek-ai/dsh-typert-protocol": "^0.1.5-rc.1",
-    "@types/node": "^22.20.0",
+    "@types/node": "^26.3.0",
     "tsdown": "^0.22.2",
     "typescript": "^5.9.0",
     "vite": "^7.1.0"
