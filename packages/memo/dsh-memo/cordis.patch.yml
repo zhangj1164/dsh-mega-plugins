@@ -1,23 +1,21 @@
-# dsh-memo bundle patch: inserts the memo suite host services and the
-# browser UI plugin into the host composition. The telemetry service is a
-# separate bundle (dsh-telemetry); install it alongside this bundle.
+# @zhangj1164/dsh-memo bundle patch: inserts the memo host service and the memo browser UI
+# into the host composition. The memo service injects the `telemetry` and
+# `githubIssue` services, which are owned by their own bundles — install this
+# bundle with `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue`:
 #
-# `dsh-github-issue` also ships its own bundle now. This patch still inserts it
-# so an existing deployment keeps working unchanged. A bundle layer cannot
-# remove an insert from an earlier layer: enabling `dsh-github-issue` as well
-# would make two layers insert the id `github-issue`, and the loader rejects a
-# duplicate entry id. The two are mutually exclusive — use `not both`.
-# `dsh-memo` and `dsh-github-issue` each record this exclusion, and the
-# `verify-bundle-entries` gate fails if either stops saying so.
+#   dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+#
+# Those two rows are deliberately NOT inserted here. A bundle layer cannot
+# remove an insert from an earlier layer and the loader rejects a duplicate
+# entry id outright, so a bundle that repeats a row another bundle owns makes
+# the natural "install everything" command a boot failure. One entry id has
+# exactly one owning bundle; that is what lets any subset of the suite be
+# installed together. `pnpm run verify-bundle-entries` fails on any workspace
+# bundle that inserts an id another workspace bundle already inserts.
 
 - insert:
-    - id: github-issue
-      name: dsh-github-issue
-      config:
-        repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
-
     - id: memo
-      name: dsh-memo
+      name: "@zhangj1164/dsh-memo"
       config:
         repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
         # provider/model are intentionally unset: the service follows this
@@ -26,4 +24,4 @@
 
     # Browser UI: the memo settings section in the Settings panel.
     - id: ui-memo
-      name: dsh-client-ui-memo
+      name: "@zhangj1164/dsh-client-ui-memo"

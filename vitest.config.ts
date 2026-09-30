@@ -18,21 +18,22 @@ const memoRequire = createRequire(new URL('./packages/client/ui-memo/package.jso
  * which is also what keeps a broken build from silently changing test meaning.
  */
 const workspaceSources: Record<string, string> = {
-  'dsh-memo/client': './packages/memo/dsh-memo/src/client.ts',
-  'dsh-memo/types': './packages/memo/dsh-memo/src/types.ts',
-  'dsh-memo': './packages/memo/dsh-memo/src/index.ts',
-  'dsh-github-issue/client': './packages/github-issue/dsh-github-issue/src/client.ts',
-  'dsh-github-issue/types': './packages/github-issue/dsh-github-issue/src/types.ts',
-  'dsh-github-issue': './packages/github-issue/dsh-github-issue/src/index.ts',
-  'dsh-telemetry/types': './packages/telemetry/dsh-telemetry/src/types.ts',
-  'dsh-telemetry': './packages/telemetry/dsh-telemetry/src/index.ts',
+  '@zhangj1164/dsh-memo/client': './packages/memo/dsh-memo/src/client.ts',
+  '@zhangj1164/dsh-memo/types': './packages/memo/dsh-memo/src/types.ts',
+  '@zhangj1164/dsh-memo': './packages/memo/dsh-memo/src/index.ts',
+  '@zhangj1164/dsh-github-issue/client': './packages/github-issue/dsh-github-issue/src/client.ts',
+  '@zhangj1164/dsh-github-issue/types': './packages/github-issue/dsh-github-issue/src/types.ts',
+  '@zhangj1164/dsh-github-issue': './packages/github-issue/dsh-github-issue/src/index.ts',
+  '@zhangj1164/dsh-telemetry/types': './packages/telemetry/dsh-telemetry/src/types.ts',
+  '@zhangj1164/dsh-telemetry': './packages/telemetry/dsh-telemetry/src/index.ts',
 }
 
 export default defineConfig({
   plugins: [standardDecorators()],
-  // Exact patterns: a plain `dsh-memo` entry would also swallow
-  // `dsh-memo/client` and `dsh-memo/types`, because Vite's object form matches
-  // a package prefix before trying the more specific key.
+  // Exact patterns: a plain `@zhangj1164/dsh-memo` entry would also swallow
+  // `@zhangj1164/dsh-memo/client` and `@zhangj1164/dsh-memo/types`, because
+  // Vite's object form matches a package prefix before trying the more
+  // specific key.
   resolve: {
     alias: [
       ...Object.entries(workspaceSources).map(([specifier, path]) => ({

@@ -134,14 +134,13 @@ export function parseInsertIds(text: string, source: string): string[] {
  * Report every entry id inserted more than once, and whether the patches record
  * the mutual exclusion that makes the overlap safe.
  *
- * Two bundles inserting one id is a real property of this repository rather
- * than a mistake: `dsh-memo` carries the `github-issue` row so a deployment
- * that only wanted the memo suite does not have to enable two bundles, and
- * `dsh-github-issue` inserts the same row for a deployment that wanted the
- * service alone. Both patch files state outright that the two must not be
- * enabled together. The gate therefore does not forbid the overlap — it
- * forbids an *undocumented* one. A new bundle that quietly inserts an id an
- * existing bundle owns fails here, and so does a repeat inside one patch.
+ * Two bundles inserting one id is not an intended property of this repository:
+ * every entry id has exactly one owning bundle, which is what lets any subset
+ * of the suite be installed together. The exclusion check is kept as the belt
+ * to that braces — a shared id whose patches both record the exclusion is
+ * reported rather than failed, so a deliberate overlap can be reintroduced
+ * later with its reasoning written down. A repeat inside one patch always
+ * fails.
  * @param bundles - bundles to inspect.
  * @returns every collision found, in bundle order.
  */

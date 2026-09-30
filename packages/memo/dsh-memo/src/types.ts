@@ -6,7 +6,7 @@
  * current week is always editable; past weeks require an explicit `force`
  * flag after acknowledging that AI analysis results may change.
  *
- * @module dsh-memo/types
+ * @module @zhangj1164/dsh-memo/types
  */
 
 /** The kind of content a memo entry holds. */

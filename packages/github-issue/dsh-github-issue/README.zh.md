@@ -1,4 +1,4 @@
-# dsh-github-issue
+# @zhangj1164/dsh-github-issue
 
 [English](README.md) | 中文
 
@@ -44,7 +44,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 |---|---|
 | 成功的调用 | 动作 `optimizeIssue` / `generateReport`，`success`，并带上服务本次调用的路由 |
 | 失败的调用 | 保留的 DSH 码、消息与 HTTP 状态、路由，以及 `github-issue:<action>` 特性锚点 |
-| 无法解析路由的调用 | 码 `NO_MODEL_ROUTE`——与 `dsh-memo` 对同一情形使用的码一致，因此一份报告可以把两个包归到一起 |
+| 无法解析路由的调用 | 码 `NO_MODEL_ROUTE`——与 `@zhangj1164/dsh-memo` 对同一情形使用的码一致，因此一份报告可以把两个包归到一起 |
 
 `generateReport` 还会记录它拿到的分析属于哪个插件。只记录成功的调用能回答「这些调用走的哪条路由」，却回答不了「那条路由在其出错之后是否已经变了」，所以两半都要记。
 
@@ -67,14 +67,14 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 安装该包，并把它加进你的部署组合：
 
 ```sh
-pnpm add dsh-github-issue
+pnpm add @zhangj1164/dsh-github-issue
 ```
 
 ```yaml
 # 你的 cordis.yml，或你自己 bundle 的 patch
 - insert:
     - id: github-issue
-      name: dsh-github-issue
+      name: @zhangj1164/dsh-github-issue
       config:
         repoUrl: https://github.com/your-org/your-repo
 ```
@@ -88,9 +88,15 @@ if (issues !== undefined) {
 }
 ```
 
-该服务不依赖 `dsh-memo`；备忘只是可能的消费者之一。
+该服务不依赖 `@zhangj1164/dsh-memo`；备忘只是可能的消费者之一。
 
-不要同时启用 `dsh-github-issue` bundle 与 `dsh-memo` bundle：两者都会插入 id 为 `github-issue` 的条目，而加载器会拒绝重复的条目 id。memo bundle 本身已经会插入该服务，因此备忘部署无需额外操作。两个 patch 文件都在该 id 上带有 `not both` 标记，仓库的 `verify-bundle-entries` 门禁要求这一点：只要某个条目 id 被一个以上的 workspace bundle 插入，除非每个相关 patch 都记录了这条互斥，否则门禁失败。
+本 bundle 是 `github-issue` 这个条目 id 的唯一归属方。`@zhangj1164/dsh-memo` 注入该服务，但不插入这一行，因此独立 bundle 与备忘套件可以无冲突地组合，`pnpm run verify-bundle-entries` 也找不到任何重叠。备忘部署因此需要点名整套：
+
+```sh
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+```
+
+`@zhangj1164/dsh-github-issue` 要点名安装，而不是作为 peer 被带入：profile 设置了 `autoInstallPeers: false`，安装只引入命令点名的包，只装 `@zhangj1164/dsh-memo` 会让这一行无法解析。
 
 ## 导出
 
@@ -98,11 +104,12 @@ if (issues !== undefined) {
 
 | 子路径 | 内容 |
 |---|---|
-| `dsh-github-issue` | `GithubIssueService` 插件及其 Config。 |
-| `dsh-github-issue/types` | 线上类型：`GithubIssueReport`、请求与结果结构。 |
-| `dsh-github-issue/client` | 面向浏览器端的类型面。 |
-| `dsh-github-issue/invariant` | 不变量定义。 |
+| `@zhangj1164/dsh-github-issue` | `GithubIssueService` 插件及其 Config。 |
+| `@zhangj1164/dsh-github-issue/types` | 线上类型：`GithubIssueReport`、请求与结果结构。 |
+| `@zhangj1164/dsh-github-issue/client` | 面向浏览器端的类型面。 |
+| `@zhangj1164/dsh-github-issue/invariant` | 不变量定义。 |
 
 ## 已知限制
 
 - **模型依赖** — `inject: ['llm']` 意味着服务在没有 LLM 提供方时不会激活。
+- **只有服务，没有界面** — 本包不注册模型工具，也不附带浏览器 UI。单独安装只会给部署带来 `ctx.get('githubIssue')`，用户看不到也点不到任何东西；可见的入口是 `@zhangj1164/dsh-client-ui-memo` 的 issue 编辑器与日志分析动作，它们经 Remote 调用本服务。请把它当作供 UI 插件消费的后端，而不是一个能独立使用的功能。

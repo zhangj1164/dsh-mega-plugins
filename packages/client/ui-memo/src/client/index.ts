@@ -6,7 +6,7 @@
  * and its active state, so this plugin contributes only a glyph — and a keyed
  * `main` entry renders the board while that id is the selected panel.
  *
- * @module dsh-client-ui-memo/client
+ * @module @zhangj1164/dsh-client-ui-memo/client
  */
 
 import * as React from 'react'

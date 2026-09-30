@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `dsh-client-ui-memo`.
- * @module dsh-client-ui-memo/invariant
+ * Package-owned invariant companion for `@zhangj1164/dsh-client-ui-memo`.
+ * @module @zhangj1164/dsh-client-ui-memo/invariant
  */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = 'dsh-client-ui-memo'
+const PACKAGE_NAME = '@zhangj1164/dsh-client-ui-memo'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-memo-invariant'

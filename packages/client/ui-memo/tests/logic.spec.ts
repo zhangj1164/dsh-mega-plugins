@@ -16,7 +16,7 @@ import {
   type MemoCard,
   type StorageLike,
 } from '../src/client/logic.ts'
-import type { MemoPeriodEntry, MemoWeek } from 'dsh-memo/client'
+import type { MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
 
 /** One stored week with the given entries; later weeks get later timestamps. */
 function week(weekId: string, contents: string[]): MemoWeek {

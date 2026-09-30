@@ -25,7 +25,7 @@
  * Each Remote method's single parameter is named `request`, so arguments are
  * always passed as `{ args: { request } }`.
  *
- * @module dsh-client-ui-memo/client/controller
+ * @module @zhangj1164/dsh-client-ui-memo/client/controller
  */
 
 import type {
@@ -36,8 +36,8 @@ import type {
   MemoModelProvider,
   MemoPeriodEntry,
   MemoWeek,
-} from 'dsh-memo/client'
-import type { GithubIssueReport } from 'dsh-github-issue/client'
+} from '@zhangj1164/dsh-memo/client'
+import type { GithubIssueReport } from '@zhangj1164/dsh-github-issue/client'
 import {
   cardsInPeriod,
   readModelChoice,

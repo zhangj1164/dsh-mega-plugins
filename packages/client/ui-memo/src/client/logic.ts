@@ -6,10 +6,10 @@
  * Nothing here touches React, the RPC channel, or the DOM (beyond an optional
  * `Storage` object), so every rule the UI depends on is directly testable.
  *
- * @module dsh-client-ui-memo/client/logic
+ * @module @zhangj1164/dsh-client-ui-memo/client/logic
  */
 
-import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from 'dsh-memo/client'
+import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
 
 /** One memo card: an entry plus the week it is stored in. */
 export interface MemoCard {

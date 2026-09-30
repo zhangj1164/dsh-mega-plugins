@@ -16,7 +16,7 @@
  * | quarter   | `YYYY-Qn`   | `2026-Q3`   |
  * | year      | `YYYY`      | `2026`      |
  *
- * @module dsh-memo/period
+ * @module @zhangj1164/dsh-memo/period
  */
 
 import type { MemoAnalysisPeriod } from './types.ts'

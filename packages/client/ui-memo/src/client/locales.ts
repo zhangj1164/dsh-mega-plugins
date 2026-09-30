@@ -1,7 +1,7 @@
 /**
  * Locale dictionaries for the memo board. Every user-visible string lives
  * here, including the ones only tests read, so the board never inlines prose.
- * @module dsh-client-ui-memo/client/locales
+ * @module @zhangj1164/dsh-client-ui-memo/client/locales
  */
 
 export type MemoKey =

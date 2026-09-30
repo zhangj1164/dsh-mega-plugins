@@ -7,7 +7,7 @@
  * `optimizeIssue` and `prefilledIssueUrl` directly, and the memo log-analysis
  * flow calls `generateReport`.
  *
- * @module dsh-github-issue
+ * @module @zhangj1164/dsh-github-issue
  */
 
 import { Context } from '@deepseek-ai/cordis'

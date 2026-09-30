@@ -5,7 +5,7 @@
  * every stored record at the durable boundary, so a corrupted medium fails loud
  * on reopen rather than silently serving malformed events.
  *
- * @module dsh-telemetry/spec
+ * @module @zhangj1164/dsh-telemetry/spec
  */
 
 import { z } from 'zod'

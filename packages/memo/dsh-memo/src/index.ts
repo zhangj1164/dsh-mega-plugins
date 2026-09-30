@@ -10,7 +10,7 @@
  * Extends `TypertRemoteService` because the client memo panel calls its
  * methods through the API Gateway.
  *
- * @module dsh-memo
+ * @module @zhangj1164/dsh-memo
  */
 
 import { randomUUID } from 'node:crypto'
@@ -21,7 +21,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
-import type { TelemetryAnalysis, TelemetryFailureGroup } from 'dsh-telemetry/types'
+import type { TelemetryAnalysis, TelemetryFailureGroup } from '@zhangj1164/dsh-telemetry/types'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import {
   isoWeekParts,

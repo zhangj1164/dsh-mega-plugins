@@ -7,7 +7,7 @@
  * generated report follows the same section structure, which is what makes the
  * GitHub prefill and human review consistent.
  *
- * @module dsh-github-issue/types
+ * @module @zhangj1164/dsh-github-issue/types
  */
 
 /** Input for generating a GitHub issue report from telemetry analysis. */
