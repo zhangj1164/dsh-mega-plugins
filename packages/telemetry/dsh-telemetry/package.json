@@ -1,5 +1,5 @@
 {
-  "name": "dsh-telemetry",
+  "name": "@zhangj1164/dsh-telemetry",
   "description": "Local-only in-process telemetry tracker for DeepSeek Harness: records operation trails and error logs over the storage-domain KV backend with feature-code-anchored failure grouping",
   "version": "0.1.0",
   "type": "module",
@@ -38,6 +38,14 @@
     "prepare": "tsdown"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangj1164/dsh-mega-plugins.git",
+    "directory": "packages/telemetry/dsh-telemetry"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

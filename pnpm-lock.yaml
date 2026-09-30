@@ -75,10 +75,10 @@ importers:
       '@types/react-dom':
         specifier: ~18.3.1
         version: 18.3.7(@types/react@18.3.31)
-      dsh-github-issue:
+      '@zhangj1164/dsh-github-issue':
         specifier: workspace:*
         version: link:../../github-issue/dsh-github-issue
-      dsh-memo:
+      '@zhangj1164/dsh-memo':
         specifier: workspace:*
         version: link:../../memo/dsh-memo
       react:
@@ -161,13 +161,13 @@ importers:
       '@types/node':
         specifier: ^22.20.0
         version: 22.20.1
-      dsh-client-ui-memo:
+      '@zhangj1164/dsh-client-ui-memo':
         specifier: workspace:*
         version: link:../../client/ui-memo
-      dsh-github-issue:
+      '@zhangj1164/dsh-github-issue':
         specifier: workspace:*
         version: link:../../github-issue/dsh-github-issue
-      dsh-telemetry:
+      '@zhangj1164/dsh-telemetry':
         specifier: workspace:*
         version: link:../../telemetry/dsh-telemetry
       tsdown:

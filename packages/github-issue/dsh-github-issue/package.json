@@ -1,5 +1,5 @@
 {
-  "name": "dsh-github-issue",
+  "name": "@zhangj1164/dsh-github-issue",
   "description": "GitHub issue generation and optimization service for DeepSeek Harness: builds structured issue reports from telemetry analysis, pre-filled issue URLs, and AI-optimized descriptions",
   "version": "0.1.0",
   "type": "module",
@@ -34,6 +34,14 @@
     "prepare": "tsdown"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangj1164/dsh-mega-plugins.git",
+    "directory": "packages/github-issue/dsh-github-issue"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
