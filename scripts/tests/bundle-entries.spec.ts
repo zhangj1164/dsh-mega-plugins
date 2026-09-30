@@ -3,10 +3,10 @@
  *
  * The gate exists to catch a deployment-breaking configuration this repository
  * can create: two bundles that insert the same composition entry id, which the
- * loader rejects outright and no bundle layer can reconcile. It also encodes
- * the repository's own deliberate overlap — `dsh-memo` and `dsh-github-issue`
- * both carry the `github-issue` row and both patches say so — by requiring the
- * exclusion to be recorded rather than forbidding the overlap.
+ * loader rejects outright and no bundle layer can reconcile. Every entry id in
+ * this repository has exactly one owning bundle, so the workspace-wide
+ * assertion expects no overlap at all; the exclusion check is retained and
+ * tested so a deliberate overlap stays expressible.
  *
  * These tests pin the parsing and collision rules only. The workspace-wide
  * assertion lives in the gate itself.
