@@ -49,7 +49,7 @@
     "lib/**/*.d.ts"
   ],
   "dependencies": {
-    "@deepseek-ai/schemastery": "^3.18.0",
+    "@deepseek-ai/schemastery": "^3.18.2",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
