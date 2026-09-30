@@ -1,6 +1,6 @@
 import { expect, vi } from 'vitest'
-import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from 'dsh-memo/client'
-import type { GithubIssueReport } from 'dsh-github-issue/client'
+import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
+import type { GithubIssueReport } from '@zhangj1164/dsh-github-issue/client'
 
 /**
  * A fake of the host memo service, faithful enough to test the board end to

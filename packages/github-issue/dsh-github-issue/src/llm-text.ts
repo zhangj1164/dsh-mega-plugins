@@ -19,7 +19,7 @@
  * other way round — and a third consumer is the point at which the pair is
  * worth extracting.
  *
- * @module dsh-github-issue/llm-text
+ * @module @zhangj1164/dsh-github-issue/llm-text
  */
 
 import { EMPTY_RESPONSE_CODE, createUserMessage } from '@deepseek-ai/dsh-llm'

@@ -9,7 +9,7 @@
  * JavaScript. Week ids use a monospace stack with an explicit fallback
  * because the shell does not define `--dsw-font-mono`.
  *
- * @module dsh-client-ui-memo/client/styles
+ * @module @zhangj1164/dsh-client-ui-memo/client/styles
  */
 
 /** CSS injected once by the plugin and removed with its disposer. */

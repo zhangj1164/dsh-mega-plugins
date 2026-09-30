@@ -15,7 +15,7 @@
  * An empty successful stream is reported as `EMPTY_RESPONSE`, the code DSH
  * itself reserves for that condition.
  *
- * @module dsh-memo/llm-text
+ * @module @zhangj1164/dsh-memo/llm-text
  */
 
 import { EMPTY_RESPONSE_CODE, createUserMessage } from '@deepseek-ai/dsh-llm'

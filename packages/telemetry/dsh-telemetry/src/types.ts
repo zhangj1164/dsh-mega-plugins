@@ -11,7 +11,7 @@
  * that produced it, so the log-analysis step can correlate recorded events
  * against the plugin's feature code and produce a uniform report.
  *
- * @module dsh-telemetry/types
+ * @module @zhangj1164/dsh-telemetry/types
  */
 
 /** The categories a telemetry event can belong to. */

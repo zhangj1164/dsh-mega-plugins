@@ -11,11 +11,11 @@
  * color comes from `--dsw-alias-*` tokens, which follow the active theme
  * without any JavaScript.
  *
- * @module dsh-client-ui-memo/client/MemoBoard
+ * @module @zhangj1164/dsh-client-ui-memo/client/MemoBoard
  */
 
 import * as React from 'react'
-import type { MemoAnalysisType, MemoModelInfo, MemoModelProvider } from 'dsh-memo/client'
+import type { MemoAnalysisType, MemoModelInfo, MemoModelProvider } from '@zhangj1164/dsh-memo/client'
 import type { MemoController, MemoViewState } from './controller.ts'
 import { PERIODS, periodDisplay, type MemoCard, type MemoModelChoice } from './logic.ts'
 import type { MemoKey } from './locales.ts'

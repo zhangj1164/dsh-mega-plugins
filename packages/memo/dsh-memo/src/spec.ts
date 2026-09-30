@@ -5,7 +5,7 @@
  * every stored week at the durable boundary, including its entries and optional
  * analysis, so a corrupted medium fails loud on reopen.
  *
- * @module dsh-memo/src/spec
+ * @module @zhangj1164/dsh-memo/src/spec
  */
 
 import { z } from 'zod'

@@ -10,7 +10,7 @@
  * `analyzeLogs()` Remote method reads telemetry internally and returns the
  * result to the client.
  *
- * @module dsh-telemetry
+ * @module @zhangj1164/dsh-telemetry
  */
 
 import { randomUUID } from 'node:crypto'

@@ -13,7 +13,7 @@
  * right balance between "keeps secrets out" and "keeps enough to debug" differs
  * per deployment and cannot be decided here.
  *
- * @module dsh-telemetry/redaction
+ * @module @zhangj1164/dsh-telemetry/redaction
  */
 
 /** One redaction rule: a named pattern applied to every string before storage. */

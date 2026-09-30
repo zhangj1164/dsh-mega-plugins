@@ -1,19 +1,19 @@
-# dsh-github-issue bundle patch: inserts the GitHub issue service into the host
+# @zhangj1164/dsh-github-issue bundle patch: inserts the GitHub issue service into the host
 # composition on its own, so a deployment can install this plugin without the
 # memo suite. Any plugin that wants issue-report generation reads
-# ctx.get('githubIssue'); dsh-memo is one such consumer, not a requirement.
+# ctx.get('githubIssue'); @zhangj1164/dsh-memo is one such consumer, not a requirement.
 #
-# This bundle is the sole owner of the `github-issue` entry id. `dsh-memo`
+# This bundle is the sole owner of the `github-issue` entry id. `@zhangj1164/dsh-memo`
 # injects the service but does not insert this row, so installing the two
 # together composes cleanly:
 #
-#   dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+#   dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
 #
 # `repoUrl` is the repository new-issue links point at. Deployments override it
 # in their own cordis.patch.yml; the value below is this project's own.
 
 - insert:
     - id: github-issue
-      name: dsh-github-issue
+      name: "@zhangj1164/dsh-github-issue"
       config:
         repoUrl: https://github.com/zhangj1164/dsh-mega-plugins
