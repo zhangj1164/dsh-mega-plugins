@@ -3,9 +3,11 @@
 # memo suite. Any plugin that wants issue-report generation reads
 # ctx.get('githubIssue'); dsh-memo is one such consumer, not a requirement.
 #
-# Use this patch OR the memo bundle, not both: both insert an entry with the id
-# `github-issue`, and a bundle layer cannot override an earlier layer's insert.
-# Enabling both makes the loader reject the duplicate id outright.
+# This bundle is the sole owner of the `github-issue` entry id. `dsh-memo`
+# injects the service but does not insert this row, so installing the two
+# together composes cleanly:
+#
+#   dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
 #
 # `repoUrl` is the repository new-issue links point at. Deployments override it
 # in their own cordis.patch.yml; the value below is this project's own.
