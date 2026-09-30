@@ -69,4 +69,5 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 ## 已知限制
 
 - **仅宿主侧** — 服务不继承 `TypertRemoteService`；客户端不直接调用它。
+- **自身没有面向用户的界面** — 本包不注册模型工具，也不附带 UI，因此单独执行 `dsh plugin --profile web add dsh-telemetry` 只增加一个服务，用户看不到任何东西。它是供其他插件消费的基础设施（`ctx.get('telemetry')`），可见界面随消费方插件一起到来——在本仓库中就是备忘看板的日志分析动作。
 - **异步写入** — `track()` 和 `trackError()` 返回 `void`；KV 写入是持久且排队的，但调用者必须等待写入链完成后，同步 `listEvents()` 才能反映新事件。

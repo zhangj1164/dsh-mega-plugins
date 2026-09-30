@@ -107,9 +107,17 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 
 当前周始终可编辑。在过去的周中编辑或删除条目需要 `force: true`，以确认 AI 分析结果可能发生变化。这防止了在未经明确同意的情况下意外修改历史记录。
 
-## Bundle 层
+## Bundle 层与安装
 
-此包声明 `dsh: { bundle: { patch: "./cordis.patch.yml" } }`。补丁将 `github-issue` 和 `memo` 行插入宿主组合。`telemetry` 行由 `dsh-telemetry` bundle 拥有，以避免重复的加载器条目 id。
+此包声明 `dsh: { bundle: { patch: "./cordis.patch.yml" } }`。补丁只插入两行——`memo` 与 `ui-memo`——不插入其他任何行。本套件的每个组合条目 id 都只有一个归属 bundle：`telemetry` 属于 `dsh-telemetry`，`github-issue` 属于 `dsh-github-issue`，`memo` 与 `ui-memo` 属于本 bundle。由于没有两个 bundle 插入同一个 id，套件的任意子集都能组合，整套则用最自然的命令即可安装：
+
+```sh
+dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+```
+
+四个包都必须点名。profile 设置了 `autoInstallPeers: false`（`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`），因此安装只会引入命令中点名的包，永远不会自动带入 peer 依赖。其中三个正是本 bundle 各行得以解析所必需的：memo 服务通过 `inject` 依赖 `telemetry` 与 `githubIssue`，而补丁插入的 `ui-memo` 行指向 `dsh-client-ui-memo`。只装 `dsh-memo` 会让它们全部无法解析，加载器随之让启动失败——先是 `Cannot find package 'dsh-github-issue' imported from …`，接着是同样的 `dsh-client-ui-memo`。把 `dsh-telemetry`、`dsh-github-issue`、`dsh-client-ui-memo` 与 `dsh-memo` 一起点名，套件才能加载。
+
+本包此前自己插入 `github-issue` 行。这确实让套件可以用一条命令安装，但也让同一个条目 id 有了两个归属方，于是「把所有包都点名」——安装整套最显然的方式——变成了启动失败（`duplicate loader entry id: github-issue`），而不是合并。一个 id 只有一个归属方，正是子集可自由组合的前提，`pnpm run verify-bundle-entries` 会强制这一点。
 
 ## 需求映射
 
@@ -121,7 +129,7 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 - **需求 6** — `exportReport` 生成标准工作报告（Markdown），可直接审查并导出为 `.md`。
 - **需求 7** — 每个关键操作都调用 `ctx.telemetry.track()` / `ctx.telemetry.trackError()`，携带 `featureCodeRef` 锚点。
 - **需求 8** — `analyzeLogs` 通过 `telemetry` 服务读取遥测失败记录，通过 `githubIssue` 生成 GitHub issue 报告，并返回报告 + 预填 URL。
-- **需求 12** — 依赖 `dsh-telemetry` 和 `dsh-github-issue` 作为独立的通用插件。
+- **需求 12** — 依赖 `dsh-telemetry` 和 `dsh-github-issue` 作为独立的通用插件，两者各自带有自己的 bundle。三个包必须一起安装：注入的服务来自这些 bundle，而 profile 不会自动安装 peer 依赖。
 
 ## 已知限制
 

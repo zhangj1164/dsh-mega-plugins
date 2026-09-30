@@ -90,7 +90,13 @@ if (issues !== undefined) {
 
 The service has no dependency on `dsh-memo`; memo is one consumer among possible others.
 
-Do not enable both the `dsh-github-issue` bundle and the `dsh-memo` bundle: each inserts an entry with the id `github-issue`, and the loader rejects a duplicate entry id. The memo bundle already inserts this service, so a memo deployment needs no extra step. Both patch files carry the marker `not both` on that id, and the repository's `verify-bundle-entries` gate requires it: an entry id inserted by more than one workspace bundle fails unless every such patch records the exclusion.
+This bundle is the sole owner of the `github-issue` entry id. `dsh-memo` injects the service but does not insert this row, so the standalone bundle and the memo suite compose without a conflict and `pnpm run verify-bundle-entries` finds no overlap. A memo deployment therefore names the whole suite:
+
+```sh
+dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+```
+
+`dsh-github-issue` is named explicitly rather than pulled in as a peer: a profile sets `autoInstallPeers: false`, so an install brings in only what the command names, and `dsh-memo` alone would leave this row unresolvable.
 
 ## Exports
 
@@ -106,3 +112,4 @@ Every subpath resolves to the flat `lib/*.js` layout tsdown emits.
 ## Known Limitations
 
 - **Model dependency** — `inject: ['llm']` means the service will not activate without an LLM provider.
+- **Service-only surface** — this package registers no model tool and ships no browser UI. Installing it on its own gives a deployment `ctx.get('githubIssue')` and nothing a user can see or click; the visible entry point is `dsh-client-ui-memo`'s issue editor and log-analysis action, which reach it over Remote. Treat it as a backend that a UI plugin consumes, not as a standalone feature.

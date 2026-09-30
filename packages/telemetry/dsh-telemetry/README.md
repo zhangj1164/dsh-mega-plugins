@@ -69,5 +69,6 @@ Every event carries a `pluginId`, `action`, `category` (`user-action` / `system`
 ## Known Limitations
 
 - **Host-side only** — the service does not extend `TypertRemoteService`; the client never calls it directly.
+- **No user-facing surface of its own** — this package registers no model tool and ships no UI, so installing `dsh plugin --profile web add dsh-telemetry` on its own adds a service and nothing a user can see. It is infrastructure for other plugins to consume (`ctx.get('telemetry')`), and the visible surface arrives with the plugin that consumes it — in this repository, the memo board's log-analysis action.
 - **Fire-and-forget writes** — `track()` and `trackError()` return `void`; the KV write is durable and queued, but callers must wait for the write chain to settle before a synchronous `listEvents()` reflects new events.
 

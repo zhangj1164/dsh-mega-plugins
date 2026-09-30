@@ -90,7 +90,13 @@ if (issues !== undefined) {
 
 该服务不依赖 `dsh-memo`；备忘只是可能的消费者之一。
 
-不要同时启用 `dsh-github-issue` bundle 与 `dsh-memo` bundle：两者都会插入 id 为 `github-issue` 的条目，而加载器会拒绝重复的条目 id。memo bundle 本身已经会插入该服务，因此备忘部署无需额外操作。两个 patch 文件都在该 id 上带有 `not both` 标记，仓库的 `verify-bundle-entries` 门禁要求这一点：只要某个条目 id 被一个以上的 workspace bundle 插入，除非每个相关 patch 都记录了这条互斥，否则门禁失败。
+本 bundle 是 `github-issue` 这个条目 id 的唯一归属方。`dsh-memo` 注入该服务，但不插入这一行，因此独立 bundle 与备忘套件可以无冲突地组合，`pnpm run verify-bundle-entries` 也找不到任何重叠。备忘部署因此需要点名整套：
+
+```sh
+dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+```
+
+`dsh-github-issue` 要点名安装，而不是作为 peer 被带入：profile 设置了 `autoInstallPeers: false`，安装只引入命令点名的包，只装 `dsh-memo` 会让这一行无法解析。
 
 ## 导出
 
@@ -106,3 +112,4 @@ if (issues !== undefined) {
 ## 已知限制
 
 - **模型依赖** — `inject: ['llm']` 意味着服务在没有 LLM 提供方时不会激活。
+- **只有服务，没有界面** — 本包不注册模型工具，也不附带浏览器 UI。单独安装只会给部署带来 `ctx.get('githubIssue')`，用户看不到也点不到任何东西；可见的入口是 `dsh-client-ui-memo` 的 issue 编辑器与日志分析动作，它们经 Remote 调用本服务。请把它当作供 UI 插件消费的后端，而不是一个能独立使用的功能。

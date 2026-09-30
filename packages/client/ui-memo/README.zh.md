@@ -82,7 +82,7 @@
 
 ## Bundle 层
 
-该包包含在 `dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行。无需单独 bundle。
+该包包含在 `dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行。它声明 `dsh.client`——正是这一点让浏览器端经 `exports["./client"]` 可被发现——并刻意不声明自己的 `dsh.bundle`，这与官方 `dsh-client-ui-*` 包一致：它们由宿主 bundle 插入，而不是作为 layer 安装。因此无需单独 bundle，执行 `dsh plugin --profile web add dsh-client-ui-memo` 会把它报告为普通依赖而非 profile layer。这里的这条提示是预期行为，不是缺陷。安装 `dsh-memo`，面板随之到位。
 
 ## 测试
 
