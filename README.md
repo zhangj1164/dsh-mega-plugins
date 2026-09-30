@@ -21,14 +21,32 @@ pnpm run gates                        # full gate suite: build + test + hygiene 
 pnpm run verify-translation-pairing   # check bilingual README consistency (6 pairs)
 ```
 
+## Install into a DSH profile
+
+`dsh-telemetry`, `dsh-github-issue` and `dsh-memo` each declare their own `dsh.bundle`, and every composition entry id has exactly one owning bundle. A subset composes as cleanly as the whole suite, so name the packages you want:
+
+```sh
+# the full memo suite (telemetry + issue service + memo + its browser panel)
+dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+
+# the generic telemetry service alone, for another plugin to consume
+dsh plugin --profile web add dsh-telemetry
+```
+
+Every package whose row or injected service the boot needs must be named. A profile sets `autoInstallPeers: false`, so an install brings in only what the command names — `dsh-memo` alone leaves the `github-issue` and `ui-memo` rows unresolvable and the loader fails the boot.
+
+`dsh-client-ui-memo` declares no bundle of its own: `dsh-memo`'s patch inserts its `ui-memo` row, so the panel is activated by installing `dsh-memo` — but the package itself still has to be named, and `dsh plugin add` reports it as a plain dependency rather than a profile layer. That warning is expected for a `dsh.client` plugin, not a defect.
+
+`dsh-telemetry` and `dsh-github-issue` expose Cordis services (`ctx.telemetry`, `ctx.githubIssue`) rather than model tools or panels of their own. They are infrastructure: installing `dsh-telemetry` by itself gives a consumer plugin something to call and gives an end user nothing to see. The visible surface is the memo board.
+
 ## Workspace Structure
 
 ```
 packages/
-  telemetry/dsh-telemetry/        # dsh-telemetry (standalone bundle)
-  github-issue/dsh-github-issue/ # dsh-github-issue (plain dep, no bundle)
-  memo/dsh-memo/                  # dsh-memo (bundle; depends on the above two)
-  client/ui-memo/                 # dsh-client-ui-memo (UI panel; depends on dsh-memo + dsh-github-issue)
+  telemetry/dsh-telemetry/        # dsh-telemetry (standalone bundle: `telemetry` row)
+  github-issue/dsh-github-issue/  # dsh-github-issue (standalone bundle: `github-issue` row)
+  memo/dsh-memo/                  # dsh-memo (bundle: `memo` + `ui-memo` rows; injects both services)
+  client/ui-memo/                 # dsh-client-ui-memo (dsh.client plugin, no bundle; inserted by dsh-memo)
 ```
 
 The `pnpm-workspace.yaml` declares `packages/*/*` — mirroring the DSH monorepo's `packages/<group>/<pkg>` convention.
