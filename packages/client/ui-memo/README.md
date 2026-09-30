@@ -1,4 +1,4 @@
-# dsh-client-ui-memo
+# @zhangj1164/dsh-client-ui-memo
 
 English | [中文](README.zh.md)
 
@@ -82,7 +82,7 @@ The switcher rides on the analysis action as a split button: the left half runs 
 
 ## Bundle layer
 
-This package is included in the `dsh-memo` bundle's `cordis.patch.yml` as the `ui-memo` row. It declares `dsh.client` — which is what makes its browser half discoverable through `exports["./client"]` — and deliberately declares no `dsh.bundle` of its own, matching the official `dsh-client-ui-*` packages, which are inserted by a host bundle rather than installed as a layer. A separate bundle is therefore not needed, and `dsh plugin --profile web add dsh-client-ui-memo` reports it as a plain dependency rather than a profile layer. That warning is expected here; it is not a defect. Install `dsh-memo` and the panel arrives with it.
+This package is included in the `@zhangj1164/dsh-memo` bundle's `cordis.patch.yml` as the `ui-memo` row. It declares `dsh.client` — which is what makes its browser half discoverable through `exports["./client"]` — and deliberately declares no `dsh.bundle` of its own, matching the official `dsh-client-ui-*` packages, which are inserted by a host bundle rather than installed as a layer. A separate bundle is therefore not needed, and `dsh plugin --profile web add @zhangj1164/dsh-client-ui-memo` reports it as a plain dependency rather than a profile layer. That warning is expected here; it is not a defect. Install `@zhangj1164/dsh-memo` and the panel arrives with it.
 
 ## Tests
 

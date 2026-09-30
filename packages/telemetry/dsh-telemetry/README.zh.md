@@ -1,4 +1,4 @@
-# dsh-telemetry
+# @zhangj1164/dsh-telemetry
 
 [English](README.md) | 中文
 
@@ -64,10 +64,10 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 ## 需求映射
 
 - **需求 7** — 内置的仅本地遥测跟踪，封装为可复用的 DSH 插件。任何功能插件都可以调用 `ctx.telemetry.track()` / `ctx.telemetry.trackError()` 记录操作轨迹和错误日志。每个错误事件上的 `featureCodeRef` 是约定的日志格式，供日志分析功能（需求 8）与插件功能代码进行关联。
-- **需求 12** — 封装为通用插件：任何 DSH 插件都可以依赖 `dsh-telemetry` 并使用 `ctx.telemetry` 记录事件，不仅限于备忘套件。
+- **需求 12** — 封装为通用插件：任何 DSH 插件都可以依赖 `@zhangj1164/dsh-telemetry` 并使用 `ctx.telemetry` 记录事件，不仅限于备忘套件。
 
 ## 已知限制
 
 - **仅宿主侧** — 服务不继承 `TypertRemoteService`；客户端不直接调用它。
-- **自身没有面向用户的界面** — 本包不注册模型工具，也不附带 UI，因此单独执行 `dsh plugin --profile web add dsh-telemetry` 只增加一个服务，用户看不到任何东西。它是供其他插件消费的基础设施（`ctx.get('telemetry')`），可见界面随消费方插件一起到来——在本仓库中就是备忘看板的日志分析动作。
+- **自身没有面向用户的界面** — 本包不注册模型工具，也不附带 UI，因此单独执行 `dsh plugin --profile web add @zhangj1164/dsh-telemetry` 只增加一个服务，用户看不到任何东西。它是供其他插件消费的基础设施（`ctx.get('telemetry')`），可见界面随消费方插件一起到来——在本仓库中就是备忘看板的日志分析动作。
 - **异步写入** — `track()` 和 `trackError()` 返回 `void`；KV 写入是持久且排队的，但调用者必须等待写入链完成后，同步 `listEvents()` 才能反映新事件。

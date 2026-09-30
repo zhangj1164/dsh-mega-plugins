@@ -1,4 +1,4 @@
-# dsh-telemetry
+# @zhangj1164/dsh-telemetry
 
 English | [中文](README.zh.md)
 
@@ -64,11 +64,11 @@ Every event carries a `pluginId`, `action`, `category` (`user-action` / `system`
 ## Requirement mapping
 
 - **Req 7** — Built-in local-only telemetry tracking, packaged as a reusable DSH plugin. Any feature plugin can call `ctx.telemetry.track()` / `ctx.telemetry.trackError()` to record operation trails and error logs. The `featureCodeRef` on every error event is the agreed log format that the log-analysis feature (req 8) correlates against the plugin's feature code.
-- **Req 12** — Encapsulated as a generic plugin: any DSH plugin can depend on `dsh-telemetry` and use `ctx.telemetry` to record events, not just the memo suite.
+- **Req 12** — Encapsulated as a generic plugin: any DSH plugin can depend on `@zhangj1164/dsh-telemetry` and use `ctx.telemetry` to record events, not just the memo suite.
 
 ## Known Limitations
 
 - **Host-side only** — the service does not extend `TypertRemoteService`; the client never calls it directly.
-- **No user-facing surface of its own** — this package registers no model tool and ships no UI, so installing `dsh plugin --profile web add dsh-telemetry` on its own adds a service and nothing a user can see. It is infrastructure for other plugins to consume (`ctx.get('telemetry')`), and the visible surface arrives with the plugin that consumes it — in this repository, the memo board's log-analysis action.
+- **No user-facing surface of its own** — this package registers no model tool and ships no UI, so installing `dsh plugin --profile web add @zhangj1164/dsh-telemetry` on its own adds a service and nothing a user can see. It is infrastructure for other plugins to consume (`ctx.get('telemetry')`), and the visible surface arrives with the plugin that consumes it — in this repository, the memo board's log-analysis action.
 - **Fire-and-forget writes** — `track()` and `trackError()` return `void`; the KV write is durable and queued, but callers must wait for the write chain to settle before a synchronous `listEvents()` reflects new events.
 

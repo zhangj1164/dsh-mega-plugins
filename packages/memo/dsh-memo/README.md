@@ -1,4 +1,4 @@
-# dsh-memo
+# @zhangj1164/dsh-memo
 
 English | [中文](README.zh.md)
 
@@ -88,7 +88,7 @@ A consequence worth stating: archiving the **current** quarter closes today as w
 
 ## Four-dimension periods
 
-The memo UI navigates weeks, months, quarters, and years over the same cards. `dsh-memo/period` owns that calendar math so the host and the UI cannot disagree about which card belongs where.
+The memo UI navigates weeks, months, quarters, and years over the same cards. `@zhangj1164/dsh-memo/period` owns that calendar math so the host and the UI cannot disagree about which card belongs where.
 
 Period labels are pinned: `2026-W36`, `2026-09`, `2026-Q3`, `2026`.
 
@@ -101,7 +101,7 @@ Two defects lived in the previous prefix-based check and are covered by tests no
 
 ## Shared LLM text helper
 
-`dsh-memo/llm-text` exports `streamLlmText(llm, route, system, userText)`, the one place that turns a DSH stream into either collected text or preserved failure facts. Other host plugins that ask a model for a single block of text should use it instead of re-implementing the stream loop: the hand-rolled copies are what dropped `chunk.reason.failure` and reported every failure identically.
+`@zhangj1164/dsh-memo/llm-text` exports `streamLlmText(llm, route, system, userText)`, the one place that turns a DSH stream into either collected text or preserved failure facts. Other host plugins that ask a model for a single block of text should use it instead of re-implementing the stream loop: the hand-rolled copies are what dropped `chunk.reason.failure` and reported every failure identically.
 
 ## Past-week force gate
 
@@ -109,13 +109,13 @@ The current week is always editable. Editing or deleting entries in a past week 
 
 ## Bundle layer and installation
 
-This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The patch inserts exactly two rows — `memo` and `ui-memo` — and nothing else. Every composition entry id in this suite has one owning bundle: `telemetry` belongs to `dsh-telemetry`, `github-issue` to `dsh-github-issue`, and `memo` plus `ui-memo` to this bundle. No two bundles insert the same id, so any subset of the suite composes and the whole suite installs with the obvious command:
+This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The patch inserts exactly two rows — `memo` and `ui-memo` — and nothing else. Every composition entry id in this suite has one owning bundle: `telemetry` belongs to `@zhangj1164/dsh-telemetry`, `github-issue` to `@zhangj1164/dsh-github-issue`, and `memo` plus `ui-memo` to this bundle. No two bundles insert the same id, so any subset of the suite composes and the whole suite installs with the obvious command:
 
 ```sh
-dsh plugin --profile web add dsh-telemetry dsh-github-issue dsh-memo dsh-client-ui-memo
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
 ```
 
-All four packages must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in only the packages the command names and never a peer dependency. Three of the four are what this bundle's rows need in order to resolve: the memo service injects `telemetry` and `githubIssue`, and the patch inserts a `ui-memo` row naming `dsh-client-ui-memo`. Installing `dsh-memo` by itself leaves all of them unresolvable and the loader fails the boot — `Cannot find package 'dsh-github-issue' imported from …`, then the same for `dsh-client-ui-memo`. Naming `dsh-telemetry`, `dsh-github-issue` and `dsh-client-ui-memo` alongside `dsh-memo` is what makes the suite load.
+All four packages must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in only the packages the command names and never a peer dependency. Three of the four are what this bundle's rows need in order to resolve: the memo service injects `telemetry` and `githubIssue`, and the patch inserts a `ui-memo` row naming `@zhangj1164/dsh-client-ui-memo`. Installing `@zhangj1164/dsh-memo` by itself leaves all of them unresolvable and the loader fails the boot — `Cannot find package '@zhangj1164/dsh-github-issue' imported from …`, then the same for `@zhangj1164/dsh-client-ui-memo`. Naming `@zhangj1164/dsh-telemetry`, `@zhangj1164/dsh-github-issue` and `@zhangj1164/dsh-client-ui-memo` alongside `@zhangj1164/dsh-memo` is what makes the suite load.
 
 This package formerly inserted the `github-issue` row itself. That made the suite installable with one command, but it also gave the same entry id two owners, so naming every package — the obvious way to install the suite — was a boot failure (`duplicate loader entry id: github-issue`) rather than a merge. One owner per id is the property that makes subsets composable, and `pnpm run verify-bundle-entries` enforces it.
 
@@ -129,7 +129,7 @@ This package formerly inserted the `github-issue` row itself. That made the suit
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
-- **Req 12** — Depends on `dsh-telemetry` and `dsh-github-issue` as separate generic plugins, each shipping its own bundle. All three packages must be installed together, because the injected services come from those bundles and a profile does not auto-install peers.
+- **Req 12** — Depends on `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` as separate generic plugins, each shipping its own bundle. All three packages must be installed together, because the injected services come from those bundles and a profile does not auto-install peers.
 
 ## Known Limitations
 
