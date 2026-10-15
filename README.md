@@ -18,7 +18,7 @@ pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
 pnpm run test                         # run all vitest tests
 pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync
-pnpm run verify-translation-pairing   # check bilingual README consistency (6 pairs)
+pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
 ```
 
 ## Install into a DSH profile
@@ -38,6 +38,32 @@ Every package whose row or injected service the boot needs must be named. A prof
 `@zhangj1164/dsh-client-ui-memo` declares no bundle of its own: `@zhangj1164/dsh-memo`'s patch inserts its `ui-memo` row, so the panel is activated by installing `@zhangj1164/dsh-memo` — but the package itself still has to be named, and `dsh plugin add` reports it as a plain dependency rather than a profile layer. That warning is expected for a `dsh.client` plugin, not a defect.
 
 `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` expose Cordis services (`ctx.telemetry`, `ctx.githubIssue`) rather than model tools or panels of their own. They are infrastructure: installing `@zhangj1164/dsh-telemetry` by itself gives a consumer plugin something to call and gives an end user nothing to see. The visible surface is the memo board.
+
+### Install from GitHub instead of the registry
+
+The same four packages install straight from this repository, with no registry release. pnpm selects a package inside a repository with a `path:` parameter that belongs to the **committish**, after the `#` — pnpm reads it as part of the ref, so an `&path:` written against the repository URL is silently taken as part of the repository name and the fetch fails:
+
+```sh
+dsh plugin --profile web add \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
+```
+
+A git install fetches source, not build output, so each package's `prepare` script builds `lib/` during the install. pnpm ≥10 does not run that script until the profile authorizes it: the first `add` fails with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` and prints an exact `allowBuilds` key. The key pnpm prints names the resolved commit, so it stops matching after the next push. Write the repository-level form instead — it matches any commit — into `${DSH_HOME}/profiles/web/pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  '@zhangj1164/dsh-telemetry@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true
+  '@zhangj1164/dsh-github-issue@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true
+  '@zhangj1164/dsh-memo@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true
+  '@zhangj1164/dsh-client-ui-memo@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true
+```
+
+That authorization lets the package's code run on your machine at install time, outside any agent sandbox. Allow only source you trust, and pin the commit when the installed content must stop moving — `github:zhangj1164/dsh-mega-plugins#<sha>&path:packages/memo/dsh-memo`, with the ref and the `path:` joined by `&`.
+
+The registry stays the better default: a published package ships prebuilt `lib/` and needs no build authorization at all. A git install also keeps `workspace:^` in the sibling `peerDependencies`, because nothing rewrites a manifest pnpm reads straight out of a checkout. pnpm prints a peer warning for those ranges, and the boot is unaffected: a profile names every package the boot needs and sets `autoInstallPeers: false`, so the ranges have nothing left to resolve.
 
 ## Workspace Structure
 

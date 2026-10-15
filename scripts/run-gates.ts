@@ -185,6 +185,10 @@ export function gatesForMode(selected: Mode): Gate[] {
         pnpmScript('bundle-entries', 'verify-bundle-entries', {
           label: 'bundle entries',
         }),
+        // Publish wiring is a manifest fact, so this gate needs no build either.
+        pnpmScript('publish-guard', 'verify-publish-guard', {
+          label: 'publish guard',
+        }),
         ...hygieneLeafGates({ artifactNeeds: ['build'] }),
         ...docSyncLeafGates(),
         nodeGate('issue-policy', ['.github/issue-management/policy.test.mjs'], {
