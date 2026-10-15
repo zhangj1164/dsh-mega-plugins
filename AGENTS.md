@@ -42,6 +42,22 @@ pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
 node --test .github/issue-management/policy.test.mjs  # run issue policy tests (23 tests)
 ```
 
+## Agent skills
+
+The Matt Pocock engineering skills read this repo's configuration from the files below. Those files are the source of truth; this section is only the pointer.
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in `zhangj1164/dsh-mega-plugins`, driven by the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles keep their own names — `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` — and `/wayfinder` adds `wayfinder:map` plus `wayfinder:<research|prototype|grilling|task>`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and one `docs/adr/` at the repo root, alongside this repo's own `docs/plans/`. See `docs/agents/domain.md`.
+
 ## Mandatory workflow
 
 `main` is always releasable. Nothing reaches it except through a reviewed pull request, and every pull request starts from a branch cut off the latest `main`. This rule is not advisory: the agent or human doing the work follows it, and the reviewer enforces it.
