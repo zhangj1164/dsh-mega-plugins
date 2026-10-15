@@ -12,6 +12,7 @@
     "verify-translation-pairing": "tsx scripts/verify-translation-pairing.ts",
     "verify-export-jsdoc": "tsx scripts/verify-export-jsdoc.ts",
     "verify-package-exports": "tsx scripts/verify-package-exports.ts",
+    "verify-client-bundle-id": "tsx scripts/verify-client-bundle-id.ts",
     "verify-bundle-entries": "tsx scripts/verify-bundle-entries.ts",
     "verify-publish-guard": "tsx scripts/verify-publish-guard.ts",
     "verify-md-links": "tsx scripts/verify-md-links.ts",

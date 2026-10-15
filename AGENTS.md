@@ -11,8 +11,10 @@ packages/
   memo/dsh-memo/                  # Week-keyed memo service (depends on the other two)
   client/ui-memo/                 # Browser-side UI panel (depends on @zhangj1164/dsh-memo + @zhangj1164/dsh-github-issue)
 scripts/
+  tsdown.client.ts                # Shared tsdown preset for a package's browser client half
   verify-translation-pairing.ts   # Bilingual README consistency gate
   verify-package-exports.ts       # Declared exports/types targets must exist
+  verify-client-bundle-id.ts      # Built client bundles register the package name
   verify-bundle-entries.ts        # Bundle patch entry ids must not collide
   verify-publish-guard.ts         # Every package with a workspace: range wires the interlock
   publish-guard.mjs               # prepublishOnly: refuse a non-pnpm publish of workspace: ranges
@@ -32,11 +34,12 @@ docs/
 pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
 pnpm run test                         # run all vitest tests from root (64 tests across 4 packages)
-pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (10 gates)
+pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (11 gates)
 pnpm run gates:hygiene                # export-JSDoc gate only
 pnpm run gates:doc-sync               # translation pairing + markdown links + markdown wrap
 pnpm run verify-export-jsdoc          # enforce JSDoc on every exported name
 pnpm run verify-package-exports       # every declared exports/types target exists in the build output
+pnpm run verify-client-bundle-id      # every built client bundle registers its package name and only module-table requires
 pnpm run verify-bundle-entries        # no two workspace bundles insert the same composition entry id
 pnpm run verify-publish-guard         # every package carrying a workspace: range runs the publish interlock
 pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
@@ -95,6 +98,7 @@ That rule was prose, and prose did not stop the publish. Two mechanisms back it 
 ## Conventions
 
 - **ESM everywhere** (`"type": "module"`). Each package uses `tsdown` with `fixedExtension: false` to emit `.js`.
+- **Browser client halves**: a package declaring `dsh.client` builds its browser half through `scripts/tsdown.client.ts` (`clientBundle(id, libEntry)`), the port of the DSH workspace preset. The `id` argument must be the package's manifest `name` — the host composes the boot graph from that name and the browser refuses a bundle registering anything else — and the preset fails the build when the two disagree. The preset's `PLATFORM_MODULES` mirrors DSH's shell seed table, so it is the one place to update when the shell gains or drops a platform module. `pnpm run verify-client-bundle-id` then re-checks the emitted `lib/client.js`: its registration id must be the package name, every `require` must be a platform module or a row declared in `dsh.client.inject`/`dsh.client.external`, and every declared row must resolve to a package that itself declares `dsh.client`. Styles ship as TypeScript constants; the preset carries no CSS pipeline.
 - **Shared devDependencies at root**: tooling duplicated across packages (`vitest`, `tsdown`, `typescript`, `@types/node`) is declared once in the root `package.json` `devDependencies`, not repeated in each package. Each package declares only its own package-specific devDependencies and peer duplicates.
 - **Tests required**: every package under `packages/` must have a `tests/` directory with at least one `.spec.ts` file, and all tests must pass via `pnpm run test` (which runs `vitest run` from the repo root). The root `vitest.config.ts` discovers all packages via `packages/*/*/tests/**/*.spec.{ts,tsx}` — no per-package `vitest.config.ts` is needed, mirroring the official DSH pattern. The `gates` aggregate includes the `test` gate and fails the build on any broken test. New packages must add tests before their first release.
 - **Workspace protocol**: `@zhangj1164/dsh-memo` declares `workspace:^` / `workspace:*` for its `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` peer and dev dependencies. Those ranges resolve only inside the workspace: `pnpm publish` rewrites them to the real versions, `npm publish` publishes them as written (see Publish with `pnpm publish`, never `npm publish`).
