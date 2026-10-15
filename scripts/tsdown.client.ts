@@ -115,6 +115,9 @@ const CLIENT_FILENAME = 'client.js'
 /** Build target shared by all three emitted configs. */
 const TARGET = 'es2024'
 
+/** Resolved owning-package manifests, keyed by the resolution base that found them. */
+const manifestCache = new Map<string, PackageManifest | undefined>()
+
 /**
  * Emit the tsdown configs for one `dsh.client` package: the node half, the
  * browser client bundle, and the client face's declarations.
@@ -378,12 +381,20 @@ function escapeSpecifier(name: string): string {
 /** Find one package's manifest through the importing module's resolution. */
 function resolveManifest(owner: string, importer: string): PackageManifest | undefined {
   const from = importer.split('?')[0] ?? importer
+  // Rolldown asks once per (importer, specifier) pair, and a build resolves the
+  // same owner from many importers: resolving from disk each time is the
+  // slowest thing this plugin does, so the answer is cached per base directory.
+  const key = `${dirname(from)}\0${owner}`
+  if (manifestCache.has(key)) return manifestCache.get(key)
+  let manifest: PackageManifest | undefined
   try {
     const path = createRequire(from).resolve(`${owner}/package.json`)
-    return JSON.parse(readFileSync(path, 'utf8')) as PackageManifest
+    manifest = JSON.parse(readFileSync(path, 'utf8')) as PackageManifest
   } catch {
-    return undefined
+    manifest = undefined
   }
+  manifestCache.set(key, manifest)
+  return manifest
 }
 
 /**
