@@ -39,7 +39,8 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "prepare": "tsdown"
+    "prepare": "tsdown",
+    "prepublishOnly": "node ../../../scripts/publish-guard.mjs"
   },
   "license": "MIT",
   "repository": {
