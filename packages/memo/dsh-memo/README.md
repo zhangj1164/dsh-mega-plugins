@@ -119,6 +119,20 @@ All four packages must be named. A profile sets `autoInstallPeers: false` (`${DS
 
 This package formerly inserted the `github-issue` row itself. That made the suite installable with one command, but it also gave the same entry id two owners, so naming every package — the obvious way to install the suite — was a boot failure (`duplicate loader entry id: github-issue`) rather than a merge. One owner per id is the property that makes subsets composable, and `pnpm run verify-bundle-entries` enforces it.
 
+### From this repository instead of the registry
+
+The same four packages install straight from the monorepo when no registry release is available or wanted. pnpm selects a package inside a repository with a `path:` parameter that belongs to the committish, after the `#`:
+
+```sh
+dsh plugin --profile web add \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
+```
+
+A git install fetches source, so this package's `prepare` script builds `lib/` during the install. pnpm ≥10 refuses to run it until the profile authorizes the build: the first `add` fails with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`, and the repository README records both the commit-independent `allowBuilds` keys that fix it and the pinning caveat that comes with authorizing a build.
+
 ## Requirement mapping
 
 - **Req 1** — `addEntry` supports `text`, `image`, and `file` entry types; the UI panel records text entries.

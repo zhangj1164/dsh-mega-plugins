@@ -119,6 +119,20 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 本包此前自己插入 `github-issue` 行。这确实让套件可以用一条命令安装，但也让同一个条目 id 有了两个归属方，于是「把所有包都点名」——安装整套最显然的方式——变成了启动失败（`duplicate loader entry id: github-issue`），而不是合并。一个 id 只有一个归属方，正是子集可自由组合的前提，`pnpm run verify-bundle-entries` 会强制这一点。
 
+### 从本仓库安装（不经过注册表）
+
+当没有可用的注册表发布、或不想走注册表时，同样四个包可以直接从 monorepo 安装。pnpm 用属于 committish 的 `path:` 参数选中仓库内的包，也就是写在 `#` 之后：
+
+```sh
+dsh plugin --profile web add \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
+```
+
+git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程中构建出 `lib/`。pnpm ≥10 在 profile 授权之前拒绝执行它：首次 `add` 会以 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` 失败；仓库根 README 同时记录了修复所需的、与 commit 无关的 `allowBuilds` 键，以及授权构建所伴随的锁定 commit 注意事项。
+
 ## 需求映射
 
 - **需求 1** — `addEntry` 支持 `text`、`image` 和 `file` 条目类型；UI 面板记录文本条目。

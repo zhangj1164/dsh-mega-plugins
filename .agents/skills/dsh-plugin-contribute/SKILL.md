@@ -15,10 +15,10 @@ Ship a plugin that is not yet published.
 
 1. Confirm the package is a deliverable bundle: `package.json` declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`, `files` lists the runtime artifacts, and a plugin entry exists. The publish tutorial defines the manifest shape; a package without `dsh.bundle` installs as a plain dependency and activates no layer.
 2. Verify the build produces `lib/`. Run the package build. If users will install from git, confirm a self-contained `prepare` script exists that builds the published entry points without assuming a sibling monorepo checkout.
-3. Choose the distribution form and record the exact commands: npm publish ships prebuilt `lib/`; git tag needs a `prepare` script; a tarball comes from `pnpm pack`. The publish tutorial owns the trade-offs and the pnpm ≥10 `allowBuilds` allowance.
+3. Choose the distribution form and record the exact commands: a registry publish ships prebuilt `lib/` and must run through `pnpm publish`; a git tag needs a `prepare` script; a tarball comes from `pnpm pack`. The publish tutorial owns the trade-offs and the pnpm ≥10 `allowBuilds` allowance, and Publish with pnpm, never npm owns the `workspace:` rewrite.
 4. Generate the delivery checklist: version string, `pnpm pack` dry-run output, the publish command, and the `dsh-plugin` topic tag.
 5. Present the checklist and pause. Do not execute publish, push, or discussion creation until the user confirms.
-6. On confirmation, execute the publish.
+6. On confirmation, execute the publish with `pnpm publish`, then verify the registry copy (see Publish with pnpm, never npm).
 7. Ensure the GitHub repository carries the `dsh-plugin` topic for discoverability.
 8. Optionally draft (do not auto-post) a GitHub Discussions announcement in the official repository.
 
@@ -35,7 +35,7 @@ Release a new version of a plugin that already ships.
 5. Verify the build and run the owning tests; confirm `lib/` is current.
 6. Generate the iteration checklist: the new tag, the publish command, and the announcement target.
 7. Present the checklist and pause. Do not execute until the user confirms.
-8. On confirmation, publish the new version.
+8. On confirmation, publish the new version with `pnpm publish`, then verify the registry copy (see Publish with pnpm, never npm).
 9. Draft or update the GitHub Discussions announcement.
 
 Completion: the new version is published, the changelog records the change, and the release is announced.
@@ -66,6 +66,10 @@ For an own-repository issue or PR, use `gh issue view`, `gh pr view`, or `gh api
 6. Recommend the next step per item and which branch of this skill handles it.
 
 Completion: the reply is decomposed into actionable items, each with a recommended next step and the owning branch.
+
+## Publish with pnpm, never npm
+
+A pnpm workspace declares cross-package ranges as `workspace:*` / `workspace:^`. `pnpm publish` substitutes the referenced package's real version at pack time, in `dependencies` and `peerDependencies` alike; `npm publish` copies the protocol through verbatim, so the registry manifest ships `"@scope/dep": "workspace:^"` — a range no npm install can resolve (`EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"`) while pnpm merely warns, which is why a clean local install proves nothing about the published package. Publish with `pnpm publish` (or `pnpm -r publish`) and verify the registry copy after every release: `npm view <pkg>@<version> peerDependencies` shows no `workspace:` range, and a clean-room `npm install <pkg>@<version>` succeeds.
 
 ## Pause guard
 
