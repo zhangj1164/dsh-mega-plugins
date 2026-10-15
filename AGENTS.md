@@ -33,7 +33,7 @@ docs/
 ```sh
 pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
-pnpm run test                         # run all vitest tests from root (64 tests across 4 packages)
+pnpm run test                         # run all vitest tests from root (package suites + gate suites)
 pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (11 gates)
 pnpm run gates:hygiene                # export-JSDoc gate only
 pnpm run gates:doc-sync               # translation pairing + markdown links + markdown wrap
