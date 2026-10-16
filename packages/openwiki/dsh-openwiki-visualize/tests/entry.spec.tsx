@@ -116,6 +116,11 @@ function applyPlugin(
       if (typeof disposer === 'function') effects.push(disposer)
     },
     on(): void {},
+    inject(_names: string[], callback: (scoped: unknown) => void): void {
+      // The shell runs the callback once the named services exist. The fake runs
+      // it at once, which is the ordering a satisfied injection produces.
+      callback(ctx)
+    },
     get(name: string): unknown {
       if (name === 'connection') {
         return {
@@ -339,11 +344,14 @@ describe('ui-openwiki-visualize client entry', () => {
     expect(await screen.findByText(zh['empty.retry'])).toBeTruthy()
   })
 
-  it('warns rather than throwing when the profile composes no right Sidebar', () => {
+  it('degrades gracefully when the profile composes no right Sidebar', () => {
     const slots: RegisteredSlot[] = []
     const ctx = {
       effect(callback: () => void | (() => void)): void { callback() },
       on(): void {},
+      // The registry never appears, so the scoped injection runs its callback
+      // with nothing to register into.
+      inject(_names: string[], callback: (scoped: unknown) => void): void { callback(ctx) },
       get(name: string): unknown {
         if (name === 'connection') return { rpc: { call: async () => ({ ok: true, value: { ok: true, value: {} } }) } }
         return undefined
@@ -361,7 +369,12 @@ describe('ui-openwiki-visualize client entry', () => {
       },
     }
     expect(() => { apply(ctx as never) }).not.toThrow()
-    // The pane and the entry are still contributed; only the tab type is gone.
-    expect(slots).toHaveLength(2)
+    // The pane body and the header entry are still contributed — the environment
+    // report and the workspace probe stay useful — and only the tab type, which
+    // needs the registry, is absent.
+    expect(slots.map(slot => slot.name).sort()).toEqual([
+      'conversation.session.header.utilities',
+      'sidebar.right.pane.tab',
+    ])
   })
 })

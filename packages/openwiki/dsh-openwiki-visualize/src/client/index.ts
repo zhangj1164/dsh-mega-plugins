@@ -120,17 +120,23 @@ export function apply(ctx: ClientContext): void {
   const t: OpenWikiTranslate = (key: OpenWikiKey, vars) =>
     (ctx.locale.bind(NS) as unknown as OpenWikiTranslate)(key, vars)
 
-  const tabs = ctx.get('sidebarRightTabs') as SidebarRightTabsFace | undefined
-  if (tabs === undefined) {
-    console.warn('[ui-openwiki-visualize] right Sidebar tab registry not available; the preview cannot be opened')
-  } else {
-    ctx.effect(() => tabs.register({
+  // The right Sidebar is deliberately NOT in this plugin's `inject` list: a
+  // profile may compose none, and this plugin is still useful there because it
+  // reports the environment and the wiki. The tab type, though, can only be
+  // registered once the registry exists, so it waits for the service through a
+  // scoped injection rather than reading the context once here — a single read
+  // races the sidebar plugin's own factory and would silently register nothing
+  // if that factory had not run yet.
+  ctx.inject(['sidebarRightTabs'], (scoped) => {
+    const tabs = scoped.get('sidebarRightTabs') as SidebarRightTabsFace | undefined
+    if (tabs === undefined) return
+    scoped.effect(() => tabs.register({
       id: OPENWIKI_TAB_ID,
       kind: OPENWIKI_TAB_KIND,
       multiple: false,
       title: () => ctx.locale.bind(NS)('tab.title'),
     }), 'ui-openwiki-visualize: tab type')
-  }
+  })
 
   /**
    * Start the visualizer for the current workspace, then reveal the preview tab.
