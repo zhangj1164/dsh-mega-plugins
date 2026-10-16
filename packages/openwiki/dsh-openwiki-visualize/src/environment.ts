@@ -111,6 +111,31 @@ export function stripAnsi(text: string): string {
 }
 
 /**
+ * Characters that force quoting on a Windows command line.
+ *
+ * `%` and `!` are included because the command processor expands them even
+ * inside double quotes, so a value carrying one has to be treated as special
+ * rather than passed through untouched.
+ */
+const SHELL_SPECIAL = /[\s"&|<>()^%!]/u
+
+/**
+ * Quote one argument for a Windows command line.
+ *
+ * Only Windows needs this. There an npm-installed CLI is a `.cmd` shim, and the
+ * command processor is the only way to run it — but a shell join does not quote
+ * its arguments, so a workspace path containing a space would silently split
+ * into two arguments and the spawn would fail on a path that exists.
+ *
+ * @param value - the argument to quote.
+ * @returns the argument, quoted only when it needs to be.
+ */
+export function quoteForWindowsCommandLine(value: string): string {
+  if (value.length > 0 && !SHELL_SPECIAL.test(value)) return value
+  return `"${value.replace(/"/gu, '""')}"`
+}
+
+/**
  * Compare two versions the way the semantic-versioning rules order them.
  *
  * A release version outranks its own prereleases, numeric identifiers compare

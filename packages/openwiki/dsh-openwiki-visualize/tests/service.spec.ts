@@ -52,8 +52,20 @@ const harness = vi.hoisted(() => {
     respond(fn: (command: string, args: readonly string[], child: Record<string, unknown>) => void): void {
       responder = fn
     },
-    /** The `node:child_process.spawn` replacement. */
-    spawn(command: string, args: readonly string[]): unknown {
+    /**
+     * The `node:child_process.spawn` replacement.
+     *
+     * The plugin spawns two ways: directly as `(command, args, options)`, and on
+     * Windows through the command processor as `(line, options)` because Node
+     * cannot run a `.cmd` shim itself. Both shapes are accepted here, and the
+     * shell form is split back into argv so an assertion can still talk about
+     * the arguments rather than about the line.
+     */
+    spawn(command: string, argsOrOptions?: unknown, maybeOptions?: unknown): unknown {
+      const tokens = command.split(' ')
+      const direct = Array.isArray(argsOrOptions)
+      const base = direct ? command : (tokens[0] ?? command)
+      const argv = direct ? (argsOrOptions as string[]) : tokens.slice(1)
       const out = new Map<string, Handler[]>()
       const err = new Map<string, Handler[]>()
       const events = new Map<string, Handler[]>()
@@ -72,8 +84,9 @@ const harness = vi.hoisted(() => {
           fire(events, 'exit', 0)
         },
       }
-      calls.push({ command, args, child, out, err, events })
-      setTimeout(() => { responder?.(command, args, child) }, 0)
+      void maybeOptions
+      calls.push({ command: base, args: argv, child, out, err, events })
+      setTimeout(() => { responder?.(base, argv, child) }, 0)
       return child
     },
     /** The index of the most recent spawn. */

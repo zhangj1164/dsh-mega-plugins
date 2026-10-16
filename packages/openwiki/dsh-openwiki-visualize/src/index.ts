@@ -35,6 +35,7 @@ import {
   parseOpenwikiVersion,
   parseVisualizePort,
   portCandidates,
+  quoteForWindowsCommandLine,
   visualizeArgs,
 } from './environment.ts'
 import type {
@@ -67,6 +68,7 @@ export {
   parseVersion,
   parseVisualizePort,
   portCandidates,
+  quoteForWindowsCommandLine,
   stripAnsi,
   visualizeArgs,
 } from './environment.ts'
@@ -643,10 +645,7 @@ export class OpenWikiVisualizeService extends TypertRemoteService {
    */
   private async spawnVisualizer(wikiPath: string, preferred: number): Promise<ServeState> {
     const args = visualizeArgs(wikiPath, preferred)
-    const child = spawn(this.settings.openwikiCommand, [...args], {
-      cwd: wikiPath,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const child = this.spawnCli(this.settings.openwikiCommand, args, wikiPath)
     this.child = child
 
     const startedAt = Date.now()
@@ -732,6 +731,35 @@ export class OpenWikiVisualizeService extends TypertRemoteService {
   }
 
   /**
+   * Spawn a CLI portably.
+   *
+   * On Windows an npm-installed CLI is a `.cmd` shim, and Node cannot run one
+   * directly: it does not consult `PATHEXT`, so the bare name fails with
+   * `ENOENT`, and since Node 18.20 a `.cmd` without a shell fails with
+   * `EINVAL`. The command processor is therefore the only route, and because a
+   * shell join does not quote its arguments, the whole line is quoted here
+   * before it is handed over. Every other platform spawns the executable
+   * directly, which is both simpler and avoids a shell entirely.
+   *
+   * @param command - the CLI to run, as configured.
+   * @param args - its arguments.
+   * @param cwd - working directory, when the command needs one.
+   * @returns the spawned child.
+   */
+  private spawnCli(command: string, args: readonly string[], cwd?: string): ChildProcess {
+    const stdio: readonly ['ignore', 'pipe', 'pipe'] = ['ignore', 'pipe', 'pipe']
+    if (process.platform !== 'win32') {
+      return cwd === undefined
+        ? spawn(command, [...args], { stdio: [...stdio] })
+        : spawn(command, [...args], { cwd, stdio: [...stdio] })
+    }
+    const line = [command, ...args].map(quoteForWindowsCommandLine).join(' ')
+    return cwd === undefined
+      ? spawn(line, { shell: true, stdio: [...stdio] })
+      : spawn(line, { shell: true, cwd, stdio: [...stdio] })
+  }
+
+  /**
    * Run a command to completion and return its combined output.
    *
    * `tolerateFailure` exists for `openwiki --help`, which prints the banner this
@@ -740,7 +768,7 @@ export class OpenWikiVisualizeService extends TypertRemoteService {
    */
   private runToCompletion(command: string, args: readonly string[], tolerateFailure = false): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const child = spawn(command, [...args], { stdio: ['ignore', 'pipe', 'pipe'] })
+      const child = this.spawnCli(command, args)
       let output = ''
       let settled = false
 

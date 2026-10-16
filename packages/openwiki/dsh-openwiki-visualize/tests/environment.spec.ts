@@ -10,6 +10,7 @@ import {
   parseVersion,
   parseVisualizePort,
   portCandidates,
+  quoteForWindowsCommandLine,
   stripAnsi,
   visualizeArgs,
 } from '../src/environment.ts'
@@ -181,5 +182,38 @@ describe('classifyWikiDir', () => {
 
   it('accepts plain markdown as the weakest evidence', () => {
     expect(classifyWikiDir(['guide.md', 'assets'])).toEqual({ hasWiki: true, marker: 'markdown' })
+  })
+})
+
+describe('quoteForWindowsCommandLine', () => {
+  it('leaves an ordinary flag or path alone', () => {
+    expect(quoteForWindowsCommandLine('--no-open')).toBe('--no-open')
+    expect(quoteForWindowsCommandLine('/repo/openwiki')).toBe('/repo/openwiki')
+    expect(quoteForWindowsCommandLine('4321')).toBe('4321')
+  })
+
+  it('quotes a path containing a space, which would otherwise split in two', () => {
+    expect(quoteForWindowsCommandLine('C:\\My Projects\\openwiki'))
+      .toBe('"C:\\My Projects\\openwiki"')
+  })
+
+  it('quotes the shell metacharacters the command processor would act on', () => {
+    expect(quoteForWindowsCommandLine('a&b')).toBe('"a&b"')
+    expect(quoteForWindowsCommandLine('a|b')).toBe('"a|b"')
+    expect(quoteForWindowsCommandLine('a>b')).toBe('"a>b"')
+    expect(quoteForWindowsCommandLine('a^b')).toBe('"a^b"')
+  })
+
+  it('quotes the characters cmd expands even inside quotes', () => {
+    expect(quoteForWindowsCommandLine('%USERPROFILE%')).toBe('"%USERPROFILE%"')
+    expect(quoteForWindowsCommandLine('a!b')).toBe('"a!b"')
+  })
+
+  it('doubles an embedded quote rather than ending the quoted run', () => {
+    expect(quoteForWindowsCommandLine('say "hi"')).toBe('"say ""hi"""')
+  })
+
+  it('quotes an empty argument instead of dropping it', () => {
+    expect(quoteForWindowsCommandLine('')).toBe('""')
   })
 })
