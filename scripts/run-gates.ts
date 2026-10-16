@@ -181,6 +181,12 @@ export function gatesForMode(selected: Mode): Gate[] {
           label: 'package exports',
           needs: ['build'],
         }),
+        // A client bundle's registration id is a build-artifact fact too: the
+        // gate reads the emitted lib/client.js and compares it with the manifest.
+        pnpmScript('client-bundle-id', 'verify-client-bundle-id', {
+          label: 'client bundle id',
+          needs: ['build'],
+        }),
         // Bundle patches are source files, so this gate needs no build.
         pnpmScript('bundle-entries', 'verify-bundle-entries', {
           label: 'bundle entries',
