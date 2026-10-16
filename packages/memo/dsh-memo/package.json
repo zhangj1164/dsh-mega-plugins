@@ -57,7 +57,7 @@
     }
   },
   "dependencies": {
-    "@deepseek-ai/schemastery": "^3.18.0",
+    "@deepseek-ai/schemastery": "^3.18.2",
     "zod": "^4.6.5"
   },
   "peerDependencies": {
