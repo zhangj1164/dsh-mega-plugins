@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Four DSH plugins for personal memo management with local-only storage and AI analysis, developed as a pnpm monorepo.
+Five DSH plugins developed as a pnpm monorepo: a local-only personal memo suite with AI analysis, and an OpenWiki preview for the Web right Sidebar.
 
 ## Packages
 
@@ -10,6 +10,7 @@ Four DSH plugins for personal memo management with local-only storage and AI ana
 - **@zhangj1164/dsh-github-issue** (`packages/github-issue/dsh-github-issue`) — GitHub issue generation and optimization service using LLM (req 8, 9, 10, 11).
 - **@zhangj1164/dsh-memo** (`packages/memo/dsh-memo`) — Week-keyed personal memo service with AI analysis, report export, and telemetry logging (req 1–6, 8).
 - **@zhangj1164/dsh-client-ui-memo** (`packages/client/ui-memo`) — Browser-side UI panel with memo entry, analysis, report download, log analysis, and issue editor (req 1–4, 6, 8, 9, 11).
+- **@zhangj1164/dsh-openwiki-visualize** (`packages/openwiki/dsh-openwiki-visualize`) — Detects the OpenWiki in the selected workspace, serves it with `openwiki visualize` on loopback, and embeds the official reader in a self-owned right-Sidebar tab, with openwiki/DSH environment checks and plugin self-update.
 
 ## Commands
 
@@ -18,7 +19,7 @@ pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
 pnpm run test                         # run all vitest tests
 pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync
-pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
+pnpm run verify-translation-pairing   # check bilingual README consistency (6 pairs)
 ```
 
 ## Install into a DSH profile
@@ -73,6 +74,7 @@ packages/
   github-issue/dsh-github-issue/  # @zhangj1164/dsh-github-issue (standalone bundle: `github-issue` row)
   memo/dsh-memo/                  # @zhangj1164/dsh-memo (bundle: `memo` + `ui-memo` rows; injects both services)
   client/ui-memo/                 # @zhangj1164/dsh-client-ui-memo (dsh.client plugin, no bundle; inserted by @zhangj1164/dsh-memo)
+  openwiki/dsh-openwiki-visualize/ # @zhangj1164/dsh-openwiki-visualize (own bundle: `openwiki-visualize` row; carries both a host service and its dsh.client half)
 ```
 
 The `pnpm-workspace.yaml` declares `packages/*/*` — mirroring the DSH monorepo's `packages/<group>/<pkg>` convention.

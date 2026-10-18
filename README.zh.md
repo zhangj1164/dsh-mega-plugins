@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-四个 DSH 插件，提供本地存储和 AI 分析的个人备忘管理功能，以 pnpm monorepo 形式开发。
+五个 DSH 插件，以 pnpm monorepo 形式开发：本地存储、带 AI 分析的个人备忘套件，以及面向 Web 右侧边栏的 OpenWiki 预览。
 
 ## 包
 
@@ -10,6 +10,7 @@
 - **@zhangj1164/dsh-github-issue**（`packages/github-issue/dsh-github-issue`）— 使用 LLM 的 GitHub issue 生成与优化服务（需求 8、9、10、11）。
 - **@zhangj1164/dsh-memo**（`packages/memo/dsh-memo`）— 按周组织的个人备忘服务，支持 AI 分析、报告导出和遥测记录（需求 1–6、8）。
 - **@zhangj1164/dsh-client-ui-memo**（`packages/client/ui-memo`）— 浏览器端 UI 面板，支持备忘录入、分析、报告下载、日志分析和 Issue 编辑（需求 1–4、6、8、9、11）。
+- **@zhangj1164/dsh-openwiki-visualize**（`packages/openwiki/dsh-openwiki-visualize`）— 检测当前工作区的 OpenWiki，用 `openwiki visualize` 在回环地址提供服务，并将官方阅读器嵌入自有右侧边栏标签页，同时提供 openwiki/DSH 环境检查与插件自更新。
 
 ## 命令
 
@@ -18,7 +19,7 @@ pnpm install                          # 安装所有工作区依赖
 pnpm run build                        # 构建所有包（tsdown）
 pnpm run test                         # 运行所有 vitest 测试
 pnpm run gates                        # 完整门禁：构建 + 测试 + 代码规范 + 文档同步
-pnpm run verify-translation-pairing   # 校验双语 README 一致性（5 对）
+pnpm run verify-translation-pairing   # 校验双语 README 一致性（6 对）
 ```
 
 ## 安装到 DSH profile
@@ -73,6 +74,7 @@ packages/
   github-issue/dsh-github-issue/  # @zhangj1164/dsh-github-issue（独立 bundle：`github-issue` 行）
   memo/dsh-memo/                  # @zhangj1164/dsh-memo（bundle：`memo` + `ui-memo` 行；注入上述两个服务）
   client/ui-memo/                 # @zhangj1164/dsh-client-ui-memo（dsh.client 插件，无 bundle；由 @zhangj1164/dsh-memo 插入）
+  openwiki/dsh-openwiki-visualize/ # @zhangj1164/dsh-openwiki-visualize（自有 bundle：`openwiki-visualize` 行；同时包含主机服务与其 dsh.client 浏览器端）
 ```
 
 `pnpm-workspace.yaml` 声明 `packages/*/*` — 与 DSH monorepo 的 `packages/<group>/<pkg>` 约定一致。
