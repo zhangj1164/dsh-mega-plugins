@@ -377,4 +377,52 @@ describe('ui-openwiki-visualize client entry', () => {
       'sidebar.right.pane.tab',
     ])
   })
+
+  it('registers the tab type when the registry arrives after apply', () => {
+    // The right Sidebar's own plugin can materialize after this one, so the tab
+    // type must not depend on reading its registry at apply time. This shell
+    // hands the callback over and provides the service only afterwards, which is
+    // exactly the ordering the live shell can produce.
+    const tabTypes: TabDefinition[] = []
+    let registry: unknown
+    let pending: ((scoped: unknown) => void) | undefined
+    const slots: RegisteredSlot[] = []
+    const ctx = {
+      effect(callback: () => void | (() => void)): void { callback() },
+      on(): void {},
+      inject(_names: string[], callback: (scoped: unknown) => void): void { pending = callback },
+      get(name: string): unknown {
+        if (name === 'connection') return { rpc: { call: async () => ({ ok: true, value: { ok: true, value: {} } }) } }
+        if (name === 'sidebarRightTabs') return registry
+        return undefined
+      },
+      locale: {
+        register: () => () => undefined,
+        bind: () => (key: string) => key,
+      },
+      slots: {
+        inject: (_name: string, callback: () => () => void) => { callback(); return () => undefined },
+        register: (config: Record<string, unknown>, component: unknown) => {
+          slots.push({ ...config, render: component as () => React.ReactElement })
+          return () => undefined
+        },
+      },
+    }
+    apply(ctx as never)
+    // Nothing to register into yet, but apply itself must still have succeeded.
+    expect(tabTypes).toHaveLength(0)
+    expect(typeof pending).toBe('function')
+
+    registry = {
+      register(definition: TabDefinition): () => void {
+        tabTypes.push(definition)
+        return () => undefined
+      },
+    }
+    pending?.(ctx)
+
+    expect(tabTypes).toHaveLength(1)
+    expect(tabTypes[0]?.kind).toBe(OPENWIKI_TAB_KIND)
+    expect(tabTypes[0]?.id).toBe(OPENWIKI_TAB_ID)
+  })
 })
