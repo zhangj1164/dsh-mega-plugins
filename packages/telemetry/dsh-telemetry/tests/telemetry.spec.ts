@@ -288,6 +288,90 @@ describe('TelemetryService analyzeForPlugin', () => {
   })
 })
 
+describe('TelemetryService read-time redaction', () => {
+  it('re-reads a stored record on the way out, so a legacy row cannot reach a report verbatim', async () => {
+    // A row can end up unprotected without anyone writing it insecurely: it was
+    // stored before the rule set covered what it carries. Write-time redaction
+    // is irreversible, so the analysis is the last place such a row can be
+    // stopped before it becomes a model prompt and a pre-filled issue.
+    const legacy = await harnessWith({ redact: false })
+    legacy.ctx.telemetry.trackError({
+      pluginId: 'memo',
+      action: 'analyze',
+      error: {
+        code: 'ENOENT',
+        message: "cannot open '/home/acme/payroll.xlsx' for jane@example.com",
+        stack: 'Error: ENOENT\n    at open (/home/acme/payroll.xlsx:12:5)',
+        featureCodeRef: 'memo:analyze',
+      },
+      metadata: { endpoint: 'http://10.0.0.7:8080/v1', provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 },
+    })
+    await legacy.ctx.telemetry.flush()
+    const root = legacy.root
+    await legacy.disposeKeepRoot()
+    harnesses.splice(harnesses.indexOf(legacy), 1)
+
+    const reopened = await setupHarness(root)
+    harnesses.push(reopened)
+    // The store still holds the verbatim row: read-time redaction is not a
+    // migration, and listEvents stays the raw view of what was recorded.
+    expect(reopened.ctx.telemetry.listEvents({ pluginId: 'memo' })[0]?.error?.message)
+      .toBe("cannot open '/home/acme/payroll.xlsx' for jane@example.com")
+
+    const group = reopened.ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.latest.error?.message).toBe("cannot open '[redacted:home-path]' for [redacted:email]")
+    expect(group.latest.error?.stack).toBe('Error: ENOENT\n    at open ([redacted:home-path]:12:5)')
+    expect(group.latest.metadata).toEqual({
+      endpoint: 'http://[redacted:ipv4]:8080/v1',
+      provider: 'deepseek-cu',
+      model: 'deepseek-flash',
+      status: 429,
+    })
+    // The grouping keys stay legible, and the route still comes from the stored
+    // metadata, so the report can still say where the failure ran.
+    expect(group.latest.error?.code).toBe('ENOENT')
+    expect(group.latest.error?.featureCodeRef).toBe('memo:analyze')
+    expect(group.route).toEqual({ provider: 'deepseek-cu', model: 'deepseek-flash', status: 429 })
+  })
+
+  it('comes back unchanged when the stored record was already redacted', async () => {
+    const { ctx } = await harness()
+    ctx.telemetry.trackError({
+      pluginId: 'memo',
+      action: 'analyze',
+      error: {
+        code: 'EACCES',
+        message: 'cannot write /Users/me/x.md for jane@example.com',
+        featureCodeRef: 'memo:analyze',
+      },
+      metadata: { note: 'from /home/me/notes.md' },
+    })
+    await ctx.telemetry.flush()
+
+    // A marker matches no default rule, so the second pass is a no-op rather
+    // than a nested marker — which is what makes re-reading the store safe.
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.latest.error?.message).toBe('cannot write [redacted:home-path] for [redacted:email]')
+    expect(group.latest.metadata).toEqual({ note: 'from [redacted:home-path]' })
+    expect(JSON.stringify(group.latest)).not.toContain('[redacted:[redacted')
+  })
+
+  it('leaves the free text verbatim when redaction is off', async () => {
+    const { ctx } = await harnessWith({ redact: false })
+    ctx.telemetry.trackError({
+      pluginId: 'memo',
+      action: 'analyze',
+      error: { code: 'EACCES', message: 'cannot write /Users/me/x.md', featureCodeRef: 'memo:analyze' },
+    })
+    await ctx.telemetry.flush()
+
+    // The deployment asked for the verbatim log, which is what someone tuning
+    // their rules needs; the read pass must not quietly contradict that choice.
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.latest.error?.message).toBe('cannot write /Users/me/x.md')
+  })
+})
+
 describe('TelemetryService durability', () => {
   it('survives a cold restart', async () => {
     const first = await setupHarness()

@@ -36,7 +36,15 @@ Only strings are rewritten. Non-string leaves keep their value and their type, s
 
 **What is not redacted:** `pluginId`, `action`, `category`, `result`, `sessionId`, `error.code`, and `error.featureCodeRef`. These are the plugin's own grouping keys; redacting them would protect nothing the plugin did not already choose to publish while destroying the grouping that makes the log analyzable. A deployment that needs one of them covered can add a rule.
 
-**Rules are configuration, not a constant.** The balance between "keeps secrets out" and "keeps enough to debug" is deployment-specific, and an over-broad rule loses triage information permanently — which is why the rule set is a `Config` field and why only new records are affected. A rule whose pattern fails to compile is dropped rather than thrown: a typo in configuration must not stop the host recording anything at all.
+**Rules are configuration, not a constant.** The balance between "keeps secrets out" and "keeps enough to debug" is deployment-specific, and an over-broad rule loses triage information permanently — which is why the rule set is a `Config` field. A rule added today changes what is recorded next, and what the analysis re-reads from here on; it never rewrites the store. A rule whose pattern fails to compile is dropped rather than thrown: a typo in configuration must not stop the host recording anything at all.
+
+## Read-time redaction
+
+Write-time redaction is irreversible, so a record stored before a rule existed keeps verbatim whatever that rule would have removed. `analyzeForPlugin` therefore runs the same rule set again on the way out: the failure event each group carries (`latest`) has its `error.message`, `error.stack`, and `metadata` re-read through the rules before the analysis leaves the service. That is the last point before the text becomes a model prompt and a pre-filled issue, so it is where a legacy record gets stopped.
+
+Two properties keep this cheap and safe. It touches only each group's most recent failure — one pass per failure pattern, not per stored event — and it is idempotent, because a value that already carries a `[redacted:…]` marker matches no default rule and comes back unchanged. Grouping keys stay legible on read for the same reason they stay legible on write.
+
+`listEvents` is deliberately **not** re-read: it is the raw view of what the host stored, and it never feeds a report. `redact: false` disables both passes, because the deployment has already asked for the verbatim log.
 
 ## Service methods
 
@@ -45,7 +53,7 @@ Only strings are rewritten. Non-string leaves keep their value and their type, s
 | `track(input)` | Records a success event (fire-and-forget KV write). |
 | `trackError(input)` | Records a failure event with `category: 'error'`, `result: 'failure'`, and the error record carrying a `featureCodeRef`. |
 | `listEvents(query)` | Synchronous read of matching events, newest first. Filters by `pluginId`, `category`, `result`, and timestamp range. |
-| `analyzeForPlugin(pluginId)` | Groups all failure events for one plugin by `featureCodeRef`, returning total counts, the window it read, and per-group error codes. |
+| `analyzeForPlugin(pluginId)` | Groups all failure events for one plugin by `featureCodeRef`, returning total counts, the window it read, and per-group error codes. The event each group carries is re-read through the redaction rules on the way out. |
 
 ## Telemetry event model
 
