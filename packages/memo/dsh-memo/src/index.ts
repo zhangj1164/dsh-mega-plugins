@@ -1,7 +1,8 @@
 /**
  * Local memo service: a week-keyed personal memo store over the storage-domain
- * KV backend, with AI-powered analysis, report export, external-path reading
- * (privilege-gated), and telemetry-backed log analysis.
+ * KV backend, with AI-powered analysis, report export, external-path text
+ * reading (no confirmation — the `fs` service's policy is the boundary), and
+ * telemetry-backed log analysis.
  *
  * Data is local-only: every entry, week, and analysis lives in the local
  * storage-domain table. The AI capability is optional — the service degrades
@@ -966,18 +967,26 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Read an external file path. This is the privilege-escalation boundary
-   * (req 5): the client UI must show a consent dialog before calling this
-   * method. The fs service's sandbox policy is the actual security boundary.
-   * @param request - the path to read and the model route for context.
-   * @returns the file text, or a failure.
+   * Read an external file path through the host `fs` service and return its
+   * text.
+   *
+   * It adds no entry and asks for no confirmation, and both of those are
+   * deliberate rather than missing: req 5 asked for a client-side consent
+   * dialog, but the panel has no call site for this method, and the host has no
+   * confirmation point — the `fs` sandbox constrains mutations, and a direct
+   * `ctx.fs` read records no observation. The boundary is the `fs` service's
+   * own policy plus the host's Remote surface, which is what the README now
+   * states instead of promising an entry that never existed.
+   * @param request - the path to read.
+   * @returns the file text, or a failure naming the reason it could not be read.
    */
   @Remote('readExternalPath')
   async readExternalPath(request: MemoReadExternalPathRequest): Promise<ReadExternalPathResult> {
-    const fs = this.ctx.get('fs')
+    const fs = this.ctx.get('fs') as FsTextSource | undefined
     if (fs === undefined) {
-      this.trackError('readExternalPath', { code: 'FS_UNAVAILABLE', message: 'fs service not available', featureCodeRef: 'memo:readExternalPath' })
-      return this.failure({ code: 'fs-unavailable', message: 'the filesystem service is not available' })
+      const code = 'fs-unavailable'
+      this.trackError('readExternalPath', { code, message: 'fs service not available', featureCodeRef: 'memo:readExternalPath' }, { path: request.path })
+      return this.failure({ code, message: 'the filesystem service is not available', path: request.path })
     }
     try {
       const target = await fs.resolve(request.path)
@@ -985,9 +994,12 @@ export class MemoService extends TypertRemoteService {
       this.track('readExternalPath', 'success', { path: request.path })
       return { ok: true, value: text }
     } catch (error) {
+      // The reason has to survive the trip: one blanket `approval-denied` made a
+      // missing file, a binary file, and a genuine refusal indistinguishable.
+      const code = readFailureCode(fsErrorCode(error))
       const message = error instanceof Error ? error.message : String(error)
-      this.trackError('readExternalPath', { code: 'FS_ERROR', message, featureCodeRef: 'memo:readExternalPath' })
-      return this.failure({ code: 'approval-denied', message: `could not read "${request.path}": ${message}` })
+      this.trackError('readExternalPath', { code, message, featureCodeRef: 'memo:readExternalPath' }, { path: request.path })
+      return this.failure({ code, message: `could not read "${request.path}": ${message}`, path: request.path })
     }
   }
 
@@ -1240,6 +1252,75 @@ export class MemoService extends TypertRemoteService {
 type ReadExternalPathResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** The failure codes a failed {@link MemoService.readExternalPath} can report. */
+/**
+ * The codes a read can hand back: every `MemoMemoFailure` variant that names the
+ * path it failed on. Derived rather than re-listed, so a code added to the public
+ * union cannot stay out of the dispatch unnoticed.
+ */
+type ReadExternalPathFailureCode = Extract<MemoMemoFailure, { readonly path: string }>['code']
+
+/**
+ * Minimal shape of the DSH `fs` service this service needs: resolve a path into
+ * an opaque target, then read that target's text. Declared structurally so
+ * nothing here depends on a concrete backend, and the target stays `unknown`
+ * because the only thing this service does with it is hand it straight back.
+ */
+interface FsTextSource {
+  resolve(path: string): Promise<unknown>
+  readText(target: unknown): Promise<string>
+}
+
+/**
+ * Read the DSH filesystem error code off a thrown value, when it carries one.
+ *
+ * Duck-typed rather than an `instanceof FsError` check: `@deepseek-ai/dsh-fs` is
+ * not a dependency of this package, and the code — not the class — is the part
+ * the failure dispatch needs. A value carrying no string `code` is reported as
+ * absent, so the caller reports a generic `fs-error` instead of inventing a
+ * reason.
+ * @param error - any value thrown by the `fs` service.
+ * @returns the `FS_*` code, or undefined when the failure carries none.
+ */
+function fsErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined
+  const { code } = error as { readonly code?: unknown }
+  return typeof code === 'string' ? code : undefined
+}
+
+/**
+ * Map one DSH `FsErrorCode` onto the failure this service reports.
+ *
+ * One blanket `approval-denied` used to cover a missing file, a binary file, an
+ * oversized file, and a real permission refusal alike, so a caller could not
+ * tell "you are not allowed" from "there is nothing there" without parsing the
+ * message. Codes that cannot arise from a read (edit guards, versioning) fall
+ * through to `fs-error` rather than being guessed at.
+ * @param fsCode - the code the `fs` service raised, when it raised one.
+ * @returns the business failure code to return and to record in telemetry.
+ */
+function readFailureCode(fsCode: string | undefined): ReadExternalPathFailureCode {
+  switch (fsCode) {
+    case 'FS_NOT_FOUND':
+      // A deployment may mount a thin `node:fs` wrapper rather than the DSH
+      // backend, and its errno names the same causes.
+    case 'ENOENT':
+      return 'path-not-found'
+    case 'FS_NOT_TEXT':
+    case 'FS_NOT_REGULAR_FILE':
+      return 'path-not-text'
+    case 'FS_TOO_LARGE':
+      return 'path-too-large'
+    case 'FS_PERMISSION_DENIED':
+    case 'FS_SANDBOX_DENIED':
+    case 'EACCES':
+    case 'EPERM':
+      return 'approval-denied'
+    default:
+      return 'fs-error'
+  }
+}
 
 /**
  * Minimal shape of the DSH `llm` service this service needs in order to

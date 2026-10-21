@@ -42,6 +42,8 @@ When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_
 
 The telemetry event behind a failure carries the same route as metadata, and so does the event behind a call that **worked**: `analyze`, `exportReport`, `listModels`, and `analyzeLogs` all record `provider` and `model` on success. A route that resolved to nothing is recorded as an empty string, which is how an event that predates this — one with no `provider` key at all — stays distinguishable from one where nothing resolved. Recording only failures would answer "which route broke" while leaving "which route served the calls that worked, and has it changed since?" unanswerable, and the answer is in scope at success time anyway.
 
+`readExternalPath` preserves the reason a read failed the same way, each failure carrying the attempted `path`: `path-not-found`, `path-not-text` (the target is not a readable text file), `path-too-large` (the backend's size bound refused it), `approval-denied` for a permission or sandbox refusal, `fs-error` for anything else, and `fs-unavailable` when the deployment mounts no `fs` service. The code recorded in telemetry is the same one returned to the caller. Before this, all of them were a single `approval-denied`, so a missing file, a binary file, and a genuine refusal were indistinguishable without parsing the message.
+
 ## Remote methods
 
 Every method declares exactly one parameter named `request`, even when it carries no input. The protocol binds arguments **by name** — the client sends `{ args: { request } }` — so a method declared with no parameter at all has its call rejected before the body runs. That is not a cosmetic difference: `listArchivedQuarters` once declared none, the host archived quarters successfully while the client's read of them returned nothing, and archiving looked like it did nothing at all. `tests/remote-signatures.spec.ts` now fails on any method that breaks the rule.
@@ -56,7 +58,7 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `deleteEntry(request)` | Deletes an entry from a week. Past weeks require `force: true`. |
 | `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
-| `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
+| `readExternalPath(request)` | Reads a local file path through the host `fs` service and returns its text. It adds no entry and asks for no confirmation — the `fs` service's own policy and the host's Remote surface are the boundary. |
 | `analyzeLogs(request)` | Reads telemetry failures for every configured plugin and generates one GitHub issue report over all of them via the github-issue service. Passes the analysis window — the union of the per-plugin windows — and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
@@ -139,7 +141,7 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Req 2** — `getOrCreateCurrentWeek` auto-creates or loads the current ISO week (Monday start, Sunday end) as the storage point.
 - **Req 3** — `updateEntry` and `deleteEntry` enforce `past-week-requires-force`: editing a non-current week requires `force: true` to acknowledge that AI analysis results may change.
 - **Req 4** — `analyze` and `exportReport` accept a period (`week` / `month` / `quarter` / `year`) and collect entries across matching weeks.
-- **Req 5** — `readExternalPath` reads a local file path through the `fs` service; the client UI must show a consent dialog before calling it (privilege escalation boundary).
+- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It writes no entry, and no consent dialog exists: the panel has no call site, and the host performs no confirmation (the `fs` sandbox constrains mutations, and a direct `ctx.fs` read records no observation). The boundary is the `fs` service's own policy plus the host's Remote surface.
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
@@ -150,3 +152,4 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
 - **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
 - **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.
+- **`readExternalPath` has no UI** — the host method returns a file's text and writes no entry; the panel never calls it, so nothing in the board imports a file today.
