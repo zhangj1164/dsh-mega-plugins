@@ -370,6 +370,38 @@ describe('TelemetryService read-time redaction', () => {
     const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
     expect(group.latest.error?.message).toBe('cannot write /Users/me/x.md')
   })
+
+  it('re-reads whatever the deployment rules catch, not a fixed family list', async () => {
+    // The read pass carries no family list of its own: it runs the deployed rule
+    // set. That is what lets a rule added later — a new credential shape, say —
+    // still protect a row written before the rule existed.
+    const legacy = await harnessWith({ redact: false })
+    legacy.ctx.telemetry.trackError({
+      pluginId: 'memo',
+      action: 'analyze',
+      error: {
+        code: 'HTTP',
+        message: 'GET https://api.example.com/v1/items?token=abc123def456 failed, call 13800138000',
+        featureCodeRef: 'memo:analyze',
+      },
+    })
+    await legacy.ctx.telemetry.flush()
+    const root = legacy.root
+    await legacy.disposeKeepRoot()
+    harnesses.splice(harnesses.indexOf(legacy), 1)
+
+    const reopened = await setupHarness(root, {
+      redactionRules: [
+        { name: 'query-token', pattern: '[?&](?:token|sig|signature|key)=[^\\s&]+' },
+        { name: 'cn-mobile', pattern: '\\b1[3-9]\\d{9}\\b' },
+      ],
+    })
+    harnesses.push(reopened)
+
+    const group = reopened.ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.latest.error?.message)
+      .toBe('GET https://api.example.com/v1/items[redacted:query-token] failed, call [redacted:cn-mobile]')
+  })
 })
 
 describe('TelemetryService durability', () => {
