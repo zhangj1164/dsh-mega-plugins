@@ -253,7 +253,11 @@ export class TelemetryService extends Service {
         return {
           featureCodeRef,
           count: g.count,
-          latest: g.latest,
+          // Re-read through the rules on the way out: a record stored before a
+          // rule existed holds verbatim whatever that rule would have removed,
+          // and this analysis is the last point before that text becomes a
+          // model prompt and a pre-filled issue.
+          latest: this.redactedEvent(g.latest),
           errorCodes: [...g.codes],
           attemptsAfterLastFailure: events.filter(event => event.timestamp > g.latest.timestamp && g.actions.has(event.action)).length,
           ...(route === undefined ? {} : { route }),
@@ -319,6 +323,35 @@ export class TelemetryService extends Service {
       ...(error.stack === undefined ? {} : { stack: redactText(error.stack, this.redactionRules) }),
       ...(error.featureCodeRef === undefined ? {} : { featureCodeRef: error.featureCodeRef }),
     }
+  }
+
+  /**
+   * Re-apply the redaction rules to one stored event on the way out.
+   *
+   * Redaction on the way in cannot reach a record written before the rule set
+   * grew: the store holds it verbatim, and the analysis is the last point before
+   * that text becomes a model prompt and a pre-filled issue. So the same rules
+   * run again on read.
+   *
+   * Two properties keep this cheap and safe. It is applied to the one event each
+   * group carries, not to every stored event, so the cost is per failure pattern
+   * rather than per row; and it is idempotent, because a value that already
+   * carries a marker matches no default rule and comes back unchanged.
+   *
+   * Only the free text is re-read. `code` and `featureCodeRef` stay legible for
+   * the same reason they are not redacted on write: they are the grouping keys,
+   * and the analysis has nothing to group without them.
+   * @param event - a stored event, already copied out of the row.
+   * @returns the event with its free text re-read through the rules.
+   */
+  private redactedEvent(event: TelemetryEvent): TelemetryEvent {
+    if (this.redactionRules.length === 0) return event
+    const metadata = redactMetadata(event.metadata, this.redactionRules)
+    return Object.freeze({
+      ...event,
+      ...(metadata === undefined ? {} : { metadata }),
+      ...(event.error === undefined ? {} : { error: this.redactedError(event.error) }),
+    })
   }
 
   /** Resolve the initialized durable table or fail a broken service lifecycle. */
