@@ -45,24 +45,73 @@ interface CompiledRule {
 }
 
 /**
- * The default rule set: the five families a personal telemetry log actually
- * leaks. Order matters — a token is also long and base64-shaped, so the token
- * rule runs first and gives the more informative name.
+ * The default rule set: the families a personal telemetry log actually leaks.
+ * Order matters — a token is also long and base64-shaped, so the token rules run
+ * first and give the more informative name.
+ *
+ * The path and digit rules are written as raw templates: they are mostly
+ * backslashes, and escaping those twice hides the expression being reviewed.
  */
 export const DEFAULT_REDACTION_RULES: readonly RedactionRule[] = Object.freeze([
   Object.freeze({ name: 'email', pattern: '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}' }),
+  // A JWT is three base64url runs joined by dots. The runs are long enough that
+  // the base64 rule alone would chew the token up, but naming the family is
+  // worth a rule: `credential` and `jwt` send a reader to different places.
+  Object.freeze({
+    name: 'jwt',
+    pattern: String.raw`\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}`,
+  }),
   Object.freeze({
     name: 'credential',
     pattern: '(?:Bearer|Basic)\\s+[A-Za-z0-9._~+/-]{8,}=*'
       + '|\\b(?:sk|ghp|gho|ghs|ghr|github_pat|xox[abprs])[-_][A-Za-z0-9_-]{12,}\\b'
+      // A truncated key is still most of a key, so these two match a run rather
+      // than the exact length the provider issues.
+      + '|\\b(?:AKIA[0-9A-Z]{12,}|AIza[A-Za-z0-9_-]{30,})\\b'
       + '|\\b(?:api[-_]?key|access[-_]?token|auth[-_]?token|client[-_]?secret|password|passwd|secret)["\']?\\s*[=:]\\s*["\']?[^\\s"\',;]{6,}',
+    flags: 'i',
+  }),
+  // A credential carried in a query string survives every assignment rule above,
+  // and it is the shape that reaches an issue body most often: an HTTP error
+  // quotes the URL it was sent to, with the parameter still attached.
+  Object.freeze({
+    name: 'query-credential',
+    pattern: String.raw`[?&](?:token|key|apikey|api[-_]?key|access[-_]?token|sig|signature|secret|password)=[^\s&#'"]+`,
     flags: 'i',
   }),
   // Both branches stop at a colon. A stack frame reads `path:line:column`, and
   // swallowing the position would remove the diagnostic detail that makes the
-  // path worth logging in the first place.
-  Object.freeze({ name: 'home-path', pattern: '(?:[A-Za-z]:\\\\Users\\\\[^\\s"\':]+|/(?:Users|home|root|var|tmp|opt|mnt|etc)/[^\\s"\',;):]*)' }),
+  // path worth logging in the first place. `~` is the shell's own spelling of a
+  // home directory, so it belongs with the explicit prefixes.
+  Object.freeze({
+    name: 'home-path',
+    pattern: String.raw`(?:[A-Za-z]:\\Users\\[^\s"':]+|~/(?:[^\s"',;):]*)|/(?:Users|home|root|var|tmp|opt|mnt|etc)/[^\s"',;):]*)`,
+  }),
+  // A `file:` URL is a path with a scheme in front of it. Matching the whole URL
+  // keeps a leading `/srv` from being left behind as the only surviving segment.
+  Object.freeze({ name: 'file-url', pattern: String.raw`\bfile://[^\s"',;)]+` }),
+  // Any other absolute path of two segments or more. One bare segment (`/api`,
+  // `/v1`) is how a route reads, and redacting it would remove the channel name
+  // the log exists to explain. The rule does reach into a URL: a path is a path
+  // wherever it is written, and the host alone still names the service. A colon
+  // ends the match, so a stack frame keeps `:line:column`.
+  Object.freeze({
+    name: 'absolute-path',
+    pattern: String.raw`(?<![:/])/(?:[^\s"',;:()\[\]<>/?#]+/)+[^\s"',;:()\[\]<>/?#]*`,
+  }),
+  // The Windows twin of the rule above: `\\server\share\file`.
+  Object.freeze({
+    name: 'unc-path',
+    pattern: String.raw`\\\\[^\s"',;:*?"<>|/\\]+\\[^\s"',;:*?"<>|/\\]+(?:\\[^\s"',;:*?"<>|/\\]+)*`,
+  }),
   Object.freeze({ name: 'windows-path', pattern: '[A-Za-z]:\\\\(?:[^\\\\\\s:*?"<>|]+\\\\)*[^\\\\\\s:*?"<>|]*' }),
+  // A mainland Chinese resident ID: eighteen digits with a calendar date in the
+  // middle. The date is what keeps the rule from eating every long number.
+  Object.freeze({
+    name: 'cn-id',
+    pattern: String.raw`\b[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b`,
+  }),
+  Object.freeze({ name: 'cn-mobile', pattern: String.raw`\b1[3-9]\d{9}\b` }),
   Object.freeze({ name: 'ipv4', pattern: '\\b(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)){3}\\b' }),
   Object.freeze({ name: 'ipv6', pattern: '\\b(?:[A-Fa-f0-9]{1,4}:){2,7}[A-Fa-f0-9]{1,4}\\b' }),
   Object.freeze({ name: 'hex', pattern: '\\b[A-Fa-f0-9]{32,}\\b' }),
