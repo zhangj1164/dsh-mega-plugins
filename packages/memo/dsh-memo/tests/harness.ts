@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+﻿import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
@@ -257,7 +257,7 @@ export interface SetupOptions {
   readonly llm?: MockLlmOptions
   /**
    * Extra memo `Config` fields. The harness always pins `provider`/`model` to
-   * {@link TEST_ROUTE} so the service resolves a route the mock registered —
+   * {@link TEST_ROUTE} so the service resolves a route the mock registered 鈥?
    * unless {@link SetupOptions.followAgentDefault} asks for the opposite.
    */
   readonly config?: { readonly provider?: string; readonly model?: string }
@@ -282,10 +282,55 @@ export interface SetupOptions {
   readonly analysisByPlugin?: Record<string, Record<string, unknown>>
   /** Memo `Config.logAnalysisPlugins`, for a deployment that trims the suite. */
   readonly logAnalysisPlugins?: readonly string[]
+  /**
+   * Where the memo ledger resolves both of its files during this test.
+   *
+   * `isolated` (the default) points `DSH_HOME` and the platform home at this
+   * harness's own temp root. The ledger writes under the DSH home, but the
+   * one-time migration also reads the platform home's `memo/ledger.json` and
+   * renames it once merged, so isolating `DSH_HOME` alone would let a test run
+   * consume 鈥?and rename 鈥?the developer's real legacy ledger. A test that
+   * owns the environment itself asks for `inherit` and sets (then restores)
+   * the variables it needs.
+   */
+  readonly ledgerHome?: 'isolated' | 'inherit'
+}
+
+/** The environment the test process started with, restored once a harness lets go. */
+const initialLedgerEnv = {
+  DSH_HOME: process.env.DSH_HOME,
+  HOME: process.env.HOME,
+  USERPROFILE: process.env.USERPROFILE,
+}
+
+/**
+ * Point both of the ledger's homes at scratch directories for one harness.
+ *
+ * The ledger is a real file under the DSH home, and its one-time migration
+ * reads the platform home's `memo/ledger.json`, merges it, and renames it to a
+ * `.migrated` receipt. Redirecting both keeps a test run from appending to the
+ * developer's `~/.dsh/memo` and from migrating `~/memo` out from under them.
+ * @param root - the harness temp root.
+ * @param mode - `isolated` redirects the variables, `inherit` leaves them untouched.
+ * @returns the callback that restores the environment the process started with.
+ */
+function isolateLedgerHome(root: string, mode: 'isolated' | 'inherit'): () => void {
+  if (mode === 'inherit') return () => {}
+  const platformHome = join(root, 'home')
+  process.env.DSH_HOME = join(root, 'dsh-home')
+  process.env.HOME = platformHome
+  process.env.USERPROFILE = platformHome
+  return () => {
+    for (const [key, value] of Object.entries(initialLedgerEnv)) {
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
+  }
 }
 
 export async function setupHarness(options: SetupOptions = {}): Promise<TestHarness> {
   const root = await mkdtemp(join(tmpdir(), 'dsh-memo-test-'))
+  const restoreLedgerEnv = isolateLedgerHome(root, options.ledgerHome ?? 'isolated')
   const ctx = new Context()
   try {
     await ctx.plugin(Storage)
@@ -311,6 +356,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
   } catch (error) {
     await ctx.fiber.dispose()
     await rm(root, { recursive: true, force: true })
+    restoreLedgerEnv()
     throw error
   }
   return {
@@ -321,6 +367,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     async dispose() {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })
+      restoreLedgerEnv()
     },
   }
 }
