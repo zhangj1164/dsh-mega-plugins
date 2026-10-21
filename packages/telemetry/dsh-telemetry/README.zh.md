@@ -13,7 +13,7 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 | `maxEventsPerQuery` | `500` | 一次 `listEvents` 调用返回的最大事件数。 |
 | `redact` | `true` | 是否在写入事件前对敏感文本脱敏。 |
 | `redactionMarker` | `[redacted:{rule}]` | 每处命中替换成的文本；`{rule}` 会替换为命中的规则名。 |
-| `redactionRules` | 下列五类规则 | 规则集：`{ name, pattern, flags? }`，按顺序应用。 |
+| `redactionRules` | 下列规则 | 规则集：`{ name, pattern, flags? }`，按顺序应用。 |
 
 ## 写入时脱敏
 
@@ -24,19 +24,25 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 | 规则 | 命中内容 |
 |---|---|
 | `email` | `jane.doe+work@example.co.uk` |
-| `credential` | `Bearer …` / `Basic …`、带前缀的密钥（`sk-`、`ghp_`、`github_pat_`、`xox…`），以及 `api_key=` / `password:` / `secret=` 这类赋值 |
-| `home-path` | `/Users/…`、`/home/…`、`/root/…`、`/var/…`、`/tmp/…`、`/opt/…`、`/mnt/…`、`/etc/…`，以及 `C:\Users\…` |
+| `jwt` | `eyJ…`.`…`.`…` 这样的三段式令牌 |
+| `credential` | `Bearer …` / `Basic …`、带前缀的密钥（`sk-`、`ghp_`、`github_pat_`、`xox…`、`AKIA…`、`AIza…`），以及 `api_key=` / `password:` / `secret=` 这类赋值 |
+| `query-credential` | URL 里的 `?token=…`、`&key=…`、`?signature=…` |
+| `home-path` | `/Users/…`、`/home/…`、`/root/…`、`/var/…`、`/tmp/…`、`/opt/…`、`/mnt/…`、`/etc/…`、`~/…`，以及 `C:\Users\…` |
+| `file-url` | `file:///…` 这样的 URL |
+| `absolute-path` | 其余两段及以上的绝对路径，包括 `/v1/chat/completions` |
+| `unc-path` | `\\server\share\…` |
 | `windows-path` | 其他任意 Windows 绝对路径 |
+| `cn-id` / `cn-mobile` | 18 位身份证号与内地手机号 |
 | `ipv4` / `ipv6` | 字面地址 |
 | `hex` / `base64` | 长串（32 个以上十六进制字符、40 个以上 base64 字符） |
 
-默认规则的触达范围有两处刻意收敛。像 `/api` 这样的裸路径片段**不**会被处理：一个连自己将来要解释的 channel 与 endpoint 名都一并打码的规则集，是没人能用来排障的规则集。家目录路径在冒号处停止，因此栈帧里的 `path:line:column` 会保留位置信息——正是位置让这条路径值得记录。
+路径规则只有一处刻意收敛。像 `/api`、`/v1` 这样的裸路径片段**不**会被处理：一个连自己将来要解释的 channel 与 endpoint 名都一并打码的规则集，是没人能用来排障的规则集。两段及以上就脱敏，无论写在哪里——写进 URL 里也一样，此时主机名仍能指明服务。所有路径规则都在冒号处停止，因此栈帧里的 `path:line:column` 会保留位置信息——正是位置让这条路径值得记录。数字规则遵循同一取舍：18 位长串只有中间能读成日期时才算身份证号，普通的超长数字会原样留下。
 
 只有字符串会被改写。非字符串叶子保持原值与类型，因此脱敏是「移除密钥」而不是「重塑日志」。既不是普通数据也不是字符串的值会被字符串化，而不是原样放过。`metadata` 缺失时仍然缺失，不会变成 `{}`——持久化 schema 对二者是区别对待的。
 
 **不脱敏的字段**：`pluginId`、`action`、`category`、`result`、`sessionId`、`error.code`、`error.featureCodeRef`。这些是插件自己的分组键；对它们脱敏既保护不了插件本就未选择公开的任何东西，又会摧毁让日志可分析的分组能力。确需覆盖其中某项的部署可以自行加一条规则。
 
-**规则是配置，不是常量。** 「挡住密钥」与「留够排障信息」之间的平衡因部署而异，而过宽的规则会永久损失排查线索——这正是规则集是 `Config` 字段的原因。今天加的规则会改变接下来记录的内容，也会改变分析从这里起的二次读取；但它从不改写库里已有的记录。模式编译失败的规则会被丢弃而不是抛出：配置里的一个笔误不该让宿主记录不了任何东西。
+**规则是配置，不是常量。** 「挡住密钥」与「留够排障信息」之间的平衡因部署而异，而过宽的规则会永久损失排查线索——这正是规则集是 `Config` 字段的原因。`redactionRules` 是**整体替换**默认规则集而不是追加：某个部署若觉得某一类规则太吵——比如手机号或身份证号——只要写出它真正想要的那套规则集，就等于去掉了它。今天加的规则会改变接下来记录的内容，也会改变分析从这里起的二次读取；但它从不改写库里已有的记录。模式编译失败的规则会被丢弃而不是抛出：配置里的一个笔误不该让宿主记录不了任何东西。
 
 ## 读取时脱敏
 

@@ -13,7 +13,7 @@ Local-only in-process telemetry tracker for DeepSeek Harness. Records operation 
 | `maxEventsPerQuery` | `500` | Maximum events returned by one `listEvents` call. |
 | `redact` | `true` | Whether to redact sensitive text before an event is stored. |
 | `redactionMarker` | `[redacted:{rule}]` | Replacement written in place of every match; `{rule}` becomes the matching rule's name. |
-| `redactionRules` | the five families below | The rule set: `{ name, pattern, flags? }`, applied in order. |
+| `redactionRules` | the families below | The rule set: `{ name, pattern, flags? }`, applied in order. |
 
 ## Write-time redaction
 
@@ -24,19 +24,25 @@ Redaction therefore happens **before the write**, in `src/redaction.ts`, and is 
 | Rule | Catches |
 |---|---|
 | `email` | `jane.doe+work@example.co.uk` |
-| `credential` | `Bearer …` / `Basic …`, prefixed keys (`sk-`, `ghp_`, `github_pat_`, `xox…`), and `api_key=` / `password:` / `secret=` assignments |
-| `home-path` | `/Users/…`, `/home/…`, `/root/…`, `/var/…`, `/tmp/…`, `/opt/…`, `/mnt/…`, `/etc/…`, and `C:\Users\…` |
+| `jwt` | three-part `eyJ…`.`…`.`…` tokens |
+| `credential` | `Bearer …` / `Basic …`, prefixed keys (`sk-`, `ghp_`, `github_pat_`, `xox…`, `AKIA…`, `AIza…`), and `api_key=` / `password:` / `secret=` assignments |
+| `query-credential` | `?token=…`, `&key=…`, `?signature=…` in a URL |
+| `home-path` | `/Users/…`, `/home/…`, `/root/…`, `/var/…`, `/tmp/…`, `/opt/…`, `/mnt/…`, `/etc/…`, `~/…`, and `C:\Users\…` |
+| `file-url` | a `file:///…` URL |
+| `absolute-path` | any other absolute path of two segments or more, `/v1/chat/completions` included |
+| `unc-path` | `\\server\share\…` |
 | `windows-path` | any other absolute Windows path |
+| `cn-id` / `cn-mobile` | an 18-digit resident ID and a mainland mobile number |
 | `ipv4` / `ipv6` | literal addresses |
 | `hex` / `base64` | long blobs (32+ hex characters, 40+ base64 characters) |
 
-Two deliberate limits on how far the default rules reach. A bare path segment such as `/api` is **not** touched: a rule set that also chews up the channel and endpoint names it will be asked to explain is a rule set nobody can debug with. And a home path stops at a colon, so a stack frame's `path:line:column` keeps its position — the position is the part that makes the path worth logging.
+One deliberate limit on how far the path rules reach. A bare path segment such as `/api` or `/v1` is **not** touched: a rule set that also chews up the channel and endpoint names it will be asked to explain is a rule set nobody can debug with. Two segments or more go, wherever they are written — inside a URL as well, where the host alone still names the service. Every path rule stops at a colon, so a stack frame's `path:line:column` keeps its position — the position is the part that makes the path worth logging. The same trade-off decides the digit rules: an eighteen-digit run is only a resident ID when the middle of it reads as a date, so an ordinary long number survives.
 
 Only strings are rewritten. Non-string leaves keep their value and their type, so redaction removes secrets rather than reshaping the log. Values that are neither plain data nor strings are stringified rather than passed through unexamined. `metadata` absent stays absent instead of becoming `{}`, because the durable schema treats those differently.
 
 **What is not redacted:** `pluginId`, `action`, `category`, `result`, `sessionId`, `error.code`, and `error.featureCodeRef`. These are the plugin's own grouping keys; redacting them would protect nothing the plugin did not already choose to publish while destroying the grouping that makes the log analyzable. A deployment that needs one of them covered can add a rule.
 
-**Rules are configuration, not a constant.** The balance between "keeps secrets out" and "keeps enough to debug" is deployment-specific, and an over-broad rule loses triage information permanently — which is why the rule set is a `Config` field. A rule added today changes what is recorded next, and what the analysis re-reads from here on; it never rewrites the store. A rule whose pattern fails to compile is dropped rather than thrown: a typo in configuration must not stop the host recording anything at all.
+**Rules are configuration, not a constant.** The balance between "keeps secrets out" and "keeps enough to debug" is deployment-specific, and an over-broad rule loses triage information permanently — which is why the rule set is a `Config` field. `redactionRules` **replaces** the default set rather than extending it, so a deployment that finds one family noisy — the mobile-number or resident-ID rules, say — drops it by writing out the set it does want. A rule added today changes what is recorded next, and what the analysis re-reads from here on; it never rewrites the store. A rule whose pattern fails to compile is dropped rather than thrown: a typo in configuration must not stop the host recording anything at all.
 
 ## Read-time redaction
 
