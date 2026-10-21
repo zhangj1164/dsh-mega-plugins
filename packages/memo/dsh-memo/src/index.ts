@@ -14,9 +14,9 @@
  */
 
 import { randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
@@ -148,23 +148,82 @@ const TELEMETRY_PLUGIN_ID = 'memo'
 /** Ledger schema version for forward-compatible migrations. */
 const LEDGER_SCHEMA_VERSION = 1
 
+/** How many analyses the ledger keeps before the oldest drop off. */
+const LEDGER_CAPACITY = 500
+
 /** Canonical quarter label, the only key shape the archive accepts. */
 const QUARTER_LABEL_PATTERN = /^\d{4}-Q[1-4]$/u
 
+/** The directory name of the default DSH home under the platform home. */
+const DSH_HOME_DIR_NAME = '.dsh'
+
+/** The environment variable that overrides the DSH home. */
+const DSH_HOME_ENV = 'DSH_HOME'
+
 /**
- * Resolve the DSH home directory: the environment override wins, the platform
- * home fallback follows. Mirrors the task-board's dsh-home.ts pattern.
- * @param env - process environment to read DSH_HOME from.
- * @param home - platform home directory fallback (test seam).
- * @returns the absolute DSH home path.
+ * The suffix the one-time ledger migration renames the platform-home file to.
+ *
+ * A renamed file rather than a deletion: the analyses it holds exist nowhere
+ * else, so the migration keeps them inspectable instead of trusting its own
+ * merge.
  */
-function resolveDshHome(env: NodeJS.ProcessEnv = process.env, home: string = homedir()): string {
-  return env.DSH_HOME ?? home
+const MIGRATED_LEDGER_SUFFIX = '.migrated'
+
+/**
+ * Expand a leading `~`, `~/`, or `~\` prefix against the platform home.
+ *
+ * Only the prefixes DSH's own `expandHomePath()` recognizes are handled; any
+ * other spelling is returned unchanged, so a path that merely contains a tilde
+ * keeps it.
+ * @param configured - the configured path, possibly tilde-prefixed.
+ * @param home - the platform home directory to expand against.
+ * @returns the path with a supported prefix expanded.
+ */
+function expandHomePath(configured: string, home: string): string {
+  if (configured === '~') return home
+  if (configured.startsWith('~/') || configured.startsWith('~\\')) return join(home, configured.slice(2))
+  return configured
 }
 
-/** Resolve the memo ledger file path under $DSH_HOME/memo/. */
+/**
+ * Resolve the DSH home directory the way DSH itself does: `$DSH_HOME` when it
+ * carries a non-blank value, `~/.dsh` otherwise.
+ *
+ * Mirrors `resolveDshHome()` from `@deepseek-ai/dsh-home-paths`, which is what
+ * the host resolves its own user data through, including two details a naive
+ * `env.DSH_HOME ?? homedir()` gets wrong: a blank override counts as unset
+ * (rather than resolving a relative path against the process CWD), and a
+ * `~` prefix expands against the platform home. Kept as a local mirror instead
+ * of a dependency because this ledger path is the only thing in the package
+ * that needs it, and a peer on the home-paths package would grow the platform
+ * surface every deployment has to satisfy.
+ * @param env - process environment to read `DSH_HOME` from.
+ * @param home - platform home directory (test seam).
+ * @returns the absolute, normalized DSH home path.
+ */
+function resolveDshHome(env: NodeJS.ProcessEnv = process.env, home: string = homedir()): string {
+  const override = env[DSH_HOME_ENV]
+  const configured = override !== undefined && override.trim().length > 0 ? override : undefined
+  return resolve(expandHomePath(configured ?? join(home, DSH_HOME_DIR_NAME), home))
+}
+
+/** Resolve the memo ledger file path under `$DSH_HOME/memo/`. */
 function ledgerFile(): string {
   return join(resolveDshHome(), 'memo', 'ledger.json')
+}
+
+/**
+ * Resolve the ledger path an earlier resolver wrote: the platform home's own
+ * `memo/ledger.json`.
+ *
+ * Before the home resolution matched DSH's contract, an unset `DSH_HOME` put
+ * the ledger at the platform home's top level, so every such deployment keeps
+ * its analyses there. Only the one-time migration reads this path.
+ * @param home - platform home directory (test seam).
+ * @returns the legacy ledger path.
+ */
+function legacyLedgerFile(home: string = homedir()): string {
+  return join(home, 'memo', 'ledger.json')
 }
 
 /**
@@ -203,33 +262,146 @@ function mergeAnalyses(
   }
 }
 
-/** Read the persistent ledger from disk (returns an empty ledger when absent). */
-function readLedger(): MemoLedger {
+/** An empty ledger, the answer whenever the file is absent or unreadable. */
+function emptyLedger(): MemoLedger {
+  return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
+}
+
+/**
+ * Parse one ledger document.
+ *
+ * Absence of a usable ledger is not an error here: an unparseable file, a
+ * document written by a future schema, and a truncated write all answer
+ * `undefined`, which the caller turns into an empty ledger rather than an
+ * exception. This is also the check the migration uses to decide whether a
+ * legacy file is a ledger at all — a file it cannot read is left untouched.
+ * @param raw - the file contents.
+ * @returns the ledger, or `undefined` when the contents are not one this version understands.
+ */
+function parseLedger(raw: string): MemoLedger | undefined {
   try {
-    const file = ledgerFile()
-    if (!existsSync(file)) return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
-    const raw = readFileSync(file, 'utf8')
     const parsed = JSON.parse(raw) as Partial<MemoLedger>
-    if (parsed.schemaVersion !== LEDGER_SCHEMA_VERSION || !Array.isArray(parsed.analyses)) {
-      return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
-    }
+    if (parsed.schemaVersion !== LEDGER_SCHEMA_VERSION || !Array.isArray(parsed.analyses)) return undefined
     return { schemaVersion: parsed.schemaVersion, analyses: parsed.analyses }
   } catch {
-    return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
+    return undefined
   }
 }
 
-/** Write the persistent ledger to disk (creates the directory if missing). */
-function writeLedger(ledger: MemoLedger): void {
+/** Read the ledger at one path (an absent, unreadable, or foreign file reads empty). */
+function readLedgerAt(file: string): MemoLedger {
   try {
-    const file = ledgerFile()
-    mkdirSync(join(file, '..'), { recursive: true })
-    writeFileSync(file, JSON.stringify(ledger, null, 2), 'utf8')
+    if (!existsSync(file)) return emptyLedger()
+    return parseLedger(readFileSync(file, 'utf8')) ?? emptyLedger()
   } catch {
-    // Best-effort: if the ledger write fails (disk full, permissions),
-    // the in-memory analysis is still returned to the caller. The next
-    // successful write will re-serialize the full list.
+    return emptyLedger()
   }
+}
+
+/**
+ * Write the ledger at one path, creating its directory when missing.
+ * @param file - the ledger path to write.
+ * @param ledger - the ledger to serialize.
+ * @returns whether the document reached the disk.
+ */
+function writeLedgerAt(file: string, ledger: MemoLedger): boolean {
+  try {
+    mkdirSync(dirname(file), { recursive: true })
+    writeFileSync(file, JSON.stringify(ledger, null, 2), 'utf8')
+    return true
+  } catch {
+    // Best-effort: if the ledger write fails (disk full, permissions), the
+    // in-memory analysis is still returned to the caller. The next successful
+    // write re-serializes the full list.
+    return false
+  }
+}
+
+/**
+ * Union two ledgers by entry id, newest first, capped at the ledger capacity.
+ *
+ * Deduplicating by `id` is what makes the migration safe to repeat: an entry
+ * the current ledger already carries is never written twice, so a migration
+ * whose receipt rename failed cannot inflate the history.
+ * @param current - the ledger read from the active path.
+ * @param incoming - the ledger being folded in.
+ * @returns the merged ledger.
+ */
+function mergeLedgers(current: MemoLedger, incoming: MemoLedger): MemoLedger {
+  const byId = new Map<string, MemoMemoryEntry>()
+  for (const entry of [...current.analyses, ...incoming.analyses]) {
+    if (!byId.has(entry.id)) byId.set(entry.id, entry)
+  }
+  const analyses = [...byId.values()]
+    .sort((left, right) => right.generatedAt - left.generatedAt)
+    .slice(0, LEDGER_CAPACITY)
+  return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses }
+}
+
+/**
+ * Rename a migrated ledger out of the way, never overwriting an earlier receipt.
+ * @param legacy - the legacy ledger path that was just merged.
+ */
+function renameMigratedLedger(legacy: string): void {
+  let target = `${legacy}${MIGRATED_LEDGER_SUFFIX}`
+  for (let ordinal = 2; existsSync(target); ordinal += 1) {
+    target = `${legacy}${MIGRATED_LEDGER_SUFFIX}.${String(ordinal)}`
+  }
+  renameSync(legacy, target)
+}
+
+/**
+ * Fold the ledger an earlier resolver wrote in the platform home into the
+ * current DSH-home ledger, once.
+ *
+ * Before the home resolution matched DSH's contract, an unset `DSH_HOME` sent
+ * the ledger to the platform home's top level, so those analyses sit outside
+ * the DSH data root and would vanish from the memory panel once the path is
+ * fixed. They exist nowhere else, hence a merge rather than a drop: the two
+ * ledgers are unioned by id, written to the current path, and only then is the
+ * legacy file renamed to a `.migrated` receipt. Every step is best-effort — a
+ * read-only home must not turn `listMemory` into an error.
+ * @param current - the ledger already read from the current path.
+ * @returns the merged ledger, or `current` when there is nothing to migrate.
+ */
+function migrateLegacyLedger(current: MemoLedger): MemoLedger {
+  try {
+    const legacy = legacyLedgerFile()
+    const active = ledgerFile()
+    // A deployment that sets DSH_HOME to the platform home keeps the legacy
+    // path as its live ledger; migrating would rename the file it just read.
+    if (resolve(legacy) === resolve(active)) return current
+    if (!existsSync(legacy)) return current
+    const written = readLedgerAt(legacy)
+    // An empty read means the file is absent, unreadable, or not a ledger. The
+    // last case is the one that must stay put: it is someone else's document.
+    if (written.analyses.length === 0) return current
+    const merged = mergeLedgers(current, written)
+    // A ledger that cannot be persisted still gets shown: the analyses it
+    // carries would otherwise disappear from the panel on a read-only home.
+    // The receipt rename is what marks the migration done, so it only happens
+    // after the merge reached the disk.
+    if (!writeLedgerAt(active, merged)) return merged
+    try {
+      renameMigratedLedger(legacy)
+    } catch {
+      // The merge landed; the receipt rename did not. The legacy file stays, and
+      // the id-based union keeps the next read from duplicating anything.
+    }
+    return merged
+  } catch {
+    return current
+  }
+}
+
+/** Read the persistent ledger from disk, migrating the legacy platform-home one. */
+function readLedger(): MemoLedger {
+  return migrateLegacyLedger(readLedgerAt(ledgerFile()))
+}
+
+/** Write the persistent ledger to its resolved path (creates the directory if missing). */
+function writeLedger(ledger: MemoLedger): void {
+  writeLedgerAt(ledgerFile(), ledger)
 }
 
 /** Append one analysis result to the persistent ledger. */
@@ -237,7 +409,7 @@ function appendToLedger(entry: MemoMemoryEntry): void {
   const ledger = readLedger()
   const updated: MemoLedger = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
-    analyses: [entry, ...ledger.analyses].slice(0, 500),
+    analyses: [entry, ...ledger.analyses].slice(0, LEDGER_CAPACITY),
   }
   writeLedger(updated)
 }

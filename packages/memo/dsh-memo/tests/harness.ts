@@ -282,10 +282,42 @@ export interface SetupOptions {
   readonly analysisByPlugin?: Record<string, Record<string, unknown>>
   /** Memo `Config.logAnalysisPlugins`, for a deployment that trims the suite. */
   readonly logAnalysisPlugins?: readonly string[]
+  /**
+   * Where the memo ledger resolves its DSH home during this test.
+   *
+   * `isolated` (the default) points `DSH_HOME` at this harness's own temp root,
+   * so an `analyze` can never append to the real user's ledger. A test that
+   * owns the environment itself — the ledger-home cases — asks for `inherit`
+   * and sets (then restores) the variables it needs.
+   */
+  readonly ledgerHome?: 'isolated' | 'inherit'
+}
+
+/** The `DSH_HOME` the test process started with, restored once a harness lets go. */
+const initialDshHome = process.env.DSH_HOME
+
+/**
+ * Point the memo ledger's DSH home at a scratch directory for one harness.
+ *
+ * The ledger is a real file, so a test that runs `analyze` writes somewhere:
+ * redirecting `DSH_HOME` under the harness's temp root keeps the run from
+ * appending its fixture analyses to the developer's actual `~/.dsh/memo`.
+ * @param root - the harness temp root.
+ * @param mode - `isolated` redirects `DSH_HOME`, `inherit` leaves it untouched.
+ * @returns the callback that restores the variable the process started with.
+ */
+function isolateLedgerHome(root: string, mode: 'isolated' | 'inherit'): () => void {
+  if (mode === 'inherit') return () => {}
+  process.env.DSH_HOME = join(root, 'dsh-home')
+  return () => {
+    if (initialDshHome === undefined) delete process.env.DSH_HOME
+    else process.env.DSH_HOME = initialDshHome
+  }
 }
 
 export async function setupHarness(options: SetupOptions = {}): Promise<TestHarness> {
   const root = await mkdtemp(join(tmpdir(), 'dsh-memo-test-'))
+  const restoreDshHome = isolateLedgerHome(root, options.ledgerHome ?? 'isolated')
   const ctx = new Context()
   try {
     await ctx.plugin(Storage)
@@ -311,6 +343,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
   } catch (error) {
     await ctx.fiber.dispose()
     await rm(root, { recursive: true, force: true })
+    restoreDshHome()
     throw error
   }
   return {
@@ -321,6 +354,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     async dispose() {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })
+      restoreDshHome()
     },
   }
 }
