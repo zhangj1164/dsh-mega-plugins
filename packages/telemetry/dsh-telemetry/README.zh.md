@@ -58,19 +58,23 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 |---|---|
 | `track(input)` | 记录一个成功事件（异步 KV 写入，立即返回）。 |
 | `trackError(input)` | 记录一个失败事件，`category` 为 `'error'`，`result` 为 `'failure'`，错误记录携带 `featureCodeRef`。 |
-| `listEvents(query)` | 同步读取匹配的事件，按时间倒序。支持按 `pluginId`、`category`、`result` 和时间戳范围过滤。 |
+| `listEvents(query)` | 同步读取匹配的事件，按写入顺序倒序。支持按 `pluginId`、`category`、`result` 和时间戳范围过滤。 |
 | `analyzeForPlugin(pluginId)` | 按 `featureCodeRef` 分组一个插件的所有失败事件，返回总数、本次读取的时间窗，以及每组的错误代码。每组携带的事件在出口处会重新过一遍脱敏规则。 |
 
 ## 遥测事件模型
 
 每个事件携带 `pluginId`、`action`、`category`（`user-action` / `system` / `error`）和 `result`（`success` / `failure`）。错误事件携带 `TelemetryErrorRecord`，包含 `code`、`message` 和约定的 `featureCodeRef` — 一个稳定的代码段锚点（如 `"memo:analyze"`），日志分析步骤据此与插件特性代码关联。
 
+## 事件顺序
+
+每个事件还携带 `seq`，即服务在记录它时分配的单调写入序号。它才是给日志排序的东西。`Date.now()` 只数到毫秒，与被它跟随的失败落在同一毫秒的尝试，否则会被判成「不晚于」，分析就会把一次确实又跑过的失败报成「之后 0 次尝试」。序号跨重启延续——服务在打开域时从已存的最大值播种，所以同一个号不会发两次；而在该字段出现之前入库的记录读回时是 `seq: 0`，只能改由 `timestamp` 定序。两条这样的旧记录若在同一毫秒，就无法排得更准；新增这个字段的目的正是让任何新记录都不再落到那个位置。分析的 `window` 仍是一个时间戳区间：它回答的是读了哪一段，而不是哪个事件先发生。
+
 ## 分析事实
 
 `analyzeForPlugin` 报告的不只是一个总数，因为总数无法与「当前仍在发生的问题」区分开：同一个计数既能描述上周的事故，也能描述一分钟前的事故。
 
 - **`window`** — 本次分析读取的时间范围；该插件没有任何事件时缺省。只有该插件自己的事件参与界定它。
-- **`attemptsAfterLastFailure`**（每组）— 该组最近一次失败之后，其动作的尝试次数。按动作而非全部事件计数：否则插件无关的读取会把数字抬高，让一次旧失败看起来落在一个繁忙时段里。
+- **`attemptsAfterLastFailure`**（每组）— 该组最近一次失败之后，其动作的尝试次数。按动作而非全部事件计数：否则插件无关的读取会把数字抬高，让一次旧失败看起来落在一个繁忙时段里。这里的「之后」取写入顺序，因此与被计失败同一毫秒内记录的尝试仍然算数。
 - **`route`**（每组）— 最近一次失败所用的 provider 与 model，前提是该事件记录过它们。区分「未记录」与「没有路由」是有意义的：在路由 metadata 出现之前记录的失败两者都没有。
 
 `route` 按白名单（`provider`、`model`、`status`）提取，而不是整体复制事件的 `metadata`。metadata 是插件可任意填充的开放映射，而由本分析生成的报告会离开本机，因此只有这几个具名键跨越边界。
