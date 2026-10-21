@@ -1,7 +1,7 @@
 {
   "name": "@zhangj1164/dsh-telemetry",
   "description": "Local-only in-process telemetry tracker for DeepSeek Harness: records operation trails and error logs over the storage-domain KV backend with feature-code-anchored failure grouping",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
