@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterAll, afterEach, describe, expect, it } from 'vitest'
 import type { MemoMemoryEntry } from '../src/types.ts'
@@ -101,6 +101,16 @@ async function analyzeOnce(ctx: TestHarness['ctx']): Promise<boolean> {
 }
 
 describe('memo ledger home resolution', () => {
+  it('sandboxes both homes a ledger read could touch', async () => {
+    const created = await setupHarness()
+    harnesses.push(created)
+
+    // `homedir()` is what the migration resolves the legacy ledger against, so
+    // an isolated harness has to move it out of the developer's real home.
+    expect(homedir()).toBe(join(created.root, 'home'))
+    expect(process.env.DSH_HOME).toBe(join(created.root, 'dsh-home'))
+  })
+
   it('writes under ~/.dsh when DSH_HOME is unset', async () => {
     const home = tempDir('unset')
     setPlatformHome(home)
@@ -221,6 +231,28 @@ describe('legacy ledger migration', () => {
     expect(listed.ok).toBe(true)
     if (!listed.ok) return
     expect(listed.value.map(entry => entry.id)).toEqual(['legacy-only', 'shared'])
+  })
+
+  it('keeps the newest entries when the merge hits the ledger capacity', async () => {
+    const home = tempDir('capacity')
+    setPlatformHome(home)
+    delete process.env.DSH_HOME
+    const current = Array.from({ length: 500 }, (_, index) => memoryEntry(`current-${index}`, 2_000 + index))
+    seedLedger(join(home, '.dsh', 'memo', 'ledger.json'), current)
+    const legacy = join(home, 'memo', 'ledger.json')
+    seedLedger(legacy, [memoryEntry('legacy-old', 1_000)])
+    const created = await harness()
+
+    const listed = created.ctx.memo.listMemory({ limit: 500 })
+
+    expect(listed.ok).toBe(true)
+    if (!listed.ok) return
+    // The ledger keeps its newest 500, so an older migrated entry cannot fit —
+    // which is why the receipt is a rename rather than a delete.
+    expect(listed.value).toHaveLength(500)
+    expect(listed.value.some(entry => entry.id === 'legacy-old')).toBe(false)
+    expect(existsSync(`${legacy}.migrated`)).toBe(true)
+    expect(readLedgerFile(`${legacy}.migrated`).analyses.map(entry => entry.id)).toEqual(['legacy-old'])
   })
 
   it('leaves an unparseable legacy file alone and still answers', async () => {
