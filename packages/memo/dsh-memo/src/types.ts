@@ -179,7 +179,10 @@ export type MemoExportReportResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
-/** Request to read an external file path (requires privilege escalation). */
+/**
+ * Request to read an external file path and return its text. Nothing is
+ * written: the caller decides what, if anything, to add as an entry.
+ */
 export interface MemoReadExternalPathRequest {
   /** The external file path to read. */
   readonly path: string
@@ -277,8 +280,17 @@ export type MemoMemoFailure =
     /** HTTP status returned by the provider, when DSH supplied one. */
     readonly status?: number
   }
-  | { readonly code: 'fs-unavailable'; readonly message: string }
-  | { readonly code: 'approval-denied'; readonly message: string }
+  | { readonly code: 'fs-unavailable'; readonly message: string; readonly path: string }
+  /** The filesystem refused the read: a permission or sandbox denial. */
+  | { readonly code: 'approval-denied'; readonly message: string; readonly path: string }
+  /** No such file, as reported by the filesystem rather than guessed here. */
+  | { readonly code: 'path-not-found'; readonly message: string; readonly path: string }
+  /** The target exists but is not a regular text file this deployment can read (a directory, a special file, or binary content). */
+  | { readonly code: 'path-not-text'; readonly message: string; readonly path: string }
+  /** The backend refused the read because the file exceeds its size bound. */
+  | { readonly code: 'path-too-large'; readonly message: string; readonly path: string }
+  /** Any other filesystem failure, including one that carried no DSH code. */
+  | { readonly code: 'fs-error'; readonly message: string; readonly path: string }
   | { readonly code: 'github-issue-failure'; readonly message: string }
 
 /** ── Long-term memory (persistent JSON ledger in $DSH_HOME/memo/) ── */
