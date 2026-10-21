@@ -112,6 +112,12 @@ export class TelemetryService extends Service {
   private readonly redactionRules: ReturnType<typeof compileRules>
   private table?: KvTable<string, TelemetryEventRow>
   private readonly pendingWrites: Set<Promise<void>> = new Set()
+  /**
+   * Next write-sequence number, seeded from the stored maximum when the domain
+   * opens. Restarting it at 1 would hand a new event a number an older record
+   * already holds, and the ordering would silently fall back to timestamps.
+   */
+  private nextSeq = 1
 
   /**
    * @param ctx - Host context carrying the storage-domain form.
@@ -137,20 +143,30 @@ export class TelemetryService extends Service {
     this.ctx.effect(() => async () => {
       await domain.close()
     }, 'telemetry.domainClose')
-    this.table = domain.table('events')
+    const table = domain.table('events')
+    this.table = table
+    // The sequence brings the log's write order back after a restart, so it has
+    // to continue from the stored maximum rather than from 1 — one full scan of
+    // the table at open, which is the price of a number that is never reused.
+    this.nextSeq = 1
+    for (const [, row] of table.entries()) {
+      const seq = row.seq ?? 0
+      if (seq >= this.nextSeq) this.nextSeq = seq + 1
+    }
   }
 
   /**
-   * Record one telemetry event. The id and timestamp are assigned by the
-   * service; the caller supplies the plugin id, action, category, result, and
-   * optional metadata. The write is durable and queued on the domain's write
-   * chain, so concurrent calls never interleave.
-   * @param input - event fields without the id and timestamp.
+   * Record one telemetry event. The id, timestamp, and write sequence are
+   * assigned by the service; the caller supplies the plugin id, action,
+   * category, result, and optional metadata. The write is durable and queued on
+   * the domain's write chain, so concurrent calls never interleave.
+   * @param input - event fields without the id, timestamp, and sequence.
    */
   track(input: TelemetryEventInput): void {
     const event: TelemetryEventRow = {
       id: randomUUID(),
       timestamp: Date.now(),
+      seq: this.nextSeq++,
       pluginId: input.pluginId,
       action: input.action,
       category: input.category ?? 'user-action',
@@ -171,6 +187,7 @@ export class TelemetryService extends Service {
     const event: TelemetryEventRow = {
       id: randomUUID(),
       timestamp: Date.now(),
+      seq: this.nextSeq++,
       pluginId: input.pluginId,
       action: input.action,
       category: 'error',
@@ -183,8 +200,8 @@ export class TelemetryService extends Service {
   }
 
   /**
-   * Read telemetry events matching a query, newest first. The result is a
-   * snapshot copy; callers may freely hold or mutate it.
+   * Read telemetry events matching a query, newest first by write order. The
+   * result is a snapshot copy; callers may freely hold or mutate it.
    * @param query - optional filters and limit.
    * @returns matching events, newest first, capped at the deployment limit.
    */
@@ -193,7 +210,6 @@ export class TelemetryService extends Service {
     const limit = Math.min(query.limit ?? DEFAULT_QUERY_LIMIT, this.maxEventsPerQuery)
     const events: TelemetryEvent[] = []
     for (const [, row] of table.entries()) {
-      if (events.length >= limit) break
       if (query.pluginId !== undefined && row.pluginId !== query.pluginId) continue
       if (query.category !== undefined && row.category !== query.category) continue
       if (query.result !== undefined && row.result !== query.result) continue
@@ -201,7 +217,11 @@ export class TelemetryService extends Service {
       if (query.to !== undefined && row.timestamp >= query.to) continue
       events.push(snapshotEvent(row))
     }
-    return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit)
+    // Sort before cutting, so the limit selects the newest events. Cutting during
+    // the walk would return the oldest ones, because the table iterates in
+    // insertion order and "newest first" is a property of the sequence, not of
+    // the order the rows happen to come back in.
+    return events.sort((a, b) => compareOrder(b, a)).slice(0, limit)
   }
 
   /**
@@ -212,6 +232,10 @@ export class TelemetryService extends Service {
    * gave the model nothing to explain them with beyond an error code. So each
    * group also carries the route the failure ran on and how many attempts of the
    * same action followed it, and the analysis carries the window it read.
+   *
+   * "Followed" is write order, not millisecond order: a retry can start inside
+   * the same millisecond as the failure it follows, and reporting that as zero
+   * attempts is what made a current defect read as an old one.
    *
    * @param pluginId - the plugin whose failures to analyze.
    * @returns total counts, the analysis window, and grouped failure patterns.
@@ -243,7 +267,7 @@ export class TelemetryService extends Service {
         // group is an error pattern, and the pattern can recur from more than
         // one entry point.
         existing.actions.add(row.action)
-        if (event.timestamp > existing.latest.timestamp) existing.latest = event
+        if (compareOrder(event, existing.latest) > 0) existing.latest = event
         existing.codes.add(row.error?.code ?? 'unknown')
       }
     }
@@ -259,7 +283,7 @@ export class TelemetryService extends Service {
           // model prompt and a pre-filled issue.
           latest: this.redactedEvent(g.latest),
           errorCodes: [...g.codes],
-          attemptsAfterLastFailure: events.filter(event => event.timestamp > g.latest.timestamp && g.actions.has(event.action)).length,
+          attemptsAfterLastFailure: events.filter(event => compareOrder(event, g.latest) > 0 && g.actions.has(event.action)).length,
           ...(route === undefined ? {} : { route }),
         }
       })
@@ -363,11 +387,40 @@ export class TelemetryService extends Service {
   }
 }
 
+/**
+ * Order two events by write order.
+ *
+ * `timestamp` alone cannot order a log: `Date.now()` counts milliseconds, so an
+ * attempt recorded in the same millisecond as the failure it follows compares as
+ * "not later", and the analysis then reports zero attempts after a failure that
+ * did happen again. {@link TelemetryEvent.seq} is the number that says which
+ * event was written first; `timestamp` breaks ties only among records stored
+ * before the sequence existed, where nothing better was ever recorded. Two such
+ * legacy rows in the same millisecond stay unorderable; the helper exists so the
+ * three call sites — the `latest` pick, the attempt count, and `listEvents` —
+ * cannot drift into three subtly different notions of "later".
+ *
+ * @param a - one event, or the stored row carrying it.
+ * @param b - the other event.
+ * @returns negative when `a` is older, positive when it is newer, and 0 only for
+ *   two pre-sequence records stamped with the same millisecond.
+ */
+function compareOrder(
+  a: { readonly seq?: number; readonly timestamp: number },
+  b: { readonly seq?: number; readonly timestamp: number },
+): number {
+  const bySeq = (a.seq ?? 0) - (b.seq ?? 0)
+  return bySeq !== 0 ? bySeq : a.timestamp - b.timestamp
+}
+
 /** Copy one stored row into an owned, frozen {@link TelemetryEvent}. */
 function snapshotEvent(row: TelemetryEventRow): TelemetryEvent {
   return Object.freeze({
     id: row.id,
     timestamp: row.timestamp,
+    // A row stored before the sequence existed has no number of its own, and 0
+    // is the honest reading: it is older than anything the service writes.
+    seq: row.seq ?? 0,
     pluginId: row.pluginId,
     action: row.action,
     category: row.category as TelemetryEvent['category'],

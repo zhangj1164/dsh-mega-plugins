@@ -1,7 +1,7 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import Storage from '@deepseek-ai/dsh-storage'
 import * as StorageDomain from '@deepseek-ai/dsh-storage-domain'
@@ -160,7 +160,11 @@ describe('TelemetryService track and query', () => {
       ctx.telemetry.track({ pluginId: 'memo', action: `action-${i}` })
     }
     await ctx.telemetry.flush()
-    expect(ctx.telemetry.listEvents({ pluginId: 'memo', limit: 2 })).toHaveLength(2)
+    const limited = ctx.telemetry.listEvents({ pluginId: 'memo', limit: 2 })
+    expect(limited).toHaveLength(2)
+    // The limit has to select the newest events, not whichever rows the table
+    // handed back first: filtering during the walk would return the oldest two.
+    expect(limited.map(event => event.action)).toEqual(['action-4', 'action-3'])
   })
 })
 
@@ -285,6 +289,173 @@ describe('TelemetryService analyzeForPlugin', () => {
     const groups = ctx.telemetry.analyzeForPlugin('memo').failureGroups
     // Absent means "not recorded", never "no route".
     expect(groups.every(group => group.route === undefined)).toBe(true)
+  })
+})
+
+describe('TelemetryService event order', () => {
+  // A fixed clock is what makes the same-millisecond case reproducible rather
+  // than occasional: on a real clock these events land in one millisecond only
+  // some of the time, which is why the defect could reach a green suite and
+  // then fail the next full run.
+  const SAME_MILLISECOND = 1_700_000_000_000
+
+  it('counts an attempt written in the same millisecond as the failure', async () => {
+    const { ctx } = await harness()
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(SAME_MILLISECOND)
+    try {
+      ctx.telemetry.trackError({
+        pluginId: 'memo', action: 'analyze',
+        error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+      })
+      // A retry that starts within the same millisecond as the failure is still
+      // a retry: `Date.now()` has no resolution for it, the write order does.
+      ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+      ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+      await ctx.telemetry.flush()
+    } finally {
+      clock.mockRestore()
+    }
+
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.featureCodeRef).toBe('memo:analyze')
+    expect(group.attemptsAfterLastFailure).toBe(2)
+  })
+
+  it('takes the last-written failure when two share a millisecond', async () => {
+    const { ctx } = await harness()
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(SAME_MILLISECOND)
+    try {
+      ctx.telemetry.trackError({
+        pluginId: 'memo', action: 'analyze',
+        error: { code: 'E_FIRST', message: 'first', featureCodeRef: 'memo:analyze' },
+        metadata: { provider: 'p-first', model: 'm-first' },
+      })
+      ctx.telemetry.trackError({
+        pluginId: 'memo', action: 'analyze',
+        error: { code: 'E_SECOND', message: 'second', featureCodeRef: 'memo:analyze' },
+        metadata: { provider: 'p-second', model: 'm-second' },
+      })
+      ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+      await ctx.telemetry.flush()
+    } finally {
+      clock.mockRestore()
+    }
+
+    const group = ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.count).toBe(2)
+    // The report describes this group with `latest`, so it has to be the second
+    // failure: its code, message and route are the ones a reader will act on.
+    expect(group.latest.error?.code).toBe('E_SECOND')
+    expect(group.latest.error?.message).toBe('second')
+    expect(group.route).toEqual({ provider: 'p-second', model: 'm-second' })
+    // Only the recorded attempt came after it; the second failure is the last
+    // failure, not an attempt at recovering from itself.
+    expect(group.attemptsAfterLastFailure).toBe(1)
+  })
+
+  it('lists events newest first inside one millisecond', async () => {
+    const { ctx } = await harness()
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(SAME_MILLISECOND)
+    try {
+      for (const action of ['a1', 'a2', 'a3']) ctx.telemetry.track({ pluginId: 'memo', action })
+      await ctx.telemetry.flush()
+    } finally {
+      clock.mockRestore()
+    }
+
+    expect(ctx.telemetry.listEvents({ pluginId: 'memo' }).map(event => event.action)).toEqual(['a3', 'a2', 'a1'])
+  })
+
+  it('keeps the sequence running across a cold restart', async () => {
+    const first = await setupHarness()
+    harnesses.push(first)
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(SAME_MILLISECOND)
+    let root = ''
+    try {
+      first.ctx.telemetry.trackError({
+        pluginId: 'memo', action: 'analyze',
+        error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+      })
+      await first.ctx.telemetry.flush()
+      root = first.root
+    } finally {
+      clock.mockRestore()
+    }
+    await first.disposeKeepRoot()
+    harnesses.splice(harnesses.indexOf(first), 1)
+
+    const second = await setupHarness(root)
+    harnesses.push(second)
+    const laterClock = vi.spyOn(Date, 'now').mockReturnValue(SAME_MILLISECOND)
+    try {
+      second.ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+      await second.ctx.telemetry.flush()
+    } finally {
+      laterClock.mockRestore()
+    }
+
+    // A sequence that restarted at 1 would hand this attempt a number the
+    // stored failure already holds, and every comparison would go back to
+    // comparing two equal timestamps.
+    const group = second.ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+    expect(group.attemptsAfterLastFailure).toBe(1)
+  })
+
+  it('opens a store written before the sequence existed', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-telemetry-legacy-'))
+    // The shape of a row written by a build that predates `seq`, in the
+    // single-layout JSON unit this package opens.
+    await writeFile(join(root, 'memo_telemetry.json'), `${JSON.stringify({
+      unit: { name: 'memo_telemetry', version: 0 },
+      tables: {
+        events: {
+          'legacy-failure': {
+            id: 'legacy-failure',
+            timestamp: 1_000,
+            pluginId: 'memo',
+            action: 'analyze',
+            category: 'error',
+            result: 'failure',
+            error: { code: 'LLM_FAILURE', message: 'no output', featureCodeRef: 'memo:analyze' },
+          },
+          'legacy-attempt': {
+            id: 'legacy-attempt',
+            timestamp: 2_000,
+            pluginId: 'memo',
+            action: 'analyze',
+            category: 'user-action',
+            result: 'success',
+          },
+        },
+      },
+    }, null, 2)}\n`)
+
+    const reopened = await setupHarness(root)
+    harnesses.push(reopened)
+    try {
+      // An old record has no write order of its own, so the timestamp still
+      // decides — and its `seq` reads as 0 rather than as "missing".
+      const events = reopened.ctx.telemetry.listEvents({ pluginId: 'memo' })
+      expect(events.map(event => event.id)).toEqual(['legacy-attempt', 'legacy-failure'])
+      expect(events.map(event => event.seq)).toEqual([0, 0])
+
+      const group = reopened.ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!
+      expect(group.latest.id).toBe('legacy-failure')
+      expect(group.attemptsAfterLastFailure).toBe(1)
+
+      // A write after the sequence exists is later than every legacy row even
+      // when its clock reading is smaller: write order is the order, not time.
+      const clock = vi.spyOn(Date, 'now').mockReturnValue(500)
+      try {
+        reopened.ctx.telemetry.track({ pluginId: 'memo', action: 'analyze' })
+        await reopened.ctx.telemetry.flush()
+      } finally {
+        clock.mockRestore()
+      }
+      expect(reopened.ctx.telemetry.analyzeForPlugin('memo').failureGroups[0]!.attemptsAfterLastFailure).toBe(2)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
   })
 })
 
