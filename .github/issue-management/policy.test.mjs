@@ -280,6 +280,24 @@ test('survives a malformed or partial Issue event payload', () => {
   assert.deepEqual(validateIssueEvent({ issue: { ...base, labels: ['bug'] } }), [])
 })
 
+test('skips closed Issues so history is not rewritten', () => {
+  // A closed Issue predates whatever rule is being enforced now. Rewriting its
+  // labels or body to satisfy a newer rule edits history instead of enforcing the
+  // tracker's policy on work that is still moving.
+  const closed = {
+    issue: {
+      title: '历史单',
+      body: '没有折叠区，也没有分类标签。',
+      labels: [{ name: 'kind/bug-fix' }],
+      assignees: [],
+      state: 'closed',
+      state_reason: 'completed',
+    },
+  }
+  assert.deepEqual(validateIssueEvent(closed), [])
+  assert.ok(validateIssueEvent({ issue: { ...closed.issue, state: 'open' } }).length > 0)
+})
+
 test('separates resolving and informational references', () => {
   assert.deepEqual(
     parseReferences({

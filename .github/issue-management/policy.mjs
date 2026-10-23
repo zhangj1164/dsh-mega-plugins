@@ -353,11 +353,16 @@ export function validateIssue(issue) {
  * absent rather than missing, which the validator treats as "not checked"; `state`
  * travels with them so the deferred Status rules apply unchanged once the Project
  * half lands.
+ *
+ * A closed Issue is out of scope: it was filed under whatever rules existed then,
+ * and rewriting its labels or body to satisfy today's rule would edit history
+ * rather than enforce the tracker's policy on work that is still moving.
  * @param {{issue: {title?: string, body?: string|null, assignees?: {login: string}[], labels?: ({name: string}|string)[], state?: string, state_reason?: string|null}}} event `issues` event payload.
  * @returns {string[]} Validation errors.
  */
 export function validateIssueEvent(event) {
   const issue = event.issue ?? {}
+  if (issue.state === 'closed') return []
   return validateIssue({
     title: issue.title ?? '',
     body: issue.body ?? '',
