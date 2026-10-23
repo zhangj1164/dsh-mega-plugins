@@ -285,10 +285,14 @@ export function retainIssueReferences(references, issues) {
 
 /**
  * Validate one Issue, consulting a Project Status only when the caller could read it.
+ * A closed Issue returns no errors: it was filed under whatever rules existed then,
+ * and both callers — the event gate and the lifecycle audit — would otherwise turn a
+ * historical record red for rules it never had a chance to meet.
  * @param {{title: string, body: string, assignees: string[], labels: string[], priority: string|null, status: string|null, state: string, stateReason: string|null}} issue Issue snapshot.
  * @returns {string[]} Validation errors.
  */
 export function validateIssue(issue) {
+  if (issue.state === 'closed') return []
   const errors = validateBody(issue)
   // Normalize both "no Status reported" spellings: a caller that omits the field
   // entirely must read the same as one that reports `null`.
@@ -352,7 +356,7 @@ export function validateIssue(issue) {
  * alone — no token, no Project read. `priority` and `status` are reported as
  * absent rather than missing, which the validator treats as "not checked"; `state`
  * travels with them so the deferred Status rules apply unchanged once the Project
- * half lands.
+ * half lands, and so a closed Issue is skipped in `validateIssue`.
  * @param {{issue: {title?: string, body?: string|null, assignees?: {login: string}[], labels?: ({name: string}|string)[], state?: string, state_reason?: string|null}}} event `issues` event payload.
  * @returns {string[]} Validation errors.
  */

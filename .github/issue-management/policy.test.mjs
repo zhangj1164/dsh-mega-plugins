@@ -280,6 +280,41 @@ test('survives a malformed or partial Issue event payload', () => {
   assert.deepEqual(validateIssueEvent({ issue: { ...base, labels: ['bug'] } }), [])
 })
 
+test('skips closed Issues so history is not rewritten', () => {
+  // A closed Issue predates whatever rule is enforced now. Both callers — the event
+  // gate and the lifecycle audit, which validates a snapshot directly — must leave it
+  // alone, and an open Issue with the same shape must still report every rule.
+  const closed = {
+    title: '历史单',
+    body: '没有折叠区，也没有分类标签。',
+    assignees: [],
+    labels: ['kind/bug-fix'],
+    priority: null,
+    status: null,
+    state: 'closed',
+    stateReason: 'completed',
+  }
+  assert.deepEqual(validateIssue(closed), [])
+  assert.deepEqual(
+    validateIssueEvent({
+      issue: {
+        title: closed.title,
+        body: closed.body,
+        assignees: [],
+        labels: [{ name: 'kind/bug-fix' }],
+        state: 'closed',
+        state_reason: 'completed',
+      },
+    }),
+    [],
+  )
+  assert.deepEqual(validateIssue({ ...closed, state: 'open' }), [
+    '正文必须包含默认收起的 <details> 区域',
+    'Issue 不得使用 PR kind 或旧版标签：kind/bug-fix',
+    'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+  ])
+})
+
 test('separates resolving and informational references', () => {
   assert.deepEqual(
     parseReferences({
