@@ -45,7 +45,7 @@ pnpm run verify-publish-guard         # every package carrying a workspace: rang
 pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
 pnpm run verify-md-links              # check relative Markdown links resolve
 pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
-node --test .github/issue-management/policy.test.mjs  # run issue policy tests (27 tests)
+node --test .github/issue-management/policy.test.mjs  # run issue policy tests (29 tests)
 ```
 
 ## Agent skills

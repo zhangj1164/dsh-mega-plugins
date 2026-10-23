@@ -13,7 +13,7 @@ const OWNER_LINE = /^Owner: @([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)$/
 // Category roles this tracker actually enforces. Native Issue Types
 // (Idea/Feature/Bug/Research/Task) are an organization-only GitHub feature: a
 // user-owned repository reports none for any Issue, so requiring one can never
-// pass here. See the `issue` command for the deferred Project-side checks.
+// pass here. See the deferred notes inside `validateIssue`.
 const CATEGORY_LABELS = new Set(['bug', 'enhancement'])
 const PRIORITIES = ['p0', 'p1', 'p2', 'p3']
 const PR_KINDS = new Set([
@@ -284,13 +284,15 @@ export function retainIssueReferences(references, issues) {
 }
 
 /**
- * Validate one Issue with its Project status.
- * @param {{title: string, body: string, assignees: string[], labels: string[], type: string|null, priority: string|null, status: string|null, state: string, stateReason: string|null}} issue Issue snapshot.
+ * Validate one Issue, consulting a Project Status only when the caller could read it.
+ * @param {{title: string, body: string, assignees: string[], labels: string[], priority: string|null, status: string|null, state: string, stateReason: string|null}} issue Issue snapshot.
  * @returns {string[]} Validation errors.
  */
 export function validateIssue(issue) {
   const errors = validateBody(issue)
-  const status = issue.status
+  // Normalize both "no Status reported" spellings: a caller that omits the field
+  // entirely must read the same as one that reports `null`.
+  const status = issue.status ?? null
   const invalidLabels = issue.labels.filter(
     (label) => label.startsWith('kind/') || LEGACY_LABELS.has(label),
   )
@@ -301,7 +303,7 @@ export function validateIssue(issue) {
   }
   const categories = issue.labels.filter((label) => CATEGORY_LABELS.has(label))
   if (categories.length !== 1) {
-    errors.push('Issue 必须恰好有一个分类标签：bug 或 enhancement')
+    errors.push(`Issue 必须恰好有一个分类标签：${[...CATEGORY_LABELS].join(' 或 ')}`)
   }
   if (
     /^\s*(?:\[(?:Idea|Feature|Bug|Research|Task|P[0-3]|Inbox|Backlog|Ready|In progress|In review|Done|No action|Owner|area\/[^\]]+)[^\]]*\]|(?:Idea|Feature|Bug|Research|Task|P[0-3]|Inbox|Backlog|Ready|In progress|In review|Done|No action|Owner|area\/[^:： ]+)\s*[:：-])/iu.test(
@@ -310,10 +312,16 @@ export function validateIssue(issue) {
   ) {
     errors.push('Issue 标题不得带 Type、Priority、Status、area 或 Owner 前缀')
   }
-  // No native Type check: the feature does not exist on a user-owned repository.
+  // No native Type check: types are an organization-only GitHub feature, so a
+  // user-owned repository reports none for any Issue. Restore it when the
+  // repository moves into an organization and the templates' `type` frontmatter
+  // starts producing a value; until then the category label below carries the role.
   // No Project Status requirement either: when a Status is reported it must be a
   // legal one, but its absence means "the Project was not consulted", not "the
-  // Issue violates policy". Both are deferred to `#104`'s ops half.
+  // Issue violates policy". Restore the requirement when the ops half of #104
+  // lands — the App token (`DSH_MEGA_PLUGINS_ISSUE_APP_CLIENT_ID` plus its private
+  // key) with `project` scope — and `runIssueCheck` reads the Project Status before
+  // calling this validator, so the absence of a Status becomes reportable again.
   if (status !== null && !config.statuses.includes(status)) {
     errors.push(`Status 不在允许集合内：${status}`)
   }
@@ -331,7 +339,7 @@ export function validateIssue(issue) {
   }
   if (
     status !== null &&
-    !['Done', 'No action'].includes(status) &&
+    !TERMINAL_STATUSES.has(status) &&
     issue.state !== 'open'
   ) {
     errors.push(`${status} 必须对应开放 Issue`)
@@ -340,11 +348,11 @@ export function validateIssue(issue) {
 }
 
 /**
- * Validate one `issues` event payload as the gate receives it.
- *
- * Reads only what the event carries, so it needs no token and no Project access:
- * `type`, `priority` and `status` are passed as `null`, which the validator
- * treats as "not reported" rather than "missing".
+ * Validate one `issues` event payload as the gate receives it, from the payload
+ * alone — no token, no Project read. `priority` and `status` are reported as
+ * absent rather than missing, which the validator treats as "not checked"; `state`
+ * travels with them so the deferred Status rules apply unchanged once the Project
+ * half lands.
  * @param {{issue: {title?: string, body?: string|null, assignees?: {login: string}[], labels?: ({name: string}|string)[], state?: string, state_reason?: string|null}}} event `issues` event payload.
  * @returns {string[]} Validation errors.
  */
@@ -355,7 +363,6 @@ export function validateIssueEvent(event) {
     body: issue.body ?? '',
     assignees: (issue.assignees ?? []).map((assignee) => assignee.login),
     labels: (issue.labels ?? []).map((label) => (typeof label === 'string' ? label : label.name)),
-    type: null,
     priority: null,
     status: null,
     state: issue.state ?? 'open',
@@ -473,7 +480,6 @@ async function issueSnapshot(number, status = undefined) {
     body: issue.body ?? '',
     assignees: issue.assignees.map((assignee) => assignee.login),
     labels: issue.labels.map((label) => label.name),
-    type: issue.type?.name ?? null,
     priority: field(config.priorityField)?.single_select_option?.name ?? null,
     status: status === undefined ? await projectStatus(number) : status,
     state: issue.state,
@@ -692,22 +698,21 @@ async function transitionResolvingIssues(pull, command) {
   }
 }
 
+function reportPolicyErrors(errors) {
+  for (const error of errors) process.stdout.write(`::error::${error}\n`)
+  if (errors.length > 0) throw new Error(`Issue policy 未通过，共 ${errors.length} 项`)
+}
+
 async function runPullRequestCheck(event) {
   const pull = await pullRequestSnapshot(event.pull_request.number)
-  const errors = validatePullRequest(pull)
-  if (errors.length > 0) {
-    for (const error of errors) process.stdout.write(`::error::${error}\n`)
-    throw new Error(`Issue policy 未通过，共 ${errors.length} 项`)
-  }
+  reportPolicyErrors(validatePullRequest(pull))
   process.stdout.write(
     requiresPullRequestPolicy(pull) ? 'Issue policy 通过。\n' : 'PR 尚未进入 Issue policy 强制范围。\n',
   )
 }
 
 async function runIssueCheck(event) {
-  const errors = validateIssueEvent(event)
-  for (const error of errors) process.stdout.write(`::error::${error}\n`)
-  if (errors.length > 0) throw new Error(`Issue policy 未通过，共 ${errors.length} 项`)
+  reportPolicyErrors(validateIssueEvent(event))
   process.stdout.write('Issue policy 通过。\n')
 }
 

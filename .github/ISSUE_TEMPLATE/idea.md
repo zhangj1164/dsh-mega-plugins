@@ -2,7 +2,7 @@
 name: Idea
 about: 记录尚未承诺实施、但具有行动可能的想法
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 type: Idea
 ---
