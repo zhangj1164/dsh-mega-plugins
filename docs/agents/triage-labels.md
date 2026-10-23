@@ -14,6 +14,17 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 
 Edit the right-hand column to match whatever vocabulary you actually use.
 
+## Category roles
+
+Every triaged issue also carries exactly one **category** label, which says whether it is a defect or not. The issue policy enforces the exactly-one rule, and every Issue template pre-fills it so a newly filed issue starts compliant.
+
+| Label in mattpocock/skills | Label in our tracker | Meaning                      |
+| -------------------------- | -------------------- | ---------------------------- |
+| `bug`                      | `bug`                | Something is broken          |
+| `enhancement`              | `enhancement`        | New feature or improvement   |
+
+Everything that is not a defect is an `enhancement`, including research and task tickets — the vocabulary is binary, and a ticket can move between the two labels as its nature becomes clear.
+
 ## Wayfinder labels
 
 `/wayfinder` uses a second, orthogonal label family, created alongside the triage roles:

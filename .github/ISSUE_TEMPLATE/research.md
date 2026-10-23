@@ -2,7 +2,7 @@
 name: Research
 about: 形成结论、证据或决策
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 type: Research
 ---

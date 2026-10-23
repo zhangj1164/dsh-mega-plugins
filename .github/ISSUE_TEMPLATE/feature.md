@@ -2,7 +2,7 @@
 name: Feature
 about: 新增或有意改变可观察行为
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 type: Feature
 ---
