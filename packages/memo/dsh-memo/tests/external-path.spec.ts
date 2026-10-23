@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
+import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
 import type { SetupOptions, TestHarness } from './harness.ts'
 import { setupHarness } from './harness.ts'
 
@@ -95,6 +96,21 @@ async function mountFs(h: TestHarness, answer: StubAnswer): Promise<StubFs> {
 }
 
 describe('MemoService readExternalPath', () => {
+  it('is absent from the Remote surface, so the endpoint name is unknown to the host', async () => {
+    const h = await harness()
+    // The host builds the callable endpoint table from these markers alone, so a
+    // method missing here is not "restricted" — the endpoint does not exist, and a
+    // request addressed to it has nothing to resolve against. The positive control
+    // keeps the assertion honest: the table must still carry the exported methods.
+    const memo = h.ctx.memo
+    const namespace = memo.typertRemote.namespace
+    const endpoints = remoteMethods(memo).map(
+      marker => `${namespace}/${marker.exportName ?? marker.method}`,
+    )
+    expect(endpoints).toContain('memo/addEntry')
+    expect(endpoints).not.toContain('memo/readExternalPath')
+  })
+
   it('returns the file text and adds no entry to any week', async () => {
     const h = await harness()
     const fs = await mountFs(h, { kind: 'text', text: 'OUTSIDE-SECRET-CONTENT' })

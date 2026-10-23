@@ -1,7 +1,7 @@
 /**
  * Local memo service: a week-keyed personal memo store over the storage-domain
  * KV backend, with AI-powered analysis, report export, external-path text
- * reading (no confirmation — the `fs` service's policy is the boundary), and
+ * reading (host-internal — no Remote endpoint, no confirmation), and
  * telemetry-backed log analysis.
  *
  * Data is local-only: every entry, week, and analysis lives in the local
@@ -970,17 +970,15 @@ export class MemoService extends TypertRemoteService {
    * Read an external file path through the host `fs` service and return its
    * text.
    *
-   * It adds no entry and asks for no confirmation, and both of those are
-   * deliberate rather than missing: req 5 asked for a client-side consent
-   * dialog, but the panel has no call site for this method, and the host has no
-   * confirmation point — the `fs` sandbox constrains mutations, and a direct
-   * `ctx.fs` read records no observation. The boundary is the `fs` service's
-   * own policy plus the host's Remote surface, which is what the README now
-   * states instead of promising an entry that never existed.
+   * Host-internal by design: no `@Remote` registration, so `memo/readExternalPath`
+   * is not an endpoint the panel can address by name. It keeps working as a
+   * service method for host-side callers, and it still adds no entry and asks for
+   * no confirmation — nobody has yet built the confirmation point that would make a
+   * browser-reachable version safe (`ctx.approval` closes over an open turn, and a
+   * panel click happens between turns).
    * @param request - the path to read.
    * @returns the file text, or a failure naming the reason it could not be read.
    */
-  @Remote('readExternalPath')
   async readExternalPath(request: MemoReadExternalPathRequest): Promise<ReadExternalPathResult> {
     const fs = this.ctx.get('fs') as FsTextSource | undefined
     if (fs === undefined) {
