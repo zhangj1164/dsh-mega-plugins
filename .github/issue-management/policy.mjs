@@ -10,7 +10,11 @@ const API_VERSION = '2026-03-10'
 const BODY_LIMIT = 50
 const AUDIT_MARKER = '<!-- dsh-mega-plugins-issue-policy -->'
 const OWNER_LINE = /^Owner: @([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)$/
-const TYPES = new Set(['Idea', 'Feature', 'Bug', 'Research', 'Task'])
+// Category roles this tracker actually enforces. Native Issue Types
+// (Idea/Feature/Bug/Research/Task) are an organization-only GitHub feature: a
+// user-owned repository reports none for any Issue, so requiring one can never
+// pass here. See the `issue` command for the deferred Project-side checks.
+const CATEGORY_LABELS = new Set(['bug', 'enhancement'])
 const PRIORITIES = ['p0', 'p1', 'p2', 'p3']
 const PR_KINDS = new Set([
   'kind/feature',
@@ -295,6 +299,10 @@ export function validateIssue(issue) {
   if (invalidLabels.length > 0) {
     errors.push(`Issue 不得使用 PR kind 或旧版标签：${invalidLabels.join(', ')}`)
   }
+  const categories = issue.labels.filter((label) => CATEGORY_LABELS.has(label))
+  if (categories.length !== 1) {
+    errors.push('Issue 必须恰好有一个分类标签：bug 或 enhancement')
+  }
   if (
     /^\s*(?:\[(?:Idea|Feature|Bug|Research|Task|P[0-3]|Inbox|Backlog|Ready|In progress|In review|Done|No action|Owner|area\/[^\]]+)[^\]]*\]|(?:Idea|Feature|Bug|Research|Task|P[0-3]|Inbox|Backlog|Ready|In progress|In review|Done|No action|Owner|area\/[^:： ]+)\s*[:：-])/iu.test(
       issue.title,
@@ -302,8 +310,13 @@ export function validateIssue(issue) {
   ) {
     errors.push('Issue 标题不得带 Type、Priority、Status、area 或 Owner 前缀')
   }
-  if (!TYPES.has(issue.type ?? '')) errors.push('Type 必须是五种原生英文 Type 之一')
-  if (!status || !config.statuses.includes(status)) errors.push('Issue 必须在 Project 中且具有合法 Status')
+  // No native Type check: the feature does not exist on a user-owned repository.
+  // No Project Status requirement either: when a Status is reported it must be a
+  // legal one, but its absence means "the Project was not consulted", not "the
+  // Issue violates policy". Both are deferred to `#104`'s ops half.
+  if (status !== null && !config.statuses.includes(status)) {
+    errors.push(`Status 不在允许集合内：${status}`)
+  }
   if (issue.priority !== null && !PRIORITIES.includes(issue.priority.toLowerCase())) {
     errors.push('Priority 必须为空或为 P0–P3')
   }
@@ -316,10 +329,38 @@ export function validateIssue(issue) {
   ) {
     errors.push('No action 必须对应 Not planned 关闭原因')
   }
-  if (!['Done', 'No action'].includes(status ?? '') && issue.state !== 'open') {
+  if (
+    status !== null &&
+    !['Done', 'No action'].includes(status) &&
+    issue.state !== 'open'
+  ) {
     errors.push(`${status} 必须对应开放 Issue`)
   }
   return errors
+}
+
+/**
+ * Validate one `issues` event payload as the gate receives it.
+ *
+ * Reads only what the event carries, so it needs no token and no Project access:
+ * `type`, `priority` and `status` are passed as `null`, which the validator
+ * treats as "not reported" rather than "missing".
+ * @param {{issue: {title?: string, body?: string|null, assignees?: {login: string}[], labels?: ({name: string}|string)[], state?: string, state_reason?: string|null}}} event `issues` event payload.
+ * @returns {string[]} Validation errors.
+ */
+export function validateIssueEvent(event) {
+  const issue = event.issue ?? {}
+  return validateIssue({
+    title: issue.title ?? '',
+    body: issue.body ?? '',
+    assignees: (issue.assignees ?? []).map((assignee) => assignee.login),
+    labels: (issue.labels ?? []).map((label) => (typeof label === 'string' ? label : label.name)),
+    type: null,
+    priority: null,
+    status: null,
+    state: issue.state ?? 'open',
+    stateReason: issue.state_reason ?? null,
+  })
 }
 
 /**
@@ -663,6 +704,13 @@ async function runPullRequestCheck(event) {
   )
 }
 
+async function runIssueCheck(event) {
+  const errors = validateIssueEvent(event)
+  for (const error of errors) process.stdout.write(`::error::${error}\n`)
+  if (errors.length > 0) throw new Error(`Issue policy 未通过，共 ${errors.length} 项`)
+  process.stdout.write('Issue policy 通过。\n')
+}
+
 async function runLifecycle(eventName, event) {
   if (eventName === 'issues') {
     const number = event.issue.number
@@ -695,8 +743,9 @@ function readEvent() {
 async function main(argv) {
   const [command] = argv
   if (command === 'pr') await runPullRequestCheck(readEvent())
+  else if (command === 'issue') await runIssueCheck(readEvent())
   else if (command === 'lifecycle') await runLifecycle(process.env.GITHUB_EVENT_NAME, readEvent())
-  else throw new Error('用法：policy.mjs pr|lifecycle')
+  else throw new Error('用法：policy.mjs pr|issue|lifecycle')
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

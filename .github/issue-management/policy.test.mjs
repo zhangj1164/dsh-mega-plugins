@@ -10,6 +10,7 @@ import {
   requiresPullRequestPolicy,
   validateBody,
   validateIssue,
+  validateIssueEvent,
   validatePullRequest,
 } from './policy.mjs'
 
@@ -20,8 +21,10 @@ const legalIssue = {
   title: '完成议题管理校验',
   body: withDetails('完成议题管理校验。'),
   assignees: [],
-  labels: [],
-  type: 'Idea',
+  labels: ['bug'],
+  // Native Issue Types are organization-only and a user-owned repository reports
+  // none, so neither `type` nor `status` is required by the issue validator.
+  type: null,
   priority: null,
   status: 'In review',
   state: 'open',
@@ -141,7 +144,7 @@ test('reserves PR kind and legacy labels for pull requests', () => {
       label,
     )
   }
-  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['area/web', 'source/member'] }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['bug', 'area/web', 'source/member'] }), [])
 })
 
 test('keeps terminal Status aligned with the native close reason', () => {
@@ -159,6 +162,58 @@ test('keeps terminal Status aligned with the native close reason', () => {
     [],
   )
   assert.ok(validateIssue({ ...legalIssue, status: 'Done' }).includes('Done 必须对应 Completed 关闭原因'))
+})
+
+test('requires exactly one category label on an Issue', () => {
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['bug'] }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['enhancement'] }), [])
+  for (const labels of [[], ['bug', 'enhancement'], ['area/web']]) {
+    assert.ok(
+      validateIssue({ ...legalIssue, labels }).includes(
+        'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+      ),
+      JSON.stringify(labels),
+    )
+  }
+})
+
+test('does not require a native Type or a Project Status', () => {
+  // Native Issue Types are organization-only, so a user-owned repository reports
+  // none for any Issue; the Project board needs the App token this gate does not
+  // hold. Both checks are deferred until those exist rather than reporting a
+  // failure no issue can ever clear.
+  assert.deepEqual(validateIssue({ ...legalIssue, type: null, status: null }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, type: 'Idea', status: null }), [])
+})
+
+test('still rejects an unknown Status when one is reported', () => {
+  assert.ok(
+    validateIssue({ ...legalIssue, status: 'Shipped' }).includes('Status 不在允许集合内：Shipped'),
+  )
+})
+
+test('validates an Issue event payload without reading the Project', () => {
+  const event = {
+    issue: {
+      title: '修复议题门禁',
+      body: withDetails('修复议题门禁。'),
+      assignees: [],
+      labels: [{ name: 'bug' }, { name: 'area/infra' }],
+      state: 'open',
+      state_reason: null,
+    },
+  }
+  assert.deepEqual(validateIssueEvent(event), [])
+  assert.ok(
+    validateIssueEvent({ issue: { ...event.issue, labels: [{ name: 'area/infra' }] } }).includes(
+      'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+    ),
+  )
+  assert.ok(
+    validateIssueEvent({
+      issue: { ...event.issue, labels: [{ name: 'bug' }, { name: 'kind/doc' }] },
+    }).includes('Issue 不得使用 PR kind 或旧版标签：kind/doc'),
+  )
 })
 
 test('separates resolving and informational references', () => {
