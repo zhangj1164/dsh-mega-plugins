@@ -10,12 +10,12 @@
  */
 
 import * as React from 'react'
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-theme/client'
 import type {} from '@deepseek-ai/dsh-client-connection/client'
-import type {} from '@deepseek-ai/dsh-client-ui-slots/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { MemoController, type RpcCaller } from './controller.ts'
 import { MemoBoard } from './MemoBoard.tsx'
 import { zh, en, type MemoKey } from './locales.ts'

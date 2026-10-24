@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/openwiki/dsh-openwiki-visualize/README.md
-README.md: d8f243d8736eb6542015cbb453f7f71734317b17
-README.zh.md: 6d1af172cce3119349cdbee5a28f6e615b0e9a91
+README.md: 499ccee60bb0001bd0324b898de70f3978bb240f
+README.zh.md: 8c0214e6db20f6fe13ce10931c31f561eb39d2fa

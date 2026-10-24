@@ -19,7 +19,7 @@ DSH Web 的 OpenWiki 预览插件：在当前工作区中定位 OpenWiki，用�
 | 要求 | 原因 |
 |---|---|
 | openwiki >= 0.7.2 | 本插件嵌入的正是该阅读器的固定路由，以及它不对嵌框设限这一特性。 |
-| DSH >= 0.1.5-rc.1 | 右侧边栏标签页注册表及其两阶段标签页类型契约。 |
+| DSH >= 0.2.1-rc.2 | 右侧边栏标签页注册表及其两阶段标签页类型契约。 |
 | 工作区对应的项目已初始化 OpenWiki | 否则没有可展示的内容，请先在项目中运行 `openwiki --init`。 |
 | 预览时浏览器可访问互联网 | 阅读器会从 CDN 加载 force-graph、marked、DOMPurify、Mermaid 与 Google Fonts。 |
 
@@ -38,7 +38,7 @@ dsh plugin --profile web add @zhangj1164/dsh-openwiki-visualize
 | 字段 | 默认值 | 含义 |
 |---|---|---|
 | `minOpenwikiVersion` | `0.7.2` | 预览可驱动的最低 openwiki 版本。 |
-| `minDshVersion` | `0.1.5-rc.1` | 本插件所面向的最低 DSH 版本。 |
+| `minDshVersion` | `0.2.1-rc.2` | 本插件所面向的最低 DSH 版本。 |
 | `wikiDirName` | `openwiki` | 相对于工作区的 Wiki 目录。 |
 | `defaultPort` | `4321` | 首选端口；端口被占用时 CLI 会递增。 |
 | `portAttempts` | `20` | 尝试的端口数量，与 CLI 自身的预算一致。 |

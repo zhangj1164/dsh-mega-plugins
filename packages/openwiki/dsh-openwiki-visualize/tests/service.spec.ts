@@ -178,7 +178,7 @@ function respondWithVersions(openwikiVersion = '0.7.2'): void {
       harness.exit(index, 0)
       return
     }
-    harness.emitStdout(index, '0.1.5-rc.1\n')
+    harness.emitStdout(index, '0.2.1-rc.2\n')
     harness.exit(index, 0)
   })
 }
@@ -373,12 +373,12 @@ describe('OpenWikiVisualizeService version and update', () => {
   it('does not call an equal version an update', async () => {
     // The plugin's own manifest version is what the registry reports here, so
     // nothing is due and the pane must not offer an update.
-    stubNet({ latest: '0.1.0' })
+    stubNet({ latest: '0.2.0' })
     const { ctx, service } = await mount()
     const result = await service.checkUpdate()
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.value.current).toBe('0.1.0')
+      expect(result.value.current).toBe('0.2.0')
       expect(result.value.updateAvailable).toBe(false)
     }
     await ctx.fiber.dispose()

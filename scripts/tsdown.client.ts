@@ -44,7 +44,7 @@ import type { UserConfig } from 'tsdown'
  * Module-table seed words the shell installs as platform singletons.
  *
  * Mirrors `PLATFORM_MODULES` in the harness source
- * (`packages/client/web/src/platform.ts`) at DSH 0.1.5-rc.1, which is the
+ * (`packages/client/web/src/platform.ts`) at DSH 0.2.1-rc.2, which is the
  * release this repository's packages declare as their peer range. A shell
  * upgrade that adds or removes a seed word has to be reflected here: a word the
  * shell no longer seeds becomes an unresolvable `require`, and a shell word
@@ -56,6 +56,8 @@ export const PLATFORM_MODULES: readonly string[] = [
   'react-dom',
   'react-dom/client',
   '@deepseek-ai/cordis',
+  'zod',
+  '@tanstack/react-virtual',
   '@deepseek-ai/dsh-client-store',
   '@deepseek-ai/dsh-client-ui-slots',
   '@deepseek-ai/dsh-client-ui-primitives',
