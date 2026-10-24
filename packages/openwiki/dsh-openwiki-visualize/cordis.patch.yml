@@ -25,7 +25,7 @@
         # on, so it is the floor rather than an arbitrary one.
         minOpenwikiVersion: "0.7.2"
         # The DSH release whose right-Sidebar tab registry this plugin targets.
-        minDshVersion: "0.1.5-rc.1"
+        minDshVersion: "0.2.1-rc.2"
         # Directory `openwiki visualize` defaults to, relative to the workspace.
         wikiDirName: openwiki
         # The visualizer's own preferred port; it increments on conflict.

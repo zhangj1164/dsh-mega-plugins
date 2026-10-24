@@ -67,10 +67,12 @@ describe('clientBundle', () => {
     } | undefined
     expect(deps?.neverBundle('react')).toBe(true)
     expect(deps?.neverBundle('react/jsx-runtime')).toBe(true)
+    // `zod` is part of the 0.2.x shell seed table, so it stays external too.
+    expect(deps?.neverBundle('zod')).toBe(true)
     // A workspace package with no client half is a wire layer: inlined, which is
     // what its type-only imports already reduce to.
     expect(deps?.neverBundle('@zhangj1164/dsh-memo/client')).toBe(false)
-    expect(deps?.alwaysBundle('zod')).toBe(true)
+    expect(deps?.alwaysBundle('@zhangj1164/dsh-memo/client')).toBe(true)
   })
 })
 
@@ -78,18 +80,18 @@ describe('moduleTableWords', () => {
   it('answers the platform baseline', () => {
     const words = moduleTableWords(undefined)
     for (const word of PLATFORM_MODULES) expect(words.has(word)).toBe(true)
-    expect(words.has('zod')).toBe(false)
+    expect(words.has('zod')).toBe(true)
   })
 
   it('adds both spellings of every declared row', () => {
     const words = moduleTableWords({
       inject: ['@deepseek-ai/dsh-client-ui-theme'],
-      external: ['@deepseek-ai/dsh-client-runtime/client'],
+      external: ['@deepseek-ai/dsh-client-ui-layout/client'],
     })
     expect(words.has('@deepseek-ai/dsh-client-ui-theme')).toBe(true)
     expect(words.has('@deepseek-ai/dsh-client-ui-theme/client')).toBe(true)
-    expect(words.has('@deepseek-ai/dsh-client-runtime/client')).toBe(true)
-    expect(words.has('@deepseek-ai/dsh-client-runtime')).toBe(true)
+    expect(words.has('@deepseek-ai/dsh-client-ui-layout/client')).toBe(true)
+    expect(words.has('@deepseek-ai/dsh-client-ui-layout')).toBe(true)
   })
 
   it('rejects a malformed declaration instead of silently answering nothing', () => {

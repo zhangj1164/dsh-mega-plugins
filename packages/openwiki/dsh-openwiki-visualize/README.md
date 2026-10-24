@@ -19,7 +19,7 @@ OpenWiki preview for DSH Web: it finds the OpenWiki in the selected workspace, s
 | Requirement | Why |
 |---|---|
 | openwiki >= 0.7.2 | The visualizer's fixed routes and its lack of framing restrictions are what this plugin embeds. |
-| DSH >= 0.1.5-rc.1 | The right-Sidebar tab registry and its two-stage tab-type contract. |
+| DSH >= 0.2.1-rc.2 | The right-Sidebar tab registry and its two-stage tab-type contract. |
 | A workspace whose project has an initialized OpenWiki | There is nothing to serve otherwise, so run `openwiki --init` in the project first. |
 | Browser internet access while previewing | The reader loads force-graph, marked, DOMPurify, Mermaid, and Google Fonts from CDNs. |
 
@@ -38,7 +38,7 @@ Every value below is a `Config` field with a schema default, so a deployment ove
 | Field | Default | Meaning |
 |---|---|---|
 | `minOpenwikiVersion` | `0.7.2` | Lowest openwiki the preview will drive. |
-| `minDshVersion` | `0.1.5-rc.1` | Lowest DSH release whose tab registry this targets. |
+| `minDshVersion` | `0.2.1-rc.2` | Lowest DSH release whose tab registry this targets. |
 | `wikiDirName` | `openwiki` | Wiki directory, relative to the workspace. |
 | `defaultPort` | `4321` | Preferred port; the CLI increments past a busy one. |
 | `portAttempts` | `20` | Ports to consider, matching the CLI's own budget. |

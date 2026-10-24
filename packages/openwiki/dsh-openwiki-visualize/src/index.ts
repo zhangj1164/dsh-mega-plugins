@@ -128,7 +128,7 @@ const DEFAULT_DSH_VERSION_PACKAGES: readonly string[] = Object.freeze([
 /** Schemastery configuration for the OpenWiki preview service. */
 export const Config: s<Config> = s.object({
   minOpenwikiVersion: s.string().default('0.7.2'),
-  minDshVersion: s.string().default('0.1.5-rc.1'),
+  minDshVersion: s.string().default('0.2.1-rc.2'),
   wikiDirName: s.string().default('openwiki'),
   defaultPort: s.number().default(4321),
   portAttempts: s.number().default(20),
