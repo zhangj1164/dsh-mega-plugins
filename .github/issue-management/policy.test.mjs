@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readdirSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 
 import {
@@ -10,6 +11,7 @@ import {
   requiresPullRequestPolicy,
   validateBody,
   validateIssue,
+  validateIssueEvent,
   validatePullRequest,
 } from './policy.mjs'
 
@@ -20,8 +22,10 @@ const legalIssue = {
   title: '完成议题管理校验',
   body: withDetails('完成议题管理校验。'),
   assignees: [],
-  labels: [],
-  type: 'Idea',
+  labels: ['bug'],
+  // Native Issue Types are organization-only and a user-owned repository reports
+  // none, so neither `type` nor `status` is required by the issue validator.
+  type: null,
   priority: null,
   status: 'In review',
   state: 'open',
@@ -141,7 +145,7 @@ test('reserves PR kind and legacy labels for pull requests', () => {
       label,
     )
   }
-  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['area/web', 'source/member'] }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['bug', 'area/web', 'source/member'] }), [])
 })
 
 test('keeps terminal Status aligned with the native close reason', () => {
@@ -159,6 +163,156 @@ test('keeps terminal Status aligned with the native close reason', () => {
     [],
   )
   assert.ok(validateIssue({ ...legalIssue, status: 'Done' }).includes('Done 必须对应 Completed 关闭原因'))
+})
+
+test('requires exactly one category label on an Issue', () => {
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['bug'] }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, labels: ['enhancement'] }), [])
+  for (const labels of [[], ['bug', 'enhancement'], ['area/web']]) {
+    assert.ok(
+      validateIssue({ ...legalIssue, labels }).includes(
+        'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+      ),
+      JSON.stringify(labels),
+    )
+  }
+})
+
+test('does not require a native Type or a Project Status', () => {
+  // Native Issue Types are organization-only, so a user-owned repository reports
+  // none for any Issue; the Project board needs the App token this gate does not
+  // hold. Both checks are deferred until those exist rather than reporting a
+  // failure no issue can ever clear.
+  assert.deepEqual(validateIssue({ ...legalIssue, type: null, status: null }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, type: 'Idea', status: null }), [])
+  // An omitted field must read the same as an explicit null, not as an illegal
+  // Status value.
+  const { status: _omitted, ...withoutStatus } = legalIssue
+  assert.deepEqual(validateIssue(withoutStatus), [])
+})
+
+test('still rejects an unknown Status when one is reported', () => {
+  assert.ok(
+    validateIssue({ ...legalIssue, status: 'Shipped' }).includes('Status 不在允许集合内：Shipped'),
+  )
+})
+
+test('validates an Issue event payload without reading the Project', () => {
+  const event = {
+    issue: {
+      title: '修复议题门禁',
+      body: withDetails('修复议题门禁。'),
+      assignees: [],
+      labels: [{ name: 'bug' }, { name: 'area/infra' }],
+      state: 'open',
+      state_reason: null,
+    },
+  }
+  assert.deepEqual(validateIssueEvent(event), [])
+  assert.ok(
+    validateIssueEvent({ issue: { ...event.issue, labels: [{ name: 'area/infra' }] } }).includes(
+      'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+    ),
+  )
+  assert.ok(
+    validateIssueEvent({
+      issue: { ...event.issue, labels: [{ name: 'bug' }, { name: 'kind/doc' }] },
+    }).includes('Issue 不得使用 PR kind 或旧版标签：kind/doc'),
+  )
+})
+
+test('pre-fills a category label in every Issue template', () => {
+  // Every Issue must carry exactly one category label, so a template that leaves
+  // `labels` empty files an Issue that fails the gate the moment it opens.
+  const directory = new URL('../ISSUE_TEMPLATE/', import.meta.url)
+  const templates = readdirSync(directory).filter((name) => name.endsWith('.md'))
+  assert.ok(templates.length > 0)
+  for (const name of templates) {
+    const frontmatter = readFileSync(new URL(name, directory), 'utf8').split('---')[1] ?? ''
+    const labels = (/^labels:\s*(.*)$/m.exec(frontmatter)?.[1] ?? '')
+      .split(',')
+      .map((label) => label.trim())
+      .filter(Boolean)
+    assert.ok(
+      labels.some((label) => ['bug', 'enhancement'].includes(label)) &&
+        labels.filter((label) => ['bug', 'enhancement'].includes(label)).length === 1,
+      `${name} 应恰好预填一个分类标签，当前为 ${JSON.stringify(labels)}`,
+    )
+  }
+})
+
+test('survives a malformed or partial Issue event payload', () => {
+  const withDetails = (summary) =>
+    `${summary}\n\n<details><summary>验收与细节</summary>待补充。</details>`
+  const base = {
+    title: '缺字段的议题',
+    body: withDetails('缺字段的议题。'),
+    labels: [{ name: 'bug' }],
+    assignees: [],
+    state: 'open',
+    state_reason: null,
+  }
+  // An empty body is a violation, not a crash.
+  assert.deepEqual(validateIssueEvent({ issue: { ...base, body: null } }), [
+    '正文必须包含默认收起的 <details> 区域',
+  ])
+  // Missing labels/assignees keys must not throw.
+  assert.ok(
+    validateIssueEvent({ issue: { title: base.title, body: base.body, state: 'open' } }).includes(
+      'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+    ),
+  )
+  // An expanded or an unbalanced details region is reported, never thrown.
+  assert.ok(
+    validateIssueEvent({
+      issue: {
+        ...base,
+        body: '中文。\n\n<details open><summary>s</summary>x</details>',
+      },
+    }).includes('details 必须默认收起，不得设置 open'),
+  )
+  assert.ok(
+    validateIssueEvent({ issue: { ...base, body: '中文。\n\n<details><summary>s</summary>x' } }).includes(
+      'details 标签必须成对闭合',
+    ),
+  )
+  // Labels may arrive as bare strings.
+  assert.deepEqual(validateIssueEvent({ issue: { ...base, labels: ['bug'] } }), [])
+})
+
+test('skips closed Issues so history is not rewritten', () => {
+  // A closed Issue predates whatever rule is enforced now. Both callers — the event
+  // gate and the lifecycle audit, which validates a snapshot directly — must leave it
+  // alone, and an open Issue with the same shape must still report every rule.
+  const closed = {
+    title: '历史单',
+    body: '没有折叠区，也没有分类标签。',
+    assignees: [],
+    labels: ['kind/bug-fix'],
+    priority: null,
+    status: null,
+    state: 'closed',
+    stateReason: 'completed',
+  }
+  assert.deepEqual(validateIssue(closed), [])
+  assert.deepEqual(
+    validateIssueEvent({
+      issue: {
+        title: closed.title,
+        body: closed.body,
+        assignees: [],
+        labels: [{ name: 'kind/bug-fix' }],
+        state: 'closed',
+        state_reason: 'completed',
+      },
+    }),
+    [],
+  )
+  assert.deepEqual(validateIssue({ ...closed, state: 'open' }), [
+    '正文必须包含默认收起的 <details> 区域',
+    'Issue 不得使用 PR kind 或旧版标签：kind/bug-fix',
+    'Issue 必须恰好有一个分类标签：bug 或 enhancement',
+  ])
 })
 
 test('separates resolving and informational references', () => {

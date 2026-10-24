@@ -2,7 +2,7 @@
 name: Task
 about: 明确的非 Feature、非 Bug 工作
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 type: Task
 ---

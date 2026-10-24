@@ -1,4 +1,4 @@
-# dsh-github-issue
+# @zhangj1164/dsh-github-issue
 
 English | [中文](README.zh.md)
 
@@ -11,28 +11,105 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | Config | Default | Meaning |
 |---|---|---|
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | Default repository URL for issue prefill when a request omits `repoUrl`. |
+| `maxPrefillUrlLength` | `7000` | Longest pre-filled issue URL to produce, counted in characters. GitHub refuses a request URL that is too long and shows an error page instead of the new-issue form, and it publishes no stable constant for the boundary, so this carries headroom and is deployment-tunable. `0` disables shortening. |
+| `prefillTruncationNote` | a Chinese note | Appended to the issue body when the URL had to be shortened, so the reader knows the body is partial. |
+| `provider` | unset | Provider route for model calls. Unset follows the deployment's `agentDefaultModel` selection, so a deployment can pin issue generation from `cordis.yml` alone. |
+| `model` | unset | Model id for model calls. Unset follows the same fallback as `provider`. |
 
 ## Remote methods
 
 | Method | Behavior |
 |---|---|
-| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. |
-| `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. |
-| `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `llm-failure` when the model produces no output. |
+| `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request names the `pluginIds` it covers — one report spans a whole suite — plus the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; the per-group facts are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
+| `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
+| `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `route-missing` when no route resolves, `llm-failure` when the model call failed. |
+
+## Model route
+
+Both model-calling methods resolve their route the way the memo service does: the request's `provider`/`model`, then this service's `Config`, then the deployment's `agentDefaultModel` selection. The request fields are therefore optional, and the client UI sends them only when the user picked a model — the browser never has to publish a route for a call to work.
+
+A blank value counts as absent rather than as a value, so an omitted field still reaches the deployment default instead of travelling to the model as an unusable route. When nothing resolves a route, the call returns `route-missing` and **no model call is attempted**: a call without an adapter cannot succeed, and reporting it as `llm-failure` would name the model for a routing problem.
+
+## Failure facts
+
+A failed call keeps what DSH reported instead of collapsing it into one message. `llm-failure` carries the machine-routing code and the route in its message — `model call to provider "custom" model "glm-5-2-260617" failed: NO_ADAPTER: no adapter registered for provider "custom"` — so `NO_ADAPTER` (a route this deployment never registered), `AUTH`, `RATE_LIMIT`, and `EMPTY_RESPONSE` (the model genuinely returned no text) stay distinguishable. Reporting all of them as "the model produced no output" is what sent a user hunting for a model problem in a request that never reached a model.
+
+A stream that throws a transport error rather than yielding a terminal `finish` chunk becomes `LLM_STREAM_THREW`, not an exception escaping the call.
+
+## Telemetry
+
+Both model-calling methods report to the local telemetry service when the deployment has one, and behave identically when it does not. The service is read with `ctx.get('telemetry')` and deliberately **not** declared in `static inject`: this package installs on its own bundle, and a diagnostic dependency must never be the reason a service refuses to activate.
+
+| Event | Recorded |
+|---|---|
+| A call that worked | Action `optimizeIssue` / `generateReport` as `success`, with the route that served it |
+| A failed call | The preserved DSH code, message, and HTTP status, the route, and the `github-issue:<action>` feature anchor |
+| A call with no resolvable route | Code `NO_MODEL_ROUTE` — the same code `@zhangj1164/dsh-memo` uses for that condition, so one report can group both packages |
+
+`generateReport` also records which plugin's analysis it was given. Recording only successful calls would answer "which route served these calls" while leaving "has that route changed since it broke?" open, so both halves are recorded.
 
 ## Issue report template
 
-Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a uniform Markdown structure. The first line is always a `## ` heading used as the issue title. The template includes sections for plugin, action, expected/actual behavior, and reproduction steps.
+Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a uniform Markdown structure. The first line is always a `## ` heading used as the issue title. The template includes sections for plugin, action, expected/actual behavior, route and timing, and reproduction steps.
+
+`generateReport` receives the analysis window and, per failure group, the route, the last failure time, and how many attempts of the same action followed it. Its system prompt requires those facts to be stated, forbids proposing a mechanism the analysis does not evidence — sampling parameters, token budgets, timeouts, chunking, and response parsing are named as examples — and requires a fact the analysis does not carry to be written as `not recorded`. Writing that collection must be added is explicitly ruled out: a missing fact can be an older event as easily as a gap, and the report cannot tell which.
 
 ## Requirement mapping
 
 - **Req 8** — `generateReport` turns telemetry failure analysis into a uniform GitHub issue report that correlates each failure group against the plugin's feature code.
 - **Req 9** — `prefilledIssueUrl` builds a pre-filled GitHub issue-creation URL so the user can jump to the project's new-issue page with the report already filled in.
-- **Req 10** — Packaged as a standalone DSH plugin: any developer can install the `dsh-github-issue` profile and wire it into their own UI plugin. The memo bundle's `cordis.patch.yml` inserts it as a plain dependency.
+- **Req 10** — Packaged as a standalone DSH plugin: this package declares its own `dsh.bundle` with `cordis.patch.yml`, so a deployment can install it on its own and any UI plugin can reach it. See "Adopting this plugin" below.
 - **Req 11** — `optimizeIssue` rewrites a natural-language description into a structured issue using the configured model and a built-in structuring prompt. The `ui-memo` package calls this directly for its "Add Issue" editor.
 - **Req 12** — Reusable: the issue report template, the prefill URL builder, and the optimization prompt are all generic and not memo-specific.
 
+## Adopting this plugin
+
+Install the package and add it to your deployment's composition:
+
+```sh
+pnpm add @zhangj1164/dsh-github-issue
+```
+
+```yaml
+# your cordis.yml, or your own bundle's patch
+- insert:
+    - id: github-issue
+      name: @zhangj1164/dsh-github-issue
+      config:
+        repoUrl: https://github.com/your-org/your-repo
+```
+
+Read the service from any plugin with `ctx.get('githubIssue')`. It is optional from the consumer's side, so guard the read:
+
+```ts
+const issues = ctx.get('githubIssue')
+if (issues !== undefined) {
+  const { report } = await issues.generateReport({ analysis, repoUrl })
+}
+```
+
+The service has no dependency on `@zhangj1164/dsh-memo`; memo is one consumer among possible others.
+
+This bundle is the sole owner of the `github-issue` entry id. `@zhangj1164/dsh-memo` injects the service but does not insert this row, so the standalone bundle and the memo suite compose without a conflict and `pnpm run verify-bundle-entries` finds no overlap. A memo deployment therefore names the whole suite:
+
+```sh
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+```
+
+`@zhangj1164/dsh-github-issue` is named explicitly rather than pulled in as a peer: a profile sets `autoInstallPeers: false`, so an install brings in only what the command names, and `@zhangj1164/dsh-memo` alone would leave this row unresolvable.
+
+## Exports
+
+Every subpath resolves to the flat `lib/*.js` layout tsdown emits.
+
+| Subpath | Contents |
+|---|---|
+| `@zhangj1164/dsh-github-issue` | The `GithubIssueService` plugin and its Config. |
+| `@zhangj1164/dsh-github-issue/types` | Wire types: `GithubIssueReport`, request and result shapes. |
+| `@zhangj1164/dsh-github-issue/client` | The browser-facing type face. |
+| `@zhangj1164/dsh-github-issue/invariant` | Invariant definitions. |
+
 ## Known Limitations
 
-- **No bundle layer** — this package declares no `dsh.bundle`; it is installed as a plain dependency and activated by the memo bundle's `cordis.patch.yml`.
 - **Model dependency** — `inject: ['llm']` means the service will not activate without an LLM provider.
+- **Service-only surface** — this package registers no model tool and ships no browser UI. Installing it on its own gives a deployment `ctx.get('githubIssue')` and nothing a user can see or click; the visible entry point is `@zhangj1164/dsh-client-ui-memo`'s issue editor and log-analysis action, which reach it over Remote. Treat it as a backend that a UI plugin consumes, not as a standalone feature.

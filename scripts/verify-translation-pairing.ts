@@ -65,18 +65,34 @@ const request = parseArgs(process.argv)
 
 // ─── Git blob hash ─────────────────────────────────────────────
 
+/**
+ * Normalize line endings to LF.
+ *
+ * Git stores these files with LF; a Windows checkout with `core.autocrlf=true`
+ * materializes them with CRLF. Hashing raw working-tree bytes would therefore
+ * record a hash that no CI checkout can ever match, and the gate would fail
+ * only on the machine that recorded it. Normalizing makes the hash describe
+ * the file's content, not the checkout's platform.
+ * @param content - raw file bytes.
+ * @returns the bytes with every CRLF replaced by LF.
+ */
+function normalizeEol(content: Buffer): Buffer {
+  return Buffer.from(content.toString('utf8').replace(/\r\n/gu, '\n'), 'utf8')
+}
+
 /** Compute a full SHA-1 Git blob hash for content. */
 function gitBlobHash(content: Buffer): string {
+  const normalized = normalizeEol(content)
   const hash = createHash('sha1')
-  hash.update(`blob ${content.byteLength}\0`)
-  hash.update(content)
+  hash.update(`blob ${normalized.byteLength}\0`)
+  hash.update(normalized)
   return hash.digest('hex')
 }
 
 /** Store working-tree bytes in the local Git object database and return the object ID. */
 function storeGitBlob(content: Buffer): string {
   const result = spawnSync('git', ['hash-object', '-w', '--stdin'], {
-    input: content,
+    input: normalizeEol(content),
     cwd: root,
   })
   if (result.error || result.status !== 0) {
@@ -112,7 +128,11 @@ const META_LINE = /^([^:#]+\.md): ([0-9a-f]{40})$/
 
 function parsePairingRecord(content: string, paths: PairPaths): PairingRecord | undefined {
   const hashes = new Map<string, string>()
-  for (const line of content.split('\n')) {
+  for (const raw of content.split('\n')) {
+    // A Windows checkout materializes this file with CRLF, which the `$`
+    // anchor below would otherwise never match. Trim the terminator so the
+    // record parses identically on every platform.
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw
     if (line === '' || line.startsWith('#')) continue
     const match = META_LINE.exec(line)
     if (!match?.[1] || !match[2] || hashes.has(match[1])) return undefined

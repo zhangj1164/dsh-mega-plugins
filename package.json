@@ -2,7 +2,7 @@
   "name": "dsh-mega-plugins",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@11.20.0",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
@@ -11,6 +11,10 @@
     "test": "vitest run",
     "verify-translation-pairing": "tsx scripts/verify-translation-pairing.ts",
     "verify-export-jsdoc": "tsx scripts/verify-export-jsdoc.ts",
+    "verify-package-exports": "tsx scripts/verify-package-exports.ts",
+    "verify-client-bundle-id": "tsx scripts/verify-client-bundle-id.ts",
+    "verify-bundle-entries": "tsx scripts/verify-bundle-entries.ts",
+    "verify-publish-guard": "tsx scripts/verify-publish-guard.ts",
     "verify-md-links": "tsx scripts/verify-md-links.ts",
     "verify-md-wrap": "tsx scripts/verify-md-wrap.ts",
     "gates": "tsx scripts/run-gates.ts check-all",
@@ -19,12 +23,14 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@types/mdast": "^4.0.4",
+    "jsdom": "^29.1.1",
     "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-gfm": "^3.0.0",
     "micromark-extension-gfm": "^3.0.0",
     "tsx": "^4.23.12",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   }
 }

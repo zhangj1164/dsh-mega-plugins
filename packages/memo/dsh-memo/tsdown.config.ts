@@ -32,7 +32,15 @@ function lowerDecorators() {
 }
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/invariant.ts', 'src/types.ts', 'src/client.ts', 'src/spec.ts'],
+  entry: [
+    'src/index.ts',
+    'src/invariant.ts',
+    'src/types.ts',
+    'src/client.ts',
+    'src/spec.ts',
+    'src/llm-text.ts',
+    'src/period.ts',
+  ],
   outDir: 'lib',
   format: ['esm'],
   platform: 'node',

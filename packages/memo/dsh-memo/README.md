@@ -1,4 +1,4 @@
-# dsh-memo
+# @zhangj1164/dsh-memo
 
 English | [中文](README.zh.md)
 
@@ -10,30 +10,130 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 
 | Config | Default | Meaning |
 |---|---|---|
-| `repoUrl` | — | GitHub repository URL passed to the github-issue service for report generation. |
+| `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | GitHub repository URL passed to the github-issue service for report generation. |
+| `provider` | unset | Registered DSH provider route for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
+| `model` | unset | Model id for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
+| `logAnalysisPlugins` | `['memo', 'github-issue']` | Plugin ids `analyzeLogs` covers, in read order. Telemetry exposes no way to enumerate plugins, so the deployment names the set; the default is the suite these bundles install together. |
+
+## Model route resolution
+
+AI calls resolve their route in one order, and nothing is hardcoded:
+
+1. An explicit `provider`/`model` on the request (used by tests and by callers that need to retarget one call).
+2. This service's `Config.provider` / `Config.model`.
+3. The deployment's `agentDefaultModel` service selection — the existing single source of truth for "which model does this deployment use".
+
+When no route resolves, the call fails with `llm-failure` and `failureCode: 'NO_MODEL_ROUTE'` instead of silently producing nothing.
+
+`listModels` reports levels 2–3 as the *resolved* route, then every **registered** provider with the models it advertises, so a caller can show which model a call would use and switch to any other route the deployment really has. Dormant routes a plugin merely declared are left out: they cannot carry a call, so offering one would offer a choice that must fail. Everything that can go wrong is reported inside a **successful** result: a provider whose own catalog throws keeps its own `error` while the others stay usable, and only a registry that could not be read at all sets `catalogError` — a failed picker is not a failed board. The registry and catalogs come from the `llm` service because DSH exposes `listProviders` and `listModels` to the host only; a browser can enumerate neither, and must never be handed a hardcoded list. Both are advisory in DSH: membership never validates a request, so an unlisted model id is not a rejected one.
+
+## Failure reporting
+
+`analyze`, `exportReport`, and any other model-backed method preserve the DSH failure facts instead of collapsing them into one message. A failed `llm-failure` carries:
+
+| Field | Meaning |
+|---|---|
+| `failureCode` | DSH provider-neutral machine-routing code: `NO_ADAPTER`, `MISSING_CREDENTIAL`, `AUTH`, `RATE_LIMIT`, `EMPTY_RESPONSE`, … |
+| `message` | The DSH message prefixed with the attempted provider and model. |
+| `provider` / `model` | The route the failed call was sent to. |
+| `status` | HTTP status from the provider, when DSH supplied one. |
+
+`EMPTY_RESPONSE` means the model genuinely returned no text; `NO_ADAPTER` means the configured provider is not registered in this deployment. Those two used to be indistinguishable.
+
+The telemetry event behind a failure carries the same route as metadata, and so does the event behind a call that **worked**: `analyze`, `exportReport`, `listModels`, and `analyzeLogs` all record `provider` and `model` on success. A route that resolved to nothing is recorded as an empty string, which is how an event that predates this — one with no `provider` key at all — stays distinguishable from one where nothing resolved. Recording only failures would answer "which route broke" while leaving "which route served the calls that worked, and has it changed since?" unanswerable, and the answer is in scope at success time anyway.
+
+`readExternalPath` preserves the reason a read failed the same way, each failure carrying the attempted `path`: `path-not-found`, `path-not-text` (the target is not a readable text file), `path-too-large` (the backend's size bound refused it), `approval-denied` for a permission or sandbox refusal, `fs-error` for anything else, and `fs-unavailable` when the deployment mounts no `fs` service. The code recorded in telemetry is the same one returned to the caller. Before this, all of them were a single `approval-denied`, so a missing file, a binary file, and a genuine refusal were indistinguishable without parsing the message.
 
 ## Remote methods
 
+Every method declares exactly one parameter named `request`, even when it carries no input. The protocol binds arguments **by name** — the client sends `{ args: { request } }` — so a method declared with no parameter at all has its call rejected before the body runs. That is not a cosmetic difference: `listArchivedQuarters` once declared none, the host archived quarters successfully while the client's read of them returned nothing, and archiving looked like it did nothing at all. `tests/remote-signatures.spec.ts` now fails on any method that breaks the rule.
+
 | Method | Behavior |
 |---|---|
-| `getOrCreateCurrentWeek(request)` | Creates or returns the current week. Stores the provider/model route for later AI calls. |
+| `getOrCreateCurrentWeek(request)` | Creates or returns the current week. `provider`/`model` are optional overrides. |
 | `getWeek(request)` | Returns one week by id, or `null` when it does not exist. |
 | `listWeeks(request)` | Lists weeks in a range, newest first. |
 | `addEntry(request)` | Adds an entry to a week. Creates the week if it does not exist. |
 | `updateEntry(request)` | Updates an entry's content. Editing a past week requires `force: true`. |
 | `deleteEntry(request)` | Deletes an entry from a week. Past weeks require `force: true`. |
-| `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty. |
+| `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
-| `readExternalPath(request)` | Reads a local file path and adds it as an entry. |
-| `analyzeLogs(request)` | Reads telemetry failures for this plugin and generates a GitHub issue report via the github-issue service. |
+| `readExternalPath(request)` | Reads a local file path through the host `fs` service and returns its text. It adds no entry and asks for no confirmation — the `fs` service's own policy and the host's Remote surface are the boundary. |
+| `analyzeLogs(request)` | Reads telemetry failures for every configured plugin and generates one GitHub issue report over all of them via the github-issue service. Passes the analysis window — the union of the per-plugin windows — and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
+| `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
+| `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
+| `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
+| `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
+| `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
+
+### What one log analysis covers
+
+One report, not one per plugin: the packages of a suite are installed, broken, and fixed together, and a report that covers only `memo` cannot mention the `github-issue` failure that broke this panel's own issue editor — which is exactly the failure that went unseen. Totals add up across plugins, the window is the union of the per-plugin windows, and failure groups arrive together sorted by failure count; each group already carries its plugin's prefix in `featureCodeRef`, so groups from different plugins cannot collide. The request may name its own `pluginIds`; a deployment trims the default with `Config.logAnalysisPlugins`. An empty set is refused with `no-plugins-configured` rather than reported as an empty suite, because a report that read nothing and a suite that recorded nothing are not the same claim.
+
+## Quarter archive
+
+Archiving a quarter is a durable marker, not a move: the memo weeks stay exactly where they are, and an archived quarter is one row in its own storage domain (`memo_archive`, table `quarters`) holding `{ label, archivedAt }`. Nothing is copied, so unarchiving cannot lose content and an archive can never disagree with the memo table.
+
+`listArchivedQuarters` returns each quarter's week ids, resolved on the host through the same period calendar that decides which weeks a quarter owns. A client only has to build a `Set` from them to know which cards are read-only, which is what makes an archive hold in **all four dimensions** without the client ever mapping a week onto a quarter across a year boundary.
+
+The week ids are deliberately **not** stored. They follow deterministically from the label, so persisting them would be persisting a derivable copy that goes wrong the day the calendar is corrected — and would silently un-archive or over-archive cards at that point.
+
+**The request names a quarter, never a period.** "The quarter containing the period you are looking at" has no single answer: a year spans four quarters, and a week's Monday can sit in the previous quarter while the week belongs to the quarter holding its Thursday. Resolving a quarter from a period's start timestamp would therefore archive the wrong quarter for the week and year dimensions alike, so the archive action is offered where a quarter label is unambiguous and is never guessed anywhere else.
+
+The domain is separate from `memo` rather than a second table beside `weeks`, so a problem opening the archive can never stop the memo table from opening. The name is `memo_archive`, not `memo-archive`: a storage-domain name must match `/^[a-z][a-z0-9_]*$/`.
+
+**An archived quarter is read-only on the host.** `addEntry`, `updateEntry` and `deleteEntry` all refuse a week inside an archived quarter with the failure code `quarter-archived`, and refuse it before touching the table, so a refused call changes nothing at all. Read-only is enforced here rather than only in the browser because the same Remote methods are reachable by any client, and because an archive can land while an edit dialog is already open.
+
+The guard asks `weekIdBelongsToPeriod(weekId, 'quarter', label)` — the same Thursday rule that resolved the quarter's week ids — so the answer cannot drift from the calendar that produced them. The cost is one pass over the archived rows, which are a handful of quarters at most, on a user-initiated write.
+
+A consequence worth stating: archiving the **current** quarter closes today as well, since "archive this quarter" is a legitimate action on the quarter in progress. The client disables its composer in that state and points at the unarchive action, so the way out is always one click away.
+
+## Four-dimension periods
+
+The memo UI navigates weeks, months, quarters, and years over the same cards. `@zhangj1164/dsh-memo/period` owns that calendar math so the host and the UI cannot disagree about which card belongs where.
+
+Period labels are pinned: `2026-W36`, `2026-09`, `2026-Q3`, `2026`.
+
+One rule decides ownership: **a week belongs to the period containing its Thursday** — the same convention that decides which year owns the week, so `2025-12-29` is `2026-W01`. Because every week has exactly one Thursday, the week lists tile the timeline: the twelve months and the four quarters of a year each cover that year's weeks exactly once, with no gap and no overlap. `weekIdsInPeriod` is the enumeration of `weekIdBelongsToPeriod`, so a card cannot be listed under one period and highlighted under another.
+
+Two defects lived in the previous prefix-based check and are covered by tests now:
+
+- Quarter membership used the `YYYY-` prefix shared with month labels, so every quarter of a year matched `Q1`.
+- Week labels took the calendar year of the week's Monday, so a week at a year boundary was off by one year.
+
+## Shared LLM text helper
+
+`@zhangj1164/dsh-memo/llm-text` exports `streamLlmText(llm, route, system, userText)`, the one place that turns a DSH stream into either collected text or preserved failure facts. Other host plugins that ask a model for a single block of text should use it instead of re-implementing the stream loop: the hand-rolled copies are what dropped `chunk.reason.failure` and reported every failure identically.
 
 ## Past-week force gate
 
 The current week is always editable. Editing or deleting entries in a past week requires `force: true` to acknowledge that AI analysis results may change. This prevents accidental mutation of historical records without explicit consent.
 
-## Bundle layer
+## Bundle layer and installation
 
-This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The patch inserts `github-issue` and `memo` rows into the host composition. The `telemetry` row is owned by the `dsh-telemetry` bundle to avoid duplicate loader entry ids.
+This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The patch inserts exactly two rows — `memo` and `ui-memo` — and nothing else. Every composition entry id in this suite has one owning bundle: `telemetry` belongs to `@zhangj1164/dsh-telemetry`, `github-issue` to `@zhangj1164/dsh-github-issue`, and `memo` plus `ui-memo` to this bundle. No two bundles insert the same id, so any subset of the suite composes and the whole suite installs with the obvious command:
+
+```sh
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+```
+
+All four packages must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in only the packages the command names and never a peer dependency. Three of the four are what this bundle's rows need in order to resolve: the memo service injects `telemetry` and `githubIssue`, and the patch inserts a `ui-memo` row naming `@zhangj1164/dsh-client-ui-memo`. Installing `@zhangj1164/dsh-memo` by itself leaves all of them unresolvable and the loader fails the boot — `Cannot find package '@zhangj1164/dsh-github-issue' imported from …`, then the same for `@zhangj1164/dsh-client-ui-memo`. Naming `@zhangj1164/dsh-telemetry`, `@zhangj1164/dsh-github-issue` and `@zhangj1164/dsh-client-ui-memo` alongside `@zhangj1164/dsh-memo` is what makes the suite load.
+
+This package formerly inserted the `github-issue` row itself. That made the suite installable with one command, but it also gave the same entry id two owners, so naming every package — the obvious way to install the suite — was a boot failure (`duplicate loader entry id: github-issue`) rather than a merge. One owner per id is the property that makes subsets composable, and `pnpm run verify-bundle-entries` enforces it.
+
+### From this repository instead of the registry
+
+The same four packages install straight from the monorepo when no registry release is available or wanted. pnpm selects a package inside a repository with a `path:` parameter that belongs to the committish, after the `#`:
+
+```sh
+dsh plugin --profile web add \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
+```
+
+A git install fetches source, so this package's `prepare` script builds `lib/` during the install. pnpm ≥10 refuses to run it until the profile authorizes the build: the first `add` fails with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`, and the repository README records both the commit-independent `allowBuilds` keys that fix it and the pinning caveat that comes with authorizing a build.
 
 ## Requirement mapping
 
@@ -41,14 +141,15 @@ This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The pa
 - **Req 2** — `getOrCreateCurrentWeek` auto-creates or loads the current ISO week (Monday start, Sunday end) as the storage point.
 - **Req 3** — `updateEntry` and `deleteEntry` enforce `past-week-requires-force`: editing a non-current week requires `force: true` to acknowledge that AI analysis results may change.
 - **Req 4** — `analyze` and `exportReport` accept a period (`week` / `month` / `quarter` / `year`) and collect entries across matching weeks.
-- **Req 5** — `readExternalPath` reads a local file path through the `fs` service; the client UI must show a consent dialog before calling it (privilege escalation boundary).
+- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It writes no entry, and no consent dialog exists: the panel has no call site, and the host performs no confirmation (the `fs` sandbox constrains mutations, and a direct `ctx.fs` read records no observation). The boundary is the `fs` service's own policy plus the host's Remote surface.
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
-- **Req 12** — Depends on `dsh-telemetry` and `dsh-github-issue` as separate generic plugins.
+- **Req 12** — Depends on `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` as separate generic plugins, each shipping its own bundle. All three packages must be installed together, because the injected services come from those bundles and a profile does not auto-install peers.
 
 ## Known Limitations
 
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
-- **Analysis depends on LLM** — `analyze` and `exportReport` fail with `llm-failure` when the model produces no output.
+- **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
 - **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.
+- **`readExternalPath` has no UI** — the host method returns a file's text and writes no entry; the panel never calls it, so nothing in the board imports a file today.

@@ -9,15 +9,23 @@ packages/
   telemetry/dsh-telemetry/        # Generic local telemetry tracker (storage-domain KV)
   github-issue/dsh-github-issue/   # GitHub issue generation and optimization (LLM)
   memo/dsh-memo/                  # Week-keyed memo service (depends on the other two)
-  client/ui-memo/                 # Browser-side UI panel (depends on dsh-memo + dsh-github-issue)
+  client/ui-memo/                 # Browser-side UI panel (depends on @zhangj1164/dsh-memo + @zhangj1164/dsh-github-issue)
 scripts/
+  tsdown.client.ts                # Shared tsdown preset for a package's browser client half
   verify-translation-pairing.ts   # Bilingual README consistency gate
+  verify-package-exports.ts       # Declared exports/types targets must exist
+  verify-client-bundle-id.ts      # Built client bundles register the package name
+  verify-bundle-entries.ts        # Bundle patch entry ids must not collide
+  verify-publish-guard.ts         # Every package with a workspace: range wires the interlock
+  publish-guard.mjs               # prepublishOnly: refuse a non-pnpm publish of workspace: ranges
 .github/
   issue-management/               # Issue policy engine and Project board lifecycle
   ISSUE_TEMPLATE/                 # Five native Issue types with <details> folding
   workflows/                      # CI, issue policy, issue lifecycle, translation pairing
 .agents/
   skills/dsh-plugin-contribute/   # DSH plugin publication and iteration skill
+docs/
+  plans/                          # Validated designs, dated, one per change batch
 ```
 
 ## Commands
@@ -25,16 +33,62 @@ scripts/
 ```sh
 pnpm install                          # install all workspace dependencies
 pnpm run build                        # build all packages (tsdown)
-pnpm run test                         # run all vitest tests from root (64 tests across 4 packages)
-pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (7 gates)
+pnpm run test                         # run all vitest tests from root (package suites + gate suites)
+pnpm run gates                        # full gate suite: build + test + hygiene + doc-sync + policy (11 gates)
 pnpm run gates:hygiene                # export-JSDoc gate only
 pnpm run gates:doc-sync               # translation pairing + markdown links + markdown wrap
 pnpm run verify-export-jsdoc          # enforce JSDoc on every exported name
-pnpm run verify-translation-pairing   # check bilingual README consistency (6 pairs)
+pnpm run verify-package-exports       # every declared exports/types target exists in the build output
+pnpm run verify-client-bundle-id      # every built client bundle registers its package name and only module-table requires
+pnpm run verify-bundle-entries        # no two workspace bundles insert the same composition entry id
+pnpm run verify-publish-guard         # every package carrying a workspace: range runs the publish interlock
+pnpm run verify-translation-pairing   # check bilingual README consistency (5 pairs)
 pnpm run verify-md-links              # check relative Markdown links resolve
 pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
-node --test .github/issue-management/policy.test.mjs  # run issue policy tests (23 tests)
+node --test .github/issue-management/policy.test.mjs  # run issue policy tests (30 tests)
 ```
+
+## Agent skills
+
+The Matt Pocock engineering skills read this repo's configuration from the files below. Those files are the source of truth; this section is only the pointer.
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in `zhangj1164/dsh-mega-plugins`, driven by the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles keep their own names — `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` — and `/wayfinder` adds `wayfinder:map` plus `wayfinder:<research|prototype|grilling|task>`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and one `docs/adr/` at the repo root, alongside this repo's own `docs/plans/`. See `docs/agents/domain.md`.
+
+## Mandatory workflow
+
+`main` is always releasable. Nothing reaches it except through a reviewed pull request, and every pull request starts from a branch cut off the latest `main`. This rule is not advisory: the agent or human doing the work follows it, and the reviewer enforces it.
+
+1. **Sync `main` first.** `git fetch origin && git switch main && git pull --ff-only origin main`. Never branch from a stale `main`, and never develop directly on `main`.
+2. **Cut a branch.** `<kind>/<short-slug>`, using the same kind as the change's label — for example `fix/memo-llm-failure-passthrough`, `feat/ui-memo-settings-section`, `docs/agents-workflow`. One branch carries one coherent change.
+3. **Do the work on the branch,** including tests and documentation. Commit in small, reviewable steps.
+4. **Run the whole gate suite locally** with `pnpm run gates` and get it green before opening the pull request. A red gate is never pushed for CI to discover.
+5. **For UI changes, verify in the running DSH Web** at `http://127.0.0.1:3080` after rebuilding the affected bundles. A passing unit test is necessary but not sufficient for a user-visible change.
+6. **Open a pull request** that references at least one issue, carries exactly one `kind/*` label and at least one `area/*` label, and states what was verified and how. The pull request template lists the required sections.
+7. **Merge only after the gates pass on the pull request.** Squash-merge into `main`, then delete the branch.
+
+### Every change starts from an issue
+
+Work that begins from a GitHub issue follows the same path as any other change: read the issue, then create the branch from `main`, implement, and open a pull request that closes the issue. An issue is a work item, not a licence to commit to `main` — the same branch → pull request → gates → merge sequence applies, with no exception for maintainers, for "small" changes, or for automation.
+
+### Do not let a gate guard its own fix
+
+The issue-policy workflow checks out `policy.mjs` from the default branch, so a fix to the policy itself cannot be validated on the pull request that introduces it. Land policy fixes on `main` first (through their own pull request), then re-run the blocked pull request. Do not weaken a gate to make it pass.
+
+### Publish with `pnpm publish`, never `npm publish`
+
+`npm publish` copies the `workspace:` protocol into the published manifest verbatim: `@zhangj1164/dsh-memo@0.1.0` shipped `"@zhangj1164/dsh-telemetry": "workspace:^"` as a peer range, `npm install` refused the package with `EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"`, and pnpm only warned — which is how a manifest no npm user could install still reached the catalog. `pnpm publish` substitutes the referenced package's real version for every `workspace:` range, in `dependencies` and `peerDependencies` alike. Publish the packages that actually changed from an up-to-date `main`, then verify the registry copy: `npm view <pkg>@<version> peerDependencies` must show no `workspace:` range, and a clean-room `npm install <pkg>@<version>` must succeed.
+
+That rule was prose, and prose did not stop the publish. Two mechanisms back it now. Every package declaring a `workspace:` range runs `scripts/publish-guard.mjs` as `prepublishOnly`, which aborts any publish whose packer is not pnpm, before packing, with the reason and the correct command; a git install is unaffected because neither npm nor pnpm runs `prepublishOnly` on an install. The guard fails closed on a packer it cannot identify. `pnpm run verify-publish-guard` then fails when a workspace package carries a `workspace:` range without that wiring, so a package that adopts one later cannot quietly ship without the interlock.
 
 ## Design principles
 
@@ -44,11 +98,13 @@ node --test .github/issue-management/policy.test.mjs  # run issue policy tests (
 ## Conventions
 
 - **ESM everywhere** (`"type": "module"`). Each package uses `tsdown` with `fixedExtension: false` to emit `.js`.
+- **Browser client halves**: a package declaring `dsh.client` builds its browser half through `scripts/tsdown.client.ts` (`clientBundle(id, libEntry)`), the port of the DSH workspace preset. The `id` argument must be the package's manifest `name` — the host composes the boot graph from that name and the browser refuses a bundle registering anything else — and the preset fails the build when the two disagree. The preset's `PLATFORM_MODULES` mirrors DSH's shell seed table, so it is the one place to update when the shell gains or drops a platform module. `pnpm run verify-client-bundle-id` then re-checks the emitted `lib/client.js`: its registration id must be the package name, every `require` must be a platform module or a row declared in `dsh.client.inject`/`dsh.client.external`, and every declared row must resolve to a package that itself declares `dsh.client`. Styles ship as TypeScript constants; the preset carries no CSS pipeline.
 - **Shared devDependencies at root**: tooling duplicated across packages (`vitest`, `tsdown`, `typescript`, `@types/node`) is declared once in the root `package.json` `devDependencies`, not repeated in each package. Each package declares only its own package-specific devDependencies and peer duplicates.
 - **Tests required**: every package under `packages/` must have a `tests/` directory with at least one `.spec.ts` file, and all tests must pass via `pnpm run test` (which runs `vitest run` from the repo root). The root `vitest.config.ts` discovers all packages via `packages/*/*/tests/**/*.spec.{ts,tsx}` — no per-package `vitest.config.ts` is needed, mirroring the official DSH pattern. The `gates` aggregate includes the `test` gate and fails the build on any broken test. New packages must add tests before their first release.
-- **Workspace protocol**: `dsh-memo` declares `workspace:^` / `workspace:*` for its `dsh-telemetry` and `dsh-github-issue` peer and dev dependencies.
-- **Bundle layers**: `dsh-telemetry` and `dsh-memo` declare `dsh.bundle` with `cordis.patch.yml`; `dsh-github-issue` is a plain dependency activated by the memo bundle patch.
+- **Workspace protocol**: `@zhangj1164/dsh-memo` declares `workspace:^` / `workspace:*` for its `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` peer and dev dependencies. Those ranges resolve only inside the workspace: `pnpm publish` rewrites them to the real versions, `npm publish` publishes them as written (see Publish with `pnpm publish`, never `npm publish`).
+- **Bundle layers**: `@zhangj1164/dsh-telemetry`, `@zhangj1164/dsh-github-issue` and `@zhangj1164/dsh-memo` each declare `dsh.bundle` with their own `cordis.patch.yml`, so any of them can be installed on its own. Every composition entry id has exactly one owning bundle: `telemetry` belongs to `@zhangj1164/dsh-telemetry`, `github-issue` to `@zhangj1164/dsh-github-issue`, and `memo` + `ui-memo` to `@zhangj1164/dsh-memo`. DSH applies bundle layers in `dsh.profile.bundles` order with no transitive resolution, and a later layer cannot remove an earlier layer's insert, so two bundles inserting one entry id is a boot failure rather than a merge. `${DSH_HOME}/profiles/*/pnpm-workspace.yaml` sets `autoInstallPeers: false`, so a profile installs only the packages named on the command line — the memo service injects `telemetry` and `githubIssue` and its patch inserts the `ui-memo` row, so the suite is installed by naming all four packages: `dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo`. `@zhangj1164/dsh-client-ui-memo` declares `dsh.client` but no `dsh.bundle`; `@zhangj1164/dsh-memo` inserts its `ui-memo` row, so `dsh plugin add` reports it as a plain dependency and that warning is expected. `pnpm run verify-bundle-entries` fails on any workspace bundle that inserts an entry id another workspace bundle already inserts; a patch that shares an id but records the exclusion with the marker `not both` is reported instead of failed, so a deliberate overlap stays expressible.
+- **Installing from git**: a package inside this monorepo is selected with a `path:` parameter belonging to the committish — `github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo`, and `github:zhangj1164/dsh-mega-plugins#<sha>&path:packages/memo/dsh-memo` to pin a commit. `path:` after the `#` is the entire syntax, because pnpm parses the committish into `{ref, path}`; an `&path:` written against the repository URL is taken as part of the repository name and the fetch fails with a missing-repository error rather than a path error. A git install fetches source, not build output, so `prepare` builds `lib/`, and pnpm ≥10 blocks that build until the profile's `pnpm-workspace.yaml` authorizes it. pnpm prints a commit-pinned `allowBuilds` key; the durable form names the repository instead — `'@zhangj1164/dsh-memo@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true` — and keeps matching after a push. A git-installed manifest also keeps `workspace:^` in its sibling peers, since nothing rewrites a manifest read straight from a checkout: pnpm prints a peer warning and the boot is unaffected, because a profile names every package the boot needs and sets `autoInstallPeers: false`.
 - **Standard TypeScript decorators**: `@Remote` decorators on `TypertRemoteService` subclasses require the shared `standardDecorators()` Vite plugin in `scripts/vitest-decorators.ts`, applied globally by the root `vitest.config.ts`. The plugin is a no-op for files without decorator syntax, so it applies safely to every package without per-package config.
 - **Bilingual READMEs**: every README is a complete pair (`README.md` + `README.zh.md` + `README.i18n.yaml`). After editing either side, bring the other along and re-record with `pnpm run verify-translation-pairing --write --all`.
-- **Issue management**: Issues use five native types (Bug/Feature/Idea/Research/Task) with `<details>` folding and ≤50 visible text units. PRs must reference at least one Issue, carry exactly one `kind/*` label, and at least one `area/*` label. The policy engine in `.github/issue-management/policy.mjs` enforces these rules mechanically.
+- **Issue management**: Issues carry exactly one category label (`bug` or `enhancement`), keep their body's visible text under 50 units outside a collapsed `<details>` block, and must not carry `kind/*` labels — those are PR-only. PRs must reference at least one Issue, carry exactly one `kind/*` label, and at least one `area/*` label. The policy engine in `.github/issue-management/policy.mjs` enforces these rules mechanically: `policy.mjs issue` runs on `issues` events from the event payload alone, `policy.mjs pr` runs on PR events. A closed Issue is out of scope: it was filed under whatever rules existed then, and rewriting its labels or body to satisfy today's rule would edit history instead of enforcing the tracker's policy on work that is still moving. Two checks are deliberately **not** enforced — the native Issue Type, because types are an organization-only GitHub feature and a user-owned repository reports none for any Issue, and the Project Status, because the Project needs an App token this gate does not hold. Both stay deferred until that infrastructure exists rather than failing every Issue forever.
 - **This project is based on the DeepSeek Harness framework** and references official implementations. The `policy.mjs`, issue templates, and PR template are adapted from the [deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) repository under BSD-3-Clause.

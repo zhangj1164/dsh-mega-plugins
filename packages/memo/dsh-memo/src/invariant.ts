@@ -1,10 +1,10 @@
-/** Package-owned invariant companion. @module dsh-memo/invariant */
+/** Package-owned invariant companion. @module @zhangj1164/dsh-memo/invariant */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = 'dsh-memo'
+const PACKAGE_NAME = '@zhangj1164/dsh-memo'
 
 /** Cordis companion plugin name. */
 export const name = 'memo-invariant'

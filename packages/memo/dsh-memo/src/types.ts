@@ -6,7 +6,7 @@
  * current week is always editable; past weeks require an explicit `force`
  * flag after acknowledging that AI analysis results may change.
  *
- * @module dsh-memo/types
+ * @module @zhangj1164/dsh-memo/types
  */
 
 /** The kind of content a memo entry holds. */
@@ -70,10 +70,10 @@ export interface MemoWeek {
 
 /** Request to get or create the current week. */
 export interface MemoGetCurrentWeekRequest {
-  /** Provider route for AI operations (stored for later analysis calls). */
-  readonly provider: string
-  /** Model id for AI operations (stored for later analysis calls). */
-  readonly model: string
+  /** Provider route override, stored for later analysis calls; may be omitted. */
+  readonly provider?: string
+  /** Model id override, stored for later analysis calls; may be omitted. */
+  readonly model?: string
 }
 
 /** Result of getting or creating the current week. */
@@ -153,10 +153,10 @@ export interface MemoAnalyzeRequest {
   readonly periodLabel: string
   /** Analysis type: 梳理 (organize), 总结 (summarize), or 分析 (analyze). */
   readonly analysisType: MemoAnalysisType
-  /** Provider route for the model call. */
-  readonly provider: string
-  /** Model id for the model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of analysis. */
@@ -168,10 +168,10 @@ export type MemoAnalyzeResult =
 export interface MemoExportReportRequest {
   readonly period: MemoAnalysisPeriod
   readonly periodLabel: string
-  /** Provider route for the model call. */
-  readonly provider: string
-  /** Model id for the model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of exporting a report. */
@@ -179,14 +179,17 @@ export type MemoExportReportResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
-/** Request to read an external file path (requires privilege escalation). */
+/**
+ * Request to read an external file path and return its text. Nothing is
+ * written: the caller decides what, if anything, to add as an entry.
+ */
 export interface MemoReadExternalPathRequest {
   /** The external file path to read. */
   readonly path: string
-  /** Provider route (unused for the read itself, stored for analysis context). */
-  readonly provider: string
-  /** Model id (unused for the read itself, stored for analysis context). */
-  readonly model: string
+  /** Provider route override for later analysis context; may be omitted. */
+  readonly provider?: string
+  /** Model id override for later analysis context; may be omitted. */
+  readonly model?: string
 }
 
 /** Result of reading an external path. */
@@ -194,22 +197,55 @@ export type MemoReadExternalPathResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
 
-/** Request to analyze telemetry logs for this plugin. */
+/** Request to analyze telemetry logs for this deployment's plugins. */
 export interface MemoAnalyzeLogsRequest {
-  /** The plugin id whose logs to analyze (defaults to `'memo'`). */
-  readonly pluginId?: string
+  /**
+   * The plugin ids whose logs to analyze, in read order. Defaults to the
+   * service `Config`'s `logAnalysisPlugins`, which names the suite.
+   */
+  readonly pluginIds?: readonly string[]
   /** GitHub repository URL for the prefill (defaults to the service config). */
   readonly repoUrl?: string
-  /** Provider route for the report generation model call. */
-  readonly provider: string
-  /** Model id for the report generation model call. */
-  readonly model: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
 }
 
 /** Result of log analysis. */
 export type MemoAnalyzeLogsResult =
   | { readonly ok: true; readonly value: MemoLogAnalysisResult }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** One failure group in the log-analysis summary. */
+export interface MemoLogAnalysisGroup {
+  /** The feature-code anchor shared by every event in this group. */
+  readonly featureCodeRef: string
+  /** Number of failures in this group. */
+  readonly count: number
+  /** The distinct error codes observed in this group. */
+  readonly errorCodes: readonly string[]
+  /** Timestamp (epoch ms) of the most recent failure in this group. */
+  readonly lastFailureAt: number
+  /** Attempts of the same action recorded after the most recent failure. */
+  readonly attemptsAfterLastFailure: number
+  /** Route the failures ran on, absent when those events recorded none. */
+  readonly route?: { readonly provider: string; readonly model: string; readonly status?: number }
+}
+
+/** The telemetry analysis summary that produced the report. */
+export interface MemoLogAnalysisSummary {
+  /** The plugin ids this analysis covered, in the order they were read. */
+  readonly pluginIds: readonly string[]
+  /** Total events recorded for the analyzed plugins. */
+  readonly totalEvents: number
+  /** Total failure events recorded for the analyzed plugins. */
+  readonly totalFailures: number
+  /** Time range the analysis read, absent when none of the plugins has events. */
+  readonly window?: { readonly firstEventAt: number; readonly lastEventAt: number }
+  /** Failure events grouped by feature-code anchor, most failures first. */
+  readonly failureGroups: readonly MemoLogAnalysisGroup[]
+}
 
 /** The log analysis result: the issue report and the prefill URL. */
 export interface MemoLogAnalysisResult {
@@ -218,19 +254,43 @@ export interface MemoLogAnalysisResult {
   /** The pre-filled GitHub issue-creation URL. */
   readonly issueUrl: string
   /** The telemetry analysis summary. */
-  readonly analysis: { readonly totalEvents: number; readonly totalFailures: number; readonly failureGroups: readonly unknown[] }
+  readonly analysis: MemoLogAnalysisSummary
 }
 
 /** Business failure union for memo operations. */
 export type MemoMemoFailure =
   | { readonly code: 'not-initialized'; readonly message: string }
   | { readonly code: 'week-not-found'; readonly message: string; readonly weekId: string }
+  | { readonly code: 'invalid-week-id'; readonly message: string; readonly weekId: string }
   | { readonly code: 'entry-not-found'; readonly message: string; readonly entryId: string }
   | { readonly code: 'past-week-requires-force'; readonly message: string; readonly weekId: string }
+  | { readonly code: 'invalid-quarter-label'; readonly message: string; readonly label: string }
+  | { readonly code: 'quarter-archived'; readonly message: string; readonly weekId: string }
   | { readonly code: 'no-entries'; readonly message: string }
-  | { readonly code: 'llm-failure'; readonly message: string }
-  | { readonly code: 'fs-unavailable'; readonly message: string }
-  | { readonly code: 'approval-denied'; readonly message: string }
+  | { readonly code: 'no-plugins-configured'; readonly message: string }
+  | {
+    readonly code: 'llm-failure'
+    /** DSH provider-neutral machine-routing code (`NO_ADAPTER`, `AUTH`, `EMPTY_RESPONSE`, …). */
+    readonly failureCode?: string
+    readonly message: string
+    /** The provider route the failed call was sent to. */
+    readonly provider?: string
+    /** The model id the failed call was sent to. */
+    readonly model?: string
+    /** HTTP status returned by the provider, when DSH supplied one. */
+    readonly status?: number
+  }
+  | { readonly code: 'fs-unavailable'; readonly message: string; readonly path: string }
+  /** The filesystem refused the read: a permission or sandbox denial. */
+  | { readonly code: 'approval-denied'; readonly message: string; readonly path: string }
+  /** No such file, as reported by the filesystem rather than guessed here. */
+  | { readonly code: 'path-not-found'; readonly message: string; readonly path: string }
+  /** The target exists but is not a regular text file this deployment can read (a directory, a special file, or binary content). */
+  | { readonly code: 'path-not-text'; readonly message: string; readonly path: string }
+  /** The backend refused the read because the file exceeds its size bound. */
+  | { readonly code: 'path-too-large'; readonly message: string; readonly path: string }
+  /** Any other filesystem failure, including one that carried no DSH code. */
+  | { readonly code: 'fs-error'; readonly message: string; readonly path: string }
   | { readonly code: 'github-issue-failure'; readonly message: string }
 
 /** ── Long-term memory (persistent JSON ledger in $DSH_HOME/memo/) ── */
@@ -271,3 +331,161 @@ export interface MemoListMemoryRequest {
 export type MemoListMemoryResult =
   | { readonly ok: true; readonly value: readonly MemoMemoryEntry[] }
   | { readonly ok: false; readonly error: { readonly code: 'ledger-error'; readonly message: string } }
+
+/** One navigable period in the memo timeline. */
+export interface MemoPeriodEntry {
+  /** Stable identity of the period: the week id for week periods, the label for the rest. */
+  readonly id: string
+  /** The canonical period label (`2026-W36`, `2026-09`, `2026-Q3`, `2026`). */
+  readonly label: string
+  /** The dimension this entry belongs to. */
+  readonly period: MemoAnalysisPeriod
+  /** Epoch milliseconds of the period's first day, local midnight. */
+  readonly start: number
+  /** Epoch milliseconds of the period's last day, end of day. */
+  readonly end: number
+  /** Whether the period is still current at the time of the request. */
+  readonly current: boolean
+  /** How many stored weeks fall inside this period. */
+  readonly weekCount: number
+  /** The ISO week ids inside this period, ascending. */
+  readonly weekIds: readonly string[]
+}
+
+/** Request to list the memo timeline in one dimension. */
+export interface MemoListPeriodsRequest {
+  /** The dimension to list. */
+  readonly period: MemoAnalysisPeriod
+  /** How many periods to return, counting back from the current one. */
+  readonly limit?: number
+}
+
+/** Result of listing the memo timeline. */
+export type MemoListPeriodsResult =
+  | { readonly ok: true; readonly value: readonly MemoPeriodEntry[] }
+  | { readonly ok: false; readonly error: { readonly code: 'not-initialized'; readonly message: string } }
+
+/** One archived quarter, with the week ids the host resolved for it. */
+export interface MemoArchivedQuarter {
+  /** The canonical quarter label (`2026-Q3`). */
+  readonly label: string
+  /** Epoch milliseconds when the quarter was archived. */
+  readonly archivedAt: number
+  /**
+   * The ISO week ids inside the quarter, ascending.
+   *
+   * Resolved by the host rather than by the caller: a client only has to build
+   * a `Set` from this to know which cards are read-only, so no caller has to
+   * re-derive which weeks a quarter owns across a year boundary.
+   */
+  readonly weekIds: readonly string[]
+}
+
+/** Request naming one quarter by its label. */
+export interface MemoQuarterLabelRequest {
+  /** The quarter label (`2026-Q3`). */
+  readonly label: string
+}
+
+/**
+ * Request for `listArchivedQuarters`.
+ *
+ * It carries no input of its own, and it exists only because the Remote
+ * protocol binds arguments **by name**: the client always sends
+ * `{ args: { request } }`, so a method that needs no input must still declare
+ * the `request` parameter. An earlier revision declared none, and the call was
+ * rejected before the method body ran — the archive was written while the
+ * client's read of it silently returned nothing, so archiving looked like it did
+ * absolutely nothing.
+ */
+export interface MemoListArchivedQuartersRequest {}
+
+/** Result of archiving a quarter. */
+export type MemoArchiveQuarterResult =
+  | { readonly ok: true; readonly value: MemoArchivedQuarter }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** Result of unarchiving a quarter. */
+export type MemoUnarchiveQuarterResult =
+  | { readonly ok: true; readonly value: { readonly label: string; readonly archived: boolean } }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** Result of listing archived quarters. */
+export type MemoListArchivedQuartersResult =
+  | { readonly ok: true; readonly value: readonly MemoArchivedQuarter[] }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** One model a provider route advertises. */
+export interface MemoModelInfo {
+  /** Model id to send as the call's model. */
+  readonly id: string
+  /** Human-readable name for selectors; a caller falls back to `id`. */
+  readonly name: string
+}
+
+/**
+ * One provider route a caller may switch to, with everything it advertises.
+ *
+ * Only providers the deployment actually registered appear here. Dormant routes
+ * an adapter merely declared are deliberately absent: they cannot carry a call,
+ * so offering one would offer a selection that is guaranteed to fail.
+ */
+export interface MemoModelProvider {
+  /** Provider route key to send as the call's provider. */
+  readonly id: string
+  /** Human-readable provider name for selectors; a caller falls back to `id`. */
+  readonly name: string
+  /**
+   * Models this provider advertises, in the adapter's own order.
+   *
+   * DSH calls this catalog advisory: membership never validates a request, so a
+   * caller must not read "not listed" as "rejected".
+   */
+  readonly models: readonly MemoModelInfo[]
+  /**
+   * Why this provider's catalog is empty, when it is empty for a reason.
+   *
+   * Per provider on purpose: one adapter that throws must not hide the models
+   * every other provider is perfectly willing to serve.
+   */
+  readonly error?: string
+}
+
+/**
+ * Request for `listModels`.
+ *
+ * It carries no input, and it declares `request` for the same reason every
+ * other method does: the Remote protocol binds arguments by name.
+ */
+export interface MemoListModelsRequest {}
+
+/**
+ * The route AI analysis would use right now, plus everything it can be switched
+ * to.
+ */
+export interface MemoListModelsValue {
+  /** Provider route the next AI call would use, or `''` when unresolved. */
+  readonly provider: string
+  /** Model id the next AI call would use, or `''` when unresolved. */
+  readonly model: string
+  /** Every registered provider route, in registration order. */
+  readonly providers: readonly MemoModelProvider[]
+  /**
+   * Why no provider could be listed at all.
+   *
+   * Distinct from a provider that advertises nothing: this says the registry
+   * itself could not be read, which is the deployment's problem rather than the
+   * caller's choice.
+   */
+  readonly catalogError?: string
+}
+
+/**
+ * Result of listing the routes AI calls can be switched to.
+ *
+ * There is deliberately no failure variant. Every degradation — no provider
+ * configured, no `llm` service mounted, a catalog query that throws — is
+ * reported inside a successful value, because a deployment without a model
+ * route must still be able to open the memo board.
+ */
+export type MemoListModelsResult = { readonly ok: true; readonly value: MemoListModelsValue }

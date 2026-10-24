@@ -2,7 +2,7 @@
 name: Bug
 about: 记录现有预期行为的失效
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 type: Bug
 ---
