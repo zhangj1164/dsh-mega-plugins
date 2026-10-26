@@ -288,7 +288,7 @@ export function retainIssueReferences(references, issues) {
  * A closed Issue returns no errors: it was filed under whatever rules existed then,
  * and both callers — the event gate and the lifecycle audit — would otherwise turn a
  * historical record red for rules it never had a chance to meet.
- * @param {{title: string, body: string, assignees: string[], labels: string[], priority: string|null, status: string|null, state: string, stateReason: string|null}} issue Issue snapshot.
+ * @param {{title: string, body: string, assignees: string[], labels: string[], priority: string|null, status: string|null, projectChecked?: boolean, state: string, stateReason: string|null}} issue Issue snapshot; `projectChecked` marks a snapshot whose Project was actually read.
  * @returns {string[]} Validation errors.
  */
 export function validateIssue(issue) {
@@ -320,12 +320,16 @@ export function validateIssue(issue) {
   // user-owned repository reports none for any Issue. Restore it when the
   // repository moves into an organization and the templates' `type` frontmatter
   // starts producing a value; until then the category label below carries the role.
-  // No Project Status requirement either: when a Status is reported it must be a
-  // legal one, but its absence means "the Project was not consulted", not "the
-  // Issue violates policy". Restore the requirement when the ops half of #104
-  // lands — the App token (`DSH_MEGA_PLUGINS_ISSUE_APP_CLIENT_ID` plus its private
-  // key) with `project` scope — and `runIssueCheck` reads the Project Status before
-  // calling this validator, so the absence of a Status becomes reportable again.
+  // A Status is required only when the caller actually read the Project: the
+  // payload-only gate consults no Project, so it reports `projectChecked: false`
+  // and an absent Status there means "not checked", not "violates policy".
+  // `issueSnapshot` marks every Project read, and `runIssueCheck` reads the
+  // Project whenever the project gate holds its `project`-scoped token, so under
+  // the enabled gate a missing item — or an item without a Status — is
+  // reportable again.
+  if (issue.projectChecked === true && status === null) {
+    errors.push('Issue 必须加入 Project，并具有合法的 Status')
+  }
   if (status !== null && !config.statuses.includes(status)) {
     errors.push(`Status 不在允许集合内：${status}`)
   }
@@ -436,12 +440,33 @@ function token() {
   return value
 }
 
+/**
+ * Token for Project (GraphQL) calls.
+ * The Projects board is owned by a user account, which neither a GitHub App
+ * token nor a fine-grained PAT can reach: only a classic PAT with the `project`
+ * scope grants it. That token is deliberately narrow, so it is used for nothing
+ * else — every repository call keeps the workflow's own `github.token`.
+ * @returns {string} A token that may read and write the Project board.
+ */
+function projectToken() {
+  const value = process.env.DSH_PROJECT_TOKEN
+  if (value) return value
+  // An enabled gate without its token is a misconfiguration, not a reason to
+  // fall back: the repository token cannot reach a user-owned Project, so the
+  // fallback would only turn a missing secret into a misleading permission error.
+  if (process.env.DSH_PROJECT_GATE === 'true') {
+    throw new Error('DSH_PROJECT_TOKEN 未设置：Project 校验已启用，但没有 project scope 的 token')
+  }
+  return token()
+}
+
 async function api(path, options = {}) {
+  const { token: override, ...init } = options
   const response = await fetch(`${process.env.GITHUB_API_URL ?? 'https://api.github.com'}${path}`, {
-    ...options,
+    ...init,
     headers: {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token()}`,
+      Authorization: `Bearer ${override ?? token()}`,
       'X-GitHub-Api-Version': API_VERSION,
       'User-Agent': 'dsh-mega-plugins-issue-policy',
       ...options.headers,
@@ -461,12 +486,20 @@ async function graphql(query, variables) {
     method: 'POST',
     body: JSON.stringify({ query, variables }),
     headers: { 'Content-Type': 'application/json' },
+    token: projectToken(),
   })
   if (result.errors?.length) throw new Error(result.errors.map((error) => error.message).join('; '))
   return result.data
 }
 
+/**
+ * Read one Issue snapshot, and its Project Status when the caller did not supply one.
+ * @param {number} number Issue number.
+ * @param {string|null|undefined} status Current Status; `undefined` reads the Project and marks the snapshot `projectChecked`, while an explicit `null` reports "not consulted".
+ * @returns {Promise<object|null>} The snapshot, or null for a missing Issue or a pull request.
+ */
 async function issueSnapshot(number, status = undefined) {
+  const consulted = status === undefined
   const issue = await api(`/repos/${config.organization}/${config.repository}/issues/${number}`, { allow404: true })
   if (!issue || issue.pull_request) return null
   // Issue field values are an organization-only endpoint. In a user-owned
@@ -485,7 +518,8 @@ async function issueSnapshot(number, status = undefined) {
     assignees: issue.assignees.map((assignee) => assignee.login),
     labels: issue.labels.map((label) => label.name),
     priority: field(config.priorityField)?.single_select_option?.name ?? null,
-    status: status === undefined ? await projectStatus(number) : status,
+    status: consulted ? await projectStatus(number) : status,
+    projectChecked: consulted,
     state: issue.state,
     stateReason: issue.state_reason ?? null,
   }
@@ -494,24 +528,21 @@ async function issueSnapshot(number, status = undefined) {
 async function projectContext(number, includeStatusActor = false) {
   const data = await graphql(
     `query(
-      $organization: String!
+      $owner: String!
       $repository: String!
       $number: Int!
       $project: Int!
       $includeStatusActor: Boolean!
     ) {
-      organization(login: $organization) {
-        projectV2(number: $project) {
-          id
-          title
-          fields(first: 50) {
-            nodes {
-              ... on ProjectV2SingleSelectField { id name options { id name } }
-            }
+      repository(owner: $owner, name: $repository) {
+        owner {
+          ... on User {
+            projectV2(number: $project) { ...ProjectFields }
+          }
+          ... on Organization {
+            projectV2(number: $project) { ...ProjectFields }
           }
         }
-      }
-      repository(owner: $organization, name: $repository) {
         issue(number: $number) {
           id
           timelineItems(last: 100, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT])
@@ -535,16 +566,30 @@ async function projectContext(number, includeStatusActor = false) {
           }
         }
       }
+    }
+
+    fragment ProjectFields on ProjectV2 {
+      id
+      title
+      fields(first: 50) {
+        nodes {
+          ... on ProjectV2SingleSelectField { id name options { id name } }
+        }
+      }
     }`,
     {
-      organization: config.organization,
+      owner: config.organization,
       repository: config.repository,
       number,
       project: config.projectNumber,
       includeStatusActor,
     },
   )
-  const project = data.organization?.projectV2
+  // The board belongs to whoever owns the repository, and that owner is a user
+  // here, not an organization: `organization(login:)` answers NOT_FOUND for it.
+  // Reading the project through `repository.owner` keeps the query correct
+  // either way, so the same code works if the repository ever moves.
+  const project = data.repository?.owner?.projectV2
   const issue = data.repository?.issue
   if (!project || project.title !== config.projectTitle) throw new Error('目标 Project 不存在或标题不匹配')
   if (!issue) throw new Error(`#${number} 不存在`)
@@ -715,8 +760,28 @@ async function runPullRequestCheck(event) {
   )
 }
 
+/**
+ * Whether the Project half of the gate is configured.
+ * The workflow sets this from a repository variable, because a secret cannot be
+ * referenced in a step condition; the same switch turns on the lifecycle job.
+ * @returns {boolean} True when the Project read and its Status requirement apply.
+ */
+function projectGateEnabled() {
+  return process.env.DSH_PROJECT_GATE === 'true'
+}
+
 async function runIssueCheck(event) {
-  reportPolicyErrors(validateIssueEvent(event))
+  // With the gate off there is no Project token, so the payload is all the gate
+  // can judge. With it on, the Project is read first and its Status enters the
+  // same validation, which is what makes a missing item reportable.
+  if (!projectGateEnabled()) {
+    reportPolicyErrors(validateIssueEvent(event))
+    process.stdout.write('Issue policy 通过（Project 校验未启用）。\n')
+    return
+  }
+  const issue = await issueSnapshot(event.issue.number)
+  if (!issue) throw new Error(`#${event.issue.number} 不是同仓库 Issue`)
+  reportPolicyErrors(validateIssue(issue))
   process.stdout.write('Issue policy 通过。\n')
 }
 
