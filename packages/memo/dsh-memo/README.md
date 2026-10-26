@@ -60,12 +60,13 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
 | `analyzeLogs(request)` | Reads telemetry failures for every configured plugin and generates one GitHub issue report over all of them via the github-issue service. Passes the analysis window — the union of the per-plugin windows — and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
+| `listMemory(request)` | Lists the long-term memory entries — the result every successful `analyze` appended to the ledger — newest first. Optional `period` filter and `limit` (default 50); an unreadable ledger returns `ledger-error`. |
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
 
-The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately not in it: the method still exists on the service and still returns a file's text, but it carries no `@Remote` registration, so `memo/readExternalPath` is not an endpoint the panel can address by name. Reading an arbitrary host path is a capability the browser face should not have until there is a confirmation point that also works outside a turn.
+The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
 
 ### What one log analysis covers
 
@@ -153,4 +154,4 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
 - **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
 - **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.
-- **`readExternalPath` is host-internal** — the method reads a file's text and writes no entry, and it is off the Remote surface, so the panel cannot call it and nothing in the board imports a file today.
+- **No file import in the panel** — `readExternalPath` is host-internal and has no call site, so nothing in the board imports a file today.

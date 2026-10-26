@@ -970,12 +970,12 @@ export class MemoService extends TypertRemoteService {
    * Read an external file path through the host `fs` service and return its
    * text.
    *
-   * Host-internal by design: no `@Remote` registration, so `memo/readExternalPath`
-   * is not an endpoint the panel can address by name. It keeps working as a
-   * service method for host-side callers, and it still adds no entry and asks for
-   * no confirmation — nobody has yet built the confirmation point that would make a
-   * browser-reachable version safe (`ctx.approval` closes over an open turn, and a
-   * panel click happens between turns).
+   * Deliberately not registered as a Remote endpoint. The capability is wanted;
+   * what it lacks is a confirmation point — `ctx.approval` closes over an open
+   * turn, and a panel click happens between turns — so until one exists nothing
+   * should be able to reach this over the wire. It keeps adding no entry and
+   * asking for no confirmation, and it stays on the service as the host-side
+   * implementation a later transport can build on.
    * @param request - the path to read.
    * @returns the file text, or a failure naming the reason it could not be read.
    */
