@@ -98,10 +98,12 @@ async function mountFs(h: TestHarness, answer: StubAnswer): Promise<StubFs> {
 describe('MemoService readExternalPath', () => {
   it('is absent from the Remote surface, so no request can address it', async () => {
     const h = await harness()
-    // The host builds the callable endpoint table from these markers alone, so a
-    // method missing here is not "restricted" — the endpoint does not exist, and a
-    // request addressed to it has nothing to resolve against. The positive control
-    // keeps the assertion honest: the table must still carry the exported methods.
+    // This package ships no strict Remote definitions, so the gateway resolves
+    // endpoints from these markers; a strict definition, were there one, would take
+    // precedence (see the api gateway's resolveDescriptor). A method missing here is
+    // therefore not "restricted" — the endpoint does not exist, and a request
+    // addressed to it has nothing to resolve against. The positive control keeps
+    // the assertion honest: the table must still carry the exported methods.
     const memo = h.ctx.memo
     const namespace = memo.typertRemote.namespace
     const endpoints = remoteMethods(memo).map(

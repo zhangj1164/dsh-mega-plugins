@@ -143,7 +143,7 @@ git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程�
 - **需求 2** — `getOrCreateCurrentWeek` 自动创建或加载当前 ISO 周（周一开始，周日结束）作为存储点。
 - **需求 3** — `updateEntry` 和 `deleteEntry` 强制 `past-week-requires-force`：编辑非本周的备忘需要 `force: true`，以确认 AI 分析结果可能变化。
 - **需求 4** — `analyze` 和 `exportReport` 接受周期参数（`week` / `month` / `quarter` / `year`），并收集匹配周中的条目。
-- **需求 5** — `readExternalPath` 通过 `fs` 服务读取本地文件路径并返回文本。它是宿主内部方法：没有 `@Remote` 注册，因此没有端点、没有调用点，也没有需要构建的同意对话框。宿主侧代码仍可调用它；要把它交给面板，得先有一条跨 turn 的确认通道。
+- **需求 5** — `readExternalPath` 通过 `fs` 服务读取本地文件路径并返回文本。它是宿主内部方法：没有 `@Remote` 注册，因此没有端点，仓库里也没有调用点，不需要构建同意对话框。方法留在服务上，作为后续传输层可以接的宿主侧实现；在它出现之前，没有任何东西能调用这个方法。
 - **需求 6** — `exportReport` 生成标准工作报告（Markdown），可直接审查并导出为 `.md`。
 - **需求 7** — 每个关键操作都调用 `ctx.telemetry.track()` / `ctx.telemetry.trackError()`，携带 `featureCodeRef` 锚点。
 - **需求 8** — `analyzeLogs` 通过 `telemetry` 服务读取遥测失败记录，通过 `githubIssue` 生成 GitHub issue 报告，并返回报告 + 预填 URL。

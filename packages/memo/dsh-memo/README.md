@@ -143,7 +143,7 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Req 2** — `getOrCreateCurrentWeek` auto-creates or loads the current ISO week (Monday start, Sunday end) as the storage point.
 - **Req 3** — `updateEntry` and `deleteEntry` enforce `past-week-requires-force`: editing a non-current week requires `force: true` to acknowledge that AI analysis results may change.
 - **Req 4** — `analyze` and `exportReport` accept a period (`week` / `month` / `quarter` / `year`) and collect entries across matching weeks.
-- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It is host-internal: no `@Remote` registration, hence no endpoint, no call site, and no consent dialog to build. Host-side code can still call it; handing it to the panel waits for a confirmation point that spans turns.
+- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It is host-internal: no `@Remote` registration, hence no endpoint, no call site anywhere in the repository, and no consent dialog to build. The method stays on the service as the host-side implementation a later transport can build on; until one exists, nothing can invoke it.
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
