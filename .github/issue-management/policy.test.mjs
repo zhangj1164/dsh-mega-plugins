@@ -24,7 +24,8 @@ const legalIssue = {
   assignees: [],
   labels: ['bug'],
   // Native Issue Types are organization-only and a user-owned repository reports
-  // none, so neither `type` nor `status` is required by the issue validator.
+  // none, so `type` is never required; a Status is required only once the gate
+  // actually read the Project, which none of these fixtures claim.
   type: null,
   priority: null,
   status: 'In review',
@@ -178,17 +179,35 @@ test('requires exactly one category label on an Issue', () => {
   }
 })
 
-test('does not require a native Type or a Project Status', () => {
+test('does not require a native Type or a Status it never read', () => {
   // Native Issue Types are organization-only, so a user-owned repository reports
-  // none for any Issue; the Project board needs the App token this gate does not
-  // hold. Both checks are deferred until those exist rather than reporting a
-  // failure no issue can ever clear.
+  // none for any Issue. A Project Status is deferred only while the gate holds no
+  // project-scoped token: `projectChecked` is what says the board was read.
   assert.deepEqual(validateIssue({ ...legalIssue, type: null, status: null }), [])
   assert.deepEqual(validateIssue({ ...legalIssue, type: 'Idea', status: null }), [])
   // An omitted field must read the same as an explicit null, not as an illegal
   // Status value.
   const { status: _omitted, ...withoutStatus } = legalIssue
   assert.deepEqual(validateIssue(withoutStatus), [])
+})
+
+test('requires a Project item and a Status once the Project was read', () => {
+  assert.ok(
+    validateIssue({ ...legalIssue, status: null, projectChecked: true }).includes(
+      'Issue 必须加入 Project，并具有合法的 Status',
+    ),
+  )
+  // The payload-only gate reads no Project, so its absence keeps meaning
+  // "not checked" rather than "violates policy".
+  assert.deepEqual(validateIssue({ ...legalIssue, status: null, projectChecked: false }), [])
+  assert.deepEqual(validateIssue({ ...legalIssue, status: 'Inbox', projectChecked: true }), [])
+  // A Project item whose Status is not a configured option is still rejected by
+  // the pre-existing allow-list check.
+  assert.ok(
+    validateIssue({ ...legalIssue, status: 'Shipped', projectChecked: true }).includes(
+      'Status 不在允许集合内：Shipped',
+    ),
+  )
 })
 
 test('still rejects an unknown Status when one is reported', () => {
