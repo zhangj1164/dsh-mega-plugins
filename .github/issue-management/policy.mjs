@@ -792,7 +792,13 @@ async function runIssueCheck(event) {
     process.stdout.write('Issue policy 通过（Project 校验未启用）。\n')
     return
   }
-  const issue = await issueSnapshot(event.issue.number)
+  // The board item cannot exist yet when an Issue is opened: the lifecycle job
+  // creates it, and both jobs start from the same event without ordering, so
+  // demanding membership there would fail every new Issue on a race it cannot
+  // win. The opened event therefore judges the payload alone, and the first
+  // later event — a label, an edit, a close — is the one that reads the board
+  // and holds the Issue to its Status.
+  const issue = await issueSnapshot(event.issue.number, event.action === 'opened' ? null : undefined)
   if (!issue) throw new Error(`#${event.issue.number} 不是同仓库 Issue`)
   reportPolicyErrors(validateIssue(issue))
   process.stdout.write('Issue policy 通过。\n')
