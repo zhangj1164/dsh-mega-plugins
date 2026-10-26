@@ -774,6 +774,26 @@ async function runPullRequestCheck(event) {
 }
 
 /**
+ * Read an Issue snapshot, giving the lifecycle job a bounded window to board it.
+ * The lifecycle creates the Project item, and both workflows start from the same
+ * Issue event without ordering, so a label added in the same second as the Issue
+ * can be judged before the item exists. Retrying keeps the rule strict — it still
+ * fails once the window closes — while not failing on seconds of legitimate lag.
+ * The bounds are parameters so tests drive them without waiting.
+ * @param {() => Promise<{status: string|null}|null>} read Reads one snapshot.
+ * @param {{attempts?: number, delayMs?: number}} [limits] Retry count and delay between reads.
+ * @returns {Promise<{status: string|null}|null>} The first snapshot carrying a Status, or the last one read.
+ */
+export async function awaitProjectStatus(read, { attempts = 5, delayMs = 4000 } = {}) {
+  let snapshot = await read()
+  for (let attempt = 1; attempt < attempts && snapshot?.status === null; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+    snapshot = await read()
+  }
+  return snapshot
+}
+
+/**
  * Whether the Project half of the gate is configured.
  * The workflow sets this from a repository variable, because a secret cannot be
  * referenced in a step condition; the same switch turns on the lifecycle job.
@@ -797,8 +817,12 @@ async function runIssueCheck(event) {
   // demanding membership there would fail every new Issue on a race it cannot
   // win. The opened event therefore judges the payload alone, and the first
   // later event — a label, an edit, a close — is the one that reads the board
-  // and holds the Issue to its Status.
-  const issue = await issueSnapshot(event.issue.number, event.action === 'opened' ? null : undefined)
+  // and holds the Issue to its Status. Labels applied at creation arrive
+  // separately and do race, which is what the bounded read below absorbs.
+  const issue =
+    event.action === 'opened'
+      ? await issueSnapshot(event.issue.number, null)
+      : await awaitProjectStatus(() => issueSnapshot(event.issue.number))
   if (!issue) throw new Error(`#${event.issue.number} 不是同仓库 Issue`)
   reportPolicyErrors(validateIssue(issue))
   process.stdout.write('Issue policy 通过。\n')

@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 
 import {
+  awaitProjectStatus,
   countVisibleUnits,
   nextResolvingIssueStatus,
   parseReferences,
@@ -416,6 +417,55 @@ test('requires policy only after a human PR enters review', () => {
     }),
     false,
   )
+})
+
+test('waits out a boarded-late item and reports the first Status it sees', async () => {
+  // The lifecycle creates the Project item; a label applied in the same second as
+  // the Issue can be judged before it lands. The gate waits, it does not relax.
+  const unboarded = { status: null }
+  const boarded = { status: 'Inbox' }
+  const reads = [unboarded, unboarded, boarded]
+  let calls = 0
+  const snapshot = await awaitProjectStatus(async () => reads[calls++], { attempts: 4, delayMs: 0 })
+  assert.equal(snapshot, boarded)
+  assert.equal(calls, 3)
+})
+
+test('keeps the item requirement when the window closes without a Status', async () => {
+  let calls = 0
+  const snapshot = await awaitProjectStatus(
+    async () => {
+      calls += 1
+      return { status: null }
+    },
+    { attempts: 3, delayMs: 0 },
+  )
+  assert.equal(snapshot.status, null)
+  assert.equal(calls, 3)
+})
+
+test('does not retry a known Status or a missing Issue', async () => {
+  let calls = 0
+  const boarded = await awaitProjectStatus(
+    async () => {
+      calls += 1
+      return { status: 'In progress' }
+    },
+    { attempts: 4, delayMs: 0 },
+  )
+  assert.equal(boarded.status, 'In progress')
+  assert.equal(calls, 1)
+
+  calls = 0
+  const missing = await awaitProjectStatus(
+    async () => {
+      calls += 1
+      return null
+    },
+    { attempts: 4, delayMs: 0 },
+  )
+  assert.equal(missing, null)
+  assert.equal(calls, 1)
 })
 
 test('answers no status actor without both an item status and an event', () => {
