@@ -30,4 +30,8 @@ jobs:
         run: node .github/issue-management/policy.mjs pr
       - name: Validate issue
         if: ${{ github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DSH_PROJECT_TOKEN: ${{ secrets.DSH_MEGA_PLUGINS_ISSUE_TOKEN }}
+          DSH_PROJECT_GATE: ${{ vars.DSH_MEGA_PLUGINS_PROJECT_GATE }}
         run: node .github/issue-management/policy.mjs issue
