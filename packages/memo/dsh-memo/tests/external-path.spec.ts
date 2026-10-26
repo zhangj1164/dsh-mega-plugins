@@ -96,7 +96,7 @@ async function mountFs(h: TestHarness, answer: StubAnswer): Promise<StubFs> {
 }
 
 describe('MemoService readExternalPath', () => {
-  it('is absent from the Remote surface, so the endpoint name is unknown to the host', async () => {
+  it('is absent from the Remote surface, so no request can address it', async () => {
     const h = await harness()
     // The host builds the callable endpoint table from these markers alone, so a
     // method missing here is not "restricted" — the endpoint does not exist, and a
@@ -107,8 +107,8 @@ describe('MemoService readExternalPath', () => {
     const endpoints = remoteMethods(memo).map(
       marker => `${namespace}/${marker.exportName ?? marker.method}`,
     )
-    expect(endpoints).toContain('memo/addEntry')
-    expect(endpoints).not.toContain('memo/readExternalPath')
+    expect(endpoints).toContain(`${namespace}/addEntry`)
+    expect(endpoints).not.toContain(`${namespace}/readExternalPath`)
   })
 
   it('returns the file text and adds no entry to any week', async () => {
