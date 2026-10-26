@@ -525,6 +525,22 @@ async function issueSnapshot(number, status = undefined) {
   }
 }
 
+/**
+ * Actor that last set the Status a Project item currently shows.
+ * A snapshot whose query did not ask for status events carries no timeline, and
+ * an Issue outside the board has no Status at all. Both are "unknown actor", not
+ * "no change": comparing two absences would answer true and then dereference the
+ * missing event, so each one returns null on its own.
+ * @param {Array<{status: string|null, actor: {login: string}|null}>|null|undefined} events Status-change events, oldest first.
+ * @param {string|null} currentStatus Status the item currently shows, or null when it shows none.
+ * @returns {string|null} Login of the actor that set that Status, or null when it is unknown.
+ */
+export function statusActorOf(events, currentStatus) {
+  const latest = events ? events.filter((event) => event).at(-1) : undefined
+  if (!latest || currentStatus === null) return null
+  return latest.status === currentStatus ? (latest.actor?.login ?? null) : null
+}
+
 async function projectContext(number, includeStatusActor = false) {
   const data = await graphql(
     `query(
@@ -596,13 +612,10 @@ async function projectContext(number, includeStatusActor = false) {
   const statusField = project.fields.nodes.find((field) => field?.name === 'Status')
   if (!statusField) throw new Error('Project 缺少 Status 字段')
   const item = issue.projectItems.nodes.find((candidate) => candidate.project.id === project.id)
-  const latestStatusEvent = issue.timelineItems?.nodes
-    ?.filter((event) => event?.project?.id === project.id)
-    .at(-1)
-  const statusActor =
-    latestStatusEvent?.status === item?.fieldValueByName?.name
-      ? (latestStatusEvent.actor?.login ?? null)
-      : null
+  const statusActor = statusActorOf(
+    issue.timelineItems?.nodes?.filter((event) => event?.project?.id === project.id),
+    item?.fieldValueByName?.name ?? null,
+  )
   return { project, issue, statusField, item, statusActor }
 }
 
