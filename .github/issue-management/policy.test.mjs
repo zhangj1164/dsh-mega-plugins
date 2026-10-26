@@ -9,6 +9,7 @@ import {
   retainIssueReferences,
   resolvingIssueStatusCommand,
   requiresPullRequestPolicy,
+  statusActorOf,
   validateBody,
   validateIssue,
   validateIssueEvent,
@@ -415,6 +416,28 @@ test('requires policy only after a human PR enters review', () => {
     }),
     false,
   )
+})
+
+test('answers no status actor without both an item status and an event', () => {
+  // The regression this guards: an Issue outside the board has no Status, and a
+  // snapshot that asked for no status events carries no timeline, so the pair is
+  // (undefined, undefined) — equal, and the old code then read `.actor` off the
+  // missing event.
+  assert.equal(statusActorOf(undefined, null), null)
+  assert.equal(statusActorOf([], null), null)
+  assert.equal(statusActorOf([], 'Inbox'), null)
+  assert.equal(statusActorOf([{ status: 'Inbox', actor: { login: 'zhangj1164' } }], null), null)
+})
+
+test('names the actor only while the last event still describes the current Status', () => {
+  const events = [
+    { status: 'Inbox', actor: { login: 'zhangj1164' } },
+    { status: 'In progress', actor: { login: 'zhangj1164-issue-bot' } },
+  ]
+  assert.equal(statusActorOf(events, 'In progress'), 'zhangj1164-issue-bot')
+  // A human moved the card afterwards, so the last recorded event is stale.
+  assert.equal(statusActorOf(events, 'In review'), null)
+  assert.equal(statusActorOf([{ status: 'Inbox', actor: null }], 'Inbox'), null)
 })
 
 test('maps only explicit review handoffs to review status commands', () => {
