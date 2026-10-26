@@ -58,13 +58,15 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `deleteEntry(request)` | Deletes an entry from a week. Past weeks require `force: true`. |
 | `analyze(request)` | Runs AI analysis (organize / summarize / analyze) over a period's entries. Returns `no-entries` when the period is empty, `llm-failure` when the model call fails. |
 | `exportReport(request)` | Exports a Markdown work report for a period using the model. |
-| `readExternalPath(request)` | Reads a local file path through the host `fs` service and returns its text. It adds no entry and asks for no confirmation — the `fs` service's own policy and the host's Remote surface are the boundary. |
 | `analyzeLogs(request)` | Reads telemetry failures for every configured plugin and generates one GitHub issue report over all of them via the github-issue service. Passes the analysis window — the union of the per-plugin windows — and, per failure group, the route, the last failure time, and the attempts that followed it, so the report can say whether a failure is still happening. |
 | `listPeriods(request)` | Lists the navigable periods of one dimension (week/month/quarter/year), newest first, with the week ids each contains. |
+| `listMemory(request)` | Lists the long-term memory entries — the result every successful `analyze` appended to the ledger — newest first. Optional `period` filter and `limit` (default 50); an unreadable ledger returns `ledger-error`. |
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
+
+The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
 
 ### What one log analysis covers
 
@@ -141,7 +143,7 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Req 2** — `getOrCreateCurrentWeek` auto-creates or loads the current ISO week (Monday start, Sunday end) as the storage point.
 - **Req 3** — `updateEntry` and `deleteEntry` enforce `past-week-requires-force`: editing a non-current week requires `force: true` to acknowledge that AI analysis results may change.
 - **Req 4** — `analyze` and `exportReport` accept a period (`week` / `month` / `quarter` / `year`) and collect entries across matching weeks.
-- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It writes no entry, and no consent dialog exists: the panel has no call site, and the host performs no confirmation (the `fs` sandbox constrains mutations, and a direct `ctx.fs` read records no observation). The boundary is the `fs` service's own policy plus the host's Remote surface.
+- **Req 5** — `readExternalPath` reads a local file path through the `fs` service and returns its text. It is host-internal: no `@Remote` registration, hence no endpoint, no call site anywhere in the repository, and no consent dialog to build. The method stays on the service as the host-side implementation a later transport can build on; until one exists, nothing can invoke it.
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
@@ -152,4 +154,4 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
 - **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
 - **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.
-- **`readExternalPath` has no UI** — the host method returns a file's text and writes no entry; the panel never calls it, so nothing in the board imports a file today.
+- **No file import in the panel** — `readExternalPath` is host-internal and has no call site, so nothing in the board imports a file today.

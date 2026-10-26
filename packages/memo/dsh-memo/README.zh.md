@@ -58,13 +58,15 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `deleteEntry(request)` | 从一周删除条目。过去的周需要 `force: true`。 |
 | `analyze(request)` | 对一段时间的条目运行 AI 分析（梳理/总结/分析）。该时段无条目时返回 `no-entries`，模型调用失败时返回 `llm-failure`。 |
 | `exportReport(request)` | 使用模型导出一段时间的 Markdown 工作报告。 |
-| `readExternalPath(request)` | 通过宿主 `fs` 服务读取本地文件路径并返回文本。它不新增条目、不请求确认——边界是 `fs` 服务自身的策略与宿主的 Remote 面。 |
 | `analyzeLogs(request)` | 读取所有已配置插件的遥测失败记录，通过 github-issue 服务生成**一份**覆盖全部插件的 GitHub issue 报告。会一并传递分析时间窗——各插件时间窗的并集——以及每组的路由、最近一次失败时间和之后的尝试次数，使报告能说明失败是否仍在发生。 |
 | `listPeriods(request)` | 列出某一维度（周/月/季/年）可导航的周期，最新的在前，并给出每个周期包含的周 id。 |
+| `listMemory(request)` | 列出长期记忆条目——每次成功的 `analyze` 追加到账本的结论——最新的在前。可选的 `period` 过滤与 `limit`（默认 50）；账本读不出来时返回 `ledger-error`。 |
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |
 | `listArchivedQuarters(request)` | 列出已归档的季度，最早的在前，每条附带宿主解析出的周 id。 |
 | `listModels(request)` | 上报 AI 调用将使用的路由，随后给出每个已注册 provider 及其公布的模型。不会失败：某个 provider 读不出来时只带它自己的 `error`，整个注册表读不出来时返回空列表并附 `catalogError`。 |
+
+上表列出调用方可以通过 Remote 面触及的方法。`readExternalPath` 故意不在其中：方法仍存在、仍返回文件文本，但没有 `@Remote` 注册就没有线上名字，任何请求都寻址不到它。
 
 ### 一次日志分析覆盖什么
 
@@ -141,7 +143,7 @@ git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程�
 - **需求 2** — `getOrCreateCurrentWeek` 自动创建或加载当前 ISO 周（周一开始，周日结束）作为存储点。
 - **需求 3** — `updateEntry` 和 `deleteEntry` 强制 `past-week-requires-force`：编辑非本周的备忘需要 `force: true`，以确认 AI 分析结果可能变化。
 - **需求 4** — `analyze` 和 `exportReport` 接受周期参数（`week` / `month` / `quarter` / `year`），并收集匹配周中的条目。
-- **需求 5** — `readExternalPath` 通过 `fs` 服务读取本地文件路径并返回文本。它不写条目，也没有同意对话框：面板没有调用点，宿主也不做确认（`fs` 沙箱只约束写，直接读 `ctx.fs` 不产生观察记录）。边界是 `fs` 服务自身的策略加上宿主的 Remote 面。
+- **需求 5** — `readExternalPath` 通过 `fs` 服务读取本地文件路径并返回文本。它是宿主内部方法：没有 `@Remote` 注册，因此没有端点，仓库里也没有调用点，不需要构建同意对话框。方法留在服务上，作为后续传输层可以接的宿主侧实现；在它出现之前，没有任何东西能调用这个方法。
 - **需求 6** — `exportReport` 生成标准工作报告（Markdown），可直接审查并导出为 `.md`。
 - **需求 7** — 每个关键操作都调用 `ctx.telemetry.track()` / `ctx.telemetry.trackError()`，携带 `featureCodeRef` 锚点。
 - **需求 8** — `analyzeLogs` 通过 `telemetry` 服务读取遥测失败记录，通过 `githubIssue` 生成 GitHub issue 报告，并返回报告 + 预填 URL。
@@ -152,4 +154,4 @@ git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程�
 - **仅按周组织** — 条目按 ISO 周组织；没有自由格式的日期或标签系统。
 - **模型路由属于部署配置** — 解析不出路由、或配置的路由未注册时，`analyze` 和 `exportReport` 以 `llm-failure` 加 `failureCode` 失败。请在此处设置 `provider`/`model`，或依赖 `agentDefaultModel`。
 - **遥测和 github-issue 为注入服务** — memo 服务通过 `inject` 依赖它们的可用性。
-- **`readExternalPath` 没有界面入口** — 宿主方法只返回文件文本、不写条目；面板从不调用它，所以现在的看板无法导入文件。
+- **面板无法导入文件** — `readExternalPath` 是宿主内部方法且没有调用点，所以现在的看板还导入不了文件。
