@@ -644,4 +644,18 @@ describe('TelemetryService durable-write retry', () => {
     expect(h.ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(0)
     expect(h.flakyWrites?.attempts).toBe(1)
   })
+
+  it('does not replay when retries are disabled', async () => {
+    const h = await setupHarness(
+      undefined,
+      { storageWriteRetries: 0, storageWriteRetryDelayMs: 1 },
+      { flakyWriteFailures: 1 },
+    )
+    harnesses.push(h)
+    h.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
+    await expect(h.ctx.telemetry.flush()).rejects.toMatchObject({ code: 'EPERM' })
+
+    // `0` means one attempt, so a deployment can opt out of the extra latency.
+    expect(h.flakyWrites?.attempts).toBe(1)
+  })
 })

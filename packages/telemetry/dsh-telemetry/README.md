@@ -15,7 +15,7 @@ Local-only in-process telemetry tracker for DeepSeek Harness. Records operation 
 | `redactionMarker` | `[redacted:{rule}]` | Replacement written in place of every match; `{rule}` becomes the matching rule's name. |
 | `redactionRules` | the families below | The rule set: `{ name, pattern, flags? }`, applied in order. |
 | `storageWriteRetries` | `4` | Extra attempts after a durable write fails with `EPERM` / `EBUSY` (the Windows rename-over-open-handle race). `0` disables retrying. |
-| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it. Only transient failures wait. |
+| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it, capped at 5000 ms. Only transient failures wait. |
 
 ## Durable-write retry
 

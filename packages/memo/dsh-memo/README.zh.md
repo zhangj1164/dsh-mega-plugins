@@ -15,7 +15,7 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `model` | 未设置 | AI 调用的模型 id。未设置时跟随本部署的 `agentDefaultModel` 选择。 |
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | `analyzeLogs` 覆盖的插件 id，按读取顺序。遥测没有枚举插件的接口，因此由部署方给出集合；默认值是这些 bundle 一起安装的套件。 |
 | `storageWriteRetries` | `4` | 持久写入因 `EPERM` / `EBUSY`（Windows 上 rename 覆盖被占用文件的竞态）失败后的额外尝试次数。`0` 表示关闭重试。 |
-| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍。只有瞬态失败才会等待。 |
+| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍，上限 5000 毫秒。只有瞬态失败才会等待。 |
 
 ## 持久写入重试
 

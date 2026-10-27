@@ -15,7 +15,7 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `model` | unset | Model id for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | Plugin ids `analyzeLogs` covers, in read order. Telemetry exposes no way to enumerate plugins, so the deployment names the set; the default is the suite these bundles install together. |
 | `storageWriteRetries` | `4` | Extra attempts after a durable write fails with `EPERM` / `EBUSY` (the Windows rename-over-open-handle race). `0` disables retrying. |
-| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it. Only transient failures wait. |
+| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it, capped at 5000 ms. Only transient failures wait. |
 
 ## Durable-write retry
 

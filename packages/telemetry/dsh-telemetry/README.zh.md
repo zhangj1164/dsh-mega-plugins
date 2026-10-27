@@ -15,7 +15,7 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 | `redactionMarker` | `[redacted:{rule}]` | 每处命中替换成的文本；`{rule}` 会替换为命中的规则名。 |
 | `redactionRules` | 下列规则 | 规则集：`{ name, pattern, flags? }`，按顺序应用。 |
 | `storageWriteRetries` | `4` | 持久写入因 `EPERM` / `EBUSY`（Windows 上 rename 覆盖被占用文件的竞态）失败后的额外尝试次数。`0` 表示关闭重试。 |
-| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍。只有瞬态失败才会等待。 |
+| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍，上限 5000 毫秒。只有瞬态失败才会等待。 |
 
 ## 持久写入重试
 

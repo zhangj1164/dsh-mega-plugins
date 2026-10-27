@@ -27,6 +27,13 @@ export interface FlakyStorageOptions {
 export interface FlakyStorageProbe {
   /** Write attempts observed so far. */
   readonly attempts: number
+  /**
+   * Fail the next `failures` durable writes with `code` (default `EPERM`).
+   * Tests use this to target a later write after earlier writes succeeded.
+   * @param failures - writes to refuse before letting the next one through.
+   * @param code - errno code for the injected failures.
+   */
+  arm(failures: number, code?: string): void
 }
 
 /**
@@ -43,8 +50,7 @@ export interface FlakyStorageProbe {
 export function installFlakyStorage(ctx: Context, options: FlakyStorageOptions): FlakyStorageProbe {
   const inner = ctx.storage.backend.get('json')
   if (inner.kv === undefined) throw new Error('flaky-storage: the json backend exposes no kv facet')
-  const state = { attempts: 0, failures: options.failures }
-  const code = options.code ?? 'EPERM'
+  const state = { attempts: 0, failures: options.failures, code: options.code ?? 'EPERM' }
   const backend: StorageBackend = {
     kv: {
       async open(descriptor: KvUnitDescriptor): Promise<KvUnit> {
@@ -53,8 +59,8 @@ export function installFlakyStorage(ctx: Context, options: FlakyStorageOptions):
           state.attempts += 1
           if (state.failures <= 0) return
           state.failures -= 1
-          const error = new Error(`${code}: operation not permitted, rename`) as NodeJS.ErrnoException
-          error.code = code
+          const error = new Error(`${state.code}: operation not permitted, rename`) as NodeJS.ErrnoException
+          error.code = state.code
           throw error
         }
         return {
@@ -85,6 +91,10 @@ export function installFlakyStorage(ctx: Context, options: FlakyStorageOptions):
   return Object.freeze({
     get attempts() {
       return state.attempts
+    },
+    arm(failures: number, code?: string): void {
+      state.failures += failures
+      if (code !== undefined) state.code = code
     },
   })
 }

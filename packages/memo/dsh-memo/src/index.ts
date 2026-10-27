@@ -134,7 +134,8 @@ export interface Config {
    */
   readonly storageWriteRetries: number
   /**
-   * First backoff delay in milliseconds; each retry doubles it. Only waits
+   * First backoff delay in milliseconds; each retry doubles it, capped at
+   * 5000 ms so a misconfiguration cannot stall a save for minutes. Only waits
    * between attempts that failed transiently, so the normal path never sleeps.
    */
   readonly storageWriteRetryDelayMs: number
@@ -189,6 +190,9 @@ const MIGRATED_LEDGER_SUFFIX = '.migrated'
 /** Filesystem errors that a later identical write can plausibly survive. */
 const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EBUSY'])
 
+/** Ceiling for one retry delay; a large configured base cannot grow without bound. */
+const MAX_STORAGE_WRITE_RETRY_DELAY_MS = 5_000
+
 /**
  * Whether a failed memo write is the Windows rename-over-open-handle race.
  *
@@ -202,9 +206,8 @@ const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EB
  * @returns true when the write is worth replaying.
  */
 function isTransientStorageWriteError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) return false
-  const code = (error as { readonly code?: unknown }).code
-  return typeof code === 'string' && TRANSIENT_STORAGE_WRITE_CODES.has(code)
+  const code = fsErrorCode(error)
+  return code !== undefined && TRANSIENT_STORAGE_WRITE_CODES.has(code)
 }
 
 /**
@@ -1290,7 +1293,7 @@ export class MemoService extends TypertRemoteService {
         return await operation()
       } catch (error) {
         if (attempt >= this.storageWriteRetries || !isTransientStorageWriteError(error)) throw error
-        await delay(this.storageWriteRetryDelayMs * (2 ** attempt))
+        await delay(Math.min(this.storageWriteRetryDelayMs * (2 ** attempt), MAX_STORAGE_WRITE_RETRY_DELAY_MS))
       }
     }
   }
@@ -1341,8 +1344,8 @@ interface FsTextSource {
  * the failure dispatch needs. A value carrying no string `code` is reported as
  * absent, so the caller reports a generic `fs-error` instead of inventing a
  * reason.
- * @param error - any value thrown by the `fs` service.
- * @returns the `FS_*` code, or undefined when the failure carries none.
+ * @param error - any thrown value carrying a string `code`.
+ * @returns the string code, or undefined when the failure carries none.
  */
 function fsErrorCode(error: unknown): string | undefined {
   if (typeof error !== 'object' || error === null) return undefined

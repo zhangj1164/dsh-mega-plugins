@@ -1077,17 +1077,36 @@ describe('MemoService durable-write retry', () => {
   })
 
   it('replays archive writes and archive deletes', async () => {
-    // Three failures in order: two on the archive put, one on the delete.
-    // The put retries twice and succeeds on its third attempt; the delete then
-    // retries once and succeeds on its second.
-    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 3 })
+    // Arm one failure before each operation, so the put and the delete are
+    // exercised independently instead of the put consuming the whole budget.
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 0 })
+    flakyWrites?.arm(1)
     const archived = await ctx.memo.archiveQuarter({ label: '2026-Q1' })
     expect(archived.ok).toBe(true)
 
+    flakyWrites?.arm(1)
     const unarchived = await ctx.memo.unarchiveQuarter({ label: '2026-Q1' })
     expect(unarchived.ok).toBe(true)
     if (!unarchived.ok) return
     expect(unarchived.value.archived).toBe(true)
+    // put: fail + success, delete: fail + success.
+    expect(flakyWrites?.attempts).toBe(4)
+  })
+
+  it('surfaces the last failure after spending the retry budget', async () => {
+    // One initial attempt plus four retries, all refused; the write then
+    // rejects exactly as a permanently failing medium would.
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 5 })
+    await expect(ctx.memo.getOrCreateCurrentWeek({})).rejects.toMatchObject({ code: 'EPERM' })
     expect(flakyWrites?.attempts).toBe(5)
+  })
+
+  it('does not replay a non-transient write failure', async () => {
+    const { ctx, flakyWrites } = await harness({
+      flakyWriteFailures: 1,
+      flakyWriteCode: 'EACCES',
+    })
+    await expect(ctx.memo.getOrCreateCurrentWeek({})).rejects.toMatchObject({ code: 'EACCES' })
+    expect(flakyWrites?.attempts).toBe(1)
   })
 })

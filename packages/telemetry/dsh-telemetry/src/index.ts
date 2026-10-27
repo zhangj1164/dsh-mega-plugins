@@ -87,7 +87,8 @@ export interface Config {
    */
   readonly storageWriteRetries: number
   /**
-   * First backoff delay in milliseconds; each retry doubles it. Only waits
+   * First backoff delay in milliseconds; each retry doubles it, capped at
+   * 5000 ms so a misconfiguration cannot stall a write for minutes. Only waits
    * between attempts that failed transiently, so the normal path never sleeps.
    */
   readonly storageWriteRetryDelayMs: number
@@ -358,7 +359,7 @@ export class TelemetryService extends Service {
         return await operation()
       } catch (error) {
         if (attempt >= this.storageWriteRetries || !isTransientStorageWriteError(error)) throw error
-        await delay(this.storageWriteRetryDelayMs * (2 ** attempt))
+        await delay(Math.min(this.storageWriteRetryDelayMs * (2 ** attempt), MAX_STORAGE_WRITE_RETRY_DELAY_MS))
       }
     }
   }
@@ -436,6 +437,9 @@ export class TelemetryService extends Service {
 
 /** Filesystem errors that a later identical write can plausibly survive. */
 const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EBUSY'])
+
+/** Ceiling for one retry delay; a large configured base cannot grow without bound. */
+const MAX_STORAGE_WRITE_RETRY_DELAY_MS = 5_000
 
 /**
  * Whether a failed write is the Windows rename-over-open-handle race.
