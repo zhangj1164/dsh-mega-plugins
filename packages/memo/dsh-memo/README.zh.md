@@ -14,6 +14,12 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `provider` | 未设置 | AI 调用使用的已注册 DSH provider 路由。未设置时跟随本部署的 `agentDefaultModel` 选择。 |
 | `model` | 未设置 | AI 调用的模型 id。未设置时跟随本部署的 `agentDefaultModel` 选择。 |
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | `analyzeLogs` 覆盖的插件 id，按读取顺序。遥测没有枚举插件的接口，因此由部署方给出集合；默认值是这些 bundle 一起安装的套件。 |
+| `storageWriteRetries` | `4` | 持久写入因 `EPERM` / `EBUSY`（Windows 上 rename 覆盖被占用文件的竞态）失败后的额外尝试次数。`0` 表示关闭重试。 |
+| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍。只有瞬态失败才会等待。 |
+
+## 持久写入重试
+
+`dsh-storage-json` 以「写临时文件 → rename 覆盖目标」发布单元。Windows 上，只要杀软、索引器或另一个读句柄仍持有目标文件，这次 rename 就会以 `EPERM` 失败，而 JSON 后端会直接报错、不重试。memo 对 `EPERM` / `EBUSY` 按指数退避重放同一次 `put` / `delete`，最多重试 `storageWriteRetries` 次，因此一次短暂的扫描窗口不会把保存变成误报；其他错误立即抛出。预算耗尽后错误仍会抛回调用方，真正的介质故障不会被报告成成功。
 
 ## 模型路由解析
 

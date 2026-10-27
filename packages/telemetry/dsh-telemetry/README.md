@@ -14,6 +14,12 @@ Local-only in-process telemetry tracker for DeepSeek Harness. Records operation 
 | `redact` | `true` | Whether to redact sensitive text before an event is stored. |
 | `redactionMarker` | `[redacted:{rule}]` | Replacement written in place of every match; `{rule}` becomes the matching rule's name. |
 | `redactionRules` | the families below | The rule set: `{ name, pattern, flags? }`, applied in order. |
+| `storageWriteRetries` | `4` | Extra attempts after a durable write fails with `EPERM` / `EBUSY` (the Windows rename-over-open-handle race). `0` disables retrying. |
+| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it. Only transient failures wait. |
+
+## Durable-write retry
+
+`dsh-storage-json` publishes a unit by writing a temp file and renaming it over the target. On Windows that rename fails with `EPERM` while an antivirus, an indexer, or another reader holds the target open, and the JSON backend reports the error instead of retrying. Telemetry replays the identical write for `EPERM` and `EBUSY` up to `storageWriteRetries` times with exponential backoff, so a transient scan window does not silently drop an event; every other error is rethrown immediately. A write that exhausts the budget is still dropped, because `track()` is fire-and-forget — the retry narrows the failure window, it does not turn a permanent medium failure into a success.
 
 ## Write-time redaction
 

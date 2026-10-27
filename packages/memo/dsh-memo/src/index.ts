@@ -18,6 +18,7 @@ import { randomUUID } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import { setTimeout as delay } from 'node:timers/promises'
 import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
@@ -124,6 +125,19 @@ export interface Config {
    * the set, and the default is the suite these bundles install together.
    */
   readonly logAnalysisPlugins: readonly string[]
+  /**
+   * Extra attempts after a durable write fails with a transient filesystem
+   * error. The JSON backend publishes a unit by writing a temp file and
+   * renaming it over the target; Windows refuses that rename while another
+   * handle (an antivirus scan, an indexer) holds the target open, and the
+   * same rename usually succeeds a moment later. `0` disables retrying.
+   */
+  readonly storageWriteRetries: number
+  /**
+   * First backoff delay in milliseconds; each retry doubles it. Only waits
+   * between attempts that failed transiently, so the normal path never sleeps.
+   */
+  readonly storageWriteRetryDelayMs: number
 }
 
 /** The plugin ids log analysis covers unless the deployment configures others. */
@@ -135,6 +149,8 @@ export const Config: s<Config> = s.object({
   provider: s.string(),
   model: s.string(),
   logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]),
+  storageWriteRetries: s.number().step(1).min(0).max(10).default(4),
+  storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -169,6 +185,27 @@ const DSH_HOME_ENV = 'DSH_HOME'
  * merge.
  */
 const MIGRATED_LEDGER_SUFFIX = '.migrated'
+
+/** Filesystem errors that a later identical write can plausibly survive. */
+const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EBUSY'])
+
+/**
+ * Whether a failed memo write is the Windows rename-over-open-handle race.
+ *
+ * `dsh-storage-json` publishes a unit with `rename(tmp, target)`. On Windows
+ * that fails with `EPERM` while an antivirus, an indexer, or another reader
+ * holds the target open; the error is a pure timing race, so an identical
+ * retry is the right response. `EACCES` is deliberately absent: it is the
+ * signature of a real permission problem that waiting does not fix.
+ *
+ * @param error - the value a write rejected with.
+ * @returns true when the write is worth replaying.
+ */
+function isTransientStorageWriteError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  const code = (error as { readonly code?: unknown }).code
+  return typeof code === 'string' && TRANSIENT_STORAGE_WRITE_CODES.has(code)
+}
 
 /**
  * Expand a leading `~`, `~/`, or `~\` prefix against the platform home.
@@ -474,6 +511,8 @@ export class MemoService extends TypertRemoteService {
   private readonly model?: string
   /** Plugin ids log analysis covers, in the order they are read. */
   private readonly logAnalysisPlugins: readonly string[]
+  private readonly storageWriteRetries: number
+  private readonly storageWriteRetryDelayMs: number
   private table?: KvTable<string, MemoWeekRow>
   private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
@@ -487,6 +526,8 @@ export class MemoService extends TypertRemoteService {
     this.provider = config.provider
     this.model = config.model
     this.logAnalysisPlugins = Object.freeze([...config.logAnalysisPlugins])
+    this.storageWriteRetries = config.storageWriteRetries
+    this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
   }
 
   /** Open and own the memo domain and the archive domain beside it. */
@@ -528,7 +569,7 @@ export class MemoService extends TypertRemoteService {
       })
     }
     const archivedAt = Date.now()
-    await this.requireArchiveTable().put(label, { label, archivedAt })
+    await this.writeWithRetry(() => this.requireArchiveTable().put(label, { label, archivedAt }))
     this.track('archiveQuarter', 'success', { label })
     return { ok: true, value: this.archivedQuarter(label, archivedAt) }
   }
@@ -548,7 +589,7 @@ export class MemoService extends TypertRemoteService {
         label: String(label ?? ''),
       })
     }
-    const archived = await this.requireArchiveTable().delete(label)
+    const archived = await this.writeWithRetry(() => this.requireArchiveTable().delete(label))
     this.track('unarchiveQuarter', 'success', { label, archived })
     return { ok: true, value: { label, archived } }
   }
@@ -638,7 +679,7 @@ export class MemoService extends TypertRemoteService {
       entries: [],
       updatedAt: Date.now(),
     }
-    await table.put(weekId, week)
+    await this.writeWithRetry(() => table.put(weekId, week))
     this.track('getOrCreateCurrentWeek', 'success')
     return { ok: true, value: snapshotWeek(week) }
   }
@@ -714,7 +755,7 @@ export class MemoService extends TypertRemoteService {
     } else {
       week = { ...existing, entries: [...existing.entries, entry], updatedAt: now }
     }
-    await table.put(request.weekId, week)
+    await this.writeWithRetry(() => table.put(request.weekId, week))
     this.track('addEntry', 'success', { weekId: request.weekId, entryId: entry.id })
     return { ok: true, value: Object.freeze({ ...entry }) }
   }
@@ -760,7 +801,7 @@ export class MemoService extends TypertRemoteService {
       updatedAt: now,
     }
     entries[entryIndex] = updated
-    await table.put(request.weekId, { ...row, entries, updatedAt: now })
+    await this.writeWithRetry(() => table.put(request.weekId, { ...row, entries, updatedAt: now }))
     this.track('updateEntry', 'success', { weekId: request.weekId, entryId: request.entryId, force: request.force ?? false })
     return { ok: true, value: Object.freeze({ ...updated }) }
   }
@@ -792,7 +833,7 @@ export class MemoService extends TypertRemoteService {
       return this.failure({ code: 'entry-not-found', message: `entry "${request.entryId}" not found in week "${request.weekId}"`, entryId: request.entryId })
     }
     const entries = row.entries.filter(e => e.id !== request.entryId)
-    await table.put(request.weekId, { ...row, entries, updatedAt: Date.now() })
+    await this.writeWithRetry(() => table.put(request.weekId, { ...row, entries, updatedAt: Date.now() }))
     this.track('deleteEntry', 'success', { weekId: request.weekId, entryId: request.entryId, force: request.force ?? false })
     return { ok: true, value: true }
   }
@@ -1230,6 +1271,28 @@ export class MemoService extends TypertRemoteService {
       error,
       ...(metadata === undefined ? {} : { metadata }),
     })
+  }
+
+  /**
+   * Replay one durable write while the failure is transient.
+   *
+   * Every caller passes the exact operation it already built, so the retry
+   * cannot drift into writing a different record than the one the user asked
+   * for. The loop stops at the first non-transient failure so a real
+   * permission problem is reported, not slept through.
+   *
+   * @param operation - the write to attempt.
+   * @returns the operation's result once it succeeds.
+   */
+  private async writeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await operation()
+      } catch (error) {
+        if (attempt >= this.storageWriteRetries || !isTransientStorageWriteError(error)) throw error
+        await delay(this.storageWriteRetryDelayMs * (2 ** attempt))
+      }
+    }
   }
 
   /** Build a frozen failure result from code and message. */

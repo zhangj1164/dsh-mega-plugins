@@ -14,6 +14,12 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `provider` | unset | Registered DSH provider route for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
 | `model` | unset | Model id for AI calls. Unset follows this deployment's `agentDefaultModel` selection. |
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | Plugin ids `analyzeLogs` covers, in read order. Telemetry exposes no way to enumerate plugins, so the deployment names the set; the default is the suite these bundles install together. |
+| `storageWriteRetries` | `4` | Extra attempts after a durable write fails with `EPERM` / `EBUSY` (the Windows rename-over-open-handle race). `0` disables retrying. |
+| `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it. Only transient failures wait. |
+
+## Durable-write retry
+
+`dsh-storage-json` publishes a unit by writing a temp file and renaming it over the target. On Windows that rename fails with `EPERM` while an antivirus, an indexer, or another reader holds the target open, and the JSON backend reports the error instead of retrying. Memo replays the identical `put` / `delete` for `EPERM` and `EBUSY` up to `storageWriteRetries` times with exponential backoff, so a transient scan window does not turn a save into a spurious error; every other error is rethrown immediately. A write that exhausts the budget is rethrown to the caller, so a genuine medium failure still reaches the Remote result instead of being reported as success.
 
 ## Model route resolution
 

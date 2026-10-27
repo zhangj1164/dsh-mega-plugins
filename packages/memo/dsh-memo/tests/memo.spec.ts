@@ -1060,3 +1060,34 @@ describe('MemoService records the route on calls that worked', () => {
     })
   })
 })
+
+describe('MemoService durable-write retry', () => {
+  // The real failure is the Windows rename race with an antivirus or indexer;
+  // the harness injects that errno so the retry path is deterministic.
+  it('replays an EPERM write and still stores the week', async () => {
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 2 })
+    const created = await ctx.memo.getOrCreateCurrentWeek({})
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+
+    const read = ctx.memo.getWeek({ weekId: created.value.weekId })
+    expect(read.ok).toBe(true)
+    // Two failures, then the success.
+    expect(flakyWrites?.attempts).toBe(3)
+  })
+
+  it('replays archive writes and archive deletes', async () => {
+    // Three failures in order: two on the archive put, one on the delete.
+    // The put retries twice and succeeds on its third attempt; the delete then
+    // retries once and succeeds on its second.
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 3 })
+    const archived = await ctx.memo.archiveQuarter({ label: '2026-Q1' })
+    expect(archived.ok).toBe(true)
+
+    const unarchived = await ctx.memo.unarchiveQuarter({ label: '2026-Q1' })
+    expect(unarchived.ok).toBe(true)
+    if (!unarchived.ok) return
+    expect(unarchived.value.archived).toBe(true)
+    expect(flakyWrites?.attempts).toBe(5)
+  })
+})

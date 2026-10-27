@@ -14,6 +14,12 @@ DSH 本地进程内遥测跟踪器。基于 storage-domain KV 后端记录操作
 | `redact` | `true` | 是否在写入事件前对敏感文本脱敏。 |
 | `redactionMarker` | `[redacted:{rule}]` | 每处命中替换成的文本；`{rule}` 会替换为命中的规则名。 |
 | `redactionRules` | 下列规则 | 规则集：`{ name, pattern, flags? }`，按顺序应用。 |
+| `storageWriteRetries` | `4` | 持久写入因 `EPERM` / `EBUSY`（Windows 上 rename 覆盖被占用文件的竞态）失败后的额外尝试次数。`0` 表示关闭重试。 |
+| `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍。只有瞬态失败才会等待。 |
+
+## 持久写入重试
+
+`dsh-storage-json` 以「写临时文件 → rename 覆盖目标」发布单元。Windows 上，只要杀软、索引器或另一个读句柄仍持有目标文件，这次 rename 就会以 `EPERM` 失败，而 JSON 后端会直接报错、不重试。telemetry 对 `EPERM` / `EBUSY` 按指数退避重放同一次写入，最多重试 `storageWriteRetries` 次，因此一次短暂的扫描窗口不会静默丢掉事件；其他错误立即抛出。预算耗尽后写入仍会被丢弃，因为 `track()` 是 fire-and-forget——重试只是收窄失败窗口，不会把永久性的介质故障变成成功。
 
 ## 写入时脱敏
 
