@@ -29,7 +29,7 @@
     "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-gfm": "^3.0.0",
     "micromark-extension-gfm": "^3.0.0",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^5.0.1"
   }
