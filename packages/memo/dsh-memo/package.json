@@ -1,7 +1,7 @@
 {
   "name": "@zhangj1164/dsh-memo",
   "description": "Local-only week-keyed personal memo service for DeepSeek Harness with AI analysis, report export, telemetry logging, and GitHub issue generation",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
