@@ -94,6 +94,7 @@ That rule was prose, and prose did not stop the publish. Two mechanisms back it 
 
 - **一切皆插件（Everything is a plugin）**：贯彻 DSH 的核心理念。所有功能以 Cordis 插件形式交付——通过 `ctx.plugin()` 挂载，通过 `Service` / `TypertRemoteService` 暴露能力，通过 `inject` 声明依赖，通过 `ctx.get()` 读取可选服务。禁止在插件边界之外引入裸函数模块或全局单例。新增行为优先寻找 DSH 文档化的扩展点（Service、Event、Tool、Slot、Waterfall），而非修改现有插件内部逻辑。
 - **禁止硬编码（No hardcoding）**：部署可变的值必须是校验过的 `Config` 字段，可从 `cordis.yml` 配置；协议常量、外部规范和安全不变量保持固定。禁止在代码中内联 URL、端点、阈值、提示词片段、存储路径等可变值——它们必须作为 `Config` 字段或命名常量声明，并在 `package.json` 的 `dsh.bundle` / `cordis.patch.yml` 中由部署方覆盖。`DEFAULT_*` 常量或测试钩子不算可配置性。
+- **UI 发起的敏感宿主操作没有确认点（No approval outside a turn）**：`ctx.approval.request()` 要求请求落在 open turn 内——`approval/asked` + `approval/decided` 审计对以 turn 为提交/重放边界——并且必须携带 `agent`；面板发起的 Remote 调用发生在 turn 之间，即便调用方能取得 `agent`，`request()` 仍会因没有 open turn 抛错，所以「用户点击 → 宿主执行敏感操作」拿不到人工确认。不要用自建一次性令牌或客户端对话框冒充审批：它们绕开部署已配置的 `ask`/`never` 策略，也不产生审批审计。这类能力只有两种合规形态：留在宿主内部（不注册 `@Remote`，如 `readExternalPath`），或包装成 turn 内的 tool 走 `ctx.approval`。核验与上游反馈见 [#103](https://github.com/zhangj1164/dsh-mega-plugins/issues/103)。
 
 ## Conventions
 
