@@ -1060,3 +1060,53 @@ describe('MemoService records the route on calls that worked', () => {
     })
   })
 })
+
+describe('MemoService durable-write retry', () => {
+  // The real failure is the Windows rename race with an antivirus or indexer;
+  // the harness injects that errno so the retry path is deterministic.
+  it('replays an EPERM write and still stores the week', async () => {
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 2 })
+    const created = await ctx.memo.getOrCreateCurrentWeek({})
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+
+    const read = ctx.memo.getWeek({ weekId: created.value.weekId })
+    expect(read.ok).toBe(true)
+    // Two failures, then the success.
+    expect(flakyWrites?.attempts).toBe(3)
+  })
+
+  it('replays archive writes and archive deletes', async () => {
+    // Arm one failure before each operation, so the put and the delete are
+    // exercised independently instead of the put consuming the whole budget.
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 0 })
+    flakyWrites?.arm(1)
+    const archived = await ctx.memo.archiveQuarter({ label: '2026-Q1' })
+    expect(archived.ok).toBe(true)
+
+    flakyWrites?.arm(1)
+    const unarchived = await ctx.memo.unarchiveQuarter({ label: '2026-Q1' })
+    expect(unarchived.ok).toBe(true)
+    if (!unarchived.ok) return
+    expect(unarchived.value.archived).toBe(true)
+    // put: fail + success, delete: fail + success.
+    expect(flakyWrites?.attempts).toBe(4)
+  })
+
+  it('surfaces the last failure after spending the retry budget', async () => {
+    // One initial attempt plus four retries, all refused; the write then
+    // rejects exactly as a permanently failing medium would.
+    const { ctx, flakyWrites } = await harness({ flakyWriteFailures: 5 })
+    await expect(ctx.memo.getOrCreateCurrentWeek({})).rejects.toMatchObject({ code: 'EPERM' })
+    expect(flakyWrites?.attempts).toBe(5)
+  })
+
+  it('does not replay a non-transient write failure', async () => {
+    const { ctx, flakyWrites } = await harness({
+      flakyWriteFailures: 1,
+      flakyWriteCode: 'EACCES',
+    })
+    await expect(ctx.memo.getOrCreateCurrentWeek({})).rejects.toMatchObject({ code: 'EACCES' })
+    expect(flakyWrites?.attempts).toBe(1)
+  })
+})

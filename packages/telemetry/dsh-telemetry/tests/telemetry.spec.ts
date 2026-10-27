@@ -597,3 +597,65 @@ describe('TelemetryService durability', () => {
     expect(events.some(e => e.result === 'failure' && e.error?.featureCodeRef === 'memo:analyze')).toBe(true)
   })
 })
+
+describe('TelemetryService durable-write retry', () => {
+  // The race this guards is real but external (an antivirus or indexer holding
+  // the unit file open while the JSON backend renames over it), so the harness
+  // injects the exact errno the rename produces instead of waiting for it.
+  it('replays an EPERM write instead of dropping the event', async () => {
+    const h = await setupHarness(undefined, { storageWriteRetryDelayMs: 1 }, { flakyWriteFailures: 2 })
+    harnesses.push(h)
+    h.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
+    await h.ctx.telemetry.flush()
+
+    expect(h.ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(1)
+    // Two failures, then the success.
+    expect(h.flakyWrites?.attempts).toBe(3)
+  })
+
+  it('stops at the configured attempt budget and drops the event', async () => {
+    const h = await setupHarness(
+      undefined,
+      { storageWriteRetries: 2, storageWriteRetryDelayMs: 1 },
+      { flakyWriteFailures: 5 },
+    )
+    harnesses.push(h)
+    h.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
+    await expect(h.ctx.telemetry.flush()).rejects.toMatchObject({ code: 'EPERM' })
+
+    // One initial attempt plus two retries, then the fire-and-forget write is
+    // dropped exactly as a permanently failing medium would drop it.
+    expect(h.ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(0)
+    expect(h.flakyWrites?.attempts).toBe(3)
+  })
+
+  it('does not replay a non-transient filesystem failure', async () => {
+    const h = await setupHarness(
+      undefined,
+      { storageWriteRetries: 4, storageWriteRetryDelayMs: 1 },
+      { flakyWriteFailures: 1, flakyWriteCode: 'EACCES' },
+    )
+    harnesses.push(h)
+    h.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
+    await expect(h.ctx.telemetry.flush()).rejects.toMatchObject({ code: 'EACCES' })
+
+    // EACCES is a real permission problem, not the rename race: sleeping on it
+    // would only delay the report.
+    expect(h.ctx.telemetry.listEvents({ pluginId: 'memo' })).toHaveLength(0)
+    expect(h.flakyWrites?.attempts).toBe(1)
+  })
+
+  it('does not replay when retries are disabled', async () => {
+    const h = await setupHarness(
+      undefined,
+      { storageWriteRetries: 0, storageWriteRetryDelayMs: 1 },
+      { flakyWriteFailures: 1 },
+    )
+    harnesses.push(h)
+    h.ctx.telemetry.track({ pluginId: 'memo', action: 'addEntry' })
+    await expect(h.ctx.telemetry.flush()).rejects.toMatchObject({ code: 'EPERM' })
+
+    // `0` means one attempt, so a deployment can opt out of the extra latency.
+    expect(h.flakyWrites?.attempts).toBe(1)
+  })
+})

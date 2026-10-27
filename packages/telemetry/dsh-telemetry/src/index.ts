@@ -14,6 +14,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { setTimeout as delay } from 'node:timers/promises'
 import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
@@ -77,6 +78,20 @@ export interface Config {
    * ones and give the more informative marker.
    */
   readonly redactionRules: readonly RedactionRule[]
+  /**
+   * Extra attempts after a durable write fails with a transient filesystem
+   * error. The JSON backend publishes a unit by writing a temp file and
+   * renaming it over the target; Windows refuses that rename while another
+   * handle (an antivirus scan, an indexer) holds the target open, and the
+   * same rename usually succeeds a moment later. `0` disables retrying.
+   */
+  readonly storageWriteRetries: number
+  /**
+   * First backoff delay in milliseconds; each retry doubles it, capped at
+   * 5000 ms so a misconfiguration cannot stall a write for minutes. Only waits
+   * between attempts that failed transiently, so the normal path never sleeps.
+   */
+  readonly storageWriteRetryDelayMs: number
 }
 
 /** Schemastery configuration for the telemetry service. */
@@ -89,6 +104,8 @@ export const Config: s<Config> = s.object({
     pattern: s.string().required(),
     flags: s.string(),
   })).default([...DEFAULT_REDACTION_RULES]),
+  storageWriteRetries: s.number().step(1).min(0).max(10).default(4),
+  storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -110,6 +127,8 @@ export class TelemetryService extends Service {
 
   private readonly maxEventsPerQuery: number
   private readonly redactionRules: ReturnType<typeof compileRules>
+  private readonly storageWriteRetries: number
+  private readonly storageWriteRetryDelayMs: number
   private table?: KvTable<string, TelemetryEventRow>
   private readonly pendingWrites: Set<Promise<void>> = new Set()
   /**
@@ -126,6 +145,8 @@ export class TelemetryService extends Service {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'telemetry')
     this.maxEventsPerQuery = config.maxEventsPerQuery
+    this.storageWriteRetries = config.storageWriteRetries
+    this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
     // Compiled once: rules are read on every user action, and a write path is
     // the wrong place to rebuild regular expressions.
     this.redactionRules = config.redact
@@ -174,7 +195,7 @@ export class TelemetryService extends Service {
       ...(input.sessionId === undefined ? {} : { sessionId: input.sessionId }),
       ...this.redactedMetadata(input.metadata),
     }
-    void this.trackWrite(this.requireTable().put(event.id, event))
+    void this.trackWrite(this.writeWithRetry(() => this.requireTable().put(event.id, event)))
   }
 
   /**
@@ -196,7 +217,7 @@ export class TelemetryService extends Service {
       ...this.redactedMetadata(input.metadata),
       error: this.redactedError(input.error),
     }
-    void this.trackWrite(this.requireTable().put(event.id, event))
+    void this.trackWrite(this.writeWithRetry(() => this.requireTable().put(event.id, event)))
   }
 
   /**
@@ -303,6 +324,10 @@ export class TelemetryService extends Service {
    * Wait for all in-flight fire-and-forget writes to settle. Tests call this
    * before reading to avoid a timing race between the write chain and the
    * synchronous read.
+   *
+   * A write that failed after its retry budget is rethrown here, so a test
+   * cannot silently observe a shorter event list and call it a pass; `track()`
+   * itself still never throws, because its callers are fire-and-forget.
    */
   async flush(): Promise<void> {
     while (this.pendingWrites.size > 0) {
@@ -314,6 +339,29 @@ export class TelemetryService extends Service {
   private trackWrite(write: Promise<void>): void {
     this.pendingWrites.add(write)
     void write.then(() => { this.pendingWrites.delete(write) }, () => { this.pendingWrites.delete(write) })
+  }
+
+  /**
+   * Replay one durable write while the failure is transient.
+   *
+   * Replaying the exact same operation, rather than rebuilding the event, is
+   * what keeps the retry safe: the id and sequence were already assigned, and
+   * a successful first attempt followed by a retry would write the event
+   * twice under different ids. The loop stops at the first non-transient
+   * failure so a real permission problem is reported, not slept through.
+   *
+   * @param operation - the write to attempt.
+   * @returns the operation's result once it succeeds.
+   */
+  private async writeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await operation()
+      } catch (error) {
+        if (attempt >= this.storageWriteRetries || !isTransientStorageWriteError(error)) throw error
+        await delay(Math.min(this.storageWriteRetryDelayMs * (2 ** attempt), MAX_STORAGE_WRITE_RETRY_DELAY_MS))
+      }
+    }
   }
 
   /**
@@ -385,6 +433,30 @@ export class TelemetryService extends Service {
     }
     return this.table
   }
+}
+
+/** Filesystem errors that a later identical write can plausibly survive. */
+const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EBUSY'])
+
+/** Ceiling for one retry delay; a large configured base cannot grow without bound. */
+const MAX_STORAGE_WRITE_RETRY_DELAY_MS = 5_000
+
+/**
+ * Whether a failed write is the Windows rename-over-open-handle race.
+ *
+ * `dsh-storage-json` publishes a unit with `rename(tmp, target)`. On Windows
+ * that fails with `EPERM` while an antivirus, an indexer, or another reader
+ * holds the target open; the error is a pure timing race, so an identical
+ * retry is the right response. `EACCES` is deliberately absent: it is the
+ * signature of a real permission problem that waiting does not fix.
+ *
+ * @param error - the value a write rejected with.
+ * @returns true when the write is worth replaying.
+ */
+function isTransientStorageWriteError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  const code = (error as { readonly code?: unknown }).code
+  return typeof code === 'string' && TRANSIENT_STORAGE_WRITE_CODES.has(code)
 }
 
 /**

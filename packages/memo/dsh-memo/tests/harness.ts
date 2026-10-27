@@ -6,6 +6,7 @@ import Storage from '@deepseek-ai/dsh-storage'
 import * as StorageDomain from '@deepseek-ai/dsh-storage-domain'
 import * as StorageJson from '@deepseek-ai/dsh-storage-json'
 import MemoService from '../src/index.ts'
+import { FLAKY_BACKEND, installFlakyStorage, type FlakyStorageProbe } from './flaky-storage.ts'
 
 /** One text-delta chunk as the memo service consumes it. */
 export interface MockTextDelta { readonly type: 'text-delta'; readonly text: string }
@@ -244,6 +245,8 @@ class MockGithubIssueService extends Service {
 export interface TestHarness {
   readonly ctx: Context
   readonly root: string
+  /** Probe for injected transient failures, when the harness was asked for them. */
+  readonly flakyWrites?: FlakyStorageProbe
   /** The telemetry analysis the mock answers with, for log-analysis tests. */
   readonly telemetry: MockTelemetryService
   /** The mock github-issue service, which records the requests it received. */
@@ -294,6 +297,10 @@ export interface SetupOptions {
    * the variables it needs.
    */
   readonly ledgerHome?: 'isolated' | 'inherit'
+  /** Fail this many durable writes with a transient error before letting them through. */
+  readonly flakyWriteFailures?: number
+  /** errno code for the injected failures; defaults to `EPERM`. */
+  readonly flakyWriteCode?: string
 }
 
 /** The environment the test process started with, restored once a harness lets go. */
@@ -332,10 +339,17 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
   const root = await mkdtemp(join(tmpdir(), 'dsh-memo-test-'))
   const restoreLedgerEnv = isolateLedgerHome(root, options.ledgerHome ?? 'isolated')
   const ctx = new Context()
+  let flaky: FlakyStorageProbe | undefined
   try {
     await ctx.plugin(Storage)
     await ctx.plugin(StorageJson, { root })
-    await ctx.plugin(StorageDomain, { backend: 'json' })
+    flaky = options.flakyWriteFailures === undefined
+      ? undefined
+      : installFlakyStorage(ctx, {
+          failures: options.flakyWriteFailures,
+          ...(options.flakyWriteCode === undefined ? {} : { code: options.flakyWriteCode }),
+        })
+    await ctx.plugin(StorageDomain, { backend: flaky === undefined ? 'json' : FLAKY_BACKEND })
     if (options.withoutLlm !== true) await ctx.plugin(MockLlmService, options.llm ?? {})
     if (options.followAgentDefault !== undefined) {
       await ctx.plugin(MockAgentDefaultModel, options.followAgentDefault)
@@ -352,6 +366,8 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
       repoUrl: 'https://github.com/test/repo',
       ...pinned,
       ...(options.logAnalysisPlugins === undefined ? {} : { logAnalysisPlugins: [...options.logAnalysisPlugins] }),
+      // Keep the injected-failure tests fast; the production default is 50 ms.
+      ...(options.flakyWriteFailures === undefined ? {} : { storageWriteRetryDelayMs: 1 }),
     })
   } catch (error) {
     await ctx.fiber.dispose()
@@ -362,6 +378,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
   return {
     ctx,
     root,
+    ...(flaky === undefined ? {} : { flakyWrites: flaky }),
     get telemetry() { return ctx.get('telemetry') as MockTelemetryService },
     get githubIssue() { return ctx.get('githubIssue') as MockGithubIssueService },
     async dispose() {
