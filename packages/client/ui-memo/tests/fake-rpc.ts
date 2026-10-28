@@ -60,6 +60,17 @@ export interface FakeRpcOptions {
    * nothing to fall back on and answers `route-missing`.
    */
   readonly noModelRoute?: boolean
+  /** Officially archived sessions `memo/listArchivedSessions` offers. */
+  readonly archivedSessions?: readonly {
+    readonly sessionId: string
+    readonly title: string
+    readonly createdAt?: number
+    readonly summarizedWeekIds?: readonly string[]
+  }[]
+  /** Per-call session limit `memo/listArchivedSessions` reports; defaults to 5. */
+  readonly maxSessions?: number
+  /** When set, `memo/summarizeSession` fails with this business error. */
+  readonly summarizeFailure?: { readonly code: string; readonly message: string }
 }
 
 /** A fake RPC channel plus the state it accumulated. */
@@ -268,6 +279,71 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
       return ok([...archived.entries()]
         .map(([label, archivedAt]) => ({ label, archivedAt, weekIds: weekIdsForPeriod('quarter', label) }))
         .sort((a, b) => a.label.localeCompare(b.label)))
+    }
+    if (method === 'listArchivedSessions') {
+      // Reflect writes from `summarizeSession`, so a reopened picker (or the
+      // reload after a partial failure) marks the sessions that now have a
+      // summary instead of inviting a duplicate.
+      const written = new Map<string, string[]>()
+      for (const [weekId, week] of weeks) {
+        for (const entry of week.entries ?? []) {
+          if (entry.originSessionId === undefined) continue
+          const list = written.get(entry.originSessionId) ?? []
+          list.push(weekId)
+          written.set(entry.originSessionId, list)
+        }
+      }
+      return ok({
+        sessions: (options.archivedSessions ?? []).map(session => ({
+          sessionId: session.sessionId,
+          title: session.title,
+          createdAt: session.createdAt ?? 0,
+          summarizedWeekIds: [...new Set([
+            ...(session.summarizedWeekIds ?? []),
+            ...(written.get(session.sessionId) ?? []),
+          ])],
+        })),
+        maxSessions: options.maxSessions ?? 5,
+        currentWeekId,
+      })
+    }
+    if (method === 'summarizeSession') {
+      if (options.summarizeFailure !== undefined) {
+        return fail(options.summarizeFailure.code, options.summarizeFailure.message)
+      }
+      const weekId = typeof request.weekId === 'string' && request.weekId.length > 0 ? request.weekId : currentWeekId
+      const existing = weeks.get(weekId)
+      const monday = mondayOf(weekId)
+      const week: MemoWeek = existing ?? {
+        weekId,
+        weekStart: monday.getTime(),
+        weekEnd: monday.getTime() + 6 * 24 * 60 * 60 * 1000,
+        updatedAt: 0,
+        entries: [],
+      }
+      const ids = Array.isArray(request.sessionIds) ? request.sessionIds.map(String) : []
+      const outcomes = ids.map((sessionId, index) => {
+        const session = (options.archivedSessions ?? []).find(candidate => candidate.sessionId === sessionId)
+        if (session === undefined) {
+          return {
+            sessionId,
+            title: sessionId,
+            error: { code: 'session-not-archived', message: `session "${sessionId}" is not in the official archive`, sessionId },
+          }
+        }
+        const entry: MemoEntry = {
+          id: `summary-${sessionId}`,
+          type: 'text',
+          content: `# summary of ${session.title}`,
+          originSessionId: sessionId,
+          createdAt: 1_700_000_000_000 + index,
+          updatedAt: 1_700_000_000_000 + index,
+        }
+        week.entries = [...(week.entries ?? []), entry]
+        return { sessionId, title: session.title, entry }
+      })
+      weeks.set(weekId, { ...week, updatedAt: Date.now() })
+      return ok({ weekId, outcomes })
     }
     if (method === 'archiveQuarter') {
       const label = String(request.label)

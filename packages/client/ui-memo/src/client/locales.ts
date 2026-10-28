@@ -23,6 +23,12 @@ export type MemoKey =
   | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
+  // Session summary
+  | 'summarizeSessions' | 'sessionSummaryTitle' | 'sessionSummaryHint' | 'sessionSummaryTarget'
+  | 'sessionSummaryLimit' | 'sessionSummarySelectAll' | 'sessionSummaryClearSelection'
+  | 'sessionSummaryEmpty' | 'sessionSummaryLoadFailed' | 'sessionSummaryStart'
+  | 'sessionSummaryAlready' | 'sessionSummaryOtherWeek' | 'sessionSummaryWritten'
+  | 'sessionSummaryFailed' | 'sessionSummaryArchivedWeek' | 'sessionSummaryNoSelection'
   // Result cards
   | 'collapse' | 'expand' | 'closeResult'
 
@@ -82,6 +88,22 @@ export const zh: Record<MemoKey, string> = {
   analyzeLogs: '日志分析',
   logAnalysisTitle: '日志分析报告',
   openPrefilledIssue: '打开预填 Issue',
+  summarizeSessions: '总结会话',
+  sessionSummaryTitle: '总结已归档会话',
+  sessionSummaryHint: '选择一个或多个官方归档的会话，模型会分别总结，并把结果写入当前周。',
+  sessionSummaryTarget: '写入周期',
+  sessionSummaryLimit: '选择上限',
+  sessionSummarySelectAll: '全选',
+  sessionSummaryClearSelection: '清除选择',
+  sessionSummaryEmpty: '官方归档中还没有可总结的会话',
+  sessionSummaryLoadFailed: '会话归档读取失败',
+  sessionSummaryStart: '开始总结',
+  sessionSummaryAlready: '本周已总结',
+  sessionSummaryOtherWeek: '其他周已总结',
+  sessionSummaryWritten: '已写入',
+  sessionSummaryFailed: '失败',
+  sessionSummaryArchivedWeek: '目标周所在季度已归档，取消归档后才能写入',
+  sessionSummaryNoSelection: '请至少选择一个会话',
   collapse: '折叠',
   expand: '展开',
   closeResult: '关闭此卡片',
@@ -143,6 +165,22 @@ export const en: Record<MemoKey, string> = {
   analyzeLogs: 'Analyze Logs',
   logAnalysisTitle: 'Log Analysis Report',
   openPrefilledIssue: 'Open Prefilled Issue',
+  summarizeSessions: 'Summarize Sessions',
+  sessionSummaryTitle: 'Summarize Archived Sessions',
+  sessionSummaryHint: 'Pick one or more officially archived sessions; the model summarizes each one and writes the results into the current week.',
+  sessionSummaryTarget: 'Target week',
+  sessionSummaryLimit: 'Selection limit',
+  sessionSummarySelectAll: 'Select all',
+  sessionSummaryClearSelection: 'Clear selection',
+  sessionSummaryEmpty: 'The official archive has no sessions to summarize yet',
+  sessionSummaryLoadFailed: 'The session archive could not be read',
+  sessionSummaryStart: 'Start summarizing',
+  sessionSummaryAlready: 'Summarized this week',
+  sessionSummaryOtherWeek: 'Summarized in another week',
+  sessionSummaryWritten: 'Written',
+  sessionSummaryFailed: 'Failed',
+  sessionSummaryArchivedWeek: 'The target week is in an archived quarter; unarchive it before writing',
+  sessionSummaryNoSelection: 'Select at least one session',
   collapse: 'Collapse',
   expand: 'Expand',
   closeResult: 'Close this card',

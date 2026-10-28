@@ -592,6 +592,76 @@ describe('MemoController lifecycle', () => {
   })
 })
 
+describe('MemoController session summaries', () => {
+  const current = isoWeekId(new Date())
+
+  it('loads the archived sessions and the host limit', async () => {
+    const { controller } = await harness({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI', createdAt: 5 }],
+    })
+    const result = await controller.loadArchivedSessions()
+    expect('error' in result).toBe(false)
+    if ('error' in result) return
+    expect(result.sessions.map(session => session.title)).toEqual(['Fix CI'])
+    expect(result.maxSessions).toBe(5)
+    expect(result.currentWeekId).toBe(current)
+  })
+
+  it('returns the host reason when the archive cannot be read', async () => {
+    const { controller } = await harness({
+      failOn: { listArchivedSessions: { code: 'session-service-unavailable', message: 'no session query' } },
+    })
+    const result = await controller.loadArchivedSessions()
+    expect('error' in result).toBe(true)
+    if (!('error' in result)) return
+    expect(result.error).toBe('no session query')
+  })
+
+  it('summarizes into the week the board is looking at and shows it', async () => {
+    const { rpc, controller } = await harness({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+    })
+    const past = controller.getSnapshot().periods[3]?.label ?? ''
+    await controller.selectLabel(past)
+    const target = controller.targetWeek
+    expect(target).toBe(past)
+
+    const result = await controller.summarizeSessions(['s1'])
+    expect('error' in result).toBe(false)
+    if ('error' in result) return
+    expect(result.weekId).toBe(past)
+    const call = rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(call?.request).toMatchObject({ sessionIds: ['s1'], weekId: past })
+    // The board followed the summaries to their week instead of staying on the
+    // refreshed "current" week.
+    expect(controller.getSnapshot().selection.label).toBe(past)
+    expect(controller.getSnapshot().cards.some(card => card.content === '# summary of Fix CI')).toBe(true)
+  })
+
+  it('refuses to summarize into an archived quarter', async () => {
+    const { controller } = await harness({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+    })
+    await controller.selectPeriod('quarter')
+    await controller.archiveCurrentQuarter()
+    const result = await controller.summarizeSessions(['s1'])
+    expect('error' in result).toBe(true)
+    expect(controller.getSnapshot().error).not.toBeNull()
+  })
+
+  it('reports a business failure from the host', async () => {
+    const { controller } = await harness({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+      summarizeFailure: { code: 'too-many-sessions', message: 'at most 5 sessions' },
+    })
+    const result = await controller.summarizeSessions(['s1'])
+    expect('error' in result).toBe(true)
+    if (!('error' in result)) return
+    expect(result.error).toBe('at most 5 sessions')
+    expect(controller.getSnapshot().error).toBe('at most 5 sessions')
+  })
+})
+
 describe('MemoController archived-quarter writes', () => {
   /** One stored memo in the current week, with the current quarter archived. */
   async function archived() {

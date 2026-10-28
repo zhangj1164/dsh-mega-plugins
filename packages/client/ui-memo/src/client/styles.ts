@@ -531,4 +531,61 @@ export const CSS_TEXT = `
   background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
   box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0, 0, 0, 0.18));
 }
+
+/* ── Session summary picker ── */
+.dsh-memo-dialog--wide { width: min(720px, 100%); }
+.dsh-memo-sessionFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--dsw-alias-text-3);
+}
+/* The list scrolls, not the dialog: the title, facts, and footer stay put while
+   a long archive is browsed. */
+.dsh-memo-sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 2px;
+}
+.dsh-memo-sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  cursor: pointer;
+}
+.dsh-memo-sessionRow:hover { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-sessionRow[data-summarized] { opacity: 0.6; cursor: default; }
+.dsh-memo-sessionMain { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.dsh-memo-sessionTitle {
+  font-size: 13px;
+  color: var(--dsw-alias-text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-memo-sessionMeta { font-size: 11px; color: var(--dsw-alias-text-3); }
+.dsh-memo-sessionTag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.dsh-memo-failureList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--dsw-alias-text-2);
+  overflow-wrap: anywhere;
+}
 `
