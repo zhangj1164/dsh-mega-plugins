@@ -37,6 +37,7 @@ import type {
   MemoListArchivedSessionsValue,
   MemoModelProvider,
   MemoPeriodEntry,
+  MemoSessionSummaryLanguage,
   MemoSummarizeSessionValue,
   MemoWeek,
 } from '@zhangj1164/dsh-memo/client'
@@ -227,6 +228,12 @@ export interface MemoControllerOptions {
   readonly storage?: StorageLike | undefined
   /** Injectable clock, so period defaults are testable. */
   readonly now?: (() => Date) | undefined
+  /**
+   * Active UI locale, e.g. `zh-CN` or `en`. A summary request carries the
+   * matching language so the host can prompt the model in the reader's language;
+   * absent in tests, where the host default (Chinese) applies.
+   */
+  readonly locale?: (() => string) | undefined
 }
 
 /** Create the initial view state. */
@@ -270,6 +277,7 @@ export class MemoController {
   private readonly repoUrl: string
   private readonly storage: StorageLike | undefined
   private readonly now: () => Date
+  private readonly locale: () => string
 
   /**
    * @param options - the RPC caller plus optional storage and clock overrides.
@@ -279,6 +287,7 @@ export class MemoController {
     this.repoUrl = options.repoUrl
     this.storage = options.storage ?? defaultStorage()
     this.now = options.now ?? (() => new Date())
+    this.locale = options.locale ?? (() => 'zh')
   }
 
   getSnapshot = (): MemoViewState => this._state
@@ -611,9 +620,13 @@ export class MemoController {
    * them off screen would make a completed request look like nothing happened.
    *
    * @param sessionIds - the archived sessions to summarize.
+   * @param maxChars - target summary length; the host clamps it to its window.
    * @returns one outcome per session, or a reason the call could not run.
    */
-  async summarizeSessions(sessionIds: readonly string[]): Promise<MemoSummarizeSessionValue | { readonly error: string }> {
+  async summarizeSessions(
+    sessionIds: readonly string[],
+    maxChars?: number,
+  ): Promise<MemoSummarizeSessionValue | { readonly error: string }> {
     const weekId = this.targetWeek
     if (weekId === undefined) {
       this.set({ error: 'no target week for the selected period' })
@@ -628,7 +641,12 @@ export class MemoController {
     if (ids.length === 0) return { error: 'select at least one archived session' }
     this.set({ busy: true, error: null })
     try {
-      const result = await callMemo<MemoSummarizeSessionValue>(this.rpc, 'summarizeSession', { sessionIds: ids, weekId })
+      const result = await callMemo<MemoSummarizeSessionValue>(this.rpc, 'summarizeSession', {
+        sessionIds: ids,
+        weekId,
+        language: this.summaryLanguage(),
+        ...(maxChars === undefined ? {} : { maxChars }),
+      })
       if (!result.ok) {
         this.set({ busy: false, error: result.error.message })
         return { error: result.error.message }
@@ -647,6 +665,18 @@ export class MemoController {
       this.set({ busy: false, error: message })
       return { error: message }
     }
+  }
+
+  /**
+   * Map the active UI locale onto one of the two supported summary languages.
+   *
+   * A prefix test rather than an exact match so regional ids (`zh-CN`, `zh-TW`,
+   * `en-GB`) follow their base language; any other locale falls back to English
+   * rather than surprising the reader with Chinese.
+   * @returns the language to send with a summary request.
+   */
+  private summaryLanguage(): MemoSessionSummaryLanguage {
+    return this.locale().toLowerCase().startsWith('zh') ? 'zh' : 'en'
   }
 
   /**

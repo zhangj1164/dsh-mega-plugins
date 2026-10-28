@@ -10,9 +10,17 @@ function fakeStorage(seed: Record<string, string> = {}): StorageLike {
 }
 
 /** Build a controller over the fake host. */
-async function harness(options: Parameters<typeof createFakeRpc>[0] = {}, storage?: StorageLike) {
+async function harness(
+  options: Parameters<typeof createFakeRpc>[0] = {},
+  storage?: StorageLike,
+  locale?: () => string,
+) {
   const rpc = createFakeRpc(options)
-  const controller = new MemoController({ rpc: wrap(rpc), storage: storage ?? fakeStorage() })
+  const controller = new MemoController({
+    rpc: wrap(rpc),
+    storage: storage ?? fakeStorage(),
+    ...(locale === undefined ? {} : { locale }),
+  })
   await controller.refresh()
   return { rpc, controller }
 }
@@ -604,7 +612,37 @@ describe('MemoController session summaries', () => {
     if ('error' in result) return
     expect(result.sessions.map(session => session.title)).toEqual(['Fix CI'])
     expect(result.maxSessions).toBe(5)
+    expect(result.summaryMaxChars).toBe(300)
+    expect(result.summaryMaxCharsLimit).toBe(2000)
     expect(result.currentWeekId).toBe(current)
+  })
+
+  it('sends the active language and the chosen length', async () => {
+    const { rpc, controller } = await harness(
+      { archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }] },
+      undefined,
+      () => 'zh-CN',
+    )
+    await controller.summarizeSessions(['s1'], 450)
+    const call = rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(call?.request).toMatchObject({ language: 'zh', maxChars: 450 })
+  })
+
+  it('follows an English locale and defaults a missing locale to Chinese', async () => {
+    const english = await harness(
+      { archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }] },
+      undefined,
+      () => 'en-GB',
+    )
+    await english.controller.summarizeSessions(['s1'])
+    const enCall = english.rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(enCall?.request).toMatchObject({ language: 'en' })
+    expect(enCall?.request.maxChars).toBeUndefined()
+
+    const fallback = await harness({ archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }] })
+    await fallback.controller.summarizeSessions(['s1'])
+    const zhCall = fallback.rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(zhCall?.request).toMatchObject({ language: 'zh' })
   })
 
   it('returns the host reason when the archive cannot be read', async () => {

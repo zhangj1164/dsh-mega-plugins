@@ -962,6 +962,8 @@ function SessionSummaryDialog({
   const [sessions, setSessions] = React.useState<readonly MemoArchivedSession[]>([])
   const [maxSessions, setMaxSessions] = React.useState(0)
   const [targetWeekId, setTargetWeekId] = React.useState('')
+  const [maxChars, setMaxChars] = React.useState(0)
+  const [maxCharsLimit, setMaxCharsLimit] = React.useState(2000)
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const [selected, setSelected] = React.useState<readonly string[]>([])
   const [submitting, setSubmitting] = React.useState(false)
@@ -981,6 +983,8 @@ function SessionSummaryDialog({
       }
       setSessions(result.sessions)
       setMaxSessions(result.maxSessions)
+      setMaxChars(result.summaryMaxChars)
+      setMaxCharsLimit(result.summaryMaxCharsLimit)
       setTargetWeekId(controller.targetWeek ?? result.currentWeekId)
       setStatus('ready')
     })()
@@ -1011,7 +1015,7 @@ function SessionSummaryDialog({
     setSubmitting(true)
     setRunError(null)
     setFailures(null)
-    const result = await controller.summarizeSessions(selected)
+    const result = await controller.summarizeSessions(selected, maxChars)
     setSubmitting(false)
     if ('error' in result) {
       setRunError(result.error)
@@ -1060,7 +1064,23 @@ function SessionSummaryDialog({
             React.createElement('div', { className: 'dsh-memo-sessionFacts' },
               React.createElement('span', null,
                 `${t('sessionSummaryTarget')}: ${targetWeekId.length > 0 ? periodDisplay('week', targetWeekId) : '—'}`),
-              React.createElement('span', null, `${t('sessionSummaryLimit')}: ${maxSessions}`)),
+              React.createElement('span', null, `${t('sessionSummaryLimit')}: ${maxSessions}`),
+              React.createElement('label', { className: 'dsh-memo-sessionLength' },
+                `${t('sessionSummaryLength')}:`,
+                React.createElement('input', {
+                  type: 'number',
+                  className: 'dsh-memo-lengthInput',
+                  min: 100,
+                  max: maxCharsLimit,
+                  step: 50,
+                  value: maxChars,
+                  disabled: submitting || targetArchived,
+                  'aria-label': t('sessionSummaryLength'),
+                  onChange: event => {
+                    const next = Number(event.target.value)
+                    if (Number.isFinite(next)) setMaxChars(Math.round(next))
+                  },
+                }))),
 
             targetArchived
               ? React.createElement('div', { className: 'dsh-memo-archiveHint' },

@@ -71,6 +71,10 @@ export interface FakeRpcOptions {
   readonly maxSessions?: number
   /** When set, `memo/summarizeSession` fails with this business error. */
   readonly summarizeFailure?: { readonly code: string; readonly message: string }
+  /** Default summary length `memo/listArchivedSessions` advertises. */
+  readonly summaryMaxChars?: number
+  /** Upper bound `memo/listArchivedSessions` advertises. */
+  readonly summaryMaxCharsLimit?: number
 }
 
 /** A fake RPC channel plus the state it accumulated. */
@@ -305,6 +309,8 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
         })),
         maxSessions: options.maxSessions ?? 5,
         currentWeekId,
+        summaryMaxChars: options.summaryMaxChars ?? 300,
+        summaryMaxCharsLimit: options.summaryMaxCharsLimit ?? 2000,
       })
     }
     if (method === 'summarizeSession') {

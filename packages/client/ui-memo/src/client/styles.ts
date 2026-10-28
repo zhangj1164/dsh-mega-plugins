@@ -541,6 +541,28 @@ export const CSS_TEXT = `
   font-size: 12px;
   color: var(--dsw-alias-text-3);
 }
+
+/* The length control lives inside the facts row, so it inherits that row's type. */
+.dsh-memo-sessionLength {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dsh-memo-lengthInput {
+  width: 5.5em;
+  font: inherit;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.dsh-memo-lengthInput:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 1px;
+}
 /* The list scrolls, not the dialog: the title, facts, and footer stay put while
    a long archive is browsed. */
 .dsh-memo-sessionList {
