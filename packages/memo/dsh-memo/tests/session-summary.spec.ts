@@ -184,6 +184,8 @@ describe('listArchivedSessions', () => {
     expect(result.value.sessions[0]?.cwd).toBe('/work')
     expect(result.value.sessions[1]?.title).toBe('Session session-')
     expect(result.value.maxSessions).toBe(5)
+    expect(result.value.summaryMaxChars).toBe(300)
+    expect(result.value.summaryMaxCharsLimit).toBe(2000)
     expect(result.value.currentWeekId).toBe(currentWeekId())
   })
 
@@ -225,6 +227,55 @@ describe('summarizeSession', () => {
     expect(call?.userText).not.toContain('TOOL_RESULT_ONLY')
     expect(call?.userText).not.toContain('TOOL_ONLY')
     expect(call?.system).toContain('work-session summarizer')
+  })
+
+  it('defaults the prompt to Chinese and the configured length', async () => {
+    const h = await sessionHarness()
+    await h.ctx.memo.summarizeSession({ sessionIds: ['session-a'], weekId: currentWeekId() })
+    const system = h.llm.calls[0]?.system ?? ''
+    expect(system).toContain('Write the summary in Simplified Chinese.')
+    expect(system).toContain('under about 300 characters')
+    expect(system).not.toContain('{language}')
+    expect(system).not.toContain('{maxChars}')
+  })
+
+  it('writes English at the requested length when the client asks for it', async () => {
+    const h = await sessionHarness()
+    await h.ctx.memo.summarizeSession({
+      sessionIds: ['session-a'],
+      weekId: currentWeekId(),
+      language: 'en',
+      maxChars: 450,
+    })
+    const system = h.llm.calls[0]?.system ?? ''
+    expect(system).toContain('Write the summary in English.')
+    expect(system).toContain('under about 450 characters')
+  })
+
+  it('lets Config force a language over the request', async () => {
+    const h = await sessionHarness(FIXTURE, { memoConfig: { sessionSummaryLanguage: 'en' } })
+    await h.ctx.memo.summarizeSession({
+      sessionIds: ['session-a'],
+      weekId: currentWeekId(),
+      language: 'zh',
+    })
+    expect(h.llm.calls[0]?.system).toContain('Write the summary in English.')
+  })
+
+  it('clamps a requested length into the configured window', async () => {
+    const h = await sessionHarness(FIXTURE, { memoConfig: { sessionSummaryMaxCharsLimit: 500 } })
+    await h.ctx.memo.summarizeSession({ sessionIds: ['session-a'], weekId: currentWeekId(), maxChars: 5000 })
+    expect(h.llm.calls[0]?.system).toContain('under about 500 characters')
+
+    const low = await sessionHarness(FIXTURE, { memoConfig: { sessionSummaryMaxCharsLimit: 500 } })
+    await low.ctx.memo.summarizeSession({ sessionIds: ['session-a'], weekId: currentWeekId(), maxChars: 10 })
+    expect(low.llm.calls[0]?.system).toContain('under about 100 characters')
+  })
+
+  it('leaves a custom prompt without placeholders untouched', async () => {
+    const h = await sessionHarness(FIXTURE, { memoConfig: { sessionSummaryPrompt: 'Custom prompt only' } })
+    await h.ctx.memo.summarizeSession({ sessionIds: ['session-a'], weekId: currentWeekId() })
+    expect(h.llm.calls[0]?.system).toBe('Custom prompt only')
   })
 
   it('honours a custom source template with the session title', async () => {
