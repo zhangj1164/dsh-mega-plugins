@@ -958,6 +958,25 @@ describe('MemoBoard session summary', () => {
     expect(dialog.textContent).toContain(`${zh.sessionSummaryLimit}: 3`)
   })
 
+  it('offers a length input and sends the chosen value', async () => {
+    const { rpc, dialog } = await openSessionSummary({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+      summaryMaxChars: 200,
+    })
+    const input = within(dialog).getByLabelText(zh.sessionSummaryLength) as HTMLInputElement
+    expect(input.value).toBe('200')
+
+    fireEvent.change(input, { target: { value: '450' } })
+    fireEvent.click(within(dialog).getByLabelText('Fix CI'))
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.sessionSummaryStart }))
+
+    await waitFor(() => {
+      expect(rpc.calls.some(call => call.endpoint === 'memo/summarizeSession')).toBe(true)
+    })
+    const call = rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(call?.request).toMatchObject({ maxChars: 450 })
+  })
+
   it('marks a session already summarized into the target week and disables it', async () => {
     const weekId = isoWeekId(new Date())
     const { dialog } = await openSessionSummary({

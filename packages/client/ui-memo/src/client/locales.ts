@@ -25,7 +25,7 @@ export type MemoKey =
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
   // Session summary
   | 'summarizeSessions' | 'sessionSummaryTitle' | 'sessionSummaryHint' | 'sessionSummaryTarget'
-  | 'sessionSummaryLimit' | 'sessionSummarySelectAll' | 'sessionSummaryClearSelection'
+  | 'sessionSummaryLimit' | 'sessionSummaryLength' | 'sessionSummarySelectAll' | 'sessionSummaryClearSelection'
   | 'sessionSummaryEmpty' | 'sessionSummaryLoadFailed' | 'sessionSummaryStart'
   | 'sessionSummaryAlready' | 'sessionSummaryOtherWeek' | 'sessionSummaryWritten'
   | 'sessionSummaryFailed' | 'sessionSummaryArchivedWeek' | 'sessionSummaryNoSelection'
@@ -93,6 +93,7 @@ export const zh: Record<MemoKey, string> = {
   sessionSummaryHint: '选择一个或多个官方归档的会话，模型会分别总结，并把结果写入当前周。',
   sessionSummaryTarget: '写入周期',
   sessionSummaryLimit: '选择上限',
+  sessionSummaryLength: '摘要长度（字）',
   sessionSummarySelectAll: '全选',
   sessionSummaryClearSelection: '清除选择',
   sessionSummaryEmpty: '官方归档中还没有可总结的会话',
@@ -170,6 +171,7 @@ export const en: Record<MemoKey, string> = {
   sessionSummaryHint: 'Pick one or more officially archived sessions; the model summarizes each one and writes the results into the current week.',
   sessionSummaryTarget: 'Target week',
   sessionSummaryLimit: 'Selection limit',
+  sessionSummaryLength: 'Summary length (characters)',
   sessionSummarySelectAll: 'Select all',
   sessionSummaryClearSelection: 'Clear selection',
   sessionSummaryEmpty: 'The official archive has no sessions to summarize yet',

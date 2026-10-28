@@ -552,12 +552,24 @@ export interface MemoListArchivedSessionsValue {
   readonly maxSessions: number
   /** The host's current ISO week id, used as the default write target. */
   readonly currentWeekId: string
+  /** Default summary length in characters offered by the picker. */
+  readonly summaryMaxChars: number
+  /** Largest summary length the picker may request; the host clamps to it. */
+  readonly summaryMaxCharsLimit: number
 }
 
 /** Result of listing the officially archived sessions. */
 export type MemoListArchivedSessionsResult =
   | { readonly ok: true; readonly value: MemoListArchivedSessionsValue }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/**
+ * Output language for a generated session summary.
+ *
+ * The host maps the client's active UI locale to one of these before choosing
+ * the prompt language; a deployment may force one through Config instead.
+ */
+export type MemoSessionSummaryLanguage = 'zh' | 'en'
 
 /** Request to summarize one or more archived sessions into a memo week. */
 export interface MemoSummarizeSessionRequest {
@@ -576,6 +588,21 @@ export interface MemoSummarizeSessionRequest {
    * `already-summarized` so a repeated click cannot silently duplicate entries.
    */
   readonly force?: boolean
+  /**
+   * Output language for the summary.
+   *
+   * The browser sends its active UI language; a Config value of `zh` or `en`
+   * overrides it. When omitted, the service follows `auto` and falls back to
+   * Chinese, matching the default source annotation.
+   */
+  readonly language?: MemoSessionSummaryLanguage
+  /**
+   * Target summary length in characters.
+   *
+   * The service clamps it to `[100, Config.sessionSummaryMaxCharsLimit]` and
+   * substitutes the result into the prompt's `{maxChars}` placeholder.
+   */
+  readonly maxChars?: number
 }
 
 /** What happened to one session in a summarize request. */

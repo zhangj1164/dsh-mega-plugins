@@ -118,7 +118,13 @@ export function apply(ctx: ClientContext, config: Config = { repoUrl: DEFAULT_RE
     return
   }
 
-  const controller = new MemoController({ rpc: connection.rpc, repoUrl })
+  const controller = new MemoController({
+    rpc: connection.rpc,
+    repoUrl,
+    // Read lazily: the locale can change while the board is open, and the next
+    // summary request should follow the language the reader sees then.
+    locale: () => ctx.locale.getLocale().active,
+  })
   ctx.effect(() => () => controller.dispose(), 'ui-memo: controller')
 
   ctx.on('connection/reset', () => { void controller.refresh() })

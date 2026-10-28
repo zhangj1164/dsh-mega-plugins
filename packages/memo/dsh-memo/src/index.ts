@@ -171,6 +171,19 @@ export interface Config {
    */
   readonly sessionSummaryTranscriptMaxChars: number
   /**
+   * Output language for generated summaries.
+   *
+   * `auto` follows the language the client sends with the request and falls
+   * back to Chinese when the request carries none. `zh` and `en` force one
+   * language regardless of the client, for a deployment that standardizes its
+   * weekly reports.
+   */
+  readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
+  /** Default summary length in characters offered to the picker. */
+  readonly sessionSummaryMaxChars: number
+  /** Largest summary length a client may request. */
+  readonly sessionSummaryMaxCharsLimit: number
+  /**
    * Template appended to every generated summary entry.
    *
    * Supports `{sessionId}` and `{sessionTitle}`. The default puts the source on
@@ -200,8 +213,46 @@ const DEFAULT_SESSION_SUMMARY_PROMPT = [
   '2. State only what the conversation actually contains; do not speculate.',
   '3. Keep concrete identifiers (files, commands, branches, PR/issue numbers) that a',
   '   reader could use to verify the work.',
-  '4. Output only the bullet text. Do not add a heading or repeat the source note.',
+  '4. Write the summary in {language}.',
+  '5. Keep the whole summary under about {maxChars} characters; never pad to reach it.',
+  '6. Output only the bullet text. Do not add a heading or repeat the source note.',
 ].join('\n')
+
+/**
+ * Model-facing names for the supported summary languages.
+ *
+ * The placeholder takes a language name rather than an id because the prompt is
+ * prose: "Write in zh" is a weaker instruction than "Write in Simplified
+ * Chinese", and a model that follows the weaker one may ignore it.
+ */
+const SESSION_SUMMARY_LANGUAGE_LABELS: Readonly<Record<'zh' | 'en', string>> = Object.freeze({
+  zh: 'Simplified Chinese',
+  en: 'English',
+})
+
+/** Shortest summary a client may request; below this the result stops being useful. */
+const SESSION_SUMMARY_MIN_CHARS = 100
+
+/**
+ * Fill the summary prompt's language and length placeholders.
+ *
+ * The default prompt carries both placeholders. A deployment that supplies its
+ * own prompt keeps full control: an omitted placeholder simply stays untouched,
+ * which is how a custom prompt can opt out of one axis.
+ * @param template - configured prompt, possibly carrying `{language}` and `{maxChars}`.
+ * @param language - resolved output language.
+ * @param maxChars - resolved target length in characters.
+ * @returns the prompt sent to the model.
+ */
+function renderSessionSummaryPrompt(
+  template: string,
+  language: 'zh' | 'en',
+  maxChars: number,
+): string {
+  return template
+    .replaceAll('{language}', SESSION_SUMMARY_LANGUAGE_LABELS[language])
+    .replaceAll('{maxChars}', String(maxChars))
+}
 
 /**
  * Default source annotation appended to a summary.
@@ -221,6 +272,9 @@ export const Config: s<Config> = s.object({
   storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
   sessionSummaryMaxSessions: s.number().step(1).min(1).max(20).default(5),
   sessionSummaryTranscriptMaxChars: s.number().step(1).min(1000).max(200_000).default(24_000),
+  sessionSummaryLanguage: s.any<'auto' | 'zh' | 'en'>().default('auto'),
+  sessionSummaryMaxChars: s.number().step(1).min(100).max(4000).default(300),
+  sessionSummaryMaxCharsLimit: s.number().step(1).min(100).max(20_000).default(2000),
   sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE),
   sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT),
 })
@@ -589,6 +643,9 @@ export class MemoService extends TypertRemoteService {
   private readonly storageWriteRetryDelayMs: number
   private readonly sessionSummaryMaxSessions: number
   private readonly sessionSummaryTranscriptMaxChars: number
+  private readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
+  private readonly sessionSummaryMaxChars: number
+  private readonly sessionSummaryMaxCharsLimit: number
   private readonly sessionSummarySourceTemplate: string
   private readonly sessionSummaryPrompt: string
   private table?: KvTable<string, MemoWeekRow>
@@ -608,6 +665,9 @@ export class MemoService extends TypertRemoteService {
     this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
     this.sessionSummaryMaxSessions = config.sessionSummaryMaxSessions
     this.sessionSummaryTranscriptMaxChars = config.sessionSummaryTranscriptMaxChars
+    this.sessionSummaryLanguage = config.sessionSummaryLanguage
+    this.sessionSummaryMaxChars = config.sessionSummaryMaxChars
+    this.sessionSummaryMaxCharsLimit = config.sessionSummaryMaxCharsLimit
     this.sessionSummarySourceTemplate = config.sessionSummarySourceTemplate
     this.sessionSummaryPrompt = config.sessionSummaryPrompt
   }
@@ -761,6 +821,7 @@ export class MemoService extends TypertRemoteService {
       }))
     }
     sessions.sort((a, b) => b.createdAt - a.createdAt)
+    const limit = Math.max(SESSION_SUMMARY_MIN_CHARS, this.sessionSummaryMaxCharsLimit)
     this.track('listArchivedSessions', 'success', { count: sessions.length })
     return {
       ok: true,
@@ -768,6 +829,8 @@ export class MemoService extends TypertRemoteService {
         sessions: Object.freeze(sessions),
         maxSessions: this.sessionSummaryMaxSessions,
         currentWeekId: computeWeekBounds().weekId,
+        summaryMaxChars: Math.min(Math.max(this.sessionSummaryMaxChars, SESSION_SUMMARY_MIN_CHARS), limit),
+        summaryMaxCharsLimit: limit,
       }),
     }
   }
@@ -1242,6 +1305,9 @@ export class MemoService extends TypertRemoteService {
     const titles = await this.readSessionTitles(query, sessionIds)
     const summarized = this.summarizedSessionWeeks()
     const route = this.resolveRoute(request)
+    const language = this.resolveSummaryLanguage(request)
+    const maxChars = this.resolveSummaryMaxChars(request)
+    const systemPrompt = renderSessionSummaryPrompt(this.sessionSummaryPrompt, language, maxChars)
     const outcomes: MemoSessionSummaryOutcome[] = []
 
     for (const sessionId of sessionIds) {
@@ -1289,7 +1355,7 @@ export class MemoService extends TypertRemoteService {
       const result = await streamLlmText(
         this.ctx.get('llm') as LlmTextSource | undefined,
         route,
-        this.sessionSummaryPrompt,
+        systemPrompt,
         transcript.text,
       )
       if (!result.ok) {
@@ -1326,6 +1392,40 @@ export class MemoService extends TypertRemoteService {
       ok: true,
       value: Object.freeze({ weekId, outcomes: Object.freeze(outcomes) }),
     }
+  }
+
+  /**
+   * Resolve the output language from the deployment Config and the request.
+   *
+   * A forced Config language wins so one deployment's weekly reports stay in one
+   * language; `auto` follows the browser and treats an absent or unknown value
+   * as Chinese, matching the default source annotation.
+   * @param request - the summarize request carrying the browser's language.
+   * @returns the language to render the prompt in.
+   */
+  private resolveSummaryLanguage(request: MemoSummarizeSessionRequest): 'zh' | 'en' {
+    if (this.sessionSummaryLanguage === 'zh' || this.sessionSummaryLanguage === 'en') {
+      return this.sessionSummaryLanguage
+    }
+    return request.language === 'en' ? 'en' : 'zh'
+  }
+
+  /**
+   * Clamp the requested summary length into the configured window.
+   *
+   * A missing value falls back to the configured default. The upper bound is
+   * widened when a deployment sets a default above its own limit, so the default
+   * remains satisfiable instead of silently shrinking.
+   * @param request - the summarize request carrying the picker's value.
+   * @returns the target length in characters.
+   */
+  private resolveSummaryMaxChars(request: MemoSummarizeSessionRequest): number {
+    const limit = Math.max(SESSION_SUMMARY_MIN_CHARS, this.sessionSummaryMaxCharsLimit)
+    const fallback = Math.min(Math.max(this.sessionSummaryMaxChars, SESSION_SUMMARY_MIN_CHARS), limit)
+    const requested = typeof request.maxChars === 'number' && Number.isFinite(request.maxChars)
+      ? Math.round(request.maxChars)
+      : fallback
+    return Math.min(Math.max(requested, SESSION_SUMMARY_MIN_CHARS), limit)
   }
 
   /**

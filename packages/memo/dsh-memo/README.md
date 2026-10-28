@@ -18,8 +18,11 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it, capped at 5000 ms. Only transient failures wait. |
 | `sessionSummaryMaxSessions` | `5` | Most archived sessions one `summarizeSession` call accepts (1–20). |
 | `sessionSummaryTranscriptMaxChars` | `24000` | Character budget for one session's transcript (1000–200000). The head and tail are kept around an elision marker. |
+| `sessionSummaryLanguage` | `auto` | Output language. `auto` follows the language the client sends and falls back to Chinese; `zh` / `en` force one language. |
+| `sessionSummaryMaxChars` | `300` | Default summary length in characters offered by the picker (100–4000). |
+| `sessionSummaryMaxCharsLimit` | `2000` | Upper bound a client may request (100–20000); the host clamps to it. |
 | `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | Text appended to every generated summary. Supports the `{sessionId}` and `{sessionTitle}` placeholders. |
-| `sessionSummaryPrompt` | built-in | System prompt for session summaries. |
+| `sessionSummaryPrompt` | built-in | System prompt for session summaries. Supports the `{language}` and `{maxChars}` placeholders. |
 
 ## Durable-write retry
 
@@ -75,7 +78,7 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
 | `listArchivedSessions(request)` | Lists the sessions in DSH's official archive, newest first, with titles and the weeks already summarized. Subagent sessions are excluded. |
-| `summarizeSession(request)` | Summarizes each requested archived session into one memo week. One entry per session; `force: true` replaces an existing summary instead of duplicating it. |
+| `summarizeSession(request)` | Summarizes each requested archived session into one memo week, in the language and at the length the request asks for. One entry per session; `force: true` replaces an existing summary instead of duplicating it. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
 
 The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
@@ -115,6 +118,8 @@ A consequence worth stating: archiving the **current** quarter closes today as w
 Summaries come from DSH's own session archive: `workspaceRegistry.archivedSessionIds` decides which sessions are eligible, and `sessionQuery` supplies titles, headers, and the model-visible surface. Both are read through `ctx.get()`, so a deployment without them still boots memo; the picker then reports `session-service-unavailable` with the missing service's name instead of rendering an empty archive.
 
 **One call per session, one entry per session.** Each selected session is rendered to a transcript of user and assistant text (system prompts, tool results, and tool-synthesized user turns are skipped), trimmed to `sessionSummaryTranscriptMaxChars` by keeping the head and tail around an elision marker, and summarized by its own model call. The result is appended to the target week as one text entry, so a weekly view reads as "what did each conversation produce" and one long session cannot crowd out the others. Subagent sessions are excluded from the picker: they are the model's own delegation, not the user's work.
+
+**Language and length follow the reader.** The browser sends its active UI language (`zh` or `en`) and the length chosen in the picker; the host resolves them against `sessionSummaryLanguage` and the `[100, sessionSummaryMaxCharsLimit]` window, then substitutes `{language}` and `{maxChars}` into `sessionSummaryPrompt`. The default prompt asks for Simplified Chinese or English accordingly and keeps the summary near the target length, so a Chinese board no longer receives an English summary. A deployment-forced `zh` / `en` overrides the browser, and a custom prompt that omits a placeholder opts out of that axis.
 
 **Provenance is recorded, not inferred.** Every generated entry carries `originSessionId`, `updateEntry` preserves it, and the host refuses a second summary of the same session in the same week with `already-summarized` unless `force: true`, which replaces that entry instead of adding a duplicate. The source annotation is rendered on the host after the model returns, from `sessionSummarySourceTemplate` (the `{sessionId}` and `{sessionTitle}` placeholders); the model never sees it and cannot forge it, and an annotation added in the browser would be absent from every other client.
 
