@@ -80,6 +80,14 @@ Every method declares exactly one parameter named `request`, even when it carrie
 
 The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
 
+### No approval outside a turn
+
+Every method in this table arrives between turns: the panel calls it after a click, not while an agent turn is open. `ctx.approval.request()` requires an open turn and an `agent`, and its `approval/asked` + `approval/decided` audit pair is the unit a turn commits and replays — so a UI-initiated call cannot prompt, and no human confirmation can exist there. `readExternalPath` stays host-internal for that reason as much as for its missing transport: a sensitive operation cannot borrow approval from a surface that has no turn.
+
+Do not stand in for approval with a self-issued one-time token or a client-side dialog. Both sit on the same addressable surface as the method they guard, both bypass the deployment's configured `ask` / `never` policy, and neither produces an approval audit; a confirmation only the guarded code can check confirms nothing. A capability that genuinely needs consent has exactly two compliant shapes: keep it inside the host with no `@Remote` registration, or expose it as a turn-time tool that goes through `ctx.approval`. Narrowing the exposed surface is the fix, not rebuilding consent on the client.
+
+The behavior was verified against DSH `0.2.1-rc.2` and `0.2.1-rc.4`; the upstream question and this repository's tracking issue are linked from [#103](https://github.com/zhangj1164/dsh-mega-plugins/issues/103).
+
 ### What one log analysis covers
 
 One report, not one per plugin: the packages of a suite are installed, broken, and fixed together, and a report that covers only `memo` cannot mention the `github-issue` failure that broke this panel's own issue editor — which is exactly the failure that went unseen. Totals add up across plugins, the window is the union of the per-plugin windows, and failure groups arrive together sorted by failure count; each group already carries its plugin's prefix in `featureCodeRef`, so groups from different plugins cannot collide. The request may name its own `pluginIds`; a deployment trims the default with `Config.logAnalysisPlugins`. An empty set is refused with `no-plugins-configured` rather than reported as an empty suite, because a report that read nothing and a suite that recorded nothing are not the same claim.
