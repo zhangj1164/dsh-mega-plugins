@@ -32,9 +32,12 @@ import type {
   MemoAnalysisPeriod,
   MemoAnalysisType,
   MemoArchivedQuarter,
+  MemoArchivedSession,
   MemoEntry,
+  MemoListArchivedSessionsValue,
   MemoModelProvider,
   MemoPeriodEntry,
+  MemoSummarizeSessionValue,
   MemoWeek,
 } from '@zhangj1164/dsh-memo/client'
 import type { GithubIssueReport } from '@zhangj1164/dsh-github-issue/client'
@@ -568,6 +571,81 @@ export class MemoController {
     } catch (e) {
       this.set({ busy: false, error: describeError(e) })
       return false
+    }
+  }
+
+  /**
+   * Read the officially archived sessions the summary picker offers.
+   *
+   * A failure is returned rather than stored: the picker is a modal with its own
+   * lifecycle, and putting "why the list is empty" in the board's error banner
+   * would show it after the dialog closed. The board itself stays usable — the
+   * feature is additive and a missing session archive must not break the memo
+   * surface.
+   *
+   * @returns the archived sessions and their per-call limit, or a reason.
+   */
+  async loadArchivedSessions(): Promise<MemoListArchivedSessionsValue | { readonly error: string }> {
+    try {
+      const result = await callMemo<MemoListArchivedSessionsValue>(this.rpc, 'listArchivedSessions', {})
+      if (!result.ok) return { error: result.error.message }
+      if (result.value === null || typeof result.value !== 'object') {
+        return { error: 'the archived sessions could not be read' }
+      }
+      return result.value
+    } catch (e) {
+      return { error: describeError(e) }
+    }
+  }
+
+  /**
+   * Summarize archived sessions into the week the composer would write to.
+   *
+   * The target week comes from {@link targetWeek}, the same rule that decides
+   * where a typed memo lands, so "the week I am looking at" means one thing on
+   * this board. The host owns the model call and the source annotation; this
+   * method only carries the selection and brings the resulting week into view.
+   *
+   * After a successful call the board switches to the target week even when the
+   * user was looking at a month or year: the entries are the outcome, and leaving
+   * them off screen would make a completed request look like nothing happened.
+   *
+   * @param sessionIds - the archived sessions to summarize.
+   * @returns one outcome per session, or a reason the call could not run.
+   */
+  async summarizeSessions(sessionIds: readonly string[]): Promise<MemoSummarizeSessionValue | { readonly error: string }> {
+    const weekId = this.targetWeek
+    if (weekId === undefined) {
+      this.set({ error: 'no target week for the selected period' })
+      return { error: 'no target week for the selected period' }
+    }
+    if (this.targetArchived) {
+      const message = 'the target week is in an archived quarter; unarchive it first'
+      this.set({ error: message })
+      return { error: message }
+    }
+    const ids = [...sessionIds]
+    if (ids.length === 0) return { error: 'select at least one archived session' }
+    this.set({ busy: true, error: null })
+    try {
+      const result = await callMemo<MemoSummarizeSessionValue>(this.rpc, 'summarizeSession', { sessionIds: ids, weekId })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return { error: result.error.message }
+      }
+      await this.refresh('week')
+      // A summary can land in any week the board was showing, including one from
+      // an earlier year whose chip the refreshed timeline no longer lists. Move
+      // the year first, then the week, or the selected label has no visible tag.
+      const year = weekId.slice(0, 4)
+      if (this._state.years.includes(year) && this._state.year !== year) this.selectYear(year)
+      await this.selectLabel(result.value.weekId)
+      this.set({ busy: false })
+      return result.value
+    } catch (e) {
+      const message = describeError(e)
+      this.set({ busy: false, error: message })
+      return { error: message }
     }
   }
 

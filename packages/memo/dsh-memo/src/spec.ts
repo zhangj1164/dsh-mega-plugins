@@ -23,6 +23,7 @@ export const memoEntrySchema = z.object({
   content: z.string(),
   attachmentRef: z.string().optional(),
   source: z.string().optional(),
+  originSessionId: z.string().min(1).optional(),
   createdAt: nonNegativeSafeInteger,
   updatedAt: nonNegativeSafeInteger,
 }).refine(entry => entry.updatedAt >= entry.createdAt, {

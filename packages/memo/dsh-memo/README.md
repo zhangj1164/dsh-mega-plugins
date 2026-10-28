@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Local-only week-keyed personal memo service for DeepSeek Harness with AI analysis, report export, telemetry logging, and GitHub issue generation.
+Local-only week-keyed personal memo service for DeepSeek Harness with AI analysis, report export, telemetry logging, GitHub issue generation, and archived-session summaries.
 
 ## Plugin
 
@@ -16,6 +16,10 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | Plugin ids `analyzeLogs` covers, in read order. Telemetry exposes no way to enumerate plugins, so the deployment names the set; the default is the suite these bundles install together. |
 | `storageWriteRetries` | `4` | Extra attempts after a durable write fails with `EPERM` / `EBUSY` (the Windows rename-over-open-handle race). `0` disables retrying. |
 | `storageWriteRetryDelayMs` | `50` | First backoff delay in milliseconds; each retry doubles it, capped at 5000 ms. Only transient failures wait. |
+| `sessionSummaryMaxSessions` | `5` | Most archived sessions one `summarizeSession` call accepts (1–20). |
+| `sessionSummaryTranscriptMaxChars` | `24000` | Character budget for one session's transcript (1000–200000). The head and tail are kept around an elision marker. |
+| `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | Text appended to every generated summary. Supports the `{sessionId}` and `{sessionTitle}` placeholders. |
+| `sessionSummaryPrompt` | built-in | System prompt for session summaries. |
 
 ## Durable-write retry
 
@@ -70,6 +74,8 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
+| `listArchivedSessions(request)` | Lists the sessions in DSH's official archive, newest first, with titles and the weeks already summarized. Subagent sessions are excluded. |
+| `summarizeSession(request)` | Summarizes each requested archived session into one memo week. One entry per session; `force: true` replaces an existing summary instead of duplicating it. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
 
 The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
@@ -95,6 +101,16 @@ The domain is separate from `memo` rather than a second table beside `weeks`, so
 The guard asks `weekIdBelongsToPeriod(weekId, 'quarter', label)` — the same Thursday rule that resolved the quarter's week ids — so the answer cannot drift from the calendar that produced them. The cost is one pass over the archived rows, which are a handful of quarters at most, on a user-initiated write.
 
 A consequence worth stating: archiving the **current** quarter closes today as well, since "archive this quarter" is a legitimate action on the quarter in progress. The client disables its composer in that state and points at the unarchive action, so the way out is always one click away.
+
+## Session summaries
+
+Summaries come from DSH's own session archive: `workspaceRegistry.archivedSessionIds` decides which sessions are eligible, and `sessionQuery` supplies titles, headers, and the model-visible surface. Both are read through `ctx.get()`, so a deployment without them still boots memo; the picker then reports `session-service-unavailable` with the missing service's name instead of rendering an empty archive.
+
+**One call per session, one entry per session.** Each selected session is rendered to a transcript of user and assistant text (system prompts, tool results, and tool-synthesized user turns are skipped), trimmed to `sessionSummaryTranscriptMaxChars` by keeping the head and tail around an elision marker, and summarized by its own model call. The result is appended to the target week as one text entry, so a weekly view reads as "what did each conversation produce" and one long session cannot crowd out the others. Subagent sessions are excluded from the picker: they are the model's own delegation, not the user's work.
+
+**Provenance is recorded, not inferred.** Every generated entry carries `originSessionId`, `updateEntry` preserves it, and the host refuses a second summary of the same session in the same week with `already-summarized` unless `force: true`, which replaces that entry instead of adding a duplicate. The source annotation is rendered on the host after the model returns, from `sessionSummarySourceTemplate` (the `{sessionId}` and `{sessionTitle}` placeholders); the model never sees it and cannot forge it, and an annotation added in the browser would be absent from every other client.
+
+**Target week and failures.** `weekId` on the request wins, otherwise the host's current ISO week; the client sends the same target week the composer uses, so "the week I am looking at" means one thing on the board. A per-session failure (unreadable log, empty transcript, model failure) stays inside that session's outcome, so one bad session does not discard the summaries that succeeded. A target week inside an archived quarter is refused with `quarter-archived` before any write.
 
 ## Four-dimension periods
 

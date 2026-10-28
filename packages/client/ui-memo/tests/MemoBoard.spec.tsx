@@ -934,3 +934,76 @@ describe('MemoBoard model switcher', () => {
     expect(within(screen.getByRole('menu')).getByText(zh.providerEmpty)).toBeTruthy()
   })
 })
+
+describe('MemoBoard session summary', () => {
+  /** Open the picker and wait for its archived-session list to load. */
+  async function openSessionSummary(options: FakeRpcOptions) {
+    const built = await renderBoard(options)
+    fireEvent.click(screen.getByRole('button', { name: zh.summarizeSessions }))
+    const dialog = await screen.findByRole('dialog', { name: zh.sessionSummaryTitle })
+    return { ...built, dialog }
+  }
+
+  it('lists the archived sessions with the target week and limit', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', createdAt: 1_700_000_000_000 },
+        { sessionId: 's2', title: 'Write docs' },
+      ],
+      maxSessions: 3,
+    })
+    expect(within(dialog).getByText('Fix CI')).toBeTruthy()
+    expect(within(dialog).getByText('Write docs')).toBeTruthy()
+    expect(dialog.textContent).toContain(zh.sessionSummaryTarget)
+    expect(dialog.textContent).toContain(`${zh.sessionSummaryLimit}: 3`)
+  })
+
+  it('marks a session already summarized into the target week and disables it', async () => {
+    const weekId = isoWeekId(new Date())
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI', summarizedWeekIds: [weekId] }],
+    })
+    const checkbox = within(dialog).getByLabelText('Fix CI')
+    expect(checkbox instanceof HTMLInputElement && checkbox.disabled).toBe(true)
+    expect(within(dialog).getByText(zh.sessionSummaryAlready)).toBeTruthy()
+  })
+
+  it('summarizes the selected sessions and closes on success', async () => {
+    const { rpc, dialog } = await openSessionSummary({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+    })
+    fireEvent.click(within(dialog).getByLabelText('Fix CI'))
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.sessionSummaryStart }))
+
+    await waitFor(() => {
+      expect(rpc.calls.some(call => call.endpoint === 'memo/summarizeSession')).toBe(true)
+    })
+    const call = rpc.calls.find(entry => entry.endpoint === 'memo/summarizeSession')
+    expect(call?.request).toMatchObject({ sessionIds: ['s1'], weekId: isoWeekId(new Date()) })
+    await waitFor(() => { expect(screen.queryByRole('dialog')).toBeNull() })
+    expect(screen.getByText('# summary of Fix CI')).toBeTruthy()
+  })
+
+  it('explains a failed archive read and still offers a way out', async () => {
+    const { dialog } = await openSessionSummary({
+      failOn: { listArchivedSessions: { code: 'session-service-unavailable', message: 'archive offline' } },
+    })
+    expect(dialog.textContent).toContain(zh.sessionSummaryLoadFailed)
+    expect(dialog.textContent).toContain('archive offline')
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.close }))
+    await waitFor(() => { expect(screen.queryByRole('dialog')).toBeNull() })
+  })
+
+  it('stops offering more sessions once the host limit is reached', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'First' },
+        { sessionId: 's2', title: 'Second' },
+      ],
+      maxSessions: 1,
+    })
+    fireEvent.click(within(dialog).getByLabelText('First'))
+    const second = within(dialog).getByLabelText('Second')
+    expect(second instanceof HTMLInputElement && second.disabled).toBe(true)
+  })
+})

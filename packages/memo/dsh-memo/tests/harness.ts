@@ -1,4 +1,4 @@
-﻿import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
@@ -25,6 +25,18 @@ export interface MockFinishError {
 
 /** Any chunk the mock can yield. */
 export type MockChunk = MockTextDelta | MockFinishStop | MockFinishError
+
+/** One model call the mock observed, so a test can assert what was sent. */
+export interface MockLlmCall {
+  /** The requested provider route. */
+  readonly provider: string
+  /** The requested model id. */
+  readonly model: string
+  /** The system prompt the caller supplied. */
+  readonly system: string
+  /** Concatenated text of the first (user) message. */
+  readonly userText: string
+}
 
 /**
  * The route the harness registers on the mock LLM service. A `provider` the
@@ -84,6 +96,8 @@ export class MockLlmService extends Service {
     readonly models: readonly { readonly id: string; readonly name: string }[]
     readonly throws?: string
   }[]
+  /** Every model call this mock observed, in order. */
+  readonly calls: MockLlmCall[] = []
 
   constructor(ctx: Context, options: MockLlmOptions = {}) {
     super(ctx, 'llm')
@@ -135,9 +149,20 @@ export class MockLlmService extends Service {
     return entry.models
   }
 
-  stream(options: { readonly provider?: string; readonly model?: string }): AsyncIterable<MockChunk> {
+  stream(options: {
+    readonly provider?: string
+    readonly model?: string
+    readonly system?: string
+    readonly messages?: readonly unknown[]
+  }): AsyncIterable<MockChunk> {
     const provider = options.provider ?? ''
     const model = options.model ?? ''
+    this.calls.push({
+      provider,
+      model,
+      system: options.system ?? '',
+      userText: messageText(options.messages),
+    })
     // The mock serves exactly what it advertises: the provider route must be
     // registered, and the model must be in that route's catalog. A mock that
     // accepted any model would let a request no adapter would honor pass every
@@ -170,6 +195,22 @@ function chunkStream(chunks: readonly MockChunk[]): AsyncIterable<MockChunk> {
       for (const chunk of chunks) yield chunk
     },
   }
+}
+
+/** Concatenate the text blocks of the first message the caller handed the mock. */
+function messageText(messages: readonly unknown[] | undefined): string {
+  const first = messages?.[0]
+  if (typeof first !== 'object' || first === null) return ''
+  const content = (first as { readonly content?: unknown }).content
+  if (!Array.isArray(content)) return ''
+  return content
+    .map((block: unknown) => {
+      if (typeof block !== 'object' || block === null) return ''
+      const text = (block as { readonly text?: unknown }).text
+      return typeof text === 'string' ? text : ''
+    })
+    .filter(text => text.length > 0)
+    .join('\n')
 }
 
 /** Mock `agentDefaultModel` service: one fixed selection, no settings write. */
@@ -251,6 +292,8 @@ export interface TestHarness {
   readonly telemetry: MockTelemetryService
   /** The mock github-issue service, which records the requests it received. */
   readonly githubIssue: MockGithubIssueService
+  /** The mock LLM service, which records every call it received. */
+  readonly llm: MockLlmService
   dispose(): Promise<void>
 }
 
@@ -301,6 +344,21 @@ export interface SetupOptions {
   readonly flakyWriteFailures?: number
   /** errno code for the injected failures; defaults to `EPERM`. */
   readonly flakyWriteCode?: string
+  /**
+   * Mount extra services after the core mocks and before the memo service.
+   *
+   * Used by tests that need a peer the production composition mounts, such as
+   * the workspace registry or session query, without making the shared harness
+   * depend on those packages.
+   */
+  readonly beforeMemo?: (ctx: Context) => Promise<void> | void
+  /**
+   * Extra memo `Config` fields, merged before the harness's pinned route.
+   *
+   * A test that needs a non-default source template or transcript budget passes
+   * it here instead of hardcoding it in the service.
+   */
+  readonly memoConfig?: Record<string, unknown>
 }
 
 /** The environment the test process started with, restored once a harness lets go. */
@@ -362,8 +420,10 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
           provider: options.config?.provider ?? TEST_ROUTE.provider,
           model: options.config?.model ?? TEST_ROUTE.model,
         }
+    await options.beforeMemo?.(ctx)
     await ctx.plugin(MemoService, {
       repoUrl: 'https://github.com/test/repo',
+      ...(options.memoConfig ?? {}),
       ...pinned,
       ...(options.logAnalysisPlugins === undefined ? {} : { logAnalysisPlugins: [...options.logAnalysisPlugins] }),
       // Keep the injected-failure tests fast; the production default is 50 ms.
@@ -381,6 +441,7 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     ...(flaky === undefined ? {} : { flakyWrites: flaky }),
     get telemetry() { return ctx.get('telemetry') as MockTelemetryService },
     get githubIssue() { return ctx.get('githubIssue') as MockGithubIssueService },
+    get llm() { return ctx.get('llm') as MockLlmService },
     async dispose() {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })

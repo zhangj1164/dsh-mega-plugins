@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、遥测记录和 GitHub issue 生成。
+DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、遥测记录、GitHub issue 生成和已归档会话总结。
 
 ## 插件
 
@@ -16,6 +16,10 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `logAnalysisPlugins` | `['memo', 'github-issue']` | `analyzeLogs` 覆盖的插件 id，按读取顺序。遥测没有枚举插件的接口，因此由部署方给出集合；默认值是这些 bundle 一起安装的套件。 |
 | `storageWriteRetries` | `4` | 持久写入因 `EPERM` / `EBUSY`（Windows 上 rename 覆盖被占用文件的竞态）失败后的额外尝试次数。`0` 表示关闭重试。 |
 | `storageWriteRetryDelayMs` | `50` | 首次退避的毫秒数，每次重试翻倍，上限 5000 毫秒。只有瞬态失败才会等待。 |
+| `sessionSummaryMaxSessions` | `5` | 单次 `summarizeSession` 最多接受的已归档会话数（1–20）。 |
+| `sessionSummaryTranscriptMaxChars` | `24000` | 单个会话转写的字符预算（1000–200000）。保留首尾，中间以省略标记收束。 |
+| `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | 追加到每条生成总结末尾的文本。支持 `{sessionId}` 与 `{sessionTitle}` 占位符。 |
+| `sessionSummaryPrompt` | 内置 | 会话总结使用的系统提示词。 |
 
 ## 持久写入重试
 
@@ -70,6 +74,8 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |
 | `listArchivedQuarters(request)` | 列出已归档的季度，最早的在前，每条附带宿主解析出的周 id。 |
+| `listArchivedSessions(request)` | 列出 DSH 官方归档中的会话，最新的在前，附带标题和已总结过的周。子代理会话会被排除。 |
+| `summarizeSession(request)` | 把请求的每个已归档会话分别总结并写入一个备忘周。每个会话一条条目；`force: true` 会替换已有总结而不是重复添加。 |
 | `listModels(request)` | 上报 AI 调用将使用的路由，随后给出每个已注册 provider 及其公布的模型。不会失败：某个 provider 读不出来时只带它自己的 `error`，整个注册表读不出来时返回空列表并附 `catalogError`。 |
 
 上表列出调用方可以通过 Remote 面触及的方法。`readExternalPath` 故意不在其中：方法仍存在、仍返回文件文本，但没有 `@Remote` 注册就没有线上名字，任何请求都寻址不到它。
@@ -95,6 +101,16 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 守卫询问的是 `weekIdBelongsToPeriod(weekId, 'quarter', label)`——也就是当初解析该季度周 id 时用的同一条周四规则，因此它的判断不可能与产出这些周 id 的日历发生漂移。代价是在一次用户发起的写入上遍历一遍归档行，而归档行至多只有几个季度。
 
 一个值得说明的后果：归档**当前**季度会连今天一起关掉，因为「归档本季度」对进行中的季度是一个正当操作。客户端在该状态下禁用输入区并指出取消归档动作，因此出路始终一次点击可达。
+
+## 会话总结
+
+总结的数据来源是 DSH 自己的会话归档：`workspaceRegistry.archivedSessionIds` 决定哪些会话可选，`sessionQuery` 提供标题、头部信息和模型可见的会话面。两者都通过 `ctx.get()` 可选读取，因此没有这些服务的部署仍能启动 memo；此时选择器会返回 `session-service-unavailable` 并指出缺失的服务名，而不是显示一个空归档。
+
+**每个会话一次模型调用、一条备忘条目。** 选中的会话先被转写成「用户 / 助手」文本（系统提示词、工具结果和工具合成的用户轮次都会被跳过），保留首尾并以省略标记收束到 `sessionSummaryTranscriptMaxChars`，再各自调用一次模型。结果作为一条文本条目追加到目标周，因此周视图读起来就是「每段对话各自产出了什么」，一个超长会话也不会挤掉其他会话。子代理会话不会出现在选择器中：它们是模型自己的委派，不是用户的工作。
+
+**来源是记录下来的，不是猜出来的。** 每条生成的条目都带 `originSessionId`，`updateEntry` 会保留它；同一会话在同一周已有总结时，宿主以 `already-summarized` 拒绝第二次写入，除非传 `force: true`——那会替换该条目而不是新增一条。来源注记由宿主在模型返回之后按 `sessionSummarySourceTemplate` 渲染（支持 `{sessionId}` 与 `{sessionTitle}` 占位符）；模型看不到它，也无法伪造；如果放在浏览器里拼，其他客户端就看不到这段来源。
+
+**目标周与失败处理。** 请求上的 `weekId` 优先，否则用宿主的当前 ISO 周；客户端发送的是输入区使用的同一个目标周，因此「我正在看的那一周」在看板上只有一个含义。单个会话的失败（日志读不出、转写为空、模型失败）只留在该会话自己的结果里，一个坏会话不会丢弃其他已经成功的总结。目标周落在已归档季度时，会在任何写入之前以 `quarter-archived` 拒绝。
 
 ## 四维度周期
 
