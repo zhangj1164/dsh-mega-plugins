@@ -24,6 +24,15 @@ export interface MemoEntry {
   readonly attachmentRef?: string
   /** External source path the entry references, when the user linked a local file. */
   readonly source?: string
+  /**
+   * The archived session a generated summary came from.
+   *
+   * Kept separate from {@link MemoEntry.source}: `source` names a local file the
+   * user linked, while this names the conversation the model summarized. Dedupe
+   * and later queries need to tell the two origins apart, and a single field
+   * carrying both would make a file path look like a session id.
+   */
+  readonly originSessionId?: string
   /** Epoch milliseconds when the entry was created. */
   readonly createdAt: number
   /** Epoch milliseconds when the entry was last updated. */
@@ -292,6 +301,22 @@ export type MemoMemoFailure =
   /** Any other filesystem failure, including one that carried no DSH code. */
   | { readonly code: 'fs-error'; readonly message: string; readonly path: string }
   | { readonly code: 'github-issue-failure'; readonly message: string }
+  /** No session archive or session query service is mounted in this deployment. */
+  | { readonly code: 'session-service-unavailable'; readonly message: string; readonly service: 'workspaceRegistry' | 'sessionQuery' }
+  /** A requested session id is not a non-empty string. */
+  | { readonly code: 'invalid-session-id'; readonly message: string; readonly sessionId: string }
+  /** The request selected no sessions. */
+  | { readonly code: 'no-sessions'; readonly message: string }
+  /** The request selected more sessions than one call accepts. */
+  | { readonly code: 'too-many-sessions'; readonly message: string; readonly limit: number }
+  /** The session is not in the official archive set, so it is out of this feature's scope. */
+  | { readonly code: 'session-not-archived'; readonly message: string; readonly sessionId: string }
+  /** The session log could not be read or replayed. */
+  | { readonly code: 'session-unreadable'; readonly message: string; readonly sessionId: string }
+  /** The session has no user/assistant text to summarize. */
+  | { readonly code: 'session-empty'; readonly message: string; readonly sessionId: string }
+  /** The target week already holds a summary of this session. */
+  | { readonly code: 'already-summarized'; readonly message: string; readonly sessionId: string; readonly weekId: string; readonly entryId: string }
 
 /** ── Long-term memory (persistent JSON ledger in $DSH_HOME/memo/) ── */
 
@@ -489,3 +514,91 @@ export interface MemoListModelsValue {
  * route must still be able to open the memo board.
  */
 export type MemoListModelsResult = { readonly ok: true; readonly value: MemoListModelsValue }
+
+/** ── Session summaries from the official session archive ── */
+
+/** One officially archived session the memo panel can summarize. */
+export interface MemoArchivedSession {
+  /** Session identity, also written to the resulting entry's `originSessionId`. */
+  readonly sessionId: string
+  /** Log-backed title, or a short id fallback when the session has none. */
+  readonly title: string
+  /** Epoch milliseconds when the session was created. */
+  readonly createdAt: number
+  /** The directory the session ran in, when its header recorded one. */
+  readonly cwd?: string
+  /**
+   * Weeks that already hold a summary of this session, ascending.
+   *
+   * A caller uses this to mark "already summarized in the target week" and to
+   * avoid offering a selection the host would refuse anyway.
+   */
+  readonly summarizedWeekIds: readonly string[]
+}
+
+/**
+ * Request for `listArchivedSessions`.
+ *
+ * It carries no input, and it declares `request` because the Remote protocol
+ * binds arguments by name.
+ */
+export interface MemoListArchivedSessionsRequest {}
+
+/** The archived sessions plus the limits and clock the picker needs. */
+export interface MemoListArchivedSessionsValue {
+  /** Archived sessions, newest first. */
+  readonly sessions: readonly MemoArchivedSession[]
+  /** How many sessions one `summarizeSession` call accepts. */
+  readonly maxSessions: number
+  /** The host's current ISO week id, used as the default write target. */
+  readonly currentWeekId: string
+}
+
+/** Result of listing the officially archived sessions. */
+export type MemoListArchivedSessionsResult =
+  | { readonly ok: true; readonly value: MemoListArchivedSessionsValue }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** Request to summarize one or more archived sessions into a memo week. */
+export interface MemoSummarizeSessionRequest {
+  /** Archived session ids to summarize, in order. Duplicates are collapsed. */
+  readonly sessionIds: readonly string[]
+  /** Week to write into; omit for the service's current ISO week. */
+  readonly weekId?: string
+  /** Provider route override; omit to use the service Config or `agentDefaultModel`. */
+  readonly provider?: string
+  /** Model id override; omit to use the service Config or `agentDefaultModel`. */
+  readonly model?: string
+  /**
+   * Replace an existing summary of the same session in the target week.
+   *
+   * Without it, a session already summarized in that week is reported as
+   * `already-summarized` so a repeated click cannot silently duplicate entries.
+   */
+  readonly force?: boolean
+}
+
+/** What happened to one session in a summarize request. */
+export interface MemoSessionSummaryOutcome {
+  /** The session this outcome describes. */
+  readonly sessionId: string
+  /** The session's title, or the short-id fallback. */
+  readonly title: string
+  /** The entry written (or replaced) on success. */
+  readonly entry?: MemoEntry
+  /** Why this session produced no entry. */
+  readonly error?: MemoMemoFailure
+}
+
+/** The per-session outcomes of one summarize request. */
+export interface MemoSummarizeSessionValue {
+  /** The week every successful outcome was written to. */
+  readonly weekId: string
+  /** One outcome per requested session, in request order. */
+  readonly outcomes: readonly MemoSessionSummaryOutcome[]
+}
+
+/** Result of summarizing archived sessions. */
+export type MemoSummarizeSessionResult =
+  | { readonly ok: true; readonly value: MemoSummarizeSessionValue }
+  | { readonly ok: false; readonly error: MemoMemoFailure }

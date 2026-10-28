@@ -26,6 +26,14 @@ import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
 import type { TelemetryAnalysis, TelemetryFailureGroup } from '@zhangj1164/dsh-telemetry/types'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import {
+  extractSessionMessages,
+  isSubagentSession,
+  renderSessionTranscript,
+  renderSourceAnnotation,
+  sessionTitleOrFallback,
+  type SessionSurfaceEventLike,
+} from './session-transcript.ts'
+import {
   isoWeekParts,
   mondayOfWeekId,
   periodBounds,
@@ -48,6 +56,7 @@ import type {
   MemoAnalysisType,
   MemoArchiveQuarterResult,
   MemoArchivedQuarter,
+  MemoArchivedSession,
   MemoDeleteEntryRequest,
   MemoDeleteEntryResult,
   MemoEntry,
@@ -59,6 +68,9 @@ import type {
   MemoGetWeekResult,
   MemoListArchivedQuartersResult,
   MemoListArchivedQuartersRequest,
+  MemoListArchivedSessionsRequest,
+  MemoListArchivedSessionsResult,
+  MemoListArchivedSessionsValue,
   MemoListModelsRequest,
   MemoListModelsResult,
   MemoModelProvider,
@@ -70,6 +82,10 @@ import type {
   MemoMemoFailure,
   MemoQuarterLabelRequest,
   MemoReadExternalPathRequest,
+  MemoSessionSummaryOutcome,
+  MemoSummarizeSessionRequest,
+  MemoSummarizeSessionResult,
+  MemoSummarizeSessionValue,
   MemoUnarchiveQuarterResult,
   MemoUpdateEntryRequest,
   MemoUpdateEntryResult,
@@ -139,10 +155,61 @@ export interface Config {
    * between attempts that failed transiently, so the normal path never sleeps.
    */
   readonly storageWriteRetryDelayMs: number
+  /**
+   * How many archived sessions one summarize request accepts.
+   *
+   * A cap rather than no limit: every selected session costs one model call,
+   * and a mis-click that selected the whole archive should be refused before it
+   * spends them.
+   */
+  readonly sessionSummaryMaxSessions: number
+  /**
+   * Total character budget for the conversation sent to the model.
+   *
+   * The prompt keeps the head and tail of an over-budget session, so this is the
+   * one knob that trades summary depth for context safety.
+   */
+  readonly sessionSummaryTranscriptMaxChars: number
+  /**
+   * Template appended to every generated summary entry.
+   *
+   * Supports `{sessionId}` and `{sessionTitle}`. The default puts the source on
+   * its own line so a week's cards can be traced back to their sessions without
+   * opening each one.
+   */
+  readonly sessionSummarySourceTemplate: string
+  /** System prompt used to summarize an archived session. */
+  readonly sessionSummaryPrompt: string
 }
 
 /** The plugin ids log analysis covers unless the deployment configures others. */
 const DEFAULT_LOG_ANALYSIS_PLUGINS: readonly string[] = Object.freeze(['memo', 'github-issue'])
+
+/**
+ * Built-in prompt for summarizing one archived session.
+ *
+ * A `Config` default rather than an inline string: it is model-facing text a
+ * deployment may want to retarget (language, house style, team vocabulary), and
+ * the repository's no-hardcoding rule covers prompt fragments.
+ */
+const DEFAULT_SESSION_SUMMARY_PROMPT = [
+  'You are a work-session summarizer. Read the human/assistant conversation below',
+  'and write a compact summary of the work it represents.',
+  'Requirements:',
+  '1. Use 3-6 bullet points covering the goal, what was produced, and the key decisions.',
+  '2. State only what the conversation actually contains; do not speculate.',
+  '3. Keep concrete identifiers (files, commands, branches, PR/issue numbers) that a',
+  '   reader could use to verify the work.',
+  '4. Output only the bullet text. Do not add a heading or repeat the source note.',
+].join('\n')
+
+/**
+ * Default source annotation appended to a summary.
+ *
+ * Kept as a template with placeholders so a deployment can switch language or
+ * add the session title without the host composing prose.
+ */
+const DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE = '\n\n来源会话：{sessionId}'
 
 /** Schemastery configuration for the memo service. */
 export const Config: s<Config> = s.object({
@@ -152,6 +219,10 @@ export const Config: s<Config> = s.object({
   logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]),
   storageWriteRetries: s.number().step(1).min(0).max(10).default(4),
   storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
+  sessionSummaryMaxSessions: s.number().step(1).min(1).max(20).default(5),
+  sessionSummaryTranscriptMaxChars: s.number().step(1).min(1000).max(200_000).default(24_000),
+  sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE),
+  sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -516,6 +587,10 @@ export class MemoService extends TypertRemoteService {
   private readonly logAnalysisPlugins: readonly string[]
   private readonly storageWriteRetries: number
   private readonly storageWriteRetryDelayMs: number
+  private readonly sessionSummaryMaxSessions: number
+  private readonly sessionSummaryTranscriptMaxChars: number
+  private readonly sessionSummarySourceTemplate: string
+  private readonly sessionSummaryPrompt: string
   private table?: KvTable<string, MemoWeekRow>
   private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
@@ -531,6 +606,10 @@ export class MemoService extends TypertRemoteService {
     this.logAnalysisPlugins = Object.freeze([...config.logAnalysisPlugins])
     this.storageWriteRetries = config.storageWriteRetries
     this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
+    this.sessionSummaryMaxSessions = config.sessionSummaryMaxSessions
+    this.sessionSummaryTranscriptMaxChars = config.sessionSummaryTranscriptMaxChars
+    this.sessionSummarySourceTemplate = config.sessionSummarySourceTemplate
+    this.sessionSummaryPrompt = config.sessionSummaryPrompt
   }
 
   /** Open and own the memo domain and the archive domain beside it. */
@@ -626,6 +705,71 @@ export class MemoService extends TypertRemoteService {
       archivedAt,
       weekIds: Object.freeze(weekIdsInPeriod('quarter', label)),
     })
+  }
+
+  /**
+   * List the sessions in the official archive, with the metadata the picker
+   * needs.
+   *
+   * The archive set decides *which* sessions are eligible; session query only
+   * supplies titles and headers. Both services are read optionally: a deployment
+   * without a session archive must still boot the memo service, and it gets a
+   * reason instead of a permanently empty picker.
+   *
+   * Subagent children are filtered out here rather than in the browser: they are
+   * the model's own delegation, not the user's work, and each one would
+   * summarize into a near-duplicate of its parent.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the archived sessions, the per-call limit, and the current week id.
+   */
+  @Remote('listArchivedSessions')
+  async listArchivedSessions(request: MemoListArchivedSessionsRequest): Promise<MemoListArchivedSessionsResult> {
+    void request
+    const archive = this.ctx.get('workspaceRegistry') as SessionArchiveSource | undefined
+    if (archive === undefined || !Array.isArray(archive.archivedSessionIds)) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the workspace registry is not mounted, so no session archive can be read',
+        service: 'workspaceRegistry',
+      })
+    }
+    const query = this.ctx.get('sessionQuery') as SessionQuerySource | undefined
+    if (query === undefined) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the session query service is not mounted, so archived sessions cannot be read',
+        service: 'sessionQuery',
+      })
+    }
+    const sessionIds = [...new Set(archive.archivedSessionIds.filter(id => typeof id === 'string' && id.length > 0))]
+    const headers = await this.readSessionHeaders(query)
+    const titles = await this.readSessionTitles(query, sessionIds)
+    const summarized = this.summarizedSessionWeeks()
+    const sessions: MemoArchivedSession[] = []
+    for (const sessionId of sessionIds) {
+      const header = headers.get(sessionId)
+      if (isSubagentSession(header)) continue
+      const weeks = [...new Set((summarized.get(sessionId) ?? []).map(row => row.weekId))]
+      sessions.push(Object.freeze({
+        sessionId,
+        title: sessionTitleOrFallback(titles.get(sessionId), sessionId),
+        createdAt: typeof header?.createdAt === 'number' ? header.createdAt : 0,
+        ...(typeof header?.cwd === 'string' ? { cwd: header.cwd } : {}),
+        summarizedWeekIds: Object.freeze(weeks),
+      }))
+    }
+    sessions.sort((a, b) => b.createdAt - a.createdAt)
+    this.track('listArchivedSessions', 'success', { count: sessions.length })
+    return {
+      ok: true,
+      value: Object.freeze({
+        sessions: Object.freeze(sessions),
+        maxSessions: this.sessionSummaryMaxSessions,
+        currentWeekId: computeWeekBounds().weekId,
+      }),
+    }
   }
 
   /**
@@ -726,6 +870,22 @@ export class MemoService extends TypertRemoteService {
    */
   @Remote('addEntry')
   async addEntry(request: MemoAddEntryRequest): Promise<MemoAddEntryResult> {
+    return this.appendEntry(request)
+  }
+
+  /**
+   * Add one entry, optionally recording the archived session a generated
+   * summary came from.
+   *
+   * Private because the public `addEntry` request must not be able to forge
+   * provenance: only {@link MemoService.summarizeSession} sets an origin, and it
+   * has already read that session.
+   *
+   * @param request - the week id and entry content.
+   * @param originSessionId - the summarized session, when this is a summary.
+   * @returns the created entry.
+   */
+  private async appendEntry(request: MemoAddEntryRequest, originSessionId?: string): Promise<MemoAddEntryResult> {
     const table = this.requireTable()
     const archived = this.archivedWeekFailure(request.weekId)
     if (archived !== undefined) return this.failure(archived)
@@ -737,6 +897,7 @@ export class MemoService extends TypertRemoteService {
       content: request.content,
       ...(request.attachmentRef === undefined ? {} : { attachmentRef: request.attachmentRef }),
       ...(request.source === undefined ? {} : { source: request.source }),
+      ...(originSessionId === undefined ? {} : { originSessionId }),
       createdAt: now,
       updatedAt: now,
     }
@@ -800,6 +961,7 @@ export class MemoService extends TypertRemoteService {
       content: request.content,
       ...(old.attachmentRef !== undefined ? { attachmentRef: old.attachmentRef } : {}),
       ...(old.source !== undefined ? { source: old.source } : {}),
+      ...(old.originSessionId === undefined ? {} : { originSessionId: old.originSessionId }),
       createdAt: old.createdAt,
       updatedAt: now,
     }
@@ -876,8 +1038,8 @@ export class MemoService extends TypertRemoteService {
       { code: detail.code, message: detail.message, featureCodeRef: `memo:${feature}` },
       { provider: route.provider, model: route.model, ...(detail.status === undefined ? {} : { status: detail.status }) },
     )
-    return this.failure({
-      code: 'llm-failure',
+    return Object.freeze({
+      code: 'llm-failure' as const,
       failureCode: detail.code,
       message,
       provider: route.provider,
@@ -965,7 +1127,7 @@ export class MemoService extends TypertRemoteService {
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
     const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, systemPrompt, userText)
     if (!result.ok) {
-      return this.llmFailure('analyze', route, result)
+      return this.failure(this.llmFailure('analyze', route, result))
     }
     const body = result.text
     const analysis: MemoAnalysis = {
@@ -1004,10 +1166,261 @@ export class MemoService extends TypertRemoteService {
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
     const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, REPORT_EXPORT_PROMPT, userText)
     if (!result.ok) {
-      return this.llmFailure('exportReport', route, result)
+      return this.failure(this.llmFailure('exportReport', route, result))
     }
     this.track('exportReport', 'success', { ...this.routeFacts(route), period: request.period, periodLabel: request.periodLabel })
     return { ok: true, value: result.text }
+  }
+
+  /**
+   * Summarize archived sessions into one memo week.
+   *
+   * One model call per session, one entry per session: a weekly view then reads
+   * as "what did each conversation produce", and a single long session cannot
+   * crowd out the others the way one merged prompt would. Per-session failures
+   * stay inside {@link MemoSummarizeSessionValue.outcomes}, so one unreadable
+   * log or one rate limit does not throw away the summaries that did succeed.
+   *
+   * The source annotation is rendered here, after the model call, from the
+   * deployment's template: the model never controls provenance, and a
+   * browser-only annotation would be absent from every other client.
+   *
+   * @param request - the archived session ids, optional target week, route
+   * override, and whether an existing summary may be replaced.
+   * @returns the target week and one outcome per requested session.
+   */
+  @Remote('summarizeSession')
+  async summarizeSession(request: MemoSummarizeSessionRequest): Promise<MemoSummarizeSessionResult> {
+    const archive = this.ctx.get('workspaceRegistry') as SessionArchiveSource | undefined
+    if (archive === undefined || !Array.isArray(archive.archivedSessionIds)) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the workspace registry is not mounted, so no session archive can be read',
+        service: 'workspaceRegistry',
+      })
+    }
+    const query = this.ctx.get('sessionQuery') as SessionQuerySource | undefined
+    if (query === undefined) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the session query service is not mounted, so archived sessions cannot be read',
+        service: 'sessionQuery',
+      })
+    }
+    const raw = Array.isArray(request?.sessionIds) ? request.sessionIds : []
+    const invalid = raw.find(id => typeof id !== 'string' || id.length === 0)
+    if (invalid !== undefined) {
+      return this.failure({
+        code: 'invalid-session-id',
+        message: `"${String(invalid)}" is not a session id`,
+        sessionId: String(invalid),
+      })
+    }
+    const sessionIds = [...new Set(raw as readonly string[])]
+    if (sessionIds.length === 0) {
+      return this.failure({ code: 'no-sessions', message: 'no session ids were selected' })
+    }
+    if (sessionIds.length > this.sessionSummaryMaxSessions) {
+      return this.failure({
+        code: 'too-many-sessions',
+        message: `at most ${this.sessionSummaryMaxSessions} sessions can be summarized in one call`,
+        limit: this.sessionSummaryMaxSessions,
+      })
+    }
+    const weekId = request.weekId ?? computeWeekBounds().weekId
+    if (mondayOfWeekId(weekId) === undefined) {
+      return this.failure({
+        code: 'invalid-week-id',
+        message: `"${weekId}" is not an ISO week id (expected YYYY-Www)`,
+        weekId,
+      })
+    }
+    const archivedWeek = this.archivedWeekFailure(weekId)
+    if (archivedWeek !== undefined) return this.failure(archivedWeek)
+
+    const archived = new Set(archive.archivedSessionIds)
+    const titles = await this.readSessionTitles(query, sessionIds)
+    const summarized = this.summarizedSessionWeeks()
+    const route = this.resolveRoute(request)
+    const outcomes: MemoSessionSummaryOutcome[] = []
+
+    for (const sessionId of sessionIds) {
+      const title = sessionTitleOrFallback(titles.get(sessionId), sessionId)
+      if (!archived.has(sessionId)) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-not-archived',
+          message: `session "${sessionId}" is not in the official archive`,
+          sessionId,
+        }))
+        continue
+      }
+      const existing = (summarized.get(sessionId) ?? []).find(row => row.weekId === weekId)
+      if (existing !== undefined && request.force !== true) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'already-summarized',
+          message: `session "${sessionId}" already has a summary in week "${weekId}"`,
+          sessionId,
+          weekId,
+          entryId: existing.entryId,
+        }))
+        continue
+      }
+      let surface: SessionSurfaceLike
+      try {
+        surface = await query.readSurface(sessionId)
+      } catch (error) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-unreadable',
+          message: `session "${sessionId}" could not be read: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+        }))
+        continue
+      }
+      const messages = extractSessionMessages(surface.events ?? [])
+      const transcript = renderSessionTranscript(messages, { maxChars: this.sessionSummaryTranscriptMaxChars })
+      if (transcript.text.length === 0) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-empty',
+          message: `session "${sessionId}" has no user/assistant text to summarize`,
+          sessionId,
+        }))
+        continue
+      }
+      const result = await streamLlmText(
+        this.ctx.get('llm') as LlmTextSource | undefined,
+        route,
+        this.sessionSummaryPrompt,
+        transcript.text,
+      )
+      if (!result.ok) {
+        outcomes.push(Object.freeze({ sessionId, title, error: this.llmFailure('summarizeSession', route, result) }))
+        continue
+      }
+      const content = `${result.text.trim()}${renderSourceAnnotation(this.sessionSummarySourceTemplate, { sessionId, sessionTitle: title })}`
+      if (existing !== undefined) {
+        const updated = await this.updateEntry({ weekId, entryId: existing.entryId, content, force: true })
+        if (!updated.ok) {
+          outcomes.push(this.summaryFailure(sessionId, title, updated.error))
+          continue
+        }
+        outcomes.push(Object.freeze({ sessionId, title, entry: updated.value }))
+        continue
+      }
+      const added = await this.appendEntry({ weekId, type: 'text', content }, sessionId)
+      if (!added.ok) {
+        outcomes.push(this.summaryFailure(sessionId, title, added.error))
+        continue
+      }
+      outcomes.push(Object.freeze({ sessionId, title, entry: added.value }))
+    }
+
+    const succeeded = outcomes.filter(outcome => outcome.entry !== undefined).length
+    this.track('summarizeSession', succeeded > 0 ? 'success' : 'failure', {
+      ...this.routeFacts(route),
+      weekId,
+      requested: sessionIds.length,
+      succeeded,
+      failed: outcomes.length - succeeded,
+    })
+    return {
+      ok: true,
+      value: Object.freeze({ weekId, outcomes: Object.freeze(outcomes) }),
+    }
+  }
+
+  /**
+   * Turn one per-session failure into its outcome, recording it in telemetry.
+   *
+   * `llm-failure` is excluded because {@link MemoService.llmFailure} already
+   * records the model failure with its route; recording it twice would inflate
+   * the failure counts the log analysis reads.
+   * @param sessionId - the session the outcome describes.
+   * @param title - the session title or fallback.
+   * @param error - the failure to report.
+   * @returns the frozen outcome.
+   */
+  private summaryFailure(sessionId: string, title: string, error: MemoMemoFailure): MemoSessionSummaryOutcome {
+    if (error.code !== 'llm-failure') {
+      this.trackError(
+        'summarizeSession',
+        { code: error.code, message: error.message, featureCodeRef: 'memo:summarizeSession' },
+        { sessionId },
+      )
+    }
+    return Object.freeze({ sessionId, title, error: Object.freeze(error) })
+  }
+
+  /**
+   * Read every logical session header, or an empty map when the corpus cannot
+   * be listed.
+   *
+   * A failed listing is deliberately not fatal: the archive set still names the
+   * sessions, and {@link MemoService.summarizeSession} reports the per-session
+   * read failure when the user actually asks for one.
+   * @param query - the session query service.
+   * @returns session id to header.
+   */
+  private async readSessionHeaders(query: SessionQuerySource): Promise<Map<string, SessionHeaderLike>> {
+    const headers = new Map<string, SessionHeaderLike>()
+    try {
+      const records = await query.listSessions()
+      for (const record of records) {
+        const header = record?.header
+        if (header !== undefined && typeof header.id === 'string' && header.id.length > 0) {
+          headers.set(header.id, header)
+        }
+      }
+    } catch {
+      // See the JSDoc: an unreadable corpus degrades to unknown metadata.
+    }
+    return headers
+  }
+
+  /**
+   * Read the log-backed titles for the given sessions.
+   *
+   * Titles are presentation only, so a failed batch is not fatal. The batch
+   * method is optional structurally because an older session-query backend may
+   * not offer it; the picker then falls back to the short-id form.
+   * @param query - the session query service.
+   * @param sessionIds - the sessions to title.
+   * @returns session id to title.
+   */
+  private async readSessionTitles(query: SessionQuerySource, sessionIds: readonly string[]): Promise<Map<string, string>> {
+    const titles = new Map<string, string>()
+    if (sessionIds.length === 0 || typeof query.readTitleSnapshots !== 'function') return titles
+    try {
+      const results = await query.readTitleSnapshots(sessionIds)
+      for (const result of results) {
+        if (result?.status !== 'fulfilled') continue
+        const title = result.value?.title?.title
+        if (typeof title === 'string' && title.trim().length > 0) titles.set(result.sessionId, title)
+      }
+    } catch {
+      // See the JSDoc: a missing title is not a reason to hide the session.
+    }
+    return titles
+  }
+
+  /**
+   * Index every summary entry by the session it came from.
+   *
+   * Built in one pass over the weeks table so both the picker (which weeks
+   * already hold a summary) and the summarize path (duplicate guard) read the
+   * same facts without a second storage shape.
+   * @returns session id to the weeks and entries that summarize it.
+   */
+  private summarizedSessionWeeks(): Map<string, { weekId: string; entryId: string }[]> {
+    const summarized = new Map<string, { weekId: string; entryId: string }[]>()
+    for (const [weekId, row] of this.requireTable().entries()) {
+      for (const entry of row.entries) {
+        if (entry.originSessionId === undefined) continue
+        const rows = summarized.get(entry.originSessionId) ?? []
+        rows.push({ weekId, entryId: entry.id })
+        summarized.set(entry.originSessionId, rows)
+      }
+    }
+    return summarized
   }
 
   /**
@@ -1334,6 +1747,65 @@ type ReadExternalPathFailureCode = Extract<MemoMemoFailure, { readonly path: str
 interface FsTextSource {
   resolve(path: string): Promise<unknown>
   readText(target: unknown): Promise<string>
+}
+
+/**
+ * Minimal shape of the DSH `workspaceRegistry` service this feature needs.
+ *
+ * Declared structurally so the memo package does not take a hard dependency on
+ * `@deepseek-ai/dsh-workspace`: the archive set is the only fact read here, and
+ * a deployment without that service must still boot memo and report a clear
+ * reason instead of failing composition.
+ */
+interface SessionArchiveSource {
+  /** Sessions the user hid from every grouping surface. */
+  readonly archivedSessionIds: readonly string[]
+}
+
+/** The parts of a DSH session header this feature reads. */
+interface SessionHeaderLike {
+  readonly id: string
+  readonly createdAt: number
+  readonly cwd?: string
+  readonly origin?: string
+}
+
+/** One `sessionQuery.listSessions` row, narrowed to the header. */
+interface SessionRecordLike {
+  readonly header: SessionHeaderLike
+}
+
+/** One model-visible surface observation, narrowed to its events. */
+interface SessionSurfaceLike {
+  readonly session?: SessionHeaderLike
+  readonly events: readonly SessionSurfaceEventLike[]
+}
+
+/** The title half of a `sessionQuery.readTitleSnapshots` result. */
+interface SessionTitleSnapshotLike {
+  readonly title: string
+}
+
+/** One batch title-observation result, narrowed to the fields used here. */
+interface SessionTitleObservationResultLike {
+  readonly sessionId: string
+  readonly status: 'fulfilled' | 'rejected'
+  readonly value?: {
+    readonly session?: SessionHeaderLike
+    readonly title?: SessionTitleSnapshotLike
+  }
+}
+
+/**
+ * Minimal shape of the DSH `sessionQuery` service this feature needs.
+ *
+ * `readTitleSnapshots` is optional because an older session-query backend may
+ * not offer the batch read; the picker then falls back to short-id titles.
+ */
+interface SessionQuerySource {
+  listSessions(signal?: AbortSignal): Promise<readonly SessionRecordLike[]>
+  readTitleSnapshots?(sessionIds: readonly string[], signal?: AbortSignal): Promise<readonly SessionTitleObservationResultLike[]>
+  readSurface(sessionId: string, signal?: AbortSignal): Promise<SessionSurfaceLike>
 }
 
 /**
