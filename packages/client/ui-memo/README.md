@@ -83,6 +83,8 @@ The switcher rides on the analysis action as a split button: the left half runs 
 |---|---|---|
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | Repository that receives issues created from the board. |
 
+The memo Host's own configuration — the AI route, the archived-session summary copy and the same `repoUrl` — is edited from the Settings page shipped by [`@zhangj1164/dsh-client-ui-memo-settings`](../ui-memo-settings/README.md), which writes the Host's live config instead of this panel's own.
+
 ## Bundle layer
 
 This package is included in the `@zhangj1164/dsh-memo` bundle's `cordis.patch.yml` as the `ui-memo` row. It declares `dsh.client` — which is what makes its browser half discoverable through `exports["./client"]` — and deliberately declares no `dsh.bundle` of its own, matching the official `dsh-client-ui-*` packages, which are inserted by a host bundle rather than installed as a layer. A separate bundle is therefore not needed, and `dsh plugin --profile web add @zhangj1164/dsh-client-ui-memo` reports it as a plain dependency rather than a profile layer. That warning is expected here; it is not a defect. Install `@zhangj1164/dsh-memo` and the panel arrives with it.

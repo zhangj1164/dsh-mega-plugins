@@ -1,0 +1,20 @@
+# @zhangj1164/dsh-client-ui-memo-settings bundle patch: inserts the memo
+# settings page into the host composition.
+#
+# One row, owned by this bundle alone. The page edits the `memo` Loader entry
+# through the deployment's settings surface, so no memo row is inserted or
+# overridden here — a bundle layer cannot remove an earlier layer's insert, and
+# two bundles inserting one entry id is a boot failure
+# (`pnpm run verify-bundle-entries`).
+#
+# Install it next to the memo suite:
+#
+#   dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings
+#
+# Installed without `memo`, the page never registers: the browser half waits for
+# the `memo` settings namespace, and a deployment that does not serve it shows no
+# trace of this package.
+
+- insert:
+    - id: ui-memo-settings
+      name: "@zhangj1164/dsh-client-ui-memo-settings"
