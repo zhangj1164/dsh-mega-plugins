@@ -1,7 +1,8 @@
 /**
  * Local memo service: a week-keyed personal memo store over the storage-domain
- * KV backend, with AI-powered analysis, report export, external-path reading
- * (privilege-gated), and telemetry-backed log analysis.
+ * KV backend, with AI-powered analysis, report export, external-path text
+ * reading (host-internal — no Remote endpoint, no confirmation), and
+ * telemetry-backed log analysis.
  *
  * Data is local-only: every entry, week, and analysis lives in the local
  * storage-domain table. The AI capability is optional — the service degrades
@@ -10,22 +11,40 @@
  * Extends `TypertRemoteService` because the client memo panel calls its
  * methods through the API Gateway.
  *
- * @module dsh-memo
+ * @module @zhangj1164/dsh-memo
  */
 
 import { randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
+import { setTimeout as delay } from 'node:timers/promises'
 import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
-import type { StreamChunk, GenerateOptions } from '@deepseek-ai/dsh-llm'
-import { createUserMessage, type Message } from '@deepseek-ai/dsh-llm'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
-import type { TelemetryFailureGroup } from 'dsh-telemetry/types'
-import { memoDomainSpec } from './spec.ts'
-import type { MemoWeekRow } from './spec.ts'
+import type { TelemetryAnalysis, TelemetryFailureGroup } from '@zhangj1164/dsh-telemetry/types'
+import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
+import {
+  extractSessionMessages,
+  isSubagentSession,
+  renderSessionTranscript,
+  renderSourceAnnotation,
+  sessionTitleOrFallback,
+  type SessionSurfaceEventLike,
+} from './session-transcript.ts'
+import {
+  isoWeekParts,
+  mondayOfWeekId,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
+import { memoArchiveDomainSpec, memoDomainSpec } from './spec.ts'
+import type { ArchivedQuarterRow, MemoWeekRow } from './spec.ts'
 import type {
   MemoAddEntryRequest,
   MemoAddEntryResult,
@@ -35,6 +54,9 @@ import type {
   MemoAnalyzeResult,
   MemoAnalysis,
   MemoAnalysisType,
+  MemoArchiveQuarterResult,
+  MemoArchivedQuarter,
+  MemoArchivedSession,
   MemoDeleteEntryRequest,
   MemoDeleteEntryResult,
   MemoEntry,
@@ -44,11 +66,27 @@ import type {
   MemoGetCurrentWeekResult,
   MemoGetWeekRequest,
   MemoGetWeekResult,
+  MemoListArchivedQuartersResult,
+  MemoListArchivedQuartersRequest,
+  MemoListArchivedSessionsRequest,
+  MemoListArchivedSessionsResult,
+  MemoListArchivedSessionsValue,
+  MemoListModelsRequest,
+  MemoListModelsResult,
+  MemoModelProvider,
   MemoListWeeksRequest,
   MemoListWeeksResult,
   MemoLogAnalysisResult,
+  MemoListPeriodsRequest,
+  MemoListPeriodsResult,
   MemoMemoFailure,
+  MemoQuarterLabelRequest,
   MemoReadExternalPathRequest,
+  MemoSessionSummaryOutcome,
+  MemoSummarizeSessionRequest,
+  MemoSummarizeSessionResult,
+  MemoSummarizeSessionValue,
+  MemoUnarchiveQuarterResult,
   MemoUpdateEntryRequest,
   MemoUpdateEntryResult,
   MemoWeek,
@@ -59,8 +97,21 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
-export { memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema } from './spec.ts'
-export type { MemoWeekRow } from './spec.ts'
+export { memoArchiveDomainSpec, memoDomainSpec, memoWeekSchema, memoEntrySchema, memoAnalysisSchema, archivedQuarterSchema } from './spec.ts'
+export type { ArchivedQuarterRow, MemoWeekRow } from './spec.ts'
+export { streamLlmText } from './llm-text.ts'
+export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
+export {
+  isPeriodLabel,
+  isoWeekParts,
+  mondayOfWeekId,
+  periodBounds,
+  periodLabelFor,
+  shiftPeriod,
+  startOfIsoWeek,
+  weekIdBelongsToPeriod,
+  weekIdsInPeriod,
+} from './period.ts'
 
 /** Deployment configuration for the memo service. */
 export interface Config {
@@ -69,11 +120,163 @@ export interface Config {
    * sets this to the memo plugin's GitHub project address.
    */
   readonly repoUrl: string
+  /**
+   * The registered DSH provider route that AI analysis calls use. Leave it
+   * unset to follow this deployment's `agentDefaultModel` selection; set it
+   * to pin memo analysis to a specific route.
+   */
+  readonly provider?: string
+  /**
+   * The model id that AI analysis calls use. Leave it unset to follow this
+   * deployment's `agentDefaultModel` selection.
+   */
+  readonly model?: string
+  /**
+   * The plugin ids the log analysis covers, in the order it reads them.
+   *
+   * A list rather than one id because this repository ships a suite: a report
+   * that covers only `memo` cannot mention a `github-issue` failure, and the
+   * package that broke this panel's issue editor was `github-issue`. Telemetry
+   * discovers no plugins — there is no enumeration API — so the deployment names
+   * the set, and the default is the suite these bundles install together.
+   */
+  readonly logAnalysisPlugins: readonly string[]
+  /**
+   * Extra attempts after a durable write fails with a transient filesystem
+   * error. The JSON backend publishes a unit by writing a temp file and
+   * renaming it over the target; Windows refuses that rename while another
+   * handle (an antivirus scan, an indexer) holds the target open, and the
+   * same rename usually succeeds a moment later. `0` disables retrying.
+   */
+  readonly storageWriteRetries: number
+  /**
+   * First backoff delay in milliseconds; each retry doubles it, capped at
+   * 5000 ms so a misconfiguration cannot stall a save for minutes. Only waits
+   * between attempts that failed transiently, so the normal path never sleeps.
+   */
+  readonly storageWriteRetryDelayMs: number
+  /**
+   * How many archived sessions one summarize request accepts.
+   *
+   * A cap rather than no limit: every selected session costs one model call,
+   * and a mis-click that selected the whole archive should be refused before it
+   * spends them.
+   */
+  readonly sessionSummaryMaxSessions: number
+  /**
+   * Total character budget for the conversation sent to the model.
+   *
+   * The prompt keeps the head and tail of an over-budget session, so this is the
+   * one knob that trades summary depth for context safety.
+   */
+  readonly sessionSummaryTranscriptMaxChars: number
+  /**
+   * Output language for generated summaries.
+   *
+   * `auto` follows the language the client sends with the request and falls
+   * back to Chinese when the request carries none. `zh` and `en` force one
+   * language regardless of the client, for a deployment that standardizes its
+   * weekly reports.
+   */
+  readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
+  /** Default summary length in characters offered to the picker. */
+  readonly sessionSummaryMaxChars: number
+  /** Largest summary length a client may request. */
+  readonly sessionSummaryMaxCharsLimit: number
+  /**
+   * Template appended to every generated summary entry.
+   *
+   * Supports `{sessionId}` and `{sessionTitle}`. The default puts the source on
+   * its own line so a week's cards can be traced back to their sessions without
+   * opening each one.
+   */
+  readonly sessionSummarySourceTemplate: string
+  /** System prompt used to summarize an archived session. */
+  readonly sessionSummaryPrompt: string
 }
+
+/** The plugin ids log analysis covers unless the deployment configures others. */
+const DEFAULT_LOG_ANALYSIS_PLUGINS: readonly string[] = Object.freeze(['memo', 'github-issue'])
+
+/**
+ * Built-in prompt for summarizing one archived session.
+ *
+ * A `Config` default rather than an inline string: it is model-facing text a
+ * deployment may want to retarget (language, house style, team vocabulary), and
+ * the repository's no-hardcoding rule covers prompt fragments.
+ */
+const DEFAULT_SESSION_SUMMARY_PROMPT = [
+  'You are a work-session summarizer. Read the human/assistant conversation below',
+  'and write a compact summary of the work it represents.',
+  'Requirements:',
+  '1. Use 3-6 bullet points covering the goal, what was produced, and the key decisions.',
+  '2. State only what the conversation actually contains; do not speculate.',
+  '3. Keep concrete identifiers (files, commands, branches, PR/issue numbers) that a',
+  '   reader could use to verify the work.',
+  '4. Write the summary in {language}.',
+  '5. Keep the whole summary under about {maxChars} characters; never pad to reach it.',
+  '6. Output only the bullet text. Do not add a heading or repeat the source note.',
+].join('\n')
+
+/**
+ * Model-facing names for the supported summary languages.
+ *
+ * The placeholder takes a language name rather than an id because the prompt is
+ * prose: "Write in zh" is a weaker instruction than "Write in Simplified
+ * Chinese", and a model that follows the weaker one may ignore it.
+ */
+const SESSION_SUMMARY_LANGUAGE_LABELS: Readonly<Record<'zh' | 'en', string>> = Object.freeze({
+  zh: 'Simplified Chinese',
+  en: 'English',
+})
+
+/** Shortest summary a client may request; below this the result stops being useful. */
+const SESSION_SUMMARY_MIN_CHARS = 100
+
+/**
+ * Fill the summary prompt's language and length placeholders.
+ *
+ * The default prompt carries both placeholders. A deployment that supplies its
+ * own prompt keeps full control: an omitted placeholder simply stays untouched,
+ * which is how a custom prompt can opt out of one axis.
+ * @param template - configured prompt, possibly carrying `{language}` and `{maxChars}`.
+ * @param language - resolved output language.
+ * @param maxChars - resolved target length in characters.
+ * @returns the prompt sent to the model.
+ */
+function renderSessionSummaryPrompt(
+  template: string,
+  language: 'zh' | 'en',
+  maxChars: number,
+): string {
+  return template
+    .replaceAll('{language}', SESSION_SUMMARY_LANGUAGE_LABELS[language])
+    .replaceAll('{maxChars}', String(maxChars))
+}
+
+/**
+ * Default source annotation appended to a summary.
+ *
+ * Kept as a template with placeholders so a deployment can switch language or
+ * add the session title without the host composing prose.
+ */
+const DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE = '\n\n来源会话：{sessionId}'
 
 /** Schemastery configuration for the memo service. */
 export const Config: s<Config> = s.object({
   repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
+  provider: s.string(),
+  model: s.string(),
+  logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]),
+  storageWriteRetries: s.number().step(1).min(0).max(10).default(4),
+  storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
+  sessionSummaryMaxSessions: s.number().step(1).min(1).max(20).default(5),
+  sessionSummaryTranscriptMaxChars: s.number().step(1).min(1000).max(200_000).default(24_000),
+  sessionSummaryLanguage: s.any<'auto' | 'zh' | 'en'>().default('auto'),
+  sessionSummaryMaxChars: s.number().step(1).min(100).max(4000).default(300),
+  sessionSummaryMaxCharsLimit: s.number().step(1).min(100).max(20_000).default(2000),
+  sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE),
+  sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -88,49 +291,283 @@ const TELEMETRY_PLUGIN_ID = 'memo'
 /** Ledger schema version for forward-compatible migrations. */
 const LEDGER_SCHEMA_VERSION = 1
 
+/** How many analyses the ledger keeps before the oldest drop off. */
+const LEDGER_CAPACITY = 500
+
+/** Canonical quarter label, the only key shape the archive accepts. */
+const QUARTER_LABEL_PATTERN = /^\d{4}-Q[1-4]$/u
+
+/** The directory name of the default DSH home under the platform home. */
+const DSH_HOME_DIR_NAME = '.dsh'
+
+/** The environment variable that overrides the DSH home. */
+const DSH_HOME_ENV = 'DSH_HOME'
+
 /**
- * Resolve the DSH home directory: the environment override wins, the platform
- * home fallback follows. Mirrors the task-board's dsh-home.ts pattern.
- * @param env - process environment to read DSH_HOME from.
- * @param home - platform home directory fallback (test seam).
- * @returns the absolute DSH home path.
+ * The suffix the one-time ledger migration renames the platform-home file to.
+ *
+ * A renamed file rather than a deletion: the analyses it holds exist nowhere
+ * else, so the migration keeps them inspectable instead of trusting its own
+ * merge.
  */
-function resolveDshHome(env: NodeJS.ProcessEnv = process.env, home: string = homedir()): string {
-  return env.DSH_HOME ?? home
+const MIGRATED_LEDGER_SUFFIX = '.migrated'
+
+/** Filesystem errors that a later identical write can plausibly survive. */
+const TRANSIENT_STORAGE_WRITE_CODES: ReadonlySet<string> = new Set(['EPERM', 'EBUSY'])
+
+/** Ceiling for one retry delay; a large configured base cannot grow without bound. */
+const MAX_STORAGE_WRITE_RETRY_DELAY_MS = 5_000
+
+/**
+ * Whether a failed memo write is the Windows rename-over-open-handle race.
+ *
+ * `dsh-storage-json` publishes a unit with `rename(tmp, target)`. On Windows
+ * that fails with `EPERM` while an antivirus, an indexer, or another reader
+ * holds the target open; the error is a pure timing race, so an identical
+ * retry is the right response. `EACCES` is deliberately absent: it is the
+ * signature of a real permission problem that waiting does not fix.
+ *
+ * @param error - the value a write rejected with.
+ * @returns true when the write is worth replaying.
+ */
+function isTransientStorageWriteError(error: unknown): boolean {
+  const code = fsErrorCode(error)
+  return code !== undefined && TRANSIENT_STORAGE_WRITE_CODES.has(code)
 }
 
-/** Resolve the memo ledger file path under $DSH_HOME/memo/. */
+/**
+ * Expand a leading `~`, `~/`, or `~\` prefix against the platform home.
+ *
+ * Only the prefixes DSH's own `expandHomePath()` recognizes are handled; any
+ * other spelling is returned unchanged, so a path that merely contains a tilde
+ * keeps it.
+ * @param configured - the configured path, possibly tilde-prefixed.
+ * @param home - the platform home directory to expand against.
+ * @returns the path with a supported prefix expanded.
+ */
+function expandHomePath(configured: string, home: string): string {
+  if (configured === '~') return home
+  if (configured.startsWith('~/') || configured.startsWith('~\\')) return join(home, configured.slice(2))
+  return configured
+}
+
+/**
+ * Resolve the DSH home directory the way DSH itself does: `$DSH_HOME` when it
+ * carries a non-blank value, `~/.dsh` otherwise.
+ *
+ * Mirrors `resolveDshHome()` from `@deepseek-ai/dsh-home-paths`, which is what
+ * the host resolves its own user data through, including two details a naive
+ * `env.DSH_HOME ?? homedir()` gets wrong: a blank override counts as unset
+ * (rather than resolving a relative path against the process CWD), and a
+ * `~` prefix expands against the platform home. Kept as a local mirror instead
+ * of a dependency because this ledger path is the only thing in the package
+ * that needs it, and a peer on the home-paths package would grow the platform
+ * surface every deployment has to satisfy.
+ * @param env - process environment to read `DSH_HOME` from.
+ * @param home - platform home directory (test seam).
+ * @returns the absolute, normalized DSH home path.
+ */
+function resolveDshHome(env: NodeJS.ProcessEnv = process.env, home: string = homedir()): string {
+  const override = env[DSH_HOME_ENV]
+  const configured = override !== undefined && override.trim().length > 0 ? override : undefined
+  return resolve(expandHomePath(configured ?? join(home, DSH_HOME_DIR_NAME), home))
+}
+
+/** Resolve the memo ledger file path under `$DSH_HOME/memo/`. */
 function ledgerFile(): string {
   return join(resolveDshHome(), 'memo', 'ledger.json')
 }
 
-/** Read the persistent ledger from disk (returns an empty ledger when absent). */
-function readLedger(): MemoLedger {
-  try {
-    const file = ledgerFile()
-    if (!existsSync(file)) return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
-    const raw = readFileSync(file, 'utf8')
-    const parsed = JSON.parse(raw) as Partial<MemoLedger>
-    if (parsed.schemaVersion !== LEDGER_SCHEMA_VERSION || !Array.isArray(parsed.analyses)) {
-      return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
-    }
-    return { schemaVersion: parsed.schemaVersion, analyses: parsed.analyses }
-  } catch {
-    return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
+/**
+ * Resolve the ledger path an earlier resolver wrote: the platform home's own
+ * `memo/ledger.json`.
+ *
+ * Before the home resolution matched DSH's contract, an unset `DSH_HOME` put
+ * the ledger at the platform home's top level, so every such deployment keeps
+ * its analyses there. Only the one-time migration reads this path.
+ * @param home - platform home directory (test seam).
+ * @returns the legacy ledger path.
+ */
+function legacyLedgerFile(home: string = homedir()): string {
+  return join(home, 'memo', 'ledger.json')
+}
+
+/**
+ * Merge one telemetry analysis per plugin into a single analysis over the set.
+ *
+ * Totals add up, the window is the union of the per-plugin windows, and the
+ * failure groups are concatenated — each already carries its plugin's prefix in
+ * `featureCodeRef`, so groups from different plugins cannot collide. Groups are
+ * ordered by failure count so the report leads with what failed most, which is
+ * the order a single-plugin analysis already arrives in.
+ *
+ * @param pluginIds - the plugin ids that were analyzed, in read order.
+ * @param analyses - one analysis per plugin, in the same order.
+ * @returns the merged analysis over every plugin.
+ */
+function mergeAnalyses(
+  pluginIds: readonly string[],
+  analyses: readonly TelemetryAnalysis[],
+): TelemetryAnalysis {
+  const windows = analyses
+    .map(analysis => analysis.window)
+    .filter((window): window is { firstEventAt: number; lastEventAt: number } => window !== undefined)
+  return {
+    pluginId: pluginIds.join(', '),
+    totalEvents: analyses.reduce((total, analysis) => total + analysis.totalEvents, 0),
+    totalFailures: analyses.reduce((total, analysis) => total + analysis.totalFailures, 0),
+    ...(windows.length === 0 ? {} : {
+      window: {
+        firstEventAt: Math.min(...windows.map(window => window.firstEventAt)),
+        lastEventAt: Math.max(...windows.map(window => window.lastEventAt)),
+      },
+    }),
+    failureGroups: analyses
+      .flatMap(analysis => analysis.failureGroups)
+      .sort((a, b) => b.count - a.count),
   }
 }
 
-/** Write the persistent ledger to disk (creates the directory if missing). */
-function writeLedger(ledger: MemoLedger): void {
+/** An empty ledger, the answer whenever the file is absent or unreadable. */
+function emptyLedger(): MemoLedger {
+  return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses: [] }
+}
+
+/**
+ * Parse one ledger document.
+ *
+ * Absence of a usable ledger is not an error here: an unparseable file, a
+ * document written by a future schema, and a truncated write all answer
+ * `undefined`, which the caller turns into an empty ledger rather than an
+ * exception. This is also the check the migration uses to decide whether a
+ * legacy file is a ledger at all — a file it cannot read is left untouched.
+ * @param raw - the file contents.
+ * @returns the ledger, or `undefined` when the contents are not one this version understands.
+ */
+function parseLedger(raw: string): MemoLedger | undefined {
   try {
-    const file = ledgerFile()
-    mkdirSync(join(file, '..'), { recursive: true })
-    writeFileSync(file, JSON.stringify(ledger, null, 2), 'utf8')
+    const parsed = JSON.parse(raw) as Partial<MemoLedger>
+    if (parsed.schemaVersion !== LEDGER_SCHEMA_VERSION || !Array.isArray(parsed.analyses)) return undefined
+    return { schemaVersion: parsed.schemaVersion, analyses: parsed.analyses }
   } catch {
-    // Best-effort: if the ledger write fails (disk full, permissions),
-    // the in-memory analysis is still returned to the caller. The next
-    // successful write will re-serialize the full list.
+    return undefined
   }
+}
+
+/** Read the ledger at one path (an absent, unreadable, or foreign file reads empty). */
+function readLedgerAt(file: string): MemoLedger {
+  try {
+    if (!existsSync(file)) return emptyLedger()
+    return parseLedger(readFileSync(file, 'utf8')) ?? emptyLedger()
+  } catch {
+    return emptyLedger()
+  }
+}
+
+/**
+ * Write the ledger at one path, creating its directory when missing.
+ * @param file - the ledger path to write.
+ * @param ledger - the ledger to serialize.
+ * @returns whether the document reached the disk.
+ */
+function writeLedgerAt(file: string, ledger: MemoLedger): boolean {
+  try {
+    mkdirSync(dirname(file), { recursive: true })
+    writeFileSync(file, JSON.stringify(ledger, null, 2), 'utf8')
+    return true
+  } catch {
+    // Best-effort: if the ledger write fails (disk full, permissions), the
+    // in-memory analysis is still returned to the caller. The next successful
+    // write re-serializes the full list.
+    return false
+  }
+}
+
+/**
+ * Union two ledgers by entry id, newest first, capped at the ledger capacity.
+ *
+ * Deduplicating by `id` is what makes the migration safe to repeat: an entry
+ * the current ledger already carries is never written twice, so a migration
+ * whose receipt rename failed cannot inflate the history.
+ * @param current - the ledger read from the active path.
+ * @param incoming - the ledger being folded in.
+ * @returns the merged ledger.
+ */
+function mergeLedgers(current: MemoLedger, incoming: MemoLedger): MemoLedger {
+  const byId = new Map<string, MemoMemoryEntry>()
+  for (const entry of [...current.analyses, ...incoming.analyses]) {
+    if (!byId.has(entry.id)) byId.set(entry.id, entry)
+  }
+  const analyses = [...byId.values()]
+    .sort((left, right) => right.generatedAt - left.generatedAt)
+    .slice(0, LEDGER_CAPACITY)
+  return { schemaVersion: LEDGER_SCHEMA_VERSION, analyses }
+}
+
+/**
+ * Rename a migrated ledger out of the way, never overwriting an earlier receipt.
+ * @param legacy - the legacy ledger path that was just merged.
+ */
+function renameMigratedLedger(legacy: string): void {
+  let target = `${legacy}${MIGRATED_LEDGER_SUFFIX}`
+  for (let ordinal = 2; existsSync(target); ordinal += 1) {
+    target = `${legacy}${MIGRATED_LEDGER_SUFFIX}.${String(ordinal)}`
+  }
+  renameSync(legacy, target)
+}
+
+/**
+ * Fold the ledger an earlier resolver wrote in the platform home into the
+ * current DSH-home ledger, once.
+ *
+ * Before the home resolution matched DSH's contract, an unset `DSH_HOME` sent
+ * the ledger to the platform home's top level, so those analyses sit outside
+ * the DSH data root and would vanish from the memory panel once the path is
+ * fixed. They exist nowhere else, hence a merge rather than a drop: the two
+ * ledgers are unioned by id, written to the current path, and only then is the
+ * legacy file renamed to a `.migrated` receipt. Every step is best-effort — a
+ * read-only home must not turn `listMemory` into an error.
+ * @param current - the ledger already read from the current path.
+ * @returns the merged ledger, or `current` when there is nothing to migrate.
+ */
+function migrateLegacyLedger(current: MemoLedger): MemoLedger {
+  try {
+    const legacy = legacyLedgerFile()
+    const active = ledgerFile()
+    // A deployment that sets DSH_HOME to the platform home keeps the legacy
+    // path as its live ledger; migrating would rename the file it just read.
+    if (resolve(legacy) === resolve(active)) return current
+    if (!existsSync(legacy)) return current
+    const written = readLedgerAt(legacy)
+    // An empty read means the file is absent, unreadable, or not a ledger. The
+    // last case is the one that must stay put: it is someone else's document.
+    if (written.analyses.length === 0) return current
+    const merged = mergeLedgers(current, written)
+    // A ledger that cannot be persisted still gets shown: the analyses it
+    // carries would otherwise disappear from the panel on a read-only home.
+    // The receipt rename is what marks the migration done, so it only happens
+    // after the merge reached the disk.
+    if (!writeLedgerAt(active, merged)) return merged
+    try {
+      renameMigratedLedger(legacy)
+    } catch {
+      // The merge landed; the receipt rename did not. The legacy file stays, and
+      // the id-based union keeps the next read from duplicating anything.
+    }
+    return merged
+  } catch {
+    return current
+  }
+}
+
+/** Read the persistent ledger from disk, migrating the legacy platform-home one. */
+function readLedger(): MemoLedger {
+  return migrateLegacyLedger(readLedgerAt(ledgerFile()))
+}
+
+/** Write the persistent ledger to its resolved path (creates the directory if missing). */
+function writeLedger(ledger: MemoLedger): void {
+  writeLedgerAt(ledgerFile(), ledger)
 }
 
 /** Append one analysis result to the persistent ledger. */
@@ -138,36 +575,38 @@ function appendToLedger(entry: MemoMemoryEntry): void {
   const ledger = readLedger()
   const updated: MemoLedger = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
-    analyses: [entry, ...ledger.analyses].slice(0, 500),
+    analyses: [entry, ...ledger.analyses].slice(0, LEDGER_CAPACITY),
   }
   writeLedger(updated)
 }
 
 /**
+ * Start and end-of-day timestamps for the ISO week beginning at `monday`.
+ *
+ * The end is the Sunday's last millisecond, which is what makes stored bounds
+ * satisfy the week schema's `weekEnd > weekStart` refinement.
+ * @param monday - the week's Monday at local midnight.
+ * @returns the week's start and end timestamps.
+ */
+function weekBoundsFromMonday(monday: Date): { weekStart: number; weekEnd: number } {
+  const sunday = new Date(monday)
+  sunday.setDate(sunday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+  return { weekStart: monday.getTime(), weekEnd: sunday.getTime() }
+}
+
+/**
  * Compute the ISO-8601 week id and range for a given date.
- * Monday is the start of the week; Sunday is the end.
+ * Monday is the start of the week; Sunday is the end. The week-year comes
+ * from the week's Thursday, so a week at a year boundary is labelled with the
+ * year that owns it rather than the calendar year of its Monday.
  * @param date - the reference date (defaults to now).
  * @returns the week id, start, and end timestamps.
  */
 function computeWeekBounds(date: Date = new Date()): { weekId: string; weekStart: number; weekEnd: number } {
-  const dayOfWeek = date.getDay() // 0=Sun, 1=Mon, ..., 6=Sat
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  const monday = new Date(date)
-  monday.setHours(0, 0, 0, 0)
-  monday.setDate(monday.getDate() + mondayOffset)
-  const sunday = new Date(monday)
-  sunday.setDate(sunday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-  const year = monday.getFullYear()
-  const thursday = new Date(monday)
-  thursday.setDate(monday.getDate() + 3)
-  const firstThursday = new Date(thursday.getFullYear(), 0, 4)
-  const firstThursdayDay = firstThursday.getDay()
-  const firstMonday = new Date(firstThursday)
-  firstMonday.setDate(firstThursday.getDate() - (firstThursdayDay === 0 ? 6 : firstThursdayDay - 1))
-  const weekNumber = Math.floor((thursday.getTime() - firstMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
-  const weekId = `${String(year)}-W${String(weekNumber).padStart(2, '0')}`
-  return { weekId, weekStart: monday.getTime(), weekEnd: sunday.getTime() }
+  const { weekYear, week } = isoWeekParts(date)
+  const weekId = `${String(weekYear)}-W${String(week).padStart(2, '0')}`
+  return { weekId, ...weekBoundsFromMonday(startOfIsoWeek(date)) }
 }
 
 /** Built-in system prompts for each analysis type. */
@@ -194,7 +633,23 @@ export class MemoService extends TypertRemoteService {
   static Config = Config
 
   private readonly repoUrl: string
+  /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
+  private readonly provider?: string
+  /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
+  private readonly model?: string
+  /** Plugin ids log analysis covers, in the order they are read. */
+  private readonly logAnalysisPlugins: readonly string[]
+  private readonly storageWriteRetries: number
+  private readonly storageWriteRetryDelayMs: number
+  private readonly sessionSummaryMaxSessions: number
+  private readonly sessionSummaryTranscriptMaxChars: number
+  private readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
+  private readonly sessionSummaryMaxChars: number
+  private readonly sessionSummaryMaxCharsLimit: number
+  private readonly sessionSummarySourceTemplate: string
+  private readonly sessionSummaryPrompt: string
   private table?: KvTable<string, MemoWeekRow>
+  private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
   /**
    * @param ctx - Host context carrying the storage-domain, telemetry, and github-issue services.
@@ -203,25 +658,223 @@ export class MemoService extends TypertRemoteService {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'memo')
     this.repoUrl = config.repoUrl
+    this.provider = config.provider
+    this.model = config.model
+    this.logAnalysisPlugins = Object.freeze([...config.logAnalysisPlugins])
+    this.storageWriteRetries = config.storageWriteRetries
+    this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
+    this.sessionSummaryMaxSessions = config.sessionSummaryMaxSessions
+    this.sessionSummaryTranscriptMaxChars = config.sessionSummaryTranscriptMaxChars
+    this.sessionSummaryLanguage = config.sessionSummaryLanguage
+    this.sessionSummaryMaxChars = config.sessionSummaryMaxChars
+    this.sessionSummaryMaxCharsLimit = config.sessionSummaryMaxCharsLimit
+    this.sessionSummarySourceTemplate = config.sessionSummarySourceTemplate
+    this.sessionSummaryPrompt = config.sessionSummaryPrompt
   }
 
-  /** Open and own the one memo domain. */
+  /** Open and own the memo domain and the archive domain beside it. */
   protected async [Service.init](): Promise<void> {
     const domain = await this.ctx.storageDomain.open(memoDomainSpec)
     this.ctx.effect(() => async () => {
       await domain.close()
     }, 'memo.domainClose')
     this.table = domain.table('weeks')
+
+    const archiveDomain = await this.ctx.storageDomain.open(memoArchiveDomainSpec)
+    this.ctx.effect(() => async () => {
+      await archiveDomain.close()
+    }, 'memo.archiveDomainClose')
+    this.archiveTable = archiveDomain.table('quarters')
+  }
+
+  /**
+   * Archive one quarter by its label.
+   *
+   * The caller names a quarter label rather than a period it happens to be
+   * viewing: only a quarter label identifies a quarter. A year spans four of
+   * them, and a week's Monday can sit in the previous quarter while the week
+   * itself belongs to the quarter holding its Thursday — so "the quarter
+   * containing the period you are looking at" has no single answer, and
+   * guessing one from a period's start would archive the wrong quarter.
+   *
+   * @param request - the quarter label.
+   * @returns the archived quarter, with the week ids the host resolved.
+   */
+  @Remote('archiveQuarter')
+  async archiveQuarter(request: MemoQuarterLabelRequest): Promise<MemoArchiveQuarterResult> {
+    const label = request?.label
+    if (typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)) {
+      return this.failure({
+        code: 'invalid-quarter-label',
+        message: `memo: "${String(label)}" is not a quarter label`,
+        label: String(label ?? ''),
+      })
+    }
+    const archivedAt = Date.now()
+    await this.writeWithRetry(() => this.requireArchiveTable().put(label, { label, archivedAt }))
+    this.track('archiveQuarter', 'success', { label })
+    return { ok: true, value: this.archivedQuarter(label, archivedAt) }
+  }
+
+  /**
+   * Remove a quarter from the archive, restoring its cards to editable.
+   * @param request - the quarter label.
+   * @returns the label and whether a row was actually removed.
+   */
+  @Remote('unarchiveQuarter')
+  async unarchiveQuarter(request: MemoQuarterLabelRequest): Promise<MemoUnarchiveQuarterResult> {
+    const label = request?.label
+    if (typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)) {
+      return this.failure({
+        code: 'invalid-quarter-label',
+        message: `memo: "${String(label)}" is not a quarter label`,
+        label: String(label ?? ''),
+      })
+    }
+    const archived = await this.writeWithRetry(() => this.requireArchiveTable().delete(label))
+    this.track('unarchiveQuarter', 'success', { label, archived })
+    return { ok: true, value: { label, archived } }
+  }
+
+  /**
+   * List every archived quarter, oldest first.
+   *
+   * Each entry carries the quarter's week ids resolved through the host's own
+   * calendar, so a client decides read-only cards by building a `Set` and never
+   * by re-deriving which weeks a quarter owns.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the archived quarters, oldest first.
+   */
+  @Remote('listArchivedQuarters')
+  listArchivedQuarters(request: MemoListArchivedQuartersRequest): MemoListArchivedQuartersResult {
+    void request
+    const rows = [...this.requireArchiveTable().entries()]
+      .map(([label, row]) => ({ label, archivedAt: row.archivedAt }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    const quarters = rows.map(row => this.archivedQuarter(row.label, row.archivedAt))
+    this.track('listArchivedQuarters', 'success', { count: quarters.length })
+    return { ok: true, value: Object.freeze(quarters) }
+  }
+
+  /** Build one archived quarter with its week ids resolved by the host calendar. */
+  private archivedQuarter(label: string, archivedAt: number): MemoArchivedQuarter {
+    return Object.freeze({
+      label,
+      archivedAt,
+      weekIds: Object.freeze(weekIdsInPeriod('quarter', label)),
+    })
+  }
+
+  /**
+   * List the sessions in the official archive, with the metadata the picker
+   * needs.
+   *
+   * The archive set decides *which* sessions are eligible; session query only
+   * supplies titles and headers. Both services are read optionally: a deployment
+   * without a session archive must still boot the memo service, and it gets a
+   * reason instead of a permanently empty picker.
+   *
+   * Subagent children are filtered out here rather than in the browser: they are
+   * the model's own delegation, not the user's work, and each one would
+   * summarize into a near-duplicate of its parent.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the archived sessions, the per-call limit, and the current week id.
+   */
+  @Remote('listArchivedSessions')
+  async listArchivedSessions(request: MemoListArchivedSessionsRequest): Promise<MemoListArchivedSessionsResult> {
+    void request
+    const archive = this.ctx.get('workspaceRegistry') as SessionArchiveSource | undefined
+    if (archive === undefined || !Array.isArray(archive.archivedSessionIds)) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the workspace registry is not mounted, so no session archive can be read',
+        service: 'workspaceRegistry',
+      })
+    }
+    const query = this.ctx.get('sessionQuery') as SessionQuerySource | undefined
+    if (query === undefined) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the session query service is not mounted, so archived sessions cannot be read',
+        service: 'sessionQuery',
+      })
+    }
+    const sessionIds = [...new Set(archive.archivedSessionIds.filter(id => typeof id === 'string' && id.length > 0))]
+    const headers = await this.readSessionHeaders(query)
+    const titles = await this.readSessionTitles(query, sessionIds)
+    const summarized = this.summarizedSessionWeeks()
+    const sessions: MemoArchivedSession[] = []
+    for (const sessionId of sessionIds) {
+      const header = headers.get(sessionId)
+      if (isSubagentSession(header)) continue
+      const weeks = [...new Set((summarized.get(sessionId) ?? []).map(row => row.weekId))]
+      sessions.push(Object.freeze({
+        sessionId,
+        title: sessionTitleOrFallback(titles.get(sessionId), sessionId),
+        createdAt: typeof header?.createdAt === 'number' ? header.createdAt : 0,
+        ...(typeof header?.cwd === 'string' ? { cwd: header.cwd } : {}),
+        summarizedWeekIds: Object.freeze(weeks),
+      }))
+    }
+    sessions.sort((a, b) => b.createdAt - a.createdAt)
+    const limit = Math.max(SESSION_SUMMARY_MIN_CHARS, this.sessionSummaryMaxCharsLimit)
+    this.track('listArchivedSessions', 'success', { count: sessions.length })
+    return {
+      ok: true,
+      value: Object.freeze({
+        sessions: Object.freeze(sessions),
+        maxSessions: this.sessionSummaryMaxSessions,
+        currentWeekId: computeWeekBounds().weekId,
+        summaryMaxChars: Math.min(Math.max(this.sessionSummaryMaxChars, SESSION_SUMMARY_MIN_CHARS), limit),
+        summaryMaxCharsLimit: limit,
+      }),
+    }
+  }
+
+  /**
+   * The failure to return for a write that targets a week inside an archived
+   * quarter, or `undefined` when the week is writable.
+   *
+   * Read-only is enforced here rather than only in the browser because the same
+   * Remote methods are reachable by any client, and because an archive can land
+   * while a dialog is already open. The quarter a week belongs to is decided by
+   * {@link weekIdBelongsToPeriod} — the same Thursday rule that decides which
+   * weeks a quarter owns — so the guard cannot drift from the calendar that
+   * resolved those weeks in the first place.
+   * @param weekId - the week the write targets.
+   * @returns the failure, or `undefined` when the week may be written.
+   */
+  private archivedWeekFailure(weekId: string): MemoMemoFailure | undefined {
+    const archived = [...this.requireArchiveTable().entries()]
+      .some(([label]) => weekIdBelongsToPeriod(weekId, 'quarter', label))
+    if (!archived) return undefined
+    return {
+      code: 'quarter-archived',
+      message: `week "${weekId}" is inside an archived quarter; unarchive the quarter before changing its memos`,
+      weekId,
+    }
+  }
+
+  /** Resolve the initialized archive table or fail a broken service lifecycle. */
+  private requireArchiveTable(): KvTable<string, ArchivedQuarterRow> {
+    if (this.archiveTable === undefined) {
+      throw new Error('memo: archive domain is not initialized')
+    }
+    return this.archiveTable
   }
 
   /**
    * Get or create the current week's memo. If the current ISO week already
    * has a stored week, it is returned; otherwise a new empty week is created.
-   * @param _request - provider/model route stored for later AI calls (unused).
+   * @param request - optional provider/model route override, unused by this call.
    * @returns the current week.
    */
   @Remote('getOrCreateCurrentWeek')
-  async getOrCreateCurrentWeek(_request: MemoGetCurrentWeekRequest): Promise<MemoGetCurrentWeekResult> {
+  async getOrCreateCurrentWeek(request: MemoGetCurrentWeekRequest): Promise<MemoGetCurrentWeekResult> {
     const table = this.requireTable()
     const { weekId, weekStart, weekEnd } = computeWeekBounds()
     const existing = table.get(weekId)
@@ -236,7 +889,7 @@ export class MemoService extends TypertRemoteService {
       entries: [],
       updatedAt: Date.now(),
     }
-    await table.put(weekId, week)
+    await this.writeWithRetry(() => table.put(weekId, week))
     this.track('getOrCreateCurrentWeek', 'success')
     return { ok: true, value: snapshotWeek(week) }
   }
@@ -280,7 +933,25 @@ export class MemoService extends TypertRemoteService {
    */
   @Remote('addEntry')
   async addEntry(request: MemoAddEntryRequest): Promise<MemoAddEntryResult> {
+    return this.appendEntry(request)
+  }
+
+  /**
+   * Add one entry, optionally recording the archived session a generated
+   * summary came from.
+   *
+   * Private because the public `addEntry` request must not be able to forge
+   * provenance: only {@link MemoService.summarizeSession} sets an origin, and it
+   * has already read that session.
+   *
+   * @param request - the week id and entry content.
+   * @param originSessionId - the summarized session, when this is a summary.
+   * @returns the created entry.
+   */
+  private async appendEntry(request: MemoAddEntryRequest, originSessionId?: string): Promise<MemoAddEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const existing = table.get(request.weekId)
     const now = Date.now()
     const entry: MemoEntry = {
@@ -289,13 +960,29 @@ export class MemoService extends TypertRemoteService {
       content: request.content,
       ...(request.attachmentRef === undefined ? {} : { attachmentRef: request.attachmentRef }),
       ...(request.source === undefined ? {} : { source: request.source }),
+      ...(originSessionId === undefined ? {} : { originSessionId }),
       createdAt: now,
       updatedAt: now,
     }
-    const week: MemoWeekRow = existing === undefined
-      ? { weekId: request.weekId, weekStart: 0, weekEnd: 0, entries: [entry], updatedAt: now }
-      : { ...existing, entries: [...existing.entries, entry], updatedAt: now }
-    await table.put(request.weekId, week)
+    // A back-filled week has no stored row yet, so its bounds must come from its
+    // id. Writing zeros here — as an earlier revision did — produced a row that
+    // the week schema rejects, and because the storage domain validates every
+    // record on open, that one row then stopped the whole plugin from booting.
+    let week: MemoWeekRow
+    if (existing === undefined) {
+      const monday = mondayOfWeekId(request.weekId)
+      if (monday === undefined) {
+        return this.failure({
+          code: 'invalid-week-id',
+          message: `"${request.weekId}" is not an ISO week id (expected YYYY-Www)`,
+          weekId: request.weekId,
+        })
+      }
+      week = { weekId: request.weekId, ...weekBoundsFromMonday(monday), entries: [entry], updatedAt: now }
+    } else {
+      week = { ...existing, entries: [...existing.entries, entry], updatedAt: now }
+    }
+    await this.writeWithRetry(() => table.put(request.weekId, week))
     this.track('addEntry', 'success', { weekId: request.weekId, entryId: entry.id })
     return { ok: true, value: Object.freeze({ ...entry }) }
   }
@@ -309,6 +996,8 @@ export class MemoService extends TypertRemoteService {
   @Remote('updateEntry')
   async updateEntry(request: MemoUpdateEntryRequest): Promise<MemoUpdateEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const row = table.get(request.weekId)
     if (row === undefined) {
       return this.failure({ code: 'week-not-found', message: `week "${request.weekId}" not found`, weekId: request.weekId })
@@ -335,11 +1024,12 @@ export class MemoService extends TypertRemoteService {
       content: request.content,
       ...(old.attachmentRef !== undefined ? { attachmentRef: old.attachmentRef } : {}),
       ...(old.source !== undefined ? { source: old.source } : {}),
+      ...(old.originSessionId === undefined ? {} : { originSessionId: old.originSessionId }),
       createdAt: old.createdAt,
       updatedAt: now,
     }
     entries[entryIndex] = updated
-    await table.put(request.weekId, { ...row, entries, updatedAt: now })
+    await this.writeWithRetry(() => table.put(request.weekId, { ...row, entries, updatedAt: now }))
     this.track('updateEntry', 'success', { weekId: request.weekId, entryId: request.entryId, force: request.force ?? false })
     return { ok: true, value: Object.freeze({ ...updated }) }
   }
@@ -352,6 +1042,8 @@ export class MemoService extends TypertRemoteService {
   @Remote('deleteEntry')
   async deleteEntry(request: MemoDeleteEntryRequest): Promise<MemoDeleteEntryResult> {
     const table = this.requireTable()
+    const archived = this.archivedWeekFailure(request.weekId)
+    if (archived !== undefined) return this.failure(archived)
     const row = table.get(request.weekId)
     if (row === undefined) {
       return this.failure({ code: 'week-not-found', message: `week "${request.weekId}" not found`, weekId: request.weekId })
@@ -369,16 +1061,121 @@ export class MemoService extends TypertRemoteService {
       return this.failure({ code: 'entry-not-found', message: `entry "${request.entryId}" not found in week "${request.weekId}"`, entryId: request.entryId })
     }
     const entries = row.entries.filter(e => e.id !== request.entryId)
-    await table.put(request.weekId, { ...row, entries, updatedAt: Date.now() })
+    await this.writeWithRetry(() => table.put(request.weekId, { ...row, entries, updatedAt: Date.now() }))
     this.track('deleteEntry', 'success', { weekId: request.weekId, entryId: request.entryId, force: request.force ?? false })
     return { ok: true, value: true }
+  }
+
+  /**
+   * Resolve the model route for one AI call. The caller's explicit request
+   * wins, then this service's validated `Config`, then the deployment's
+   * `agentDefaultModel` selection — the single existing source of truth for
+   * "which model does this deployment use". Nothing is hardcoded, so a
+   * deployment can retarget memo analysis from `cordis.yml` alone.
+   * @param request - the caller's optional route override.
+   * @returns the provider and model to call, either of which may be empty.
+   */
+  private resolveRoute(request: { readonly provider?: string; readonly model?: string }): LlmRoute {
+    const configured = { provider: this.provider, model: this.model }
+    const fallback = this.ctx.get('agentDefaultModel')?.currentSelection()
+    return {
+      provider: request.provider ?? configured.provider ?? fallback?.provider ?? '',
+      model: request.model ?? configured.model ?? fallback?.model ?? '',
+    }
+  }
+
+  /**
+   * Turn one failed model call into this service's business failure, keeping
+   * the DSH machine-routing code and message so a misconfigured route is
+   * distinguishable from a genuinely empty model response.
+   * @param feature - the telemetry action name the failure is recorded under.
+   * @param route - the route that was attempted.
+   * @param failure - the preserved DSH failure facts.
+   * @returns the business failure to return to the caller.
+   */
+  private llmFailure(feature: string, route: LlmRoute, failure: LlmTextResult & { ok: false }): MemoMemoFailure {
+    const detail = failure.failure
+    const message = `model call to provider "${route.provider}" model "${route.model}" failed: ${detail.code}: ${detail.message}`
+    this.trackError(
+      feature,
+      { code: detail.code, message: detail.message, featureCodeRef: `memo:${feature}` },
+      { provider: route.provider, model: route.model, ...(detail.status === undefined ? {} : { status: detail.status }) },
+    )
+    return Object.freeze({
+      code: 'llm-failure' as const,
+      failureCode: detail.code,
+      message,
+      provider: route.provider,
+      model: route.model,
+      ...(detail.status === undefined ? {} : { status: detail.status }),
+    })
+  }
+
+  /**
+   * Report the route AI analysis would use now, plus every route it can be
+   * switched to and what each one advertises.
+   *
+   * The catalog comes from the `llm` service because DSH exposes `listModels`
+   * and `listProviders` to the host only: a browser cannot enumerate providers
+   * or their models, and handing it a hardcoded list is the defect this feature
+   * exists to avoid — the browser cannot know which adapters a deployment
+   * registered. Only *registered* routes are listed. An adapter may also declare
+   * providers it could activate through configuration, but a dormant one cannot
+   * carry a call, so offering it would offer a selection that must fail.
+   *
+   * Each provider's catalog is fetched independently: one adapter that throws
+   * must not hide the models every other provider is willing to serve. Anything
+   * that leaves the list empty is reported as data inside a successful result,
+   * so a deployment without a model route still opens the board.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the resolved route and every registered provider with its models.
+   */
+  @Remote('listModels')
+  async listModels(request: MemoListModelsRequest): Promise<MemoListModelsResult> {
+    void request
+    const route = this.resolveRoute({})
+    const llm = this.ctx.get('llm') as LlmModelCatalog | undefined
+    if (llm === undefined) {
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'llm-unavailable' })
+      return { ok: true, value: { ...route, providers: [], catalogError: 'the llm service is not mounted' } }
+    }
+    let registered: readonly { readonly id: string; readonly name: string }[]
+    try {
+      registered = llm.listProviders()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'providers-threw' })
+      return { ok: true, value: { ...route, providers: [], catalogError: message } }
+    }
+    if (registered.length === 0) {
+      this.track('listModels', 'failure', { ...this.routeFacts(route), reason: 'no-provider' })
+      return { ok: true, value: { ...route, providers: [], catalogError: 'no provider route is registered' } }
+    }
+    // Fetched together rather than one after another: an unreachable provider
+    // should cost the board one slow catalog, not a queue of them.
+    const providers = await Promise.all(registered.map(async (entry): Promise<MemoModelProvider> => {
+      const name = entry.name.length > 0 ? entry.name : entry.id
+      try {
+        const advertised = await llm.listModels(entry.id)
+        const models = Object.freeze(advertised.map(model => Object.freeze({ id: model.id, name: model.name })))
+        return Object.freeze({ id: entry.id, name, models })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return Object.freeze({ id: entry.id, name, models: Object.freeze([]), error: message })
+      }
+    }))
+    const count = providers.reduce((total, provider) => total + provider.models.length, 0)
+    this.track('listModels', 'success', { ...this.routeFacts(route), providers: providers.length, count })
+    return { ok: true, value: { ...route, providers: Object.freeze(providers) } }
   }
 
   /**
    * Analyze memo entries for a period using the configured model. The analysis
    * type controls the system prompt: 梳理 (organize), 总结 (summarize), 分析
    * (analyze).
-   * @param request - period, label, analysis type, and model route.
+   * @param request - period, label, analysis type, and optional model route.
    * @returns the analysis result.
    */
   @Remote('analyze')
@@ -388,22 +1185,23 @@ export class MemoService extends TypertRemoteService {
     if (entries.length === 0) {
       return this.failure({ code: 'no-entries', message: `no memo entries found for ${request.periodLabel}` })
     }
+    const route = this.resolveRoute(request)
     const systemPrompt = ANALYSIS_PROMPTS[request.analysisType]
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
-    const body = await this.streamModelText(request.provider, request.model, systemPrompt, userText)
-    if (body === undefined) {
-      this.trackError('analyze', { code: 'LLM_FAILURE', message: 'model produced no output', featureCodeRef: 'memo:analyze' })
-      return this.failure({ code: 'llm-failure', message: 'the model produced no output' })
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, systemPrompt, userText)
+    if (!result.ok) {
+      return this.failure(this.llmFailure('analyze', route, result))
     }
+    const body = result.text
     const analysis: MemoAnalysis = {
       period: request.period,
       periodLabel: request.periodLabel,
       summary: body,
       generatedAt: Date.now(),
-      modelProvider: request.provider,
-      modelName: request.model,
+      modelProvider: route.provider,
+      modelName: route.model,
     }
-    this.track('analyze', 'success', { period: request.period, periodLabel: request.periodLabel, analysisType: request.analysisType })
+    this.track('analyze', 'success', { ...this.routeFacts(route), period: request.period, periodLabel: request.periodLabel, analysisType: request.analysisType })
     appendToLedger({
       id: randomUUID(),
       period: request.period,
@@ -417,7 +1215,7 @@ export class MemoService extends TypertRemoteService {
 
   /**
    * Export a work report for a period as Markdown.
-   * @param request - period, label, and model route.
+   * @param request - period, label, and optional model route.
    * @returns the Markdown report.
    */
   @Remote('exportReport')
@@ -427,29 +1225,323 @@ export class MemoService extends TypertRemoteService {
     if (entries.length === 0) {
       return this.failure({ code: 'no-entries', message: `no memo entries found for ${request.periodLabel}` })
     }
+    const route = this.resolveRoute(request)
     const userText = entries.map(e => `- [${e.type}] ${e.content}`).join('\n')
-    const body = await this.streamModelText(request.provider, request.model, REPORT_EXPORT_PROMPT, userText)
-    if (body === undefined) {
-      this.trackError('exportReport', { code: 'LLM_FAILURE', message: 'model produced no output', featureCodeRef: 'memo:exportReport' })
-      return this.failure({ code: 'llm-failure', message: 'the model produced no output' })
+    const result = await streamLlmText(this.ctx.get('llm') as LlmTextSource | undefined, route, REPORT_EXPORT_PROMPT, userText)
+    if (!result.ok) {
+      return this.failure(this.llmFailure('exportReport', route, result))
     }
-    this.track('exportReport', 'success', { period: request.period, periodLabel: request.periodLabel })
-    return { ok: true, value: body }
+    this.track('exportReport', 'success', { ...this.routeFacts(route), period: request.period, periodLabel: request.periodLabel })
+    return { ok: true, value: result.text }
   }
 
   /**
-   * Read an external file path. This is the privilege-escalation boundary
-   * (req 5): the client UI must show a consent dialog before calling this
-   * method. The fs service's sandbox policy is the actual security boundary.
-   * @param request - the path to read and the model route for context.
-   * @returns the file text, or a failure.
+   * Summarize archived sessions into one memo week.
+   *
+   * One model call per session, one entry per session: a weekly view then reads
+   * as "what did each conversation produce", and a single long session cannot
+   * crowd out the others the way one merged prompt would. Per-session failures
+   * stay inside {@link MemoSummarizeSessionValue.outcomes}, so one unreadable
+   * log or one rate limit does not throw away the summaries that did succeed.
+   *
+   * The source annotation is rendered here, after the model call, from the
+   * deployment's template: the model never controls provenance, and a
+   * browser-only annotation would be absent from every other client.
+   *
+   * @param request - the archived session ids, optional target week, route
+   * override, and whether an existing summary may be replaced.
+   * @returns the target week and one outcome per requested session.
    */
-  @Remote('readExternalPath')
+  @Remote('summarizeSession')
+  async summarizeSession(request: MemoSummarizeSessionRequest): Promise<MemoSummarizeSessionResult> {
+    const archive = this.ctx.get('workspaceRegistry') as SessionArchiveSource | undefined
+    if (archive === undefined || !Array.isArray(archive.archivedSessionIds)) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the workspace registry is not mounted, so no session archive can be read',
+        service: 'workspaceRegistry',
+      })
+    }
+    const query = this.ctx.get('sessionQuery') as SessionQuerySource | undefined
+    if (query === undefined) {
+      return this.failure({
+        code: 'session-service-unavailable',
+        message: 'the session query service is not mounted, so archived sessions cannot be read',
+        service: 'sessionQuery',
+      })
+    }
+    const raw = Array.isArray(request?.sessionIds) ? request.sessionIds : []
+    const invalid = raw.find(id => typeof id !== 'string' || id.length === 0)
+    if (invalid !== undefined) {
+      return this.failure({
+        code: 'invalid-session-id',
+        message: `"${String(invalid)}" is not a session id`,
+        sessionId: String(invalid),
+      })
+    }
+    const sessionIds = [...new Set(raw as readonly string[])]
+    if (sessionIds.length === 0) {
+      return this.failure({ code: 'no-sessions', message: 'no session ids were selected' })
+    }
+    if (sessionIds.length > this.sessionSummaryMaxSessions) {
+      return this.failure({
+        code: 'too-many-sessions',
+        message: `at most ${this.sessionSummaryMaxSessions} sessions can be summarized in one call`,
+        limit: this.sessionSummaryMaxSessions,
+      })
+    }
+    const weekId = request.weekId ?? computeWeekBounds().weekId
+    if (mondayOfWeekId(weekId) === undefined) {
+      return this.failure({
+        code: 'invalid-week-id',
+        message: `"${weekId}" is not an ISO week id (expected YYYY-Www)`,
+        weekId,
+      })
+    }
+    const archivedWeek = this.archivedWeekFailure(weekId)
+    if (archivedWeek !== undefined) return this.failure(archivedWeek)
+
+    const archived = new Set(archive.archivedSessionIds)
+    const titles = await this.readSessionTitles(query, sessionIds)
+    const summarized = this.summarizedSessionWeeks()
+    const route = this.resolveRoute(request)
+    const language = this.resolveSummaryLanguage(request)
+    const maxChars = this.resolveSummaryMaxChars(request)
+    const systemPrompt = renderSessionSummaryPrompt(this.sessionSummaryPrompt, language, maxChars)
+    const outcomes: MemoSessionSummaryOutcome[] = []
+
+    for (const sessionId of sessionIds) {
+      const title = sessionTitleOrFallback(titles.get(sessionId), sessionId)
+      if (!archived.has(sessionId)) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-not-archived',
+          message: `session "${sessionId}" is not in the official archive`,
+          sessionId,
+        }))
+        continue
+      }
+      const existing = (summarized.get(sessionId) ?? []).find(row => row.weekId === weekId)
+      if (existing !== undefined && request.force !== true) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'already-summarized',
+          message: `session "${sessionId}" already has a summary in week "${weekId}"`,
+          sessionId,
+          weekId,
+          entryId: existing.entryId,
+        }))
+        continue
+      }
+      let surface: SessionSurfaceLike
+      try {
+        surface = await query.readSurface(sessionId)
+      } catch (error) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-unreadable',
+          message: `session "${sessionId}" could not be read: ${error instanceof Error ? error.message : String(error)}`,
+          sessionId,
+        }))
+        continue
+      }
+      const messages = extractSessionMessages(surface.events ?? [])
+      const transcript = renderSessionTranscript(messages, { maxChars: this.sessionSummaryTranscriptMaxChars })
+      if (transcript.text.length === 0) {
+        outcomes.push(this.summaryFailure(sessionId, title, {
+          code: 'session-empty',
+          message: `session "${sessionId}" has no user/assistant text to summarize`,
+          sessionId,
+        }))
+        continue
+      }
+      const result = await streamLlmText(
+        this.ctx.get('llm') as LlmTextSource | undefined,
+        route,
+        systemPrompt,
+        transcript.text,
+      )
+      if (!result.ok) {
+        outcomes.push(Object.freeze({ sessionId, title, error: this.llmFailure('summarizeSession', route, result) }))
+        continue
+      }
+      const content = `${result.text.trim()}${renderSourceAnnotation(this.sessionSummarySourceTemplate, { sessionId, sessionTitle: title })}`
+      if (existing !== undefined) {
+        const updated = await this.updateEntry({ weekId, entryId: existing.entryId, content, force: true })
+        if (!updated.ok) {
+          outcomes.push(this.summaryFailure(sessionId, title, updated.error))
+          continue
+        }
+        outcomes.push(Object.freeze({ sessionId, title, entry: updated.value }))
+        continue
+      }
+      const added = await this.appendEntry({ weekId, type: 'text', content }, sessionId)
+      if (!added.ok) {
+        outcomes.push(this.summaryFailure(sessionId, title, added.error))
+        continue
+      }
+      outcomes.push(Object.freeze({ sessionId, title, entry: added.value }))
+    }
+
+    const succeeded = outcomes.filter(outcome => outcome.entry !== undefined).length
+    this.track('summarizeSession', succeeded > 0 ? 'success' : 'failure', {
+      ...this.routeFacts(route),
+      weekId,
+      requested: sessionIds.length,
+      succeeded,
+      failed: outcomes.length - succeeded,
+    })
+    return {
+      ok: true,
+      value: Object.freeze({ weekId, outcomes: Object.freeze(outcomes) }),
+    }
+  }
+
+  /**
+   * Resolve the output language from the deployment Config and the request.
+   *
+   * A forced Config language wins so one deployment's weekly reports stay in one
+   * language; `auto` follows the browser and treats an absent or unknown value
+   * as Chinese, matching the default source annotation.
+   * @param request - the summarize request carrying the browser's language.
+   * @returns the language to render the prompt in.
+   */
+  private resolveSummaryLanguage(request: MemoSummarizeSessionRequest): 'zh' | 'en' {
+    if (this.sessionSummaryLanguage === 'zh' || this.sessionSummaryLanguage === 'en') {
+      return this.sessionSummaryLanguage
+    }
+    return request.language === 'en' ? 'en' : 'zh'
+  }
+
+  /**
+   * Clamp the requested summary length into the configured window.
+   *
+   * A missing value falls back to the configured default. The upper bound is
+   * widened when a deployment sets a default above its own limit, so the default
+   * remains satisfiable instead of silently shrinking.
+   * @param request - the summarize request carrying the picker's value.
+   * @returns the target length in characters.
+   */
+  private resolveSummaryMaxChars(request: MemoSummarizeSessionRequest): number {
+    const limit = Math.max(SESSION_SUMMARY_MIN_CHARS, this.sessionSummaryMaxCharsLimit)
+    const fallback = Math.min(Math.max(this.sessionSummaryMaxChars, SESSION_SUMMARY_MIN_CHARS), limit)
+    const requested = typeof request.maxChars === 'number' && Number.isFinite(request.maxChars)
+      ? Math.round(request.maxChars)
+      : fallback
+    return Math.min(Math.max(requested, SESSION_SUMMARY_MIN_CHARS), limit)
+  }
+
+  /**
+   * Turn one per-session failure into its outcome, recording it in telemetry.
+   *
+   * `llm-failure` is excluded because {@link MemoService.llmFailure} already
+   * records the model failure with its route; recording it twice would inflate
+   * the failure counts the log analysis reads.
+   * @param sessionId - the session the outcome describes.
+   * @param title - the session title or fallback.
+   * @param error - the failure to report.
+   * @returns the frozen outcome.
+   */
+  private summaryFailure(sessionId: string, title: string, error: MemoMemoFailure): MemoSessionSummaryOutcome {
+    if (error.code !== 'llm-failure') {
+      this.trackError(
+        'summarizeSession',
+        { code: error.code, message: error.message, featureCodeRef: 'memo:summarizeSession' },
+        { sessionId },
+      )
+    }
+    return Object.freeze({ sessionId, title, error: Object.freeze(error) })
+  }
+
+  /**
+   * Read every logical session header, or an empty map when the corpus cannot
+   * be listed.
+   *
+   * A failed listing is deliberately not fatal: the archive set still names the
+   * sessions, and {@link MemoService.summarizeSession} reports the per-session
+   * read failure when the user actually asks for one.
+   * @param query - the session query service.
+   * @returns session id to header.
+   */
+  private async readSessionHeaders(query: SessionQuerySource): Promise<Map<string, SessionHeaderLike>> {
+    const headers = new Map<string, SessionHeaderLike>()
+    try {
+      const records = await query.listSessions()
+      for (const record of records) {
+        const header = record?.header
+        if (header !== undefined && typeof header.id === 'string' && header.id.length > 0) {
+          headers.set(header.id, header)
+        }
+      }
+    } catch {
+      // See the JSDoc: an unreadable corpus degrades to unknown metadata.
+    }
+    return headers
+  }
+
+  /**
+   * Read the log-backed titles for the given sessions.
+   *
+   * Titles are presentation only, so a failed batch is not fatal. The batch
+   * method is optional structurally because an older session-query backend may
+   * not offer it; the picker then falls back to the short-id form.
+   * @param query - the session query service.
+   * @param sessionIds - the sessions to title.
+   * @returns session id to title.
+   */
+  private async readSessionTitles(query: SessionQuerySource, sessionIds: readonly string[]): Promise<Map<string, string>> {
+    const titles = new Map<string, string>()
+    if (sessionIds.length === 0 || typeof query.readTitleSnapshots !== 'function') return titles
+    try {
+      const results = await query.readTitleSnapshots(sessionIds)
+      for (const result of results) {
+        if (result?.status !== 'fulfilled') continue
+        const title = result.value?.title?.title
+        if (typeof title === 'string' && title.trim().length > 0) titles.set(result.sessionId, title)
+      }
+    } catch {
+      // See the JSDoc: a missing title is not a reason to hide the session.
+    }
+    return titles
+  }
+
+  /**
+   * Index every summary entry by the session it came from.
+   *
+   * Built in one pass over the weeks table so both the picker (which weeks
+   * already hold a summary) and the summarize path (duplicate guard) read the
+   * same facts without a second storage shape.
+   * @returns session id to the weeks and entries that summarize it.
+   */
+  private summarizedSessionWeeks(): Map<string, { weekId: string; entryId: string }[]> {
+    const summarized = new Map<string, { weekId: string; entryId: string }[]>()
+    for (const [weekId, row] of this.requireTable().entries()) {
+      for (const entry of row.entries) {
+        if (entry.originSessionId === undefined) continue
+        const rows = summarized.get(entry.originSessionId) ?? []
+        rows.push({ weekId, entryId: entry.id })
+        summarized.set(entry.originSessionId, rows)
+      }
+    }
+    return summarized
+  }
+
+  /**
+   * Read an external file path through the host `fs` service and return its
+   * text.
+   *
+   * Deliberately not registered as a Remote endpoint. The capability is wanted;
+   * what it lacks is a confirmation point — `ctx.approval` closes over an open
+   * turn, and a panel click happens between turns — so until one exists nothing
+   * should be able to reach this over the wire. It keeps adding no entry and
+   * asking for no confirmation, and it stays on the service as the host-side
+   * implementation a later transport can build on.
+   * @param request - the path to read.
+   * @returns the file text, or a failure naming the reason it could not be read.
+   */
   async readExternalPath(request: MemoReadExternalPathRequest): Promise<ReadExternalPathResult> {
-    const fs = this.ctx.get('fs')
+    const fs = this.ctx.get('fs') as FsTextSource | undefined
     if (fs === undefined) {
-      this.trackError('readExternalPath', { code: 'FS_UNAVAILABLE', message: 'fs service not available', featureCodeRef: 'memo:readExternalPath' })
-      return this.failure({ code: 'fs-unavailable', message: 'the filesystem service is not available' })
+      const code = 'fs-unavailable'
+      this.trackError('readExternalPath', { code, message: 'fs service not available', featureCodeRef: 'memo:readExternalPath' }, { path: request.path })
+      return this.failure({ code, message: 'the filesystem service is not available', path: request.path })
     }
     try {
       const target = await fs.resolve(request.path)
@@ -457,43 +1549,64 @@ export class MemoService extends TypertRemoteService {
       this.track('readExternalPath', 'success', { path: request.path })
       return { ok: true, value: text }
     } catch (error) {
+      // The reason has to survive the trip: one blanket `approval-denied` made a
+      // missing file, a binary file, and a genuine refusal indistinguishable.
+      const code = readFailureCode(fsErrorCode(error))
       const message = error instanceof Error ? error.message : String(error)
-      this.trackError('readExternalPath', { code: 'FS_ERROR', message, featureCodeRef: 'memo:readExternalPath' })
-      return this.failure({ code: 'approval-denied', message: `could not read "${request.path}": ${message}` })
+      this.trackError('readExternalPath', { code, message, featureCodeRef: 'memo:readExternalPath' }, { path: request.path })
+      return this.failure({ code, message: `could not read "${request.path}": ${message}`, path: request.path })
     }
   }
 
   /**
-   * Analyze telemetry logs for this plugin and generate a GitHub issue report.
-   * Calls the telemetry service for the failure analysis, then the github-issue
-   * service for the report and prefill URL.
-   * @param request - plugin id, repo URL, and model route.
+   * Analyze telemetry logs for this deployment's plugins and generate one
+   * GitHub issue report over all of them.
+   *
+   * One report rather than one per plugin: the packages of a suite are
+   * installed, broken, and fixed together, and a report that covers only `memo`
+   * cannot mention the `github-issue` failure that broke this panel's own issue
+   * editor — which is exactly the failure that went unseen.
+   *
+   * @param request - plugin ids, repo URL, and model route.
    * @returns the issue report, prefill URL, and analysis summary.
    */
   @Remote('analyzeLogs')
   async analyzeLogs(request: MemoAnalyzeLogsRequest): Promise<MemoAnalyzeLogsResult> {
     const telemetry = this.ctx.get('telemetry')
     if (telemetry === undefined) {
-      return this.failure({ code: 'llm-failure', message: 'the telemetry service is not available' })
+      return this.failure({ code: 'github-issue-failure', message: 'the telemetry service is not available' })
     }
     const githubIssue = this.ctx.get('githubIssue')
     if (githubIssue === undefined) {
       return this.failure({ code: 'github-issue-failure', message: 'the github-issue service is not available' })
     }
-    const pluginId = request.pluginId ?? TELEMETRY_PLUGIN_ID
-    const analysis = telemetry.analyzeForPlugin(pluginId)
+    const pluginIds = request.pluginIds ?? this.logAnalysisPlugins
+    if (pluginIds.length === 0) {
+      return this.failure({
+        code: 'no-plugins-configured',
+        message: 'no plugin is configured for log analysis; set logAnalysisPlugins or pass pluginIds',
+      })
+    }
+    const analysis = mergeAnalyses(pluginIds, pluginIds.map(pluginId => telemetry.analyzeForPlugin(pluginId)))
+    const route = this.resolveRoute(request)
     const reportResult = await githubIssue.generateReport({
-      pluginId,
+      pluginIds: [...pluginIds],
       totalEvents: analysis.totalEvents,
       totalFailures: analysis.totalFailures,
+      // The window and the per-group timing are what let the report say whether
+      // a failure is still happening; the route is what lets it say where.
+      ...(analysis.window === undefined ? {} : { window: analysis.window }),
       failureGroups: analysis.failureGroups.map((g: TelemetryFailureGroup) => ({
         featureCodeRef: g.featureCodeRef,
         count: g.count,
         ...(g.latest.error?.code !== undefined ? { errorCode: g.latest.error.code } : {}),
         ...(g.latest.error?.message !== undefined ? { errorMessage: g.latest.error.message } : {}),
+        lastFailureAt: g.latest.timestamp,
+        attemptsAfterLastFailure: g.attemptsAfterLastFailure,
+        ...(g.route === undefined ? {} : { route: g.route }),
       })),
-      provider: request.provider,
-      model: request.model,
+      provider: route.provider,
+      model: route.model,
     })
     if (!reportResult.ok) {
       return this.failure({ code: 'github-issue-failure', message: reportResult.error.message })
@@ -509,16 +1622,21 @@ export class MemoService extends TypertRemoteService {
       report: reportResult.value,
       issueUrl: urlResult.value,
       analysis: Object.freeze({
+        pluginIds: Object.freeze([...pluginIds]),
         totalEvents: analysis.totalEvents,
         totalFailures: analysis.totalFailures,
-        failureGroups: Object.freeze(analysis.failureGroups.map((g: { featureCodeRef: string; count: number; errorCodes: readonly string[] }) => ({
+        ...(analysis.window === undefined ? {} : { window: analysis.window }),
+        failureGroups: Object.freeze(analysis.failureGroups.map((g: TelemetryFailureGroup) => ({
           featureCodeRef: g.featureCodeRef,
           count: g.count,
           errorCodes: Object.freeze(g.errorCodes),
+          lastFailureAt: g.latest.timestamp,
+          attemptsAfterLastFailure: g.attemptsAfterLastFailure,
+          ...(g.route === undefined ? {} : { route: g.route }),
         }))),
       }),
     })
-    this.track('analyzeLogs', 'success', { pluginId })
+    this.track('analyzeLogs', 'success', { ...this.routeFacts(route), pluginIds: [...pluginIds] })
     return { ok: true, value: result }
   }
 
@@ -541,29 +1659,62 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
-   * Whether a week id matches a period label. Week periods match the full
-   * weekId; month/quarter/year periods match a prefix.
-   * @param weekId - the ISO week id.
-   * @param period - the period kind.
-   * @param periodLabel - the period label.
-   * @returns whether the week belongs to the period.
+   * List the memo timeline in one dimension, newest period first.
+   *
+   * This is the host-side source of truth for four-dimension navigation: the
+   * UI asks for `week`/`month`/`quarter`/`year` and receives the navigable
+   * periods **plus** the week ids each one contains, so the UI never has to
+   * re-implement calendar math that could disagree with storage.
+   *
+   * Periods that contain no stored week are still listed — an empty period is
+   * a valid place to add the first card, and omitting it would make the
+   * timeline skip months the user can see on a calendar.
+   *
+   * @param request - the dimension and how many periods to return.
+   * @returns the periods, newest first.
    */
-  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
-    if (period === 'week') return weekId === periodLabel
-    if (period === 'month') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'quarter') return weekId.startsWith(periodLabel.slice(0, 5))
-    if (period === 'year') return weekId.startsWith(periodLabel)
-    return false
+  @Remote('listPeriods')
+  listPeriods(request: MemoListPeriodsRequest): MemoListPeriodsResult {
+    const table = this.requireTable()
+    const stored = new Set<string>()
+    for (const [weekId] of table.entries()) stored.add(weekId)
+
+    const limit = Math.max(1, Math.min(request.limit ?? 26, 400))
+    const now = new Date()
+    const currentLabel = periodLabelFor(request.period, now)
+    const periods: MemoPeriodEntry[] = []
+    for (let offset = 0; offset < limit; offset += 1) {
+      const label = shiftPeriod(request.period, currentLabel, -offset)
+      if (label === undefined) break
+      const weekIds = weekIdsInPeriod(request.period, label)
+      const range = periodBounds(request.period, label) ?? { start: 0, end: 0 }
+      periods.push(Object.freeze({
+        id: label,
+        label,
+        period: request.period,
+        start: range.start,
+        end: range.end,
+        current: label === currentLabel,
+        weekCount: weekIds.filter(weekId => stored.has(weekId)).length,
+        weekIds: Object.freeze(weekIds),
+      }))
+    }
+    this.track('listPeriods', 'success', { period: request.period, limit })
+    return { ok: true, value: Object.freeze(periods) }
   }
 
   /**
-   * Stream one model call and collect the text output.
-   * @param provider - registered provider route.
-   * @param model - model id.
-   * @param system - system prompt text.
-   * @param userText - user message text.
-   * @returns the concatenated text, or `undefined` on empty or errored output.
+   * Whether a week id is attributed to a period label.
+   * @param weekId - the ISO week id.
+   * @param period - the period kind.
+   * @param periodLabel - the period label.
+   * @returns whether the week's Monday falls inside the period.
    */
+  private weekMatchesPeriod(weekId: string, period: string, periodLabel: string): boolean {
+    if (period !== 'week' && period !== 'month' && period !== 'quarter' && period !== 'year') return false
+    return weekIdBelongsToPeriod(weekId, period, periodLabel)
+  }
+
   /**
    * List long-term memory entries (persisted AI analyses from the JSON ledger).
    * This is the "long-term memory" feature: every successful `analyze` call
@@ -589,28 +1740,25 @@ export class MemoService extends TypertRemoteService {
     }
   }
 
-  private async streamModelText(provider: string, model: string, system: string, userText: string): Promise<string | undefined> {
-    const llm = this.ctx.get('llm')
-    if (llm === undefined) return undefined
-    const message = createUserMessage({
-      content: [{ type: 'text', text: userText }],
-      source: { kind: 'user' },
-    })
-    const options: GenerateOptions = {
-      provider,
-      model,
-      messages: [message as Message],
-      system,
-    }
-    let text = ''
-    for await (const chunk of llm.stream(options) as AsyncIterable<StreamChunk>) {
-      if (chunk.type === 'text-delta') {
-        text += chunk.text
-      } else if (chunk.type === 'finish' && (chunk.reason.kind === 'error' || chunk.reason.kind === 'aborted')) {
-        return undefined
-      }
-    }
-    return text.length > 0 ? text : undefined
+  /**
+   * The route facts every AI-related telemetry event carries.
+   *
+   * A failure event has always named the route it failed on, which left the
+   * answer to "was this a route problem?" recoverable only from failures: a
+   * successful call recorded no route at all, so a later analysis could not
+   * say which route served the calls that worked, nor whether the route in
+   * force had changed since a failure. Both halves are needed to compare, and
+   * the route is already resolved by the time either is recorded.
+   *
+   * A resolved but empty route is recorded as an empty string: `''` means
+   * nothing resolved, while an event that lacks the keys predates this and
+   * genuinely did not record a route.
+   *
+   * @param route - the route the call used, or would have used.
+   * @returns the provider and model to merge into an event's metadata.
+   */
+  private routeFacts(route: LlmRoute): { provider: string; model: string } {
+    return { provider: route.provider, model: route.model }
   }
 
   /** Track one telemetry event for this plugin. */
@@ -622,9 +1770,45 @@ export class MemoService extends TypertRemoteService {
     this.ctx.get('telemetry')?.track(input)
   }
 
-  /** Track one telemetry error event for this plugin. */
-  private trackError(action: string, error: { code: string; message: string; featureCodeRef?: string }): void {
-    this.ctx.get('telemetry')?.trackError({ pluginId: TELEMETRY_PLUGIN_ID, action, error })
+  /**
+   * Track one telemetry failure for this plugin.
+   * @param action - the feature that failed.
+   * @param error - the failure code, message, and optional feature anchor.
+   * @param metadata - extra structured context, such as the attempted route.
+   */
+  private trackError(
+    action: string,
+    error: { code: string; message: string; featureCodeRef?: string },
+    metadata?: Record<string, unknown>,
+  ): void {
+    this.ctx.get('telemetry')?.trackError({
+      pluginId: TELEMETRY_PLUGIN_ID,
+      action,
+      error,
+      ...(metadata === undefined ? {} : { metadata }),
+    })
+  }
+
+  /**
+   * Replay one durable write while the failure is transient.
+   *
+   * Every caller passes the exact operation it already built, so the retry
+   * cannot drift into writing a different record than the one the user asked
+   * for. The loop stops at the first non-transient failure so a real
+   * permission problem is reported, not slept through.
+   *
+   * @param operation - the write to attempt.
+   * @returns the operation's result once it succeeds.
+   */
+  private async writeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await operation()
+      } catch (error) {
+        if (attempt >= this.storageWriteRetries || !isTransientStorageWriteError(error)) throw error
+        await delay(Math.min(this.storageWriteRetryDelayMs * (2 ** attempt), MAX_STORAGE_WRITE_RETRY_DELAY_MS))
+      }
+    }
   }
 
   /** Build a frozen failure result from code and message. */
@@ -645,6 +1829,145 @@ export class MemoService extends TypertRemoteService {
 type ReadExternalPathResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** The failure codes a failed {@link MemoService.readExternalPath} can report. */
+/**
+ * The codes a read can hand back: every `MemoMemoFailure` variant that names the
+ * path it failed on. Derived rather than re-listed, so a code added to the public
+ * union cannot stay out of the dispatch unnoticed.
+ */
+type ReadExternalPathFailureCode = Extract<MemoMemoFailure, { readonly path: string }>['code']
+
+/**
+ * Minimal shape of the DSH `fs` service this service needs: resolve a path into
+ * an opaque target, then read that target's text. Declared structurally so
+ * nothing here depends on a concrete backend, and the target stays `unknown`
+ * because the only thing this service does with it is hand it straight back.
+ */
+interface FsTextSource {
+  resolve(path: string): Promise<unknown>
+  readText(target: unknown): Promise<string>
+}
+
+/**
+ * Minimal shape of the DSH `workspaceRegistry` service this feature needs.
+ *
+ * Declared structurally so the memo package does not take a hard dependency on
+ * `@deepseek-ai/dsh-workspace`: the archive set is the only fact read here, and
+ * a deployment without that service must still boot memo and report a clear
+ * reason instead of failing composition.
+ */
+interface SessionArchiveSource {
+  /** Sessions the user hid from every grouping surface. */
+  readonly archivedSessionIds: readonly string[]
+}
+
+/** The parts of a DSH session header this feature reads. */
+interface SessionHeaderLike {
+  readonly id: string
+  readonly createdAt: number
+  readonly cwd?: string
+  readonly origin?: string
+}
+
+/** One `sessionQuery.listSessions` row, narrowed to the header. */
+interface SessionRecordLike {
+  readonly header: SessionHeaderLike
+}
+
+/** One model-visible surface observation, narrowed to its events. */
+interface SessionSurfaceLike {
+  readonly session?: SessionHeaderLike
+  readonly events: readonly SessionSurfaceEventLike[]
+}
+
+/** The title half of a `sessionQuery.readTitleSnapshots` result. */
+interface SessionTitleSnapshotLike {
+  readonly title: string
+}
+
+/** One batch title-observation result, narrowed to the fields used here. */
+interface SessionTitleObservationResultLike {
+  readonly sessionId: string
+  readonly status: 'fulfilled' | 'rejected'
+  readonly value?: {
+    readonly session?: SessionHeaderLike
+    readonly title?: SessionTitleSnapshotLike
+  }
+}
+
+/**
+ * Minimal shape of the DSH `sessionQuery` service this feature needs.
+ *
+ * `readTitleSnapshots` is optional because an older session-query backend may
+ * not offer the batch read; the picker then falls back to short-id titles.
+ */
+interface SessionQuerySource {
+  listSessions(signal?: AbortSignal): Promise<readonly SessionRecordLike[]>
+  readTitleSnapshots?(sessionIds: readonly string[], signal?: AbortSignal): Promise<readonly SessionTitleObservationResultLike[]>
+  readSurface(sessionId: string, signal?: AbortSignal): Promise<SessionSurfaceLike>
+}
+
+/**
+ * Read the DSH filesystem error code off a thrown value, when it carries one.
+ *
+ * Duck-typed rather than an `instanceof FsError` check: `@deepseek-ai/dsh-fs` is
+ * not a dependency of this package, and the code — not the class — is the part
+ * the failure dispatch needs. A value carrying no string `code` is reported as
+ * absent, so the caller reports a generic `fs-error` instead of inventing a
+ * reason.
+ * @param error - any thrown value carrying a string `code`.
+ * @returns the string code, or undefined when the failure carries none.
+ */
+function fsErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined
+  const { code } = error as { readonly code?: unknown }
+  return typeof code === 'string' ? code : undefined
+}
+
+/**
+ * Map one DSH `FsErrorCode` onto the failure this service reports.
+ *
+ * One blanket `approval-denied` used to cover a missing file, a binary file, an
+ * oversized file, and a real permission refusal alike, so a caller could not
+ * tell "you are not allowed" from "there is nothing there" without parsing the
+ * message. Codes that cannot arise from a read (edit guards, versioning) fall
+ * through to `fs-error` rather than being guessed at.
+ * @param fsCode - the code the `fs` service raised, when it raised one.
+ * @returns the business failure code to return and to record in telemetry.
+ */
+function readFailureCode(fsCode: string | undefined): ReadExternalPathFailureCode {
+  switch (fsCode) {
+    case 'FS_NOT_FOUND':
+      // A deployment may mount a thin `node:fs` wrapper rather than the DSH
+      // backend, and its errno names the same causes.
+    case 'ENOENT':
+      return 'path-not-found'
+    case 'FS_NOT_TEXT':
+    case 'FS_NOT_REGULAR_FILE':
+      return 'path-not-text'
+    case 'FS_TOO_LARGE':
+      return 'path-too-large'
+    case 'FS_PERMISSION_DENIED':
+    case 'FS_SANDBOX_DENIED':
+    case 'EACCES':
+    case 'EPERM':
+      return 'approval-denied'
+    default:
+      return 'fs-error'
+  }
+}
+
+/**
+ * Minimal shape of the DSH `llm` service this service needs in order to
+ * enumerate routes and models. Declared structurally so nothing here depends on
+ * the concrete service class, and typed `readonly` because the registry and its
+ * catalogs are external data that must be copied rather than held.
+ */
+interface LlmModelCatalog {
+  listProviders(): readonly { readonly id: string; readonly name: string }[]
+  listModels(provider: string): Promise<readonly { readonly id: string; readonly name: string }[]>
+}
 
 /** Copy one stored week row into an owned, frozen {@link MemoWeek}. */
 function snapshotWeek(row: MemoWeekRow): MemoWeek {

@@ -5,6 +5,8 @@ on:
     types: [opened, edited, synchronize, reopened, labeled, unlabeled, ready_for_review, review_requested]
   pull_request_review:
     types: [submitted]
+  issues:
+    types: [opened, edited, labeled, unlabeled, reopened]
 
 permissions:
   contents: read
@@ -22,6 +24,14 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
       - name: Validate pull request
+        if: ${{ github.event_name != 'issues' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/issue-management/policy.mjs pr
+      - name: Validate issue
+        if: ${{ github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DSH_PROJECT_TOKEN: ${{ secrets.DSH_MEGA_PLUGINS_ISSUE_TOKEN }}
+          DSH_PROJECT_GATE: ${{ vars.DSH_MEGA_PLUGINS_PROJECT_GATE }}
+        run: node .github/issue-management/policy.mjs issue

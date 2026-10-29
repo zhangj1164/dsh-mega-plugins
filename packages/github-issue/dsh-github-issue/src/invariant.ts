@@ -1,10 +1,10 @@
-/** Package-owned invariant companion. @module dsh-github-issue/invariant */
+/** Package-owned invariant companion. @module @zhangj1164/dsh-github-issue/invariant */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = 'dsh-github-issue'
+const PACKAGE_NAME = '@zhangj1164/dsh-github-issue'
 
 /** Cordis companion plugin name. */
 export const name = 'github-issue-invariant'

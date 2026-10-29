@@ -175,6 +175,26 @@ export function gatesForMode(selected: Mode): Gate[] {
       return [
         pnpmScript('test', 'test'),
         pnpmScript('build', 'build'),
+        // Export targets are promises about build output, so this gate reads
+        // the artifacts and must wait for the build that produces them.
+        pnpmScript('package-exports', 'verify-package-exports', {
+          label: 'package exports',
+          needs: ['build'],
+        }),
+        // A client bundle's registration id is a build-artifact fact too: the
+        // gate reads the emitted lib/client.js and compares it with the manifest.
+        pnpmScript('client-bundle-id', 'verify-client-bundle-id', {
+          label: 'client bundle id',
+          needs: ['build'],
+        }),
+        // Bundle patches are source files, so this gate needs no build.
+        pnpmScript('bundle-entries', 'verify-bundle-entries', {
+          label: 'bundle entries',
+        }),
+        // Publish wiring is a manifest fact, so this gate needs no build either.
+        pnpmScript('publish-guard', 'verify-publish-guard', {
+          label: 'publish guard',
+        }),
         ...hygieneLeafGates({ artifactNeeds: ['build'] }),
         ...docSyncLeafGates(),
         nodeGate('issue-policy', ['.github/issue-management/policy.test.mjs'], {

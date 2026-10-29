@@ -1,146 +1,613 @@
 /**
- * CSS for the memo UI — non-modal center-column panel pattern, mirroring
- * the dsh-task-board approach. The panel is absolutely positioned within
- * the center column and toggled by the `data-dsh-memo-active` attribute on
- * `<html>`. Uses DSH semantic alias tokens for automatic light/dark/system
- * theme support.
- * @module dsh-client-ui-memo/client/styles
+ * Memo board stylesheet.
+ *
+ * Values are copied from the official Agent preset section so a memo card
+ * reads as the same kind of object as a preset card: the same `268px` card
+ * floor, `20px` radius, `0.5px` borders, `15px/600` name line, four-line
+ * clamped body, and a hairline footer of icon buttons. Every color is a
+ * `--dsw-alias-*` token, so light and dark themes both work without any
+ * JavaScript. Week ids use a monospace stack with an explicit fallback
+ * because the shell does not define `--dsw-font-mono`.
+ *
+ * @module @zhangj1164/dsh-client-ui-memo/client/styles
  */
 
+/** CSS injected once by the plugin and removed with its disposer. */
 export const CSS_TEXT = `
-/* ── Center column relative positioning (required for absolute panel) ── */
-[data-pane="conversation"], [class*="centerCol"] { position: relative; }
-
-/* ── Panel view: absolutely positioned, hidden by default ── */
-[data-dsh-memo-view] {
-  z-index: 60; background: var(--dsw-alias-bg-base);
-  display: none; position: absolute; inset: 0; overflow: hidden;
+.dsh-memo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* A main panel: it owns its own insets now that no settings modal wraps it. */
+  padding: 16px 20px 24px;
+  color: var(--dsw-alias-text-1);
+  font-size: 13px;
 }
 
-/* ── When active: show panel, hide conversation content ── */
-html[data-dsh-memo-active] [data-dsh-memo-view] { display: flex; flex-direction: column; }
-html[data-dsh-memo-active]:not([data-dsh-ssh-active]):not([data-dsh-taskboard-active]) [data-pane="conversation"] > :not([data-dsh-memo-view]),
-html[data-dsh-memo-active]:not([data-dsh-ssh-active]):not([data-dsh-taskboard-active]) [class*="centerCol"] > :not([data-dsh-memo-view]) {
-  display: none !important;
+/* ── Header: title on the left, icon actions next to Close on the right ── */
+.dsh-memo-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
 }
-
-/* ── Sidebar entry button ── */
-[data-dsh-memo-entry] {
-  box-sizing: border-box; width: 100%; height: 36px;
-  color: var(--dsw-alias-label-secondary); cursor: pointer; white-space: nowrap;
-  background: transparent; border: none; border-radius: 8px;
-  align-items: center; gap: 8px; padding: 0 10px;
-  font-size: 13px; font-family: inherit; display: flex;
-  transition: background .15s, color .15s;
+.dsh-memo-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
 }
-[data-dsh-memo-entry]:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
-[data-dsh-memo-entry][data-active] { background: var(--dsw-alias-interactive-bg-active); color: var(--dsw-alias-label-primary); font-weight: 600; }
-[data-dsh-memo-entry] .memo-entry-icon { display: flex; align-items: center; flex-shrink: 0; width: 24px; height: 24px; justify-content: center; }
-[data-dsh-memo-entry] .memo-entry-icon svg { width: 18px; height: 18px; display: block; }
-[data-dsh-memo-entry] .memo-entry-label { text-overflow: ellipsis; overflow: hidden; }
-[data-sidebar-collapsed] [data-dsh-memo-entry] { border-radius: 50%; justify-content: center; width: 36px; height: 36px; margin: 0 auto 12px; padding: 0; }
-[data-sidebar-collapsed] [data-dsh-memo-entry] .memo-entry-label { display: none; }
-
-/* ── Memo board (full-height inline panel) ── */
-.dsh-memo-board {
-  box-sizing: border-box; background: var(--dsw-alias-bg-base);
-  min-width: 0; height: 100%; min-height: 0;
-  color: var(--dsw-alias-label-primary);
-  font-family: system-ui, -apple-system, sans-serif; font-size: 13px;
-  flex-direction: column; gap: 12px; padding: 14px 16px 16px;
-  display: flex; overflow: hidden;
+.dsh-memo-headActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
-.dsh-memo-board-header { flex: none; align-items: center; gap: 10px; display: flex; }
-.dsh-memo-board-title { color: var(--dsw-alias-label-primary); white-space: nowrap; margin: 0; font-size: 16px; font-weight: 700; }
-.dsh-memo-board-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-.dsh-memo-board-footer { flex: none; padding-top: 8px; border-top: 1px solid var(--dsw-alias-border-l1); }
-
-/* ── Form elements ── */
-.dsh-memo-textarea {
-  width: 100%; box-sizing: border-box; min-height: 80px; padding: 8px 10px;
-  border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px;
-  font-family: inherit; font-size: 13px; resize: vertical;
-  background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary);
-  outline: none; transition: border-color .15s;
-}
-.dsh-memo-textarea:focus { border-color: var(--dsw-alias-state-business-primary); }
-.dsh-memo-textarea::placeholder { color: var(--dsw-alias-label-tertiary); opacity: .7; }
-.dsh-memo-btn {
-  padding: 6px 14px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary);
-  cursor: pointer; font-size: 13px; font-family: inherit; transition: background .12s;
-}
-.dsh-memo-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
-.dsh-memo-btn:disabled { opacity: .45; cursor: default; }
-.dsh-memo-btn-primary { color: var(--dsw-alias-label-primary-foreground); background: var(--dsw-alias-button-info-fill); border: none; font-weight: 600; }
-.dsh-memo-btn-primary:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover); }
-.dsh-memo-btn-danger { color: #fff; background: var(--dsw-alias-state-error-primary); border: none; font-weight: 600; }
-.dsh-memo-btn-danger:hover:not(:disabled) { filter: brightness(1.08); }
-.dsh-memo-select {
-  padding: 5px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary);
-  font-size: 12px; font-family: inherit; cursor: pointer; outline: none;
-}
-.dsh-memo-btnrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.dsh-memo-divider { height: 1px; background: var(--dsw-alias-border-l1); margin: 4px 0; }
-
-/* ── Entry items ── */
-.dsh-memo-entry-item {
-  padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px;
+/* Header actions carry an icon and a label, so they need room for both. */
+.dsh-memo-headBtn {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-1);
   background: var(--dsw-alias-bg-layer-1);
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
-  transition: box-shadow .12s, border-color .12s;
+  border: 0.5px solid var(--dsw-alias-border-l3);
 }
-.dsh-memo-entry-item:hover { box-shadow: var(--dsw-shadow-lv1); border-color: var(--dsw-alias-border-l3); }
-.dsh-memo-entry-content { flex: 1; min-width: 0; }
-.dsh-memo-entry-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.dsh-memo-entry-action {
-  padding: 2px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 6px;
-  background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer;
-  font-size: 12px; font-family: inherit;
-}
-.dsh-memo-entry-action:hover { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-interactive-bg-hover); }
-.dsh-memo-meta { color: var(--dsw-alias-label-tertiary); font-size: 11px; margin-top: 3px; }
+.dsh-memo-headBtn:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-headBtn:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-headBtn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 
-/* ── Results ── */
+/* ── Dimension switch (周 / 月 / 季度 / 年) and the year switcher ── */
+.dsh-memo-dimRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.dsh-memo-year {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-2);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-year:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-year:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
+.dsh-memo-dims {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-dim {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-text-2);
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dsh-memo-dim:hover { background: var(--dsw-specific-sidebar-nav-item-hover, var(--dsw-alias-bg-layer-2)); }
+.dsh-memo-dim[data-active] {
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-2));
+  color: var(--dsw-alias-text-1);
+  font-weight: 600;
+}
+
+/* ── History chips ── */
+.dsh-memo-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dsh-memo-chip {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-2);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-chip:hover { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-chip[data-active] {
+  color: var(--dsw-alias-text-1);
+  border-color: var(--dsw-alias-border-l4);
+  font-weight: 600;
+}
+
+/* ── Composer ── */
+.dsh-memo-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dsh-memo-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.dsh-memo-input:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 1px;
+}
+
+/* ── Card grid: fixed card floor, equal-height rows ── */
+.dsh-memo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 12px;
+}
+.dsh-memo-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  border-radius: 20px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-memo-cardMain {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  flex: 1;
+  min-width: 0;
+}
+.dsh-memo-cardBody {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+.dsh-memo-cardText {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dsh-memo-cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--dsw-alias-text-3);
+  font-size: 11px;
+}
+.dsh-memo-cardWeek {
+  font-family: var(--dsw-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--dsw-alias-bg-layer-2);
+}
+.dsh-memo-cardTime { white-space: nowrap; }
+/* Archived cards stay readable but visibly settled: the muted surface and the
+   tag are the whole difference, so an archived quarter reads as one block
+   without hiding anything. */
+.dsh-memo-card[data-archived] {
+  opacity: 0.72;
+  background: var(--dsw-alias-bg-layer-3);
+  border-style: dashed;
+}
+.dsh-memo-archivedTag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-text-3);
+  white-space: nowrap;
+}
+.dsh-memo-archiveHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+/* ── Split button: one control, two hit areas ── */
+/* The chrome sits on the container, so the two halves read as a single button
+   and the caret is set off by a hairline divider rather than by its own frame.
+   Two-class selectors are deliberate: they have to outrank the shared
+   dsh-memo-btn rule, which the halves also carry for their type and padding.
+   No overflow clipping here: the model menu is anchored inside this element, so
+   clipping the hover fills would clip the popup too. The halves carry the outer
+   radii instead, which is what keeps a fill inside the rounded corners. */
+.dsh-memo-split {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-memo-split .dsh-memo-splitRun,
+.dsh-memo-split .dsh-memo-splitCaret {
+  border: 0;
+  background: transparent;
+}
+.dsh-memo-split .dsh-memo-splitRun { border-radius: 10px 0 0 10px; }
+.dsh-memo-split .dsh-memo-splitCaret {
+  border-radius: 0 10px 10px 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: 1;
+  /* The divider: one button, two functions, split by a hairline. */
+  border-left: 0.5px solid var(--dsw-alias-border-l3);
+}
+.dsh-memo-splitHint {
+  margin-left: 8px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+/* Anchored under the button: a popover surface, so it uses the overlay token
+   the theme documents for exactly this, and scrolls rather than overflowing
+   the panel when a deployment registers many models. */
+.dsh-memo-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  max-width: 400px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px;
+  border-radius: 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-overlay, var(--dsw-alias-bg-layer-1));
+  box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0, 0, 0, 0.18));
+}
+.dsh-memo-menuGroup {
+  padding: 6px 8px 4px;
+  color: var(--dsw-alias-text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dsh-memo-menuItem {
+  appearance: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-text-2);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  /* One row per route: a wrapped label reads as two entries. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 8px 6px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+.dsh-memo-menuItem:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-text-1); }
+.dsh-memo-menuItem:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
+.dsh-memo-menuItem[aria-checked='true'] { color: var(--dsw-alias-text-1); }
+.dsh-memo-menuItem[aria-checked='true']:before {
+  content: '✓';
+  position: absolute;
+  left: 8px;
+  color: var(--dsw-alias-brand-primary);
+}
+.dsh-memo-menuNote {
+  padding: 4px 8px 6px 22px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+.dsh-memo-analysisModel {
+  margin-bottom: 6px;
+  color: var(--dsw-alias-text-3);
+  font-size: 12px;
+}
+.dsh-memo-cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 6px 10px;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+/* ── Icon buttons with the official data-tip tooltip ── */
+.dsh-memo-iconBtn {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-text-2);
+  padding: 6px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.dsh-memo-iconBtn:hover { background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-text-1); }
+.dsh-memo-iconBtn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
+.dsh-memo-iconBtn:disabled { opacity: 0.4; cursor: default; }
+.dsh-memo-iconBtn--danger:hover { color: var(--dsw-alias-text-error, #d73a4a); }
+.dsh-memo-iconBtn:after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-mask-1, rgba(0, 0, 0, 0.78));
+  color: var(--dsw-static-white, #fff);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.dsh-memo-iconBtn:hover:after,
+.dsh-memo-iconBtn:focus-visible:after { opacity: 1; }
+
+/* ── Creator affordance (the dashed full-width row) ── */
+.dsh-memo-creator {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: stretch;
+  height: 44px;
+  border-radius: 20px;
+  border: 1px dashed var(--dsw-alias-border-l3);
+  background: transparent;
+  color: var(--dsw-alias-text-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.dsh-memo-creator:hover:not(:disabled) {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-text-1);
+}
+.dsh-memo-creator:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Toolbar and results ── */
+.dsh-memo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+}
+.dsh-memo-analysisTypes { display: inline-flex; gap: 6px; }
+.dsh-memo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dsh-memo-btn {
+  appearance: none;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+}
+.dsh-memo-btn:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-btn:disabled { opacity: 0.5; cursor: default; }
+.dsh-memo-btn--danger { color: var(--dsw-alias-text-error, #d73a4a); }
+.dsh-memo-linkBtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
 .dsh-memo-result {
-  white-space: pre-wrap; padding: 12px; background: var(--dsw-alias-bg-layer-1);
-  border-radius: 8px; font-size: 12px; max-height: 300px; overflow-y: auto;
-  border: 1px solid var(--dsw-alias-border-l1); line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 14px;
+  background: var(--dsw-alias-bg-layer-1);
 }
+/* Title on the left, collapse and close on the right. */
+.dsh-memo-resultHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dsh-memo-resultActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.dsh-memo-subtitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dsw-alias-text-2);
+}
+.dsh-memo-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--dsw-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 320px;
+  overflow: auto;
+}
+.dsh-memo-hint { margin: 0; font-size: 12px; color: var(--dsw-alias-text-3); line-height: 1.6; }
 .dsh-memo-error {
-  padding: 8px 10px; background: var(--dsw-alias-state-error-secondary); color: var(--dsw-alias-state-error-primary);
-  border-radius: 8px; font-size: 12px; border: 1px solid var(--dsw-alias-state-error-primary);
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-error, #d73a4a);
+  background: var(--dsw-alias-bg-error, rgba(215, 58, 74, 0.08));
+  color: var(--dsw-alias-text-error, #d73a4a);
+  font-size: 12px;
 }
-.dsh-memo-loading { color: var(--dsw-alias-label-secondary); font-size: 12px; }
-.dsh-memo-empty { color: var(--dsw-alias-label-tertiary); opacity: .5; text-align: center; padding: 24px 8px; font-size: 12px; }
-.dsh-memo-section-title { font-weight: 700; margin-bottom: 6px; font-size: 14px; color: var(--dsw-alias-label-primary); }
-.dsh-memo-subtitle { font-weight: 600; margin-bottom: 4px; font-size: 13px; color: var(--dsw-alias-label-primary); }
-
-/* ── Week chips ── */
-.dsh-memo-week-list { display: flex; gap: 6px; flex-wrap: wrap; max-height: 80px; overflow-y: auto; }
-.dsh-memo-week-chip {
-  padding: 3px 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 999px;
-  background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-secondary);
-  cursor: pointer; font-size: 12px; font-family: inherit; transition: all .12s;
-}
-.dsh-memo-week-chip:hover { color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-state-business-primary); }
-.dsh-memo-week-chip[data-active] {
-  background: var(--dsw-alias-state-business-primary); color: #fff; border-color: var(--dsw-alias-state-business-primary);
-}
-.dsh-memo-past-badge {
-  padding: 1px 8px; border-radius: 999px; background: var(--dsw-alias-state-warn-secondary);
-  color: var(--dsw-alias-state-warn-primary); font-size: 11px; margin-left: 4px;
+.dsh-memo-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--dsw-alias-text-3);
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 16px;
 }
 
-/* ── Focus-visible accessibility ── */
-.dsh-memo-btn:focus-visible, .dsh-memo-select:focus-visible, .dsh-memo-textarea:focus-visible,
-.dsh-memo-entry-action:focus-visible, .dsh-memo-week-chip:focus-visible, [data-dsh-memo-entry]:focus-visible {
-  outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px;
+/* ── Dialogs ── */
+.dsh-memo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--dsw-alias-bg-mask-1, rgba(0, 0, 0, 0.42));
+  backdrop-filter: var(--dsw-mask-blur, blur(2px));
 }
-/* ── Mobile responsive ── */
-@media (max-width: 768px) {
-  .dsh-memo-btn, .dsh-memo-select, .dsh-memo-textarea { min-height: 44px; font-size: 16px; }
-  [data-dsh-memo-view] { height: 100dvh; }
+.dsh-memo-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 18px 20px 16px;
+  border-radius: 20px;
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
+  box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0, 0, 0, 0.18));
+}
+
+/* ── Session summary picker ── */
+.dsh-memo-dialog--wide { width: min(720px, 100%); }
+.dsh-memo-sessionFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--dsw-alias-text-3);
+}
+
+/* The length control lives inside the facts row, so it inherits that row's type. */
+.dsh-memo-sessionLength {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dsh-memo-lengthInput {
+  width: 5.5em;
+  font: inherit;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.dsh-memo-lengthInput:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 1px;
+}
+/* The list scrolls, not the dialog: the title, facts, and footer stay put while
+   a long archive is browsed. */
+.dsh-memo-sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 2px;
+}
+.dsh-memo-sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  cursor: pointer;
+}
+.dsh-memo-sessionRow:hover { background: var(--dsw-alias-bg-layer-2); }
+.dsh-memo-sessionRow[data-summarized] { opacity: 0.6; cursor: default; }
+.dsh-memo-sessionMain { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.dsh-memo-sessionTitle {
+  font-size: 13px;
+  color: var(--dsw-alias-text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-memo-sessionMeta { font-size: 11px; color: var(--dsw-alias-text-3); }
+.dsh-memo-sessionTag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.dsh-memo-failureList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--dsw-alias-text-2);
+  overflow-wrap: anywhere;
 }
 `

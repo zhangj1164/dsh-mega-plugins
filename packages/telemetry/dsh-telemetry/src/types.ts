@@ -11,7 +11,7 @@
  * that produced it, so the log-analysis step can correlate recorded events
  * against the plugin's feature code and produce a uniform report.
  *
- * @module dsh-telemetry/types
+ * @module @zhangj1164/dsh-telemetry/types
  */
 
 /** The categories a telemetry event can belong to. */
@@ -42,6 +42,13 @@ export interface TelemetryEvent {
   readonly id: string
   /** Epoch milliseconds when the event was recorded. */
   readonly timestamp: number
+  /**
+   * Monotonic write sequence, assigned when the event is recorded. It is what
+   * orders the log: two events can land in the same millisecond, and only this
+   * number says which was written first. `0` marks a record stored before the
+   * sequence existed — its order falls back to {@link timestamp}.
+   */
+  readonly seq: number
   /** The plugin that produced this event (its Cordis service key or package name). */
   readonly pluginId: string
   /** The action that was performed or attempted. */
@@ -104,16 +111,50 @@ export interface TelemetryQuery {
   readonly limit?: number
 }
 
+/** The model route one failure group ran on, when its events recorded one. */
+export interface TelemetryFailureRoute {
+  /** Provider id the failing call used. */
+  readonly provider: string
+  /** Model id the failing call used. */
+  readonly model: string
+  /** HTTP-style status the adapter reported, when it reported one. */
+  readonly status?: number
+}
+
+/** The time range covered by one telemetry analysis. */
+export interface TelemetryAnalysisWindow {
+  /** Timestamp (epoch ms) of the oldest event considered. */
+  readonly firstEventAt: number
+  /** Timestamp (epoch ms) of the newest event considered. */
+  readonly lastEventAt: number
+}
+
 /** One grouped failure pattern, joined on {@link TelemetryErrorRecord.featureCodeRef}. */
 export interface TelemetryFailureGroup {
   /** The feature-code anchor shared by every event in this group. */
   readonly featureCodeRef: string
   /** Number of failures in this group. */
   readonly count: number
-  /** The most recent failure event in this group. */
+  /** The most recent failure event in this group, by write order. */
   readonly latest: TelemetryEvent
   /** The distinct error codes observed in this group. */
   readonly errorCodes: readonly string[]
+  /**
+   * Attempts of the same action(s) recorded for this plugin *after*
+   * {@link TelemetryFailureGroup.latest}: the closest this log can come to
+   * saying whether the failure still happens. Counted by action rather than by
+   * total events, because a plugin's unrelated reads would otherwise inflate
+   * the number and make an old failure look like it sits in a busy period.
+   * "After" is write order, so an attempt recorded in the same millisecond as
+   * the failure still counts.
+   */
+  readonly attemptsAfterLastFailure: number
+  /**
+   * Route the most recent failure ran on, when that event recorded one. Older
+   * events predate the metadata write, so its absence means "not recorded",
+   * never "no route".
+   */
+  readonly route?: TelemetryFailureRoute
 }
 
 /** Result of analyzing telemetry for one plugin. */
@@ -126,4 +167,11 @@ export interface TelemetryAnalysis {
   readonly totalFailures: number
   /** Failure events grouped by feature-code anchor. */
   readonly failureGroups: readonly TelemetryFailureGroup[]
+  /**
+   * Time range of the events this analysis read, absent when the plugin has
+   * none. Without it a cumulative count cannot be told apart from a current
+   * problem: the same totals describe an incident from last week and one from
+   * a minute ago.
+   */
+  readonly window?: TelemetryAnalysisWindow
 }

@@ -4,7 +4,7 @@
  * (repo discipline), so `./client` projects the same single-source content
  * `./types` serves to host consumers — zero duplication.
  *
- * @module dsh-github-issue/client
+ * @module @zhangj1164/dsh-github-issue/client
  */
 
 export type * from './types.ts'
