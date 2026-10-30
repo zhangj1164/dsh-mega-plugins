@@ -20,6 +20,7 @@ import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Context, Service } from '@deepseek-ai/cordis'
+import type { Volatile } from '@deepseek-ai/cosmokit'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { KvTable } from '@deepseek-ai/dsh-storage-domain'
@@ -113,24 +114,35 @@ export {
   weekIdsInPeriod,
 } from './period.ts'
 
-/** Deployment configuration for the memo service. */
+/**
+ * Deployment configuration for the memo service.
+ *
+ * Every field is a {@link Volatile} reference rather than a plain value. The
+ * Loader resolves a volatile field into a ref it can update in place, and
+ * `cordis-plugin-loader` commits a volatile-only config change without
+ * remounting the plugin, so a field edited from the Settings panel takes effect
+ * on the next service call. Reading the ref at the point of use — which is what
+ * the service's own getters do — is therefore the whole contract; copying a
+ * field into an instance property at construction would freeze the value the
+ * plugin started with.
+ */
 export interface Config {
   /**
    * The GitHub repository URL for the log-analysis prefill. The deployment
    * sets this to the memo plugin's GitHub project address.
    */
-  readonly repoUrl: string
+  readonly repoUrl: Volatile<string>
   /**
    * The registered DSH provider route that AI analysis calls use. Leave it
    * unset to follow this deployment's `agentDefaultModel` selection; set it
    * to pin memo analysis to a specific route.
    */
-  readonly provider?: string
+  readonly provider?: Volatile<string | undefined>
   /**
    * The model id that AI analysis calls use. Leave it unset to follow this
    * deployment's `agentDefaultModel` selection.
    */
-  readonly model?: string
+  readonly model?: Volatile<string | undefined>
   /**
    * The plugin ids the log analysis covers, in the order it reads them.
    *
@@ -140,7 +152,7 @@ export interface Config {
    * discovers no plugins — there is no enumeration API — so the deployment names
    * the set, and the default is the suite these bundles install together.
    */
-  readonly logAnalysisPlugins: readonly string[]
+  readonly logAnalysisPlugins: Volatile<readonly string[]>
   /**
    * Extra attempts after a durable write fails with a transient filesystem
    * error. The JSON backend publishes a unit by writing a temp file and
@@ -148,13 +160,13 @@ export interface Config {
    * handle (an antivirus scan, an indexer) holds the target open, and the
    * same rename usually succeeds a moment later. `0` disables retrying.
    */
-  readonly storageWriteRetries: number
+  readonly storageWriteRetries: Volatile<number>
   /**
    * First backoff delay in milliseconds; each retry doubles it, capped at
    * 5000 ms so a misconfiguration cannot stall a save for minutes. Only waits
    * between attempts that failed transiently, so the normal path never sleeps.
    */
-  readonly storageWriteRetryDelayMs: number
+  readonly storageWriteRetryDelayMs: Volatile<number>
   /**
    * How many archived sessions one summarize request accepts.
    *
@@ -162,14 +174,14 @@ export interface Config {
    * and a mis-click that selected the whole archive should be refused before it
    * spends them.
    */
-  readonly sessionSummaryMaxSessions: number
+  readonly sessionSummaryMaxSessions: Volatile<number>
   /**
    * Total character budget for the conversation sent to the model.
    *
    * The prompt keeps the head and tail of an over-budget session, so this is the
    * one knob that trades summary depth for context safety.
    */
-  readonly sessionSummaryTranscriptMaxChars: number
+  readonly sessionSummaryTranscriptMaxChars: Volatile<number>
   /**
    * Output language for generated summaries.
    *
@@ -178,11 +190,11 @@ export interface Config {
    * language regardless of the client, for a deployment that standardizes its
    * weekly reports.
    */
-  readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
+  readonly sessionSummaryLanguage: Volatile<'auto' | 'zh' | 'en'>
   /** Default summary length in characters offered to the picker. */
-  readonly sessionSummaryMaxChars: number
+  readonly sessionSummaryMaxChars: Volatile<number>
   /** Largest summary length a client may request. */
-  readonly sessionSummaryMaxCharsLimit: number
+  readonly sessionSummaryMaxCharsLimit: Volatile<number>
   /**
    * Template appended to every generated summary entry.
    *
@@ -190,9 +202,9 @@ export interface Config {
    * its own line so a week's cards can be traced back to their sessions without
    * opening each one.
    */
-  readonly sessionSummarySourceTemplate: string
+  readonly sessionSummarySourceTemplate: Volatile<string>
   /** System prompt used to summarize an archived session. */
-  readonly sessionSummaryPrompt: string
+  readonly sessionSummaryPrompt: Volatile<string>
 }
 
 /** The plugin ids log analysis covers unless the deployment configures others. */
@@ -262,21 +274,27 @@ function renderSessionSummaryPrompt(
  */
 const DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE = '\n\n来源会话：{sessionId}'
 
-/** Schemastery configuration for the memo service. */
+/**
+ * Schemastery configuration for the memo service.
+ *
+ * Every field is `.volatile()`: a settings surface can rewrite one without
+ * remounting the service, and the service reads the current value through
+ * {@link Config}'s refs on each call.
+ */
 export const Config: s<Config> = s.object({
-  repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
-  provider: s.string(),
-  model: s.string(),
-  logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]),
-  storageWriteRetries: s.number().step(1).min(0).max(10).default(4),
-  storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50),
-  sessionSummaryMaxSessions: s.number().step(1).min(1).max(20).default(5),
-  sessionSummaryTranscriptMaxChars: s.number().step(1).min(1000).max(200_000).default(24_000),
-  sessionSummaryLanguage: s.any<'auto' | 'zh' | 'en'>().default('auto'),
-  sessionSummaryMaxChars: s.number().step(1).min(100).max(4000).default(300),
-  sessionSummaryMaxCharsLimit: s.number().step(1).min(100).max(20_000).default(2000),
-  sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE),
-  sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT),
+  repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins').volatile(),
+  provider: s.string().volatile(),
+  model: s.string().volatile(),
+  logAnalysisPlugins: s.array(s.string()).default([...DEFAULT_LOG_ANALYSIS_PLUGINS]).volatile(),
+  storageWriteRetries: s.number().step(1).min(0).max(10).default(4).volatile(),
+  storageWriteRetryDelayMs: s.number().step(1).min(0).max(5000).default(50).volatile(),
+  sessionSummaryMaxSessions: s.number().step(1).min(1).max(20).default(5).volatile(),
+  sessionSummaryTranscriptMaxChars: s.number().step(1).min(1000).max(200_000).default(24_000).volatile(),
+  sessionSummaryLanguage: s.any<'auto' | 'zh' | 'en'>().default('auto').volatile(),
+  sessionSummaryMaxChars: s.number().step(1).min(100).max(4000).default(300).volatile(),
+  sessionSummaryMaxCharsLimit: s.number().step(1).min(100).max(20_000).default(2000).volatile(),
+  sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE).volatile(),
+  sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT).volatile(),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -632,22 +650,16 @@ export class MemoService extends TypertRemoteService {
   static inject = ['storageDomain', 'telemetry', 'githubIssue']
   static Config = Config
 
-  private readonly repoUrl: string
-  /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
-  private readonly provider?: string
-  /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
-  private readonly model?: string
-  /** Plugin ids log analysis covers, in the order they are read. */
-  private readonly logAnalysisPlugins: readonly string[]
-  private readonly storageWriteRetries: number
-  private readonly storageWriteRetryDelayMs: number
-  private readonly sessionSummaryMaxSessions: number
-  private readonly sessionSummaryTranscriptMaxChars: number
-  private readonly sessionSummaryLanguage: 'auto' | 'zh' | 'en'
-  private readonly sessionSummaryMaxChars: number
-  private readonly sessionSummaryMaxCharsLimit: number
-  private readonly sessionSummarySourceTemplate: string
-  private readonly sessionSummaryPrompt: string
+  /**
+   * The validated configuration, kept as the refs the Loader updates in place.
+   *
+   * Every value is read through a getter below rather than copied into a field:
+   * a volatile change never remounts this service, so a copy made in the
+   * constructor would keep serving the value the plugin started with. Public for
+   * the same reason `agentLoop.config` is: a settings surface, and a test that
+   * proves the live-read contract, need to address the refs themselves.
+   */
+  readonly config: Config
   private table?: KvTable<string, MemoWeekRow>
   private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
@@ -657,19 +669,72 @@ export class MemoService extends TypertRemoteService {
    */
   constructor(ctx: Context, config: Config) {
     super(ctx, 'memo')
-    this.repoUrl = config.repoUrl
-    this.provider = config.provider
-    this.model = config.model
-    this.logAnalysisPlugins = Object.freeze([...config.logAnalysisPlugins])
-    this.storageWriteRetries = config.storageWriteRetries
-    this.storageWriteRetryDelayMs = config.storageWriteRetryDelayMs
-    this.sessionSummaryMaxSessions = config.sessionSummaryMaxSessions
-    this.sessionSummaryTranscriptMaxChars = config.sessionSummaryTranscriptMaxChars
-    this.sessionSummaryLanguage = config.sessionSummaryLanguage
-    this.sessionSummaryMaxChars = config.sessionSummaryMaxChars
-    this.sessionSummaryMaxCharsLimit = config.sessionSummaryMaxCharsLimit
-    this.sessionSummarySourceTemplate = config.sessionSummarySourceTemplate
-    this.sessionSummaryPrompt = config.sessionSummaryPrompt
+    this.config = config
+  }
+
+  /** The repository URL the log-analysis prefill points at. */
+  private get repoUrl(): string {
+    return this.config.repoUrl.get()
+  }
+
+  /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
+  private get provider(): string | undefined {
+    return this.config.provider?.get()
+  }
+
+  /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
+  private get model(): string | undefined {
+    return this.config.model?.get()
+  }
+
+  /** Plugin ids log analysis covers, in the order they are read. */
+  private get logAnalysisPlugins(): readonly string[] {
+    return this.config.logAnalysisPlugins.get()
+  }
+
+  /** Extra attempts a transient durable-write failure is replayed. */
+  private get storageWriteRetries(): number {
+    return this.config.storageWriteRetries.get()
+  }
+
+  /** First backoff delay, in milliseconds, for a replayed durable write. */
+  private get storageWriteRetryDelayMs(): number {
+    return this.config.storageWriteRetryDelayMs.get()
+  }
+
+  /** Most archived sessions one summarize request accepts. */
+  private get sessionSummaryMaxSessions(): number {
+    return this.config.sessionSummaryMaxSessions.get()
+  }
+
+  /** Character budget for one rendered session transcript. */
+  private get sessionSummaryTranscriptMaxChars(): number {
+    return this.config.sessionSummaryTranscriptMaxChars.get()
+  }
+
+  /** Language forced for generated summaries, or `auto`. */
+  private get sessionSummaryLanguage(): 'auto' | 'zh' | 'en' {
+    return this.config.sessionSummaryLanguage.get()
+  }
+
+  /** Default summary length offered to the picker. */
+  private get sessionSummaryMaxChars(): number {
+    return this.config.sessionSummaryMaxChars.get()
+  }
+
+  /** Largest summary length a client may request. */
+  private get sessionSummaryMaxCharsLimit(): number {
+    return this.config.sessionSummaryMaxCharsLimit.get()
+  }
+
+  /** Template appended to every generated summary. */
+  private get sessionSummarySourceTemplate(): string {
+    return this.config.sessionSummarySourceTemplate.get()
+  }
+
+  /** System prompt used to summarize one archived session. */
+  private get sessionSummaryPrompt(): string {
+    return this.config.sessionSummaryPrompt.get()
   }
 
   /** Open and own the memo domain and the archive domain beside it. */

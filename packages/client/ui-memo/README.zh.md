@@ -83,6 +83,8 @@
 |---|---|---|
 | `repoUrl` | `https://github.com/zhangj1164/dsh-mega-plugins` | 接收看板创建 Issue 的仓库。 |
 
+备忘宿主自身的配置——AI 路由、归档会话总结文案以及同一个 `repoUrl`——在 [`@zhangj1164/dsh-client-ui-memo-settings`](../ui-memo-settings/README.zh.md) 提供的设置页里编辑，它写的是宿主运行中的配置，而不是本面板自己的。
+
 ## Bundle 层
 
 该包包含在 `@zhangj1164/dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行。它声明 `dsh.client`——正是这一点让浏览器端经 `exports["./client"]` 可被发现——并刻意不声明自己的 `dsh.bundle`，这与官方 `dsh-client-ui-*` 包一致：它们由宿主 bundle 插入，而不是作为 layer 安装。因此无需单独 bundle，执行 `dsh plugin --profile web add @zhangj1164/dsh-client-ui-memo` 会把它报告为普通依赖而非 profile layer。这里的这条提示是预期行为，不是缺陷。安装 `@zhangj1164/dsh-memo`，面板随之到位。

@@ -24,6 +24,8 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | 追加到每条生成总结末尾的文本。支持 `{sessionId}` 与 `{sessionTitle}` 占位符。 |
 | `sessionSummaryPrompt` | 内置 | 会话总结使用的系统提示词。支持 `{language}` 与 `{maxChars}` 占位符。 |
 
+每个字段都是 `.volatile()`，因此设置面板可以在服务持续运行时就地改写：`cordis-plugin-loader` 刷新易变引用而不是重新挂载插件，每次调用都通过该引用读取当前值。看板用户会改的字段——`repoUrl`、`provider`、`model` 以及六个 `sessionSummary*` 文案开关——可以在 DSH Web 里通过 [`@zhangj1164/dsh-client-ui-memo-settings`](../../client/ui-memo-settings/README.zh.md) 编辑，它写的就是本表描述的那个设置服务；部署级开关（`logAnalysisPlugins`、`storageWriteRetries`、`storageWriteRetryDelayMs`、`sessionSummaryMaxCharsLimit`）仍留在 `cordis.yml`。那个页面以这些字段真的带 volatile 为前提：从别的分支残留的宿主 `lib/` 一个表单都投影不出来，页面因此静默消失而不是报错，只有重建本包并重启 DSH Web 才会回来——构建与排查顺序见设置页 README 的「本地开发与排查」一节。
+
 ## 持久写入重试
 
 `dsh-storage-json` 以「写临时文件 → rename 覆盖目标」发布单元。Windows 上，只要杀软、索引器或另一个读句柄仍持有目标文件，这次 rename 就会以 `EPERM` 失败，而 JSON 后端会直接报错、不重试。memo 对 `EPERM` / `EBUSY` 按指数退避重放同一次 `put` / `delete`，最多重试 `storageWriteRetries` 次，因此一次短暂的扫描窗口不会把保存变成误报；其他错误立即抛出。预算耗尽后错误仍会抛回调用方，真正的介质故障不会被报告成成功。
