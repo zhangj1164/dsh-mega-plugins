@@ -2,6 +2,14 @@
   "name": "@zhangj1164/dsh-memo",
   "description": "Local-only week-keyed personal memo service for DeepSeek Harness with AI analysis, report export, telemetry logging, GitHub issue generation, and archived-session summaries",
   "version": "0.6.0",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "cordis-plugin",
+    "memo",
+    "notes"
+  ],
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
