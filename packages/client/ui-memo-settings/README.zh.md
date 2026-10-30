@@ -50,6 +50,30 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 `tests/form.spec.ts` 用替身宿主表单驱动草稿模型：暂存不写入、只保存被改动的字段、留空存成 unset、被拒绝时保留草稿、只读与不可用状态、四组边界值，以及宿主认可后丢弃草稿的对账逻辑。`tests/MemoSettingsSection.spec.tsx` 在 jsdom 里用真实模型渲染页面，覆盖每个控件，包括「已覆盖」标记与恢复默认、非法数字的告警、放弃修改的路径。`tests/entry.spec.tsx` 把真实浏览器半边应用到一个替身客户端上下文上：声明的服务、唯一一次 `settings.section` 注册及其导航身份、对命名空间是否被提供的门控、字典、注入的 store 与动作，以及样式卸载。
 
+## 本地开发与排查
+
+本页是备忘宿主 `Config` 的投影。页面到底存不存在，由两个机制决定，而这两处在本地开发时都很容易留成旧的。
+
+`@deepseek-ai/dsh-settings` 对每条 entry 的 schema 调 `volatileForm()`；一个没有任何 `.volatile()` 字段的 schema 会得到 `undefined`，`describe()` 随后整条跳过这个 entry。浏览器半边以「命名空间是否被提供」为门控，所以只有宿主真的在提供 `memo` 时才会注册、注入样式并渲染——宿主产物是旧的，结果是**不出现页面、也不报错**，而不是一个坏掉的页面。
+
+两边都要构建、安装后重启：
+
+```sh
+pnpm run build    # 备忘宿主 AND 本包
+dsh plugin --profile web add "link:E:/Projects/mpass/dsh-mega-plugins/packages/client/ui-memo-settings"
+# 重启 DSH Web，再刷新页面
+```
+
+只构建本包不够：`pnpm --filter @zhangj1164/dsh-client-ui-memo-settings build` 刷新的是浏览器半边，而命名空间来自宿主的 `lib/`。宿主插件的代码在启动时 import，新加的 bundle 层也在启动时组装，所以重建后的 `lib/` 和新写进 `dsh.profile.bundles` 的行对运行中的进程都不可见；`patchReload: live` 只热加载配置文档，不加载模块。
+
+重启后页面仍不出现时，按这个顺序查——第一个命中的就是原因：
+
+1. `Select-String packages\memo\dsh-memo\lib\index.js '\.volatile\(\)'` 有匹配；从别的分支残留的产物一个都没有，entry 因此永远到不了 `describe()`。
+2. `dsh --profile web --dump-config` 里有 `ui-memo-settings` 行；否则这个包根本没成为 profile 层，也就是没进 `dsh.profile.bundles`。
+3. 浏览器确实取到了 `@zhangj1164/dsh-client-ui-memo-settings/client.js`；否则它不是 profile 的直接依赖，客户端扫描根本没看到它。
+
+「页面出现」和「改动生效」是两件事：只有当宿主的字段真的带 volatile 时写入才有效，因为 loader 对「仅 volatile 变化」的配置走原地提交（对运行中的引用调 `updateVolatile`，不重新挂载），除此之外没有东西可提交。
+
 ## 已知限制
 
 - **按设计只覆盖一部分** —— 本页只放看板用户会改的字段。上面列出的部署级开关留在 `cordis.yml`，那里改错不会波及每一个浏览器。

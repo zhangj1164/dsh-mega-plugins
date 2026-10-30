@@ -50,6 +50,30 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 `tests/form.spec.ts` drives the draft model against a stand-in Host form: staging without writing, save-only-the-edited-field, blank saving as an unset, a refusal that keeps the draft, the read-only and unavailable states, the four bounds, and the reconciliation that drops a draft once the Host agrees with it. `tests/MemoSettingsSection.spec.tsx` renders the page in jsdom over the real model and exercises every control, including the overridden badge and its reset, the invalid-number alert, and the discard path. `tests/entry.spec.tsx` applies the real browser half against a stand-in client context: the declared services, the single `settings.section` registration and its nav identity, the gate on the served namespace, the dictionaries, the injected store and actions, and the style disposal.
 
+## Local development with a linked install
+
+The page is a projection of the memo Host's own `Config`. Two mechanisms decide whether it exists at all, and both are easy to leave stale during local work.
+
+`@deepseek-ai/dsh-settings` calls `volatileForm()` on each entry's schema; a schema with no `.volatile()` field yields `undefined`, and `describe()` then skips that entry entirely. The browser half is gated on the resulting namespace, so it registers, styles, and renders only while the Host serves `memo` — a stale Host build produces no page and no error, not a broken page.
+
+Install and restart both halves:
+
+```sh
+pnpm run build    # the memo Host AND this package
+dsh plugin --profile web add "link:E:/Projects/mpass/dsh-mega-plugins/packages/client/ui-memo-settings"
+# restart DSH Web, then reload the page
+```
+
+Building only this package is not enough: `pnpm --filter @zhangj1164/dsh-client-ui-memo-settings build` refreshes the browser half, while the namespace comes from the Host's `lib/`. A Host plugin's code is imported at boot and a newly added bundle layer is composed at boot, so a rebuilt `lib/` and a new `dsh.profile.bundles` row are both invisible to the running process; `patchReload: live` reloads configuration documents, not modules.
+
+When the page does not appear after a restart, check in this order — the first hit names the cause:
+
+1. `Select-String packages\memo\dsh-memo\lib\index.js '\.volatile\(\)'` matches; a build left over from another branch has none, so the entry never reaches `describe()`.
+2. `dsh --profile web --dump-config` lists a `ui-memo-settings` row; otherwise the package never became a profile layer, which means it is missing from `dsh.profile.bundles`.
+3. The browser fetched `@zhangj1164/dsh-client-ui-memo-settings/client.js`; otherwise the package is not a direct profile dependency, and the client scan never saw it.
+
+An installed page that writes is a separate question from a page that appears: the write half only works once the Host's fields really are volatile, because the loader commits a volatile-only config change in place (`updateVolatile` on the running refs, no remount) and has nothing to commit otherwise.
+
 ## Known limitations
 
 - **Subset by design** — the page covers the fields a user of the board would change. The deployment knobs listed above stay in `cordis.yml`, where a mistaken edit cannot reach every browser.
