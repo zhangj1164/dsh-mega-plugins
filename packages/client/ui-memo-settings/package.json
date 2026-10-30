@@ -2,6 +2,14 @@
   "name": "@zhangj1164/dsh-client-ui-memo-settings",
   "description": "Memo settings section for DeepSeek Harness Web: a Settings page that edits the memo plugin's AI route, archived-session summary copy, and GitHub repository through the deployment's own settings surface, with per-field reset and live application",
   "version": "0.1.0",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "cordis-plugin",
+    "memo",
+    "settings"
+  ],
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
