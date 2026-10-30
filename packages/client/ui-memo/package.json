@@ -64,7 +64,7 @@
     "@zhangj1164/dsh-github-issue": "workspace:^",
     "@zhangj1164/dsh-memo": "workspace:^",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
@@ -77,11 +77,11 @@
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.5.1",
     "@types/react": "~18.3.1",
-    "@types/react-dom": "~18.3.1",
+    "@types/react-dom": "~19.3.0",
     "@zhangj1164/dsh-github-issue": "workspace:*",
     "@zhangj1164/dsh-memo": "workspace:*",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.3.0",
     "tsdown": "^0.22.2",
     "typescript": "^5.9.0"
   }
