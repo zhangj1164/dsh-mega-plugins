@@ -135,6 +135,9 @@ importers:
 
   packages/github-issue/dsh-github-issue:
     dependencies:
+      '@deepseek-ai/cosmokit':
+        specifier: ^1.8.6
+        version: 1.8.6
       '@deepseek-ai/schemastery':
         specifier: ^3.18.4
         version: 3.18.4

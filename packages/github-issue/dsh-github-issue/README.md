@@ -29,6 +29,8 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `autopilotTimeZone` | empty | IANA zone "today" is measured in. Empty follows the host's own zone, so the user's local midnight starts a new day. |
 | `autopilotPrompt` | the built-in template | Prompt handed to every dispatched Session. Placeholders `{number}`, `{title}`, `{url}`, `{body}`, and `{labels}` are replaced; an unknown placeholder stays visible. |
 
+**Settings-editable fields.** Eight of these fields — `repoUrl`, `claimLabel`, `maxIssuesPerRun`, `autopilotEnabled`, `autopilotCwd`, `autopilotPreset`, `autopilotTimeZone`, and `autopilotPrompt` — are declared `.volatile()`, which is what lets `@zhangj1164/dsh-client-ui-memo-settings` expose them in the Settings panel: `dsh-settings` projects only volatile fields, an accepted write lands in the profile's user layer, and the service reads each value where it is used instead of copying it at construction, so the change reaches the running process without a restart. `autopilotEnabled` is read by the `Service.init` startup check, so flipping it applies from the next host start. The remaining fields stay deployment-only.
+
 ## Remote methods
 
 | Method | Behavior |
