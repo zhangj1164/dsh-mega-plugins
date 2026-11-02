@@ -2,15 +2,15 @@
 
 [English](README.md) | 中文
 
-备忘套件的设置页。它通过当前部署自己的设置面板编辑备忘宿主的配置，因此 AI 路由、归档会话总结文案和 GitHub 仓库都可以在 DSH Web 里改完即生效，不需要重启。
+备忘套件的设置页。它通过当前部署自己的设置面板编辑备忘宿主与 GitHub 接单宿主的配置，因此 AI 路由、归档会话总结文案、GitHub 仓库和每日接单循环都可以在 DSH Web 里改完即生效，不需要重启。
 
 ## 插件形态
 
 一个纯 UI 表面插件：宿主 `apply` 为空，只为了让插件出现在宿主 `cordis.yml` / Loader 里；浏览器半边通过 `exports["./client"]` 发布，由 `package.json` 的 `dsh.client` 声明发现。
 
-页面是一个 `settings.section` 条目：设置壳把它渲染在内容列，并用注册自身的 `id`、`order`、`label` 生成导航行。它只在宿主提供 `memo` 设置命名空间时注册（`ctx.configForms.whileServed`），因此没装备忘插件的部署看不到这个包的任何痕迹——既不会出现空页面，也不会多出一行导航。
+插件最多注册两个 `settings.section` 条目：`memo` 对应 `memo` 命名空间，`github-issue` 对应 `github-issue` 命名空间。设置壳把每个页面渲染在内容列，并用注册自身的 `id`、`order`、`label` 生成导航行。每个页面只在宿主提供自己的命名空间时注册（`ctx.configForms.whileServed`），因此没装备忘插件的部署看不到备忘页，没装接单插件的部署看不到接单页——既不会出现空页面，也不会多出一行导航。两个页面互相独立：接单页不要求先装备忘。
 
-页面不持有任何备忘的值。它在宿主表单之上暂存草稿，再通过 `ctx.configForms` 逐字段提交；每次写入都带着快照里的命名空间修订号，一次被拒绝的写入会中止整轮提交，其余草稿保持暂存。备忘宿主把每个 `Config` 字段都声明为 `.volatile()`，因此被接受的写入会原地到达运行中的服务——`cordis-plugin-loader` 刷新易变引用，而不是重新挂载插件。
+两个页面都不持有值。它们各自在宿主表单之上暂存草稿，再通过 `ctx.configForms` 逐字段提交；每次写入都带着快照里的命名空间修订号，一次被拒绝的写入会中止整轮提交，其余草稿保持暂存。两个宿主都把被编辑的 `Config` 字段声明为 `.volatile()`，因此被接受的写入会原地到达运行中的服务——`cordis-plugin-loader` 刷新易变引用，而不是重新挂载插件。
 
 ## 字段
 
@@ -36,9 +36,30 @@
 
 不在本页的字段：`storageWriteRetries`、`storageWriteRetryDelayMs`、`logAnalysisPlugins` 属于部署级开关，应留在 `cordis.yml`；`sessionSummaryMaxCharsLimit` 约束的是另一个界面的长度控件，不是本页的值。
 
+## GitHub 接单字段
+
+`github-issue` 页编辑 `@zhangj1164/dsh-github-issue` 的配置，分三组：接单（`repoUrl`、`claimLabel`、`maxIssuesPerRun`）、自动派发（开关、工作目录、preset、时区）、提示词模板（`autopilotPrompt`）。
+
+| 字段 | 控件 | 默认值 | 取值范围 |
+|---|---|---|---|
+| `repoUrl` | 文本 | 插件自带的仓库 | — |
+| `claimLabel` | 文本 | `ready-for-agent` | — |
+| `maxIssuesPerRun` | 数字 | `3` | 1–20 |
+| `autopilotEnabled` | 开关 | 关闭 | — |
+| `autopilotCwd` | 文本 | 宿主目录 | — |
+| `autopilotPreset` | 文本 | 跟随部署默认 | — |
+| `autopilotTimeZone` | 文本 | 宿主时区 | — |
+| `autopilotPrompt` | 多行文本 | 插件自带的提示词 | — |
+
+**这八个字段都声明了 `.volatile()`**，这是它们能出现在这里的前提：`dsh-settings` 只投影易变字段，而只改易变字段的写入会被原地提交进运行中的引用。`autopilotEnabled` 只是生效时机不同，存储并无区别：首次启动检查在 `Service.init` 里只跑一次，所以拨动开关要从下一次宿主启动才生效；值本身写进 profile 的用户层，重启后仍在。
+
+**留空即恢复部署默认**，与备忘页一致：清空的字段会写成一次 unset，而不是空字符串，所以把 `claimLabel` 清空会恢复 `ready-for-agent`，而不是列出所有 open issue。非法的 `autopilotTimeZone` 能通过 schema，但服务计算「今天」时会告警一次并回落到宿主时区。
+
+不在本页的字段：`token`、`tokenEnv`、`tokenCommand`、`apiBaseUrl`、`requestTimeoutMs` 留在 `cordis.yml`——凭据和部署级传输设置不该出现在浏览器界面里。
+
 ## Bundle 层
 
-本包声明了 `dsh.bundle` 和自己的 `cordis.patch.yml`，只插入一行 `ui-memo-settings`。在没有 `@zhangj1164/dsh-memo` 的情况下装上它，模块会加载但不注册任何东西，因为 `memo` 命名空间永远不会被提供。
+本包声明了 `dsh.bundle` 和自己的 `cordis.patch.yml`，只插入一行 `ui-memo-settings`。模块总会加载，但只为部署真正提供的命名空间注册页面：没装 `@zhangj1164/dsh-memo` 就没有备忘页，没装 `@zhangj1164/dsh-github-issue` 就没有接单页。
 
 安装整套时要逐个点名包，因为 profile 只安装命令行上列出的包：
 

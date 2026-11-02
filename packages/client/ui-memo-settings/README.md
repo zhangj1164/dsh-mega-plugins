@@ -2,15 +2,15 @@
 
 English | [中文](README.zh.md)
 
-A Settings page for the memo suite. It edits the memo Host's configuration through the deployment's own settings surface, so the AI route, the archived-session summary copy, and the GitHub repository can be changed from DSH Web and take effect without a restart.
+The settings pages of the memo suite. They edit the memo Host's and the GitHub-intake Host's configuration through the deployment's own settings surface, so the AI route, the archived-session summary copy, the GitHub repository, and the daily intake loop can be changed from DSH Web and take effect without a restart.
 
 ## Plugin
 
 A pure UI surface plugin: the host `apply` is empty so the plugin appears in the host `cordis.yml` / Loader; the browser half ships via `exports["./client"]`, discovered through the `dsh.client` declaration in `package.json`.
 
-The page is one `settings.section` entry: the Settings shell renders it in the content column and builds its navigation row from the registration's own `id`, `order`, and `label`. It registers only while the Host serves the `memo` settings namespace (`ctx.configForms.whileServed`), so a deployment without the memo plugin shows no trace of this package — no empty page and no stray navigation row.
+The plugin registers up to two `settings.section` entries: `memo` over the `memo` namespace and `github-issue` over the `github-issue` namespace. The Settings shell renders each in the content column and builds its navigation row from the registration's own `id`, `order`, and `label`. Each page registers only while the Host serves its namespace (`ctx.configForms.whileServed`), so a deployment without memo shows no trace of the memo page, and a deployment without the intake plugin shows no trace of the intake page — no empty page and no stray navigation row. The two pages are independent: the intake page does not require memo to be installed.
 
-The page owns no memo value. It stages a draft over the Host form and commits field by field through `ctx.configForms`, whose writes carry the namespace revision from the snapshot; a refused write stops the run and leaves the remaining drafts staged. The memo Host declares every `Config` field `.volatile()`, so an accepted write reaches the running service in place — `cordis-plugin-loader` refreshes the volatile references instead of remounting the plugin.
+Neither page owns a value. Each stages a draft over its Host form and commits field by field through `ctx.configForms`, whose writes carry the namespace revision from the snapshot; a refused write stops the run and leaves the remaining drafts staged. Both Hosts declare the edited `Config` fields `.volatile()`, so an accepted write reaches the running service in place — `cordis-plugin-loader` refreshes the volatile references instead of remounting the plugin.
 
 ## Fields
 
@@ -36,9 +36,30 @@ Four groups in the order the page renders them: AI 分析 (`provider`, `model`),
 
 Not on this page: `storageWriteRetries`, `storageWriteRetryDelayMs` and `logAnalysisPlugins` are deployment-level knobs that belong in `cordis.yml`, and `sessionSummaryMaxCharsLimit` bounds another surface's length control rather than this page's value.
 
+## GitHub intake fields
+
+The `github-issue` page edits the configuration of `@zhangj1164/dsh-github-issue`. Its three groups are 接单 (`repoUrl`, `claimLabel`, `maxIssuesPerRun`), 自动派发 (the toggle, working directory, preset, and time zone), and 提示词模板 (`autopilotPrompt`).
+
+| Field | Control | Default | Bounds |
+|---|---|---|---|
+| `repoUrl` | text | the plugin's default repository | — |
+| `claimLabel` | text | `ready-for-agent` | — |
+| `maxIssuesPerRun` | number | `3` | 1–20 |
+| `autopilotEnabled` | toggle | off | — |
+| `autopilotCwd` | text | host directory | — |
+| `autopilotPreset` | text | deployment default | — |
+| `autopilotTimeZone` | text | host zone | — |
+| `autopilotPrompt` | multiline | the plugin's default prompt | — |
+
+**Every one of these fields is `.volatile()`**, which is what makes it reachable here: `dsh-settings` projects only volatile fields, and a volatile-only write is committed into the running refs. `autopilotEnabled` is the exception in effect, not in storage: the first-startup check runs once, from `Service.init`, so flipping it applies from the next host start. The value itself is stored in the profile's user layer and survives a restart.
+
+**Blank means the deployment default**, as on the memo page: a cleared field is written as an unset, never as an empty string, so a blank `claimLabel` restores `ready-for-agent` rather than listing every open issue. An invalid `autopilotTimeZone` passes the schema but is reported once and replaced by the host zone when the service measures the day.
+
+Not on this page: `token`, `tokenEnv`, `tokenCommand`, `apiBaseUrl` and `requestTimeoutMs` stay in `cordis.yml` — credentials and deployment-level transport settings do not belong in a browser surface.
+
 ## Bundle layer
 
-This package declares `dsh.bundle` with its own `cordis.patch.yml`, which inserts one row, `ui-memo-settings`. Installed without `@zhangj1164/dsh-memo`, the module loads and registers nothing, because the `memo` namespace is never served.
+This package declares `dsh.bundle` with its own `cordis.patch.yml`, which inserts one row, `ui-memo-settings`. The module always loads; it registers a page only for a namespace the deployment actually serves. Installed without `@zhangj1164/dsh-memo` it shows no memo page, and installed without `@zhangj1164/dsh-github-issue` it shows no intake page.
 
 Install the suite by naming every package, since a profile installs only what is on the command line:
 
