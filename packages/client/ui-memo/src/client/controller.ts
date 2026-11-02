@@ -1039,6 +1039,38 @@ export class MemoController {
     }
   }
 
+  /**
+   * File the optimized report directly as a GitHub issue.
+   *
+   * The host owns the credential, the API call, and the body normalization, so
+   * the browser never sees a token and never composes a request. This is the
+   * step the pre-filled URL could not do: it needed the user to open the form
+   * and submit it, which is what kept the intake loop manual.
+   *
+   * @returns the created issue URL, or null when there is no report or the
+   *   service refused the call.
+   */
+  async createIssue(): Promise<string | null> {
+    const report = this._state.issueReport
+    if (report === null) return null
+    this.set({ busy: true, error: null })
+    try {
+      const result = await callGithubIssue<{ number: number; url: string }>(this.rpc, 'createIssue', {
+        repoUrl: this.repoUrl,
+        report,
+      })
+      if (!result.ok) {
+        this.set({ busy: false, error: result.error.message })
+        return null
+      }
+      this.set({ busy: false })
+      return result.value.url
+    } catch (e) {
+      this.set({ busy: false, error: describeError(e) })
+      return null
+    }
+  }
+
   /** Analyze this plugin's telemetry failures and build a pre-filled issue. */
   async analyzeLogs(): Promise<void> {
     this.set({ busy: true, error: null, logAnalysis: null })

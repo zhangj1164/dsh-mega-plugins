@@ -1,6 +1,6 @@
 {
   "name": "@zhangj1164/dsh-github-issue",
-  "description": "GitHub issue generation and optimization service for DeepSeek Harness: builds structured issue reports from telemetry analysis, pre-filled issue URLs, and AI-optimized descriptions",
+  "description": "GitHub issue generation, filing, and intake service for DeepSeek Harness: structured reports from telemetry analysis, AI-optimized descriptions, direct issue creation, and first-startup dispatch of claimable issues to new Sessions",
   "version": "0.2.0",
   "type": "module",
   "main": "lib/index.js",
@@ -55,12 +55,19 @@
     "@deepseek-ai/cordis": "~4.0.5",
     "@deepseek-ai/dsh-invariants": "^0.2.0-rc.2",
     "@deepseek-ai/dsh-llm": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-storage-domain": "^0.2.1-rc.2",
     "@deepseek-ai/dsh-typert-protocol": "^0.2.1-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-storage-domain": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
     "@deepseek-ai/dsh-invariants": "^0.2.0-rc.2",
     "@deepseek-ai/dsh-llm": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-storage-domain": "^0.2.1-rc.2",
     "@deepseek-ai/dsh-typert-protocol": "^0.2.1-rc.2",
     "@types/node": "^26.5.1",
     "tsdown": "^0.22.2",

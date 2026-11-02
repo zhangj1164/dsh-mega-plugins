@@ -121,3 +121,147 @@ export interface GithubIssueOptimizeRequest {
 export type GithubIssueOptimizeResult =
   | { readonly ok: true; readonly value: GithubIssueReport }
   | { readonly ok: false; readonly error: { readonly code: 'llm-failure' | 'empty-input' | 'route-missing'; readonly message: string } }
+/** One open issue a session can claim and work on. */
+export interface GithubIssueTask {
+  /** Issue number inside its repository. */
+  readonly number: number
+  /** Issue title. */
+  readonly title: string
+  /** Issue body in Markdown; empty when the issue has none. */
+  readonly body: string
+  /** Canonical browser URL of the issue. */
+  readonly url: string
+  /** Every label name the issue carries. */
+  readonly labels: readonly string[]
+}
+
+/**
+ * Stable failure codes the issue intake calls report.
+ *
+ * The codes are the contract: a caller decides what to do from the code, and
+ * the message exists for the human reading the failure. `auth-missing` is
+ * separate from `auth-failure` because no credential and a rejected credential
+ * are different deployment problems with different fixes.
+ */
+export type GithubIssueFailureCode =
+  | 'auth-missing'
+  | 'auth-failure'
+  | 'rate-limited'
+  | 'invalid-repo'
+  | 'invalid-request'
+  | 'http-failure'
+  | 'network-failure'
+  | 'session-unavailable'
+  | 'dispatch-failed'
+
+/** One failed issue intake call. */
+export interface GithubIssueFailure {
+  /** Failure discriminator. */
+  readonly ok: false
+  /** The code and the user-facing message. */
+  readonly error: { readonly code: GithubIssueFailureCode; readonly message: string }
+}
+
+/** Request to create one issue from an optimized report. */
+export interface GithubIssueCreateRequest {
+  /** Repository URL override; omit to use this service's configured `repoUrl`. */
+  readonly repoUrl?: string
+  /** The report to file. */
+  readonly report: GithubIssueReport
+}
+
+/** The issue GitHub created. */
+export interface GithubIssueCreated {
+  /** Issue number inside the repository. */
+  readonly number: number
+  /** Canonical browser URL of the new issue. */
+  readonly url: string
+}
+
+/** Result of filing one issue. */
+export type GithubIssueCreateResult =
+  | { readonly ok: true; readonly value: GithubIssueCreated }
+  | GithubIssueFailure
+
+/** Request to list the open issues carrying the claim label. */
+export interface GithubIssueListRequest {
+  /** Repository URL override; omit to use this service's configured `repoUrl`. */
+  readonly repoUrl?: string
+  /** Claim label override; omit to use the configured `claimLabel`. */
+  readonly claimLabel?: string
+  /** Largest number of issues to request; omit to use `maxIssuesPerRun`. */
+  readonly max?: number
+}
+
+/** Result of listing claimable issues. */
+export type GithubIssueListResult =
+  | { readonly ok: true; readonly value: readonly GithubIssueTask[] }
+  | GithubIssueFailure
+
+/** Request to hand one issue to a new Session. */
+export interface GithubIssueDispatchRequest {
+  /** The issue to work on. */
+  readonly issue: GithubIssueTask
+  /** Working directory the Session owns; omit to use the configured default. */
+  readonly cwd?: string
+  /** Agent preset the Session runs; omit to use the configured default. */
+  readonly agentPreset?: string
+}
+
+/** Result of dispatching one issue. */
+export type GithubIssueDispatchResult =
+  | { readonly ok: true; readonly value: { readonly sessionId: string } }
+  | GithubIssueFailure
+
+/** Request to run one intake pass over the configured repository. */
+export interface GithubIssueIntakeRequest {
+  /** Repository URL override; omit to use this service's configured `repoUrl`. */
+  readonly repoUrl?: string
+  /** Claim label override; omit to use the configured `claimLabel`. */
+  readonly claimLabel?: string
+  /** Largest number of issues to dispatch in this pass. */
+  readonly max?: number
+  /** Working directory each dispatched Session owns. */
+  readonly cwd?: string
+  /** Agent preset each dispatched Session runs. */
+  readonly agentPreset?: string
+}
+
+/** One issue handed to a Session during an intake pass. */
+export interface GithubIssueDispatched {
+  /** Issue number. */
+  readonly number: number
+  /** Session created for it. */
+  readonly sessionId: string
+}
+
+/** One issue an intake pass selected but could not dispatch. */
+export interface GithubIssueIntakeFailure {
+  /** Issue number. */
+  readonly number: number
+  /** Stable failure code. */
+  readonly code: GithubIssueFailureCode
+  /** User-facing explanation. */
+  readonly message: string
+}
+
+/** What one intake pass did. */
+export interface GithubIssueIntakeValue {
+  /** Wall-clock time the pass ran, in epoch milliseconds. */
+  readonly checkedAt: number
+  /** Repository the pass read. */
+  readonly repoUrl: string
+  /** Issues the claim label selected. */
+  readonly claimable: readonly GithubIssueTask[]
+  /** Issues handed to a Session in this pass. */
+  readonly dispatched: readonly GithubIssueDispatched[]
+  /** Issue numbers skipped because an earlier pass already dispatched them. */
+  readonly skipped: readonly number[]
+  /** Issues the pass selected but could not dispatch. */
+  readonly failures: readonly GithubIssueIntakeFailure[]
+}
+
+/** Result of one intake pass. */
+export type GithubIssueIntakeResult =
+  | { readonly ok: true; readonly value: GithubIssueIntakeValue }
+  | GithubIssueFailure

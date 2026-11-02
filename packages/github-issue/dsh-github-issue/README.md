@@ -2,11 +2,11 @@
 
 English | [中文](README.zh.md)
 
-GitHub issue generation and optimization service for DeepSeek Harness. Builds structured issue reports from telemetry analysis, constructs pre-filled issue-creation URLs, and optimizes natural-language issue descriptions with the configured model.
+GitHub issue generation and optimization service for DeepSeek Harness. Builds structured issue reports from telemetry analysis, constructs pre-filled issue-creation URLs, optimizes natural-language issue descriptions with the configured model, and closes the intake loop: filing the report through the GitHub API, listing the issues that carry the claim label, and handing one to a fresh Session on the first startup of the local day.
 
 ## Plugin
 
-`GithubIssueService extends TypertRemoteService` with `static inject = ['llm']`. The service uses `ctx.get('llm')` for model calls and exposes three Remote methods callable by the client UI.
+`GithubIssueService extends TypertRemoteService` with `static inject = ['llm']`. The service uses `ctx.get('llm')` for model calls and exposes seven Remote methods callable by the client UI.
 
 | Config | Default | Meaning |
 |---|---|---|
@@ -15,6 +15,19 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `prefillTruncationNote` | a Chinese note | Appended to the issue body when the URL had to be shortened, so the reader knows the body is partial. |
 | `provider` | unset | Provider route for model calls. Unset follows the deployment's `agentDefaultModel` selection, so a deployment can pin issue generation from `cordis.yml` alone. |
 | `model` | unset | Model id for model calls. Unset follows the same fallback as `provider`. |
+| `tokenEnv` | `GITHUB_TOKEN` | Environment variable read for the GitHub token when `token` is unset. An empty name disables the lookup. |
+| `token` | unset | Explicit GitHub token. Set it when the deployment manages secrets itself; it wins over the environment and the command. |
+| `tokenCommand` | `gh auth token` | Command whose standard output is the token, run once per process only when neither `token` nor `tokenEnv` supplies one. The default reuses the credential the `gh` CLI already stores; set it to an empty string to disable the lookup. |
+| `tokenCommandTimeoutMs` | `10000` | Deadline for `tokenCommand`, in milliseconds. |
+| `apiBaseUrl` | `https://api.github.com` | GitHub REST origin. An Enterprise deployment sets its own `https://host/api/v3`. |
+| `requestTimeoutMs` | `15000` | Deadline for one GitHub REST request, in milliseconds. |
+| `claimLabel` | `ready-for-agent` | Label that marks an issue claimable by the intake loop. The repository's triage vocabulary owns the value; this field only names which label counts. |
+| `maxIssuesPerRun` | `3` | Largest number of issues one intake pass may dispatch. |
+| `autopilotEnabled` | `false` | Whether the host checks for claimable issues on its first startup of the local day. Off by default: opening a Session without being asked is a deployment decision. |
+| `autopilotCwd` | empty | Working directory the dispatched Sessions own. Empty follows the host's default directory. |
+| `autopilotPreset` | empty | Agent preset the dispatched Sessions run. Empty follows the deployment default. |
+| `autopilotTimeZone` | empty | IANA zone "today" is measured in. Empty follows the host's own zone, so the user's local midnight starts a new day. |
+| `autopilotPrompt` | the built-in template | Prompt handed to every dispatched Session. Placeholders `{number}`, `{title}`, `{url}`, `{body}`, and `{labels}` are replaced; an unknown placeholder stays visible. |
 
 ## Remote methods
 
@@ -23,6 +36,12 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `generateReport(request)` | Calls the model with a built-in structuring prompt to produce a uniform GitHub issue report from telemetry failure analysis. Returns a `GithubIssueReport` with title, body, and labels. The request names the `pluginIds` it covers — one report spans a whole suite — plus the analysis window and, per failure group, the route, the last failure time, and the attempts that followed it; the per-group facts are optional, and a missing one is passed to the model as `not recorded` rather than omitted. |
 | `prefilledIssueUrl(request)` | Builds a pre-filled GitHub issue-creation URL from a report. Validates the repo URL; returns `invalid-url` on failure. Shortens the body when the composed URL would exceed `maxPrefillUrlLength`, which is a budget the title and labels also spend and percent-encoding inflates, so the check is on the URL rather than the body alone. |
 | `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `route-missing` when no route resolves, `llm-failure` when the model call failed. |
+| `createIssue(request)` | Files the report through the GitHub REST API and returns the created issue's `{ number, url }`. The body is filed without its leading `## title` heading, because GitHub takes the title as its own field. |
+| `listClaimableIssues(request)` | Lists the open issues carrying the claim label, excluding pull requests, which GitHub's issue endpoints also return. |
+| `dispatchIssue(request)` | Creates one Session through the Session controller, queues the rendered prompt on its Agent, names the Session, and returns its `sessionId`. |
+| `runIntake(request)` | Runs one pass: lists the claimable issues, skips those an earlier pass already dispatched, dispatches the rest, and records the local day durably. |
+
+The intake methods report one stable failure code instead of a raw `fetch` error: `auth-missing`, `auth-failure`, `rate-limited`, `invalid-repo`, `invalid-request`, `http-failure`, `network-failure`, `session-unavailable`, or `dispatch-failed`. `auth-missing` is separate from `auth-failure` because no credential and a rejected credential are different deployment problems with different fixes.
 
 ## Model route
 
@@ -54,6 +73,36 @@ Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a
 
 `generateReport` receives the analysis window and, per failure group, the route, the last failure time, and how many attempts of the same action followed it. Its system prompt requires those facts to be stated, forbids proposing a mechanism the analysis does not evidence — sampling parameters, token budgets, timeouts, chunking, and response parsing are named as examples — and requires a fact the analysis does not carry to be written as `not recorded`. Writing that collection must be added is explicitly ruled out: a missing fact can be an older event as easily as a gap, and the report cannot tell which.
 
+## Issue intake loop
+
+The loop has three steps, and this plugin owns the last two. The user describes a problem in natural language, `optimizeIssue` turns it into the pinned report, and `createIssue` files it. That replaces the point where the loop used to stop: a pre-filled URL still required the user to open the form and press Submit, so nothing could pick the issue up automatically.
+
+`runIntake` then reads the issues that carry `claimLabel` and hands each one to a fresh Session. Dispatch goes through the Session controller rather than the Agent registry directly, so the dispatched Session gets the same preset and workspace policy as one the user opened in the Web; the prompt is queued with the Agent's `followup`, which wakes the driver without waiting for a turn to be open elsewhere. Naming the Session is best-effort: a deployment that mounts no title service still gets a working Session.
+
+The credential is resolved once per process, in this order: `token`, then `tokenEnv`, then `tokenCommand`. The default command is `gh auth token`, so a machine already logged in to GitHub needs no extra secret; a deployment that manages secrets itself sets `token` and disables the command with an empty string. The token is never logged.
+
+### First startup of the day
+
+`autopilotEnabled` turns on one check per local day at host startup. The local day is read from durable storage-domain state, so a restart later the same day does nothing, and an issue that was already dispatched is never dispatched again — its Session exists, and a second one would duplicate the work. The day is committed only after the listing succeeded, so a pass that could not reach GitHub is retried on the next startup instead of being remembered as done.
+
+The check needs durable state and refuses to run without one: without a memory of what it dispatched, a restart would open a second Session for the same issue. It is also off by default, because opening a Session without being asked is a deployment decision rather than something a plugin install does on its own.
+
+`@deepseek-ai/dsh-storage-domain` is an optional peer. Installing this package alone keeps the service loading, filing, and listing issues; only the daily check stays off, and the import happens when the check is enabled rather than when the module loads. Every DSH installation ships that package, so the missing case is a defence rather than a supported configuration.
+
+```yaml
+# your cordis.yml, or your own bundle's patch
+- insert:
+    - id: github-issue
+      name: @zhangj1164/dsh-github-issue
+      config:
+        repoUrl: https://github.com/your-org/your-repo
+        autopilotEnabled: true
+        autopilotCwd: /path/to/your-repo
+        claimLabel: ready-for-agent
+```
+
+The host must be running for the check to happen at all; a day with no startup is a day with no check. That is the intended behavior — the check is a startup hook, not a scheduler — and the Automation tasks page remains the place to inspect or manage reminders the Session itself creates.
+
 ## Requirement mapping
 
 - **Req 8** — `generateReport` turns telemetry failure analysis into a uniform GitHub issue report that correlates each failure group against the plugin's feature code.
@@ -61,6 +110,8 @@ Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a
 - **Req 10** — Packaged as a standalone DSH plugin: this package declares its own `dsh.bundle` with `cordis.patch.yml`, so a deployment can install it on its own and any UI plugin can reach it. See "Adopting this plugin" below.
 - **Req 11** — `optimizeIssue` rewrites a natural-language description into a structured issue using the configured model and a built-in structuring prompt. The `ui-memo` package calls this directly for its "Add Issue" editor.
 - **Req 12** — Reusable: the issue report template, the prefill URL builder, and the optimization prompt are all generic and not memo-specific.
+- **Req 13** — `createIssue` files the optimized report through the GitHub API, so "format the issue" and "file the issue" are one step instead of a form the user must submit.
+- **Req 14** — `runIntake` and the first-startup check close the loop: a claimable issue becomes a Session without the user opening it by hand, and a dispatched issue is never dispatched twice.
 
 ## Adopting this plugin
 
@@ -112,4 +163,6 @@ Every subpath resolves to the flat `lib/*.js` layout tsdown emits.
 ## Known Limitations
 
 - **Model dependency** — `inject: ['llm']` means the service will not activate without an LLM provider.
-- **Service-only surface** — this package registers no model tool and ships no browser UI. Installing it on its own gives a deployment `ctx.get('githubIssue')` and nothing a user can see or click; the visible entry point is `@zhangj1164/dsh-client-ui-memo`'s issue editor and log-analysis action, which reach it over Remote. Treat it as a backend that a UI plugin consumes, not as a standalone feature.
+- **No browser UI of its own** — this package registers no model tool and ships no browser UI. Installing it on its own gives a deployment `ctx.get('githubIssue')` and nothing a user can see or click; the visible entry point is `@zhangj1164/dsh-client-ui-memo`'s issue editor, whose "File on GitHub" button and log-analysis action reach it over Remote. Treat it as a backend that a UI plugin consumes, not as a standalone feature.
+- **Dispatch needs the Web composition** — `dispatchIssue` and `runIntake` read `ctx.get('sessionController')` and `ctx.get('agents')`. A headless or SDK-only composition that mounts neither reports `session-unavailable` and files or lists issues only.
+- **The first-startup check is a startup hook, not a scheduler** — it runs only when the host starts. A deployment that keeps the host running across midnight gets the check on the next start, not at midnight.

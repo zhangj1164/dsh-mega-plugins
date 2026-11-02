@@ -20,7 +20,7 @@ export type MemoKey =
   | 'organize' | 'summarize' | 'analyzeLabel' | 'analyze' | 'exportReport' | 'refresh'
   | 'analysisResult' | 'reportResult' | 'modelLabel' | 'followDefault' | 'noModelRoute' | 'modelCatalogEmpty' | 'providerEmpty'
   // Issue editor
-  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
+  | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'createIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
   // Session summary
@@ -82,6 +82,7 @@ export const zh: Record<MemoKey, string> = {
   issueEditorTitle: 'Issue 编辑器',
   issuePlaceholder: '用自然语言描述问题…',
   optimizeIssue: '优化 Issue',
+  createIssue: '直接提交到 GitHub',
   openGithub: '在 GitHub 打开',
   clearIssue: '清除',
   copyIssueBody: '复制完整正文',
@@ -160,6 +161,7 @@ export const en: Record<MemoKey, string> = {
   issueEditorTitle: 'Issue Editor',
   issuePlaceholder: 'Describe the problem in natural language…',
   optimizeIssue: 'Optimize Issue',
+  createIssue: 'File on GitHub',
   openGithub: 'Open on GitHub',
   clearIssue: 'Clear',
   copyIssueBody: 'Copy full body',
