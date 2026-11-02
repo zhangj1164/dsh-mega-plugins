@@ -11,6 +11,17 @@
 #
 # `repoUrl` is the repository new-issue links point at. Deployments override it
 # in their own cordis.patch.yml; the value below is this project's own.
+#
+# The intake loop is off until a deployment turns it on. Enabling it needs the
+# repository URL, the directory a dispatched Session owns, and a GitHub
+# credential (the configured token environment variable, or the default
+# `gh auth token` command):
+#
+#   config:
+#     repoUrl: https://github.com/your-org/your-repo
+#     autopilotEnabled: true
+#     autopilotCwd: /path/to/your-repo
+#     claimLabel: ready-for-agent
 
 - insert:
     - id: github-issue

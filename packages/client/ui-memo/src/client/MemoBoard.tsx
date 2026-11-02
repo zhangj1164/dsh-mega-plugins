@@ -198,6 +198,18 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
   }
 
   /**
+   * File the optimized report directly, then open the created issue.
+   *
+   * Opening the result keeps the user in the loop they already know: the
+   * difference from the pre-filled form is that the issue now exists and the
+   * intake loop can pick it up.
+   */
+  const fileIssue = async (): Promise<void> => {
+    const url = await controller.createIssue()
+    if (url !== null) openUrl(url)
+  }
+
+  /**
    * Copy the untruncated report, so a body shortened for the URL is still
    * available to paste into the issue form.
    */
@@ -507,6 +519,10 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
               type: 'button', className: 'dsh-memo-btn', disabled: view.busy || issueText.trim().length === 0,
               onClick: () => void controller.optimizeIssue(issueText),
             }, t('optimizeIssue')),
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-btn', disabled: view.busy || view.issueReport === null,
+              onClick: () => void fileIssue(),
+            }, t('createIssue')),
             React.createElement('button', {
               type: 'button', className: 'dsh-memo-btn', disabled: view.busy || view.issueReport === null,
               onClick: () => void openIssue(),

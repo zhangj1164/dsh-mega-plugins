@@ -151,6 +151,9 @@ importers:
       '@deepseek-ai/dsh-llm':
         specifier: ^0.2.1-rc.2
         version: 0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)
+      '@deepseek-ai/dsh-storage-domain':
+        specifier: ^0.2.1-rc.2
+        version: 0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-storage@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5))
       '@deepseek-ai/dsh-typert-protocol':
         specifier: ^0.2.1-rc.2
         version: 0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)

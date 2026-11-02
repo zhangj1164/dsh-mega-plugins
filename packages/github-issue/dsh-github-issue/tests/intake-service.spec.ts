@@ -1,0 +1,190 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { localDayKey } from '../src/intake.ts'
+import type { IntakeHarness } from './intake-harness.ts'
+import { setupIntakeHarness } from './intake-harness.ts'
+
+const harnesses: IntakeHarness[] = []
+
+afterEach(async () => {
+  vi.unstubAllGlobals()
+  await Promise.all(harnesses.splice(0).map(item => item.dispose()))
+})
+
+async function harness(options?: Parameters<typeof setupIntakeHarness>[0]): Promise<IntakeHarness> {
+  const mounted = await setupIntakeHarness(options)
+  harnesses.push(mounted)
+  return mounted
+}
+
+/** A JSON response with the given status. */
+function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } })
+}
+
+/** One claimable issue payload. */
+function issue(number: number, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    number,
+    title: 'Issue ' + number,
+    html_url: 'https://github.com/test/repo/issues/' + number,
+    body: 'body ' + number,
+    labels: [{ name: 'ready-for-agent' }],
+    ...overrides,
+  }
+}
+
+/** A fetch stub that always returns the supplied response. */
+function stubFetch(body: unknown, status = 200): ReturnType<typeof vi.fn> {
+  const mock = vi.fn(async () => json(body, status))
+  vi.stubGlobal('fetch', mock)
+  return mock
+}
+
+describe('createIssue', () => {
+  it('files the report without the duplicated title heading', async () => {
+    const mounted = await harness()
+    const fetchMock = stubFetch({ number: 12, html_url: 'https://github.com/test/repo/issues/12' }, 201)
+    const result = await mounted.service.createIssue({
+      report: { title: '  登录失败  ', body: '## 登录失败\n\n<details>x</details>', labels: ['bug', ''] },
+    })
+    expect(result).toEqual({ ok: true, value: { number: 12, url: 'https://github.com/test/repo/issues/12' } })
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit
+    expect(JSON.parse(String(init.body))).toEqual({ title: '登录失败', body: '<details>x</details>', labels: ['bug'] })
+  })
+
+  it('rejects a report with a blank title before touching GitHub', async () => {
+    const mounted = await harness()
+    const fetchMock = stubFetch({})
+    const result = await mounted.service.createIssue({ report: { title: '   ', body: 'x', labels: [] } })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('invalid-request')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('reports a missing credential instead of calling GitHub', async () => {
+    const mounted = await harness({ token: null })
+    const fetchMock = stubFetch({})
+    const result = await mounted.service.createIssue({ report: { title: 'x', body: 'y', labels: [] } })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('auth-missing')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('runIntake', () => {
+  it('dispatches a fresh issue, then skips it on the next pass', async () => {
+    const mounted = await harness()
+    stubFetch([issue(1), issue(2, { pull_request: {} }), issue(3, { labels: [{ name: 'bug' }] })])
+    const first = await mounted.service.runIntake({})
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    expect(first.value.claimable.map(item => item.number)).toEqual([1])
+    expect(first.value.dispatched).toEqual([{ number: 1, sessionId: 'session-1' }])
+    expect(first.value.skipped).toEqual([])
+    expect(mounted.sessions?.creates).toHaveLength(1)
+    expect(mounted.agents?.followups).toHaveLength(1)
+    expect(mounted.agents?.followups[0]?.text).toContain('#1')
+    await vi.waitFor(() => expect(mounted.sessions?.renames).toHaveLength(1))
+    expect(mounted.sessions?.renames[0]?.title).toContain('Issue #1')
+
+    stubFetch([issue(1)])
+    const second = await mounted.service.runIntake({})
+    expect(second.ok).toBe(true)
+    if (!second.ok) return
+    expect(second.value.skipped).toEqual([1])
+    expect(second.value.dispatched).toEqual([])
+    expect(mounted.sessions?.creates).toHaveLength(1)
+  })
+
+  it('records the local day and the dispatched issue durably', async () => {
+    const mounted = await harness({ autopilotTimeZone: 'Asia/Shanghai' })
+    const fetchMock = vi.fn(async () => json([issue(5)]))
+    vi.stubGlobal('fetch', fetchMock)
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    const row = mounted.storage?.rows.get('intake') as { lastCheckedDay: string; dispatched: { number: number; sessionId: string }[] } | undefined
+    expect(row?.lastCheckedDay).toBe(localDayKey(Date.now(), 'Asia/Shanghai'))
+    expect(row?.dispatched).toEqual([{ number: 5, day: localDayKey(Date.now(), 'Asia/Shanghai'), sessionId: 'session-1' }])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('forwards the Session placement and the prompt template', async () => {
+    const mounted = await harness({
+      autopilotCwd: 'E:\\repo',
+      autopilotPreset: 'standard',
+      autopilotPrompt: 'TASK {number}: {title}',
+    })
+    stubFetch([issue(1)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:\\repo', agentPreset: 'standard' }])
+    expect(mounted.agents?.followups[0]?.text).toBe('TASK 1: Issue 1')
+  })
+
+  it('does not remember a day whose listing failed', async () => {
+    const mounted = await harness()
+    stubFetch({ message: 'server error' }, 500)
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(false)
+    expect(mounted.storage?.rows.get('intake')).toBeUndefined()
+  })
+
+  it('keeps a dispatch failure instead of inventing a Session', async () => {
+    const mounted = await harness({ withoutSessionServices: true })
+    stubFetch([issue(1)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([])
+    expect(result.value.failures[0]?.code).toBe('session-unavailable')
+  })
+})
+
+describe('dispatchIssue', () => {
+  it('refuses when the deployment mounts no Session router', async () => {
+    const mounted = await harness({ withoutSessionServices: true })
+    const result = await mounted.service.dispatchIssue({
+      issue: { number: 1, title: 't', body: 'b', url: 'u', labels: [] },
+    })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('session-unavailable')
+  })
+})
+
+describe('first-startup check', () => {
+  it('does nothing when the local day was already checked', async () => {
+    const today = localDayKey(Date.now(), 'UTC')
+    const fetchMock = vi.fn(async () => json([issue(1)]))
+    vi.stubGlobal('fetch', fetchMock)
+    const mounted = await harness({
+      autopilotEnabled: true,
+      initialState: { lastCheckedDay: today, dispatched: [] },
+    })
+    await new Promise(resolve => setTimeout(resolve, 30))
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(mounted.sessions?.creates).toEqual([])
+  })
+
+  it('runs one pass when the stored day is older', async () => {
+    stubFetch([issue(9)])
+    const mounted = await harness({
+      autopilotEnabled: true,
+      initialState: { lastCheckedDay: '2000-01-01', dispatched: [] },
+    })
+    await vi.waitFor(() => expect(mounted.agents?.followups).toHaveLength(1), { timeout: 2000 })
+    expect(mounted.agents?.followups[0]?.text).toContain('#9')
+  })
+
+  it('stays off without durable state so it cannot dispatch twice', async () => {
+    const fetchMock = vi.fn(async () => json([issue(1)]))
+    vi.stubGlobal('fetch', fetchMock)
+    const mounted = await harness({ autopilotEnabled: true, withoutStorage: true })
+    await new Promise(resolve => setTimeout(resolve, 30))
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(mounted.sessions?.creates).toEqual([])
+  })
+})

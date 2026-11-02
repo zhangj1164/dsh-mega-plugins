@@ -10,18 +10,34 @@
  * @module @zhangj1164/dsh-github-issue
  */
 
-import { Context } from '@deepseek-ai/cordis'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
+import { Context, Service } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
+import { GithubIssueClient } from './github.ts'
+import { DEFAULT_DISPATCH_PROMPT, isValidTimeZone, issueBody, localDayKey, renderDispatchPrompt } from './intake.ts'
+import { INTAKE_STATE_KEY, intakeDomainSpec, type IntakeStateRow } from './spec.ts'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import type {
+  GithubIssueCreateRequest,
+  GithubIssueCreateResult,
+  GithubIssueDispatchRequest,
+  GithubIssueDispatchResult,
+  GithubIssueDispatched,
+  GithubIssueFailure,
   GithubIssueGenerateReportRequest,
   GithubIssueGenerateReportResult,
+  GithubIssueIntakeRequest,
+  GithubIssueIntakeResult,
+  GithubIssueListRequest,
+  GithubIssueListResult,
   GithubIssueOptimizeRequest,
   GithubIssueOptimizeResult,
   GithubIssuePrefillRequest,
   GithubIssuePrefillResult,
   GithubIssueReport,
+  GithubIssueTask,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -60,6 +76,66 @@ export interface Config {
    * `agentDefaultModel` selection.
    */
   readonly model?: string
+  /**
+   * Environment variable that carries the GitHub token. Read only when
+   * {@link Config.token} is unset, and only when no token command is configured
+   * or the command produced nothing.
+   */
+  readonly tokenEnv: string
+  /**
+   * Explicit GitHub token. A deployment that manages secrets itself sets this;
+   * a token stored in the environment or produced by {@link Config.tokenCommand}
+   * is read when this field is absent.
+   */
+  readonly token?: string
+  /**
+   * Command whose standard output is a GitHub token, run only when neither
+   * {@link Config.token} nor {@link Config.tokenEnv} supplies one. The default
+   * reads the credential the `gh` CLI already stores, so a machine that is
+   * logged in to GitHub needs no extra secret; set it to an empty string to
+   * disable the lookup.
+   */
+  readonly tokenCommand: string
+  /** Deadline for {@link Config.tokenCommand}, in milliseconds. */
+  readonly tokenCommandTimeoutMs: number
+  /**
+   * GitHub REST origin. `https://api.github.com` serves github.com; an
+   * Enterprise deployment sets its own `https://host/api/v3`.
+   */
+  readonly apiBaseUrl: string
+  /** Deadline for one GitHub REST request, in milliseconds. */
+  readonly requestTimeoutMs: number
+  /**
+   * Label that marks an issue claimable by the intake loop. The repository's
+   * triage vocabulary owns the value; this field only names which label counts.
+   */
+  readonly claimLabel: string
+  /** Largest number of issues one intake pass may dispatch. */
+  readonly maxIssuesPerRun: number
+  /**
+   * Whether the host checks for claimable issues on its first startup of the
+   * day. Off by default: opening a Session without being asked is a deployment
+   * decision, never a surprise a plugin installs on its own.
+   */
+  readonly autopilotEnabled: boolean
+  /**
+   * Working directory the dispatched Sessions own. Empty follows the host's
+   * default directory, which is the deployment's current working directory.
+   */
+  readonly autopilotCwd: string
+  /** Agent preset the dispatched Sessions run; empty follows the deployment default. */
+  readonly autopilotPreset: string
+  /**
+   * IANA zone "today" is measured in. Empty follows the host's own zone, so a
+   * user's local midnight is what starts a new day.
+   */
+  readonly autopilotTimeZone: string
+  /**
+   * Prompt template handed to every dispatched Session. Placeholders are
+   * documented on `renderDispatchPrompt`; the default states the issue
+   * location and points at the repository workflow.
+   */
+  readonly autopilotPrompt: string
 }
 
 /** Schemastery configuration for the GitHub-issue service. */
@@ -69,6 +145,19 @@ export const Config: s<Config> = s.object({
   prefillTruncationNote: s.string().default('\n\n> （正文过长，已截断以适配 GitHub 的 URL 长度限制。完整正文见备忘面板的「复制完整正文」。）'),
   provider: s.string(),
   model: s.string(),
+  tokenEnv: s.string().default('GITHUB_TOKEN'),
+  token: s.string(),
+  tokenCommand: s.string().default('gh auth token'),
+  tokenCommandTimeoutMs: s.number().step(1).min(1000).max(120000).default(10000),
+  apiBaseUrl: s.string().default('https://api.github.com'),
+  requestTimeoutMs: s.number().step(1).min(1000).max(180000).default(15000),
+  claimLabel: s.string().default('ready-for-agent'),
+  maxIssuesPerRun: s.number().step(1).min(1).max(20).default(3),
+  autopilotEnabled: s.boolean().default(false),
+  autopilotCwd: s.string().default(''),
+  autopilotPreset: s.string().default(''),
+  autopilotTimeZone: s.string().default(''),
+  autopilotPrompt: s.string().default(DEFAULT_DISPATCH_PROMPT),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -196,8 +285,92 @@ const REPORT_SYSTEM_PROMPT = [
   'Return only the Markdown body. The first line must be a concise Chinese title.',
 ].join('\n')
 
+/** The subset of the storage-domain table the intake state uses. */
+interface GithubIntakeTable {
+  /** Read the one state row, when it exists. */
+  get(key: string): IntakeStateRow | undefined
+  /** Persist the one state row durably. */
+  put(key: string, value: IntakeStateRow): Promise<void>
+}
+
+/** The subset of the storage-domain service this plugin opens. */
+interface GithubStorageDomain {
+  /** Open the declared intake domain. */
+  open(spec: unknown): Promise<{
+    /** One table of the opened domain. */
+    table(name: string): GithubIntakeTable
+    /** Release the domain handle. */
+    close(): Promise<void>
+  }>
+}
+
+/** The Session controller methods dispatching a Session needs. */
+interface GithubSessionController {
+  /** Create one ordinary Session for a new conversation. */
+  create(request: { cwd?: string; agentPreset?: string }): Promise<{ sessionId: string }>
+  /** Give one Session a readable title; optional because a deployment may mount no title service. */
+  rename?(request: { sessionId: string; title: string }): Promise<unknown>
+}
+
+/** One live Agent's inbox entry point. */
+interface GithubAgentHandle {
+  /** Queue a next-turn prompt and wake the driver. */
+  readonly agent: {
+    followup(input: {
+      content: readonly { readonly type: 'text'; readonly text: string }[]
+      source: { readonly kind: string }
+    }): void
+  }
+}
+
+/** The Agent registry dispatch reads a published handle from. */
+interface GithubAgents {
+  /** Find one live Agent by its Session id. */
+  get(sessionId: string): GithubAgentHandle | undefined
+}
+
+/** The empty intake state used before the first pass and without storage. */
+const EMPTY_INTAKE_STATE: IntakeStateRow = Object.freeze({
+  lastCheckedDay: '',
+  dispatched: Object.freeze([]),
+})
+
+/**
+ * How many dispatched-issue records the state keeps.
+ *
+ * The records are what stops a second pass from opening a second Session for
+ * the same issue. The bound only keeps one JSON document from growing without
+ * limit; issues beyond it are old enough that their PR is already the record.
+ */
+const MAX_DISPATCH_HISTORY = 500
+
+/** The failure returned when a report cannot become a GitHub issue at all. */
+const INVALID_ISSUE_REQUEST = {
+  ok: false,
+  error: {
+    code: 'invalid-request',
+    message: 'the issue report must carry a non-empty title and a body',
+  },
+} as const
+
+/** The failure returned when the deployment has no Session router. */
+const SESSION_UNAVAILABLE = {
+  ok: false,
+  error: {
+    code: 'session-unavailable',
+    message: 'this deployment mounts no Session controller or Agent registry, so no issue can be dispatched',
+  },
+} as const
+
+/** Promise-based `exec`, used only for the configured token command. */
+const execAsync = promisify(exec)
+
 /**
  * GitHub-issue generation and optimization service over the configured model.
+ *
+ * Beyond the model-backed report methods, the service owns the issue intake
+ * loop: it files an optimized report through the GitHub REST API, lists the
+ * issues that carry the claim label, and hands one of them to a fresh Session.
  */
 export class GithubIssueService extends TypertRemoteService {
   static inject = ['llm']
@@ -210,6 +383,29 @@ export class GithubIssueService extends TypertRemoteService {
   private readonly provider?: string
   /** Configured model id, or `undefined` to follow `agentDefaultModel`. */
   private readonly model?: string
+  private readonly tokenEnv: string
+  private readonly token?: string
+  private readonly tokenCommand: string
+  private readonly tokenCommandTimeoutMs: number
+  private readonly apiBaseUrl: string
+  private readonly requestTimeoutMs: number
+  private readonly claimLabel: string
+  private readonly maxIssuesPerRun: number
+  private readonly autopilotEnabled: boolean
+  private readonly autopilotCwd: string
+  private readonly autopilotPreset: string
+  private readonly autopilotTimeZone: string
+  private readonly autopilotPrompt: string
+  /** The persisted state, or the empty state when this deployment has no storage. */
+  private intakeState: IntakeStateRow = EMPTY_INTAKE_STATE
+  /** The durable table, absent when this deployment mounts no storage domain. */
+  private intakeTable?: GithubIntakeTable
+  /** Whether the state is durable; the startup check refuses to run without it. */
+  private intakePersistent = false
+  /** The resolved token, cached so a token command runs at most once. */
+  private resolvedToken?: string
+  /** Whether token resolution finished; a missing credential is a result, not a retry. */
+  private tokenResolved = false
 
   /**
    * @param ctx - Host context carrying the llm service.
@@ -217,11 +413,46 @@ export class GithubIssueService extends TypertRemoteService {
    */
   constructor(ctx: Context, config: Config) {
     super(ctx, 'githubIssue')
+    if (!isValidTimeZone(config.autopilotTimeZone)) {
+      throw new Error(`autopilotTimeZone "${config.autopilotTimeZone}" is not an IANA time zone`)
+    }
     this.repoUrl = config.repoUrl
     this.maxPrefillUrlLength = config.maxPrefillUrlLength
     this.prefillTruncationNote = config.prefillTruncationNote
     this.provider = config.provider
     this.model = config.model
+    this.tokenEnv = config.tokenEnv
+    this.token = config.token
+    this.tokenCommand = config.tokenCommand
+    this.tokenCommandTimeoutMs = config.tokenCommandTimeoutMs
+    this.apiBaseUrl = config.apiBaseUrl
+    this.requestTimeoutMs = config.requestTimeoutMs
+    this.claimLabel = config.claimLabel
+    this.maxIssuesPerRun = config.maxIssuesPerRun
+    this.autopilotEnabled = config.autopilotEnabled
+    this.autopilotCwd = config.autopilotCwd
+    this.autopilotPreset = config.autopilotPreset
+    this.autopilotTimeZone = config.autopilotTimeZone
+    this.autopilotPrompt = config.autopilotPrompt
+  }
+
+  /**
+   * Open the durable intake state and, when enabled, run the first-startup
+   * check.
+   *
+   * The check is deliberately not awaited: opening a Session is useful work
+   * but not a prerequisite for the service, and a slow or unreachable GitHub
+   * must not hold up the host's boot. A failure is logged and retried on the
+   * next startup, because the day key is only committed after a completed pass.
+   */
+  protected async [Service.init](): Promise<void> {
+    await this.openIntakeState()
+    if (!this.autopilotEnabled) return
+    if (!this.intakePersistent) {
+      this.warn('autopilot is enabled but no durable intake state is available; skipping the startup check so it cannot dispatch the same issue twice')
+      return
+    }
+    void this.startupIntake()
   }
 
   /**
@@ -311,6 +542,334 @@ export class GithubIssueService extends TypertRemoteService {
       ok: true,
       value: Object.freeze({ title, body: result.text, labels: Object.freeze(['bug']) }),
     }
+  }
+
+  /**
+   * File one issue in the configured repository.
+   *
+   * The body is filed without its leading title heading: the optimizer repeats
+   * the title there so one text can drive both the pre-filled URL form and a
+   * direct filing, and GitHub takes the title as its own field.
+   *
+   * @param request - repository override and the report to file.
+   * @returns the created issue, or a stable failure.
+   */
+  @Remote('createIssue')
+  async createIssue(request: GithubIssueCreateRequest): Promise<GithubIssueCreateResult> {
+    const report = request.report
+    if (typeof report?.title !== 'string' || typeof report.body !== 'string') return INVALID_ISSUE_REQUEST
+    const title = report.title.trim()
+    if (title.length === 0) return INVALID_ISSUE_REQUEST
+    const labels = [...(report.labels ?? [])].map(label => label.trim()).filter(label => label.length > 0)
+    const normalized: GithubIssueReport = { title, body: issueBody(report), labels }
+    const client = await this.createClient(request.repoUrl)
+    const result = await client.createIssue(normalized)
+    if (!result.ok) {
+      this.trackError('createIssue', {
+        code: result.error.code,
+        message: result.error.message,
+        featureCodeRef: this.featureCode('createIssue'),
+      })
+      return result
+    }
+    this.track('createIssue', 'success', { issue: result.value.number })
+    return result
+  }
+
+  /**
+   * List the open issues that carry the claim label.
+   * @param request - repository, label, and count overrides.
+   * @returns the claimable issues, or a stable failure.
+   */
+  @Remote('listClaimableIssues')
+  async listClaimableIssues(request: GithubIssueListRequest = {}): Promise<GithubIssueListResult> {
+    const claimLabel = firstNonBlank(request.claimLabel, this.claimLabel) ?? this.claimLabel
+    const max = clampCount(request.max ?? this.maxIssuesPerRun)
+    const client = await this.createClient(request.repoUrl)
+    const result = await client.listClaimable(claimLabel, max)
+    if (!result.ok) {
+      this.trackError('listClaimableIssues', {
+        code: result.error.code,
+        message: result.error.message,
+        featureCodeRef: this.featureCode('listClaimableIssues'),
+      })
+    }
+    return result
+  }
+
+  /**
+   * Hand one issue to a fresh Session.
+   * @param request - the issue and optional Session placement.
+   * @returns the created Session, or a stable failure.
+   */
+  @Remote('dispatchIssue')
+  async dispatchIssue(request: GithubIssueDispatchRequest): Promise<GithubIssueDispatchResult> {
+    return this.dispatch(request)
+  }
+
+  /**
+   * Run one intake pass: list the claimable issues, skip the ones an earlier
+   * pass already dispatched, and hand the rest to a fresh Session.
+   *
+   * The local day is committed only after the listing succeeded, so a pass that
+   * could not reach GitHub is retried on the next startup instead of being
+   * remembered as done. An issue that was already dispatched is never
+   * dispatched again, even on a later day: its Session exists, and a second one
+   * would duplicate the work.
+   *
+   * @param request - repository, label, count, and Session placement overrides.
+   * @returns what the pass read and did.
+   */
+  @Remote('runIntake')
+  async runIntake(request: GithubIssueIntakeRequest = {}): Promise<GithubIssueIntakeResult> {
+    const repoUrl = firstNonBlank(request.repoUrl, this.repoUrl) ?? this.repoUrl
+    const claimLabel = firstNonBlank(request.claimLabel, this.claimLabel) ?? this.claimLabel
+    const max = clampCount(request.max ?? this.maxIssuesPerRun)
+    const listed = await this.listClaimableIssues({ repoUrl, claimLabel, max })
+    if (!listed.ok) return listed
+    const claimed = new Set(this.intakeState.dispatched.map(row => row.number))
+    const skipped: number[] = []
+    const fresh: GithubIssueTask[] = []
+    for (const issue of listed.value) {
+      if (claimed.has(issue.number)) skipped.push(issue.number)
+      else fresh.push(issue)
+    }
+    const selected = fresh.slice(0, max)
+    const dispatched: GithubIssueDispatched[] = []
+    const failures: { number: number; code: GithubIssueFailure['error']['code']; message: string }[] = []
+    for (const issue of selected) {
+      const result = await this.dispatch({
+        issue,
+        ...(request.cwd === undefined ? {} : { cwd: request.cwd }),
+        ...(request.agentPreset === undefined ? {} : { agentPreset: request.agentPreset }),
+      })
+      if (result.ok) {
+        dispatched.push({ number: issue.number, sessionId: result.value.sessionId })
+        continue
+      }
+      failures.push({ number: issue.number, code: result.error.code, message: result.error.message })
+    }
+    const checkedAt = Date.now()
+    await this.commitIntakeState(localDayKey(checkedAt, this.autopilotTimeZone), dispatched)
+    return {
+      ok: true,
+      value: Object.freeze({
+        checkedAt,
+        repoUrl,
+        claimable: listed.value,
+        dispatched: Object.freeze(dispatched),
+        skipped: Object.freeze(skipped),
+        failures: Object.freeze(failures),
+      }),
+    }
+  }
+
+  /**
+   * Create one Session, queue the issue prompt, and name the Session.
+   *
+   * The Session is created through the Session controller rather than the Agent
+   * registry directly: the controller applies the deployment's preset and
+   * workspace policy, so the dispatched Session behaves like one the user
+   * opened from the Web. The prompt is queued with the Agent's followup, which
+   * wakes the driver without waiting for a turn to be open elsewhere.
+   *
+   * @param request - the issue and optional Session placement.
+   * @returns the created Session, or a stable failure.
+   */
+  private async dispatch(request: GithubIssueDispatchRequest): Promise<GithubIssueDispatchResult> {
+    const controller = optionalService<GithubSessionController>(this.ctx, 'sessionController')
+    const agents = optionalService<GithubAgents>(this.ctx, 'agents')
+    if (controller === undefined || agents === undefined) return SESSION_UNAVAILABLE
+    const cwd = firstNonBlank(request.cwd, this.autopilotCwd)
+    const agentPreset = firstNonBlank(request.agentPreset, this.autopilotPreset)
+    let sessionId: string
+    try {
+      const created = await controller.create({
+        ...(cwd === undefined ? {} : { cwd }),
+        ...(agentPreset === undefined ? {} : { agentPreset }),
+      })
+      sessionId = created.sessionId
+    } catch (error) {
+      return { ok: false, error: { code: 'dispatch-failed', message: 'the Session could not be created: ' + describeError(error) } }
+    }
+    const handle = agents.get(sessionId)
+    if (handle === undefined) {
+      return {
+        ok: false,
+        error: { code: 'dispatch-failed', message: 'Session "' + sessionId + '" was created but no live Agent was published for it' },
+      }
+    }
+    try {
+      handle.agent.followup({
+        content: [{ type: 'text', text: renderDispatchPrompt(this.autopilotPrompt, request.issue) }],
+        source: { kind: 'github-issue' },
+      })
+    } catch (error) {
+      return {
+        ok: false,
+        error: {
+          code: 'dispatch-failed',
+          message: 'Session "' + sessionId + '" was created but the issue prompt was refused: ' + describeError(error),
+        },
+      }
+    }
+    void this.renameSession(controller, sessionId, 'Issue #' + request.issue.number + ': ' + request.issue.title)
+    this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId })
+    return { ok: true, value: Object.freeze({ sessionId }) }
+  }
+
+  /**
+   * Name a dispatched Session so the user can recognise it in the sidebar.
+   *
+   * A title is presentation, not part of the dispatch contract: a deployment
+   * that mounts no title service still gets a working Session, so a failure
+   * here is logged and never fails the dispatch.
+   *
+   * @param controller - the Session controller.
+   * @param sessionId - the Session to name.
+   * @param title - the proposed title.
+   */
+  private async renameSession(controller: GithubSessionController, sessionId: string, title: string): Promise<void> {
+    try {
+      await controller.rename?.({ sessionId, title: title.slice(0, 120) })
+    } catch (error) {
+      this.warn('Session "' + sessionId + '" was created without a title: ' + describeError(error))
+    }
+  }
+
+  /**
+   * Run the first-startup check once per local day.
+   *
+   * The day is read from durable state, so a restart later the same day does
+   * nothing; the check is skipped until the local calendar moves on.
+   */
+  private async startupIntake(): Promise<void> {
+    try {
+      const today = localDayKey(Date.now(), this.autopilotTimeZone)
+      if (this.intakeState.lastCheckedDay === today) return
+      const result = await this.runIntake({})
+      if (!result.ok) {
+        this.warn('issue intake did not complete: ' + result.error.code + ': ' + result.error.message)
+        return
+      }
+      this.track('startupIntake', 'success', { dispatched: result.value.dispatched.length })
+    } catch (error) {
+      this.warn('issue intake failed: ' + describeError(error))
+    }
+  }
+
+  /**
+   * Open the durable intake state when this deployment mounts storage.
+   *
+   * Storage is optional so the service still installs on its own bundle; the
+   * startup check then stays off rather than running without a memory of what
+   * it already dispatched.
+   */
+  private async openIntakeState(): Promise<void> {
+    const storage = optionalService<GithubStorageDomain>(this.ctx, 'storageDomain')
+    if (storage === undefined) return
+    try {
+      const domain = await storage.open(intakeDomainSpec)
+      this.ctx.effect(() => async () => {
+        await domain.close()
+      }, 'github-issue.intakeStateClose')
+      const table = domain.table('state')
+      this.intakeTable = table
+      this.intakeState = table.get(INTAKE_STATE_KEY) ?? EMPTY_INTAKE_STATE
+      this.intakePersistent = true
+    } catch (error) {
+      this.warn('intake state is unavailable: ' + describeError(error))
+    }
+  }
+
+  /**
+   * Commit one completed pass to durable state.
+   *
+   * The in-memory state is updated first so the next pass in this process sees
+   * the dispatch even when the durable write fails; the warning then names the
+   * consequence instead of pretending the write succeeded.
+   *
+   * @param day - local day the pass completed.
+   * @param dispatched - issues handed to a Session in this pass.
+   */
+  private async commitIntakeState(day: string, dispatched: readonly GithubIssueDispatched[]): Promise<void> {
+    const appended = dispatched.map(entry => ({ number: entry.number, day, sessionId: entry.sessionId }))
+    const next: IntakeStateRow = Object.freeze({
+      lastCheckedDay: day,
+      dispatched: Object.freeze([...this.intakeState.dispatched, ...appended].slice(-MAX_DISPATCH_HISTORY)),
+    })
+    this.intakeState = next
+    const table = this.intakeTable
+    if (table === undefined) return
+    try {
+      await table.put(INTAKE_STATE_KEY, next)
+    } catch (error) {
+      this.warn('intake state could not be saved, so a later pass may dispatch the same issue again: ' + describeError(error))
+    }
+  }
+
+  /**
+   * Build one GitHub client for a call.
+   * @param repoUrl - repository override, or the configured repository.
+   * @returns the client, carrying the resolved credential.
+   */
+  private async createClient(repoUrl: string | undefined): Promise<GithubIssueClient> {
+    return new GithubIssueClient({
+      repoUrl: firstNonBlank(repoUrl, this.repoUrl) ?? this.repoUrl,
+      apiBaseUrl: this.apiBaseUrl,
+      token: await this.resolveToken(),
+      timeoutMs: this.requestTimeoutMs,
+    })
+  }
+
+  /**
+   * Resolve the GitHub credential once.
+   *
+   * The order is explicit config, then the configured environment variable,
+   * then the configured command. The command runs at most once per process so
+   * a keyring-backed credential is not fetched on every request, and its output
+   * is never logged.
+   *
+   * @returns the token, or undefined when the deployment has none.
+   */
+  private async resolveToken(): Promise<string | undefined> {
+    if (this.tokenResolved) return this.resolvedToken
+    this.tokenResolved = true
+    const direct = firstNonBlank(this.token)
+    if (direct !== undefined) return (this.resolvedToken = direct)
+    const fromEnv = this.tokenEnv.length === 0 ? undefined : firstNonBlank(process.env[this.tokenEnv])
+    if (fromEnv !== undefined) return (this.resolvedToken = fromEnv)
+    if (this.tokenCommand.trim().length === 0) return undefined
+    try {
+      const { stdout } = await execAsync(this.tokenCommand, {
+        timeout: this.tokenCommandTimeoutMs,
+        windowsHide: true,
+        maxBuffer: 64 * 1024,
+      })
+      const fromCommand = firstNonBlank(stdout)
+      if (fromCommand !== undefined) return (this.resolvedToken = fromCommand)
+    } catch (error) {
+      this.warn('token command failed: ' + describeError(error))
+    }
+    return undefined
+  }
+
+  /**
+   * The telemetry feature anchor for one intake action.
+   * @param action - the method the event belongs to.
+   * @returns the stable feature-code reference.
+   */
+  private featureCode(action: string): string {
+    return TELEMETRY_PLUGIN_ID + ':' + action
+  }
+
+  /**
+   * Log one non-fatal intake problem.
+   * @param message - what went wrong and what it costs.
+   */
+  private warn(message: string): void {
+    const logger = (this.ctx as unknown as { logger?: { warn(message: string): void } }).logger
+    logger?.warn('github-issue: ' + message)
   }
 
   /**
@@ -524,6 +1083,43 @@ function buildPrefillUrl(repoUrl: string, report: GithubIssueReport, maxLength: 
   // Reachable only when the note alone exceeds the limit. Sending the note is
   // then the most that fits, which beats emitting a URL GitHub rejects.
   return candidate.length <= maxLength ? candidate : compose(note)
+}
+
+/**
+ * Read one optional host service by its Cordis key.
+ *
+ * The intake loop works with services this package does not depend on: a
+ * deployment may mount no storage, no Session controller, or no Agent registry.
+ * Reading them by key keeps those features optional without turning the plugin
+ * into a hard dependency of the whole Web composition.
+ *
+ * @param ctx - the host context.
+ * @param name - the service key.
+ * @returns the service, or undefined when this deployment mounts none.
+ */
+function optionalService<T>(ctx: Context, name: string): T | undefined {
+  const get = ctx.get as unknown as (key: string) => unknown
+  return get.call(ctx, name) as T | undefined
+}
+
+/**
+ * Bound one requested issue count to the accepted range.
+ * @param value - the requested count.
+ * @returns an integer from 1 through 100.
+ */
+function clampCount(value: number): number {
+  if (!Number.isFinite(value)) return 1
+  return Math.min(100, Math.max(1, Math.trunc(value)))
+}
+
+/**
+ * Render an unknown thrown value as a message.
+ * @param error - the thrown value.
+ * @returns a non-empty message.
+ */
+function describeError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return String(error)
 }
 
 export default GithubIssueService
