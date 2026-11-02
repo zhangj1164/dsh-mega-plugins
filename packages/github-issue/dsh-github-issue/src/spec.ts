@@ -9,8 +9,8 @@
  * @module @zhangj1164/dsh-github-issue/spec
  */
 
+import type { DomainSpec } from '@deepseek-ai/dsh-storage-domain'
 import { z } from 'zod'
-import { defineDomain, domainTable } from '@deepseek-ai/dsh-storage-domain'
 
 /** One issue an earlier pass already handed to a Session. */
 export interface IntakeDispatchedRow {
@@ -46,11 +46,24 @@ export const intakeStateSchema = z.object({
   dispatched: z.array(intakeDispatchedSchema),
 }) as unknown as z.ZodType<IntakeStateRow>
 
-/** The intake state row, durable under the storage-domain KV table. */
-export const intakeDomainSpec = defineDomain({
-  name: 'github_issue_intake',
-  version: 0,
-  tables: {
-    state: domainTable<string, IntakeStateRow>(intakeStateSchema),
-  },
-})
+/**
+ * Build the storage-domain form of the intake state, on demand.
+ *
+ * The import is dynamic so this package stays loadable without
+ * `@deepseek-ai/dsh-storage-domain`: that package is an optional peer, and a
+ * deployment that does not ship it must lose the daily check, not the whole
+ * plugin. Every DSH installation includes it, so the failure path is a
+ * defence rather than a routine route.
+ *
+ * @returns the declared domain, ready for `storageDomain.open`.
+ */
+export async function createIntakeDomain(): Promise<DomainSpec> {
+  const { defineDomain, domainTable } = await import('@deepseek-ai/dsh-storage-domain')
+  return defineDomain({
+    name: 'github_issue_intake',
+    version: 0,
+    tables: {
+      state: domainTable<string, IntakeStateRow>(intakeStateSchema),
+    },
+  })
+}

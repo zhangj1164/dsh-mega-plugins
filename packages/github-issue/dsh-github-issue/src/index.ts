@@ -17,7 +17,7 @@ import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { GithubIssueClient } from './github.ts'
 import { DEFAULT_DISPATCH_PROMPT, isValidTimeZone, issueBody, localDayKey, renderDispatchPrompt } from './intake.ts'
-import { INTAKE_STATE_KEY, intakeDomainSpec, type IntakeStateRow } from './spec.ts'
+import { INTAKE_STATE_KEY, createIntakeDomain, type IntakeStateRow } from './spec.ts'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
 import type {
   GithubIssueCreateRequest,
@@ -769,7 +769,7 @@ export class GithubIssueService extends TypertRemoteService {
     const storage = optionalService<GithubStorageDomain>(this.ctx, 'storageDomain')
     if (storage === undefined) return
     try {
-      const domain = await storage.open(intakeDomainSpec)
+      const domain = await storage.open(await createIntakeDomain())
       this.ctx.effect(() => async () => {
         await domain.close()
       }, 'github-issue.intakeStateClose')

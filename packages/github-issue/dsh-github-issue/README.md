@@ -85,7 +85,9 @@ The credential is resolved once per process, in this order: `token`, then `token
 
 `autopilotEnabled` turns on one check per local day at host startup. The local day is read from durable storage-domain state, so a restart later the same day does nothing, and an issue that was already dispatched is never dispatched again — its Session exists, and a second one would duplicate the work. The day is committed only after the listing succeeded, so a pass that could not reach GitHub is retried on the next startup instead of being remembered as done.
 
-The check needs durable state and refuses to run without it: without a memory of what it dispatched, a restart would open a second Session for the same issue. It is also off by default, because opening a Session without being asked is a deployment decision rather than something a plugin install does on its own.
+The check needs durable state and refuses to run without one: without a memory of what it dispatched, a restart would open a second Session for the same issue. It is also off by default, because opening a Session without being asked is a deployment decision rather than something a plugin install does on its own.
+
+`@deepseek-ai/dsh-storage-domain` is an optional peer. Installing this package alone keeps the service loading, filing, and listing issues; only the daily check stays off, and the import happens when the check is enabled rather than when the module loads. Every DSH installation ships that package, so the missing case is a defence rather than a supported configuration.
 
 ```yaml
 # your cordis.yml, or your own bundle's patch
