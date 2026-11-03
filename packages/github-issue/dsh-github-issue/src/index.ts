@@ -13,6 +13,7 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import { Context, Service } from '@deepseek-ai/cordis'
+import type { Volatile } from '@deepseek-ai/cosmokit'
 import s from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { GithubIssueClient } from './github.ts'
@@ -43,14 +44,22 @@ import type {
 export type * from './types.ts'
 export type { LlmRoute, LlmTextFailure, LlmTextResult, LlmTextSource } from './llm-text.ts'
 
-/** Deployment configuration for the GitHub-issue service. */
+/**
+ * Deployment configuration for the GitHub-issue service.
+ *
+ * The fields a settings surface may rewrite (`repoUrl`, `claimLabel`,
+ * `maxIssuesPerRun`, and the five autopilot fields) are {@link Volatile}: the
+ * Loader resolves each into a ref it updates in place, so an accepted settings
+ * write reaches the running service without a restart. The remaining fields
+ * are deployment-only and stay in `cordis.yml`.
+ */
 export interface Config {
   /**
    * The GitHub repository URL for issue prefill (e.g.
    * `https://github.com/owner/repo`). Used as the default when a request omits
    * `repoUrl`. The deployment sets this to the real project repository.
    */
-  readonly repoUrl: string
+  readonly repoUrl: Volatile<string>
   /**
    * Longest pre-filled issue URL to produce, counted in characters.
    *
@@ -109,38 +118,38 @@ export interface Config {
    * Label that marks an issue claimable by the intake loop. The repository's
    * triage vocabulary owns the value; this field only names which label counts.
    */
-  readonly claimLabel: string
+  readonly claimLabel: Volatile<string>
   /** Largest number of issues one intake pass may dispatch. */
-  readonly maxIssuesPerRun: number
+  readonly maxIssuesPerRun: Volatile<number>
   /**
    * Whether the host checks for claimable issues on its first startup of the
    * day. Off by default: opening a Session without being asked is a deployment
    * decision, never a surprise a plugin installs on its own.
    */
-  readonly autopilotEnabled: boolean
+  readonly autopilotEnabled: Volatile<boolean>
   /**
    * Working directory the dispatched Sessions own. Empty follows the host's
    * default directory, which is the deployment's current working directory.
    */
-  readonly autopilotCwd: string
+  readonly autopilotCwd: Volatile<string>
   /** Agent preset the dispatched Sessions run; empty follows the deployment default. */
-  readonly autopilotPreset: string
+  readonly autopilotPreset: Volatile<string>
   /**
    * IANA zone "today" is measured in. Empty follows the host's own zone, so a
    * user's local midnight is what starts a new day.
    */
-  readonly autopilotTimeZone: string
+  readonly autopilotTimeZone: Volatile<string>
   /**
    * Prompt template handed to every dispatched Session. Placeholders are
    * documented on `renderDispatchPrompt`; the default states the issue
    * location and points at the repository workflow.
    */
-  readonly autopilotPrompt: string
+  readonly autopilotPrompt: Volatile<string>
 }
 
 /** Schemastery configuration for the GitHub-issue service. */
 export const Config: s<Config> = s.object({
-  repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins'),
+  repoUrl: s.string().default('https://github.com/zhangj1164/dsh-mega-plugins').volatile(),
   maxPrefillUrlLength: s.number().default(7000),
   prefillTruncationNote: s.string().default('\n\n> （正文过长，已截断以适配 GitHub 的 URL 长度限制。完整正文见备忘面板的「复制完整正文」。）'),
   provider: s.string(),
@@ -151,13 +160,13 @@ export const Config: s<Config> = s.object({
   tokenCommandTimeoutMs: s.number().step(1).min(1000).max(120000).default(10000),
   apiBaseUrl: s.string().default('https://api.github.com'),
   requestTimeoutMs: s.number().step(1).min(1000).max(180000).default(15000),
-  claimLabel: s.string().default('ready-for-agent'),
-  maxIssuesPerRun: s.number().step(1).min(1).max(20).default(3),
-  autopilotEnabled: s.boolean().default(false),
-  autopilotCwd: s.string().default(''),
-  autopilotPreset: s.string().default(''),
-  autopilotTimeZone: s.string().default(''),
-  autopilotPrompt: s.string().default(DEFAULT_DISPATCH_PROMPT),
+  claimLabel: s.string().default('ready-for-agent').volatile(),
+  maxIssuesPerRun: s.number().step(1).min(1).max(20).default(3).volatile(),
+  autopilotEnabled: s.boolean().default(false).volatile(),
+  autopilotCwd: s.string().default('').volatile(),
+  autopilotPreset: s.string().default('').volatile(),
+  autopilotTimeZone: s.string().default('').volatile(),
+  autopilotPrompt: s.string().default(DEFAULT_DISPATCH_PROMPT).volatile(),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -376,7 +385,6 @@ export class GithubIssueService extends TypertRemoteService {
   static inject = ['llm']
   static Config = Config
 
-  private readonly repoUrl: string
   private readonly maxPrefillUrlLength: number
   private readonly prefillTruncationNote: string
   /** Configured provider route, or `undefined` to follow `agentDefaultModel`. */
@@ -389,13 +397,6 @@ export class GithubIssueService extends TypertRemoteService {
   private readonly tokenCommandTimeoutMs: number
   private readonly apiBaseUrl: string
   private readonly requestTimeoutMs: number
-  private readonly claimLabel: string
-  private readonly maxIssuesPerRun: number
-  private readonly autopilotEnabled: boolean
-  private readonly autopilotCwd: string
-  private readonly autopilotPreset: string
-  private readonly autopilotTimeZone: string
-  private readonly autopilotPrompt: string
   /** The persisted state, or the empty state when this deployment has no storage. */
   private intakeState: IntakeStateRow = EMPTY_INTAKE_STATE
   /** The durable table, absent when this deployment mounts no storage domain. */
@@ -406,6 +407,8 @@ export class GithubIssueService extends TypertRemoteService {
   private resolvedToken?: string
   /** Whether token resolution finished; a missing credential is a result, not a retry. */
   private tokenResolved = false
+  /** The last invalid time zone already reported, so a warning is not repeated per call. */
+  private warnedTimeZone = ''
 
   /**
    * @param ctx - Host context carrying the llm service.
@@ -413,10 +416,7 @@ export class GithubIssueService extends TypertRemoteService {
    */
   constructor(ctx: Context, config: Config) {
     super(ctx, 'githubIssue')
-    if (!isValidTimeZone(config.autopilotTimeZone)) {
-      throw new Error(`autopilotTimeZone "${config.autopilotTimeZone}" is not an IANA time zone`)
-    }
-    this.repoUrl = config.repoUrl
+    this.config = config
     this.maxPrefillUrlLength = config.maxPrefillUrlLength
     this.prefillTruncationNote = config.prefillTruncationNote
     this.provider = config.provider
@@ -427,13 +427,24 @@ export class GithubIssueService extends TypertRemoteService {
     this.tokenCommandTimeoutMs = config.tokenCommandTimeoutMs
     this.apiBaseUrl = config.apiBaseUrl
     this.requestTimeoutMs = config.requestTimeoutMs
-    this.claimLabel = config.claimLabel
-    this.maxIssuesPerRun = config.maxIssuesPerRun
-    this.autopilotEnabled = config.autopilotEnabled
-    this.autopilotCwd = config.autopilotCwd
-    this.autopilotPreset = config.autopilotPreset
-    this.autopilotTimeZone = config.autopilotTimeZone
-    this.autopilotPrompt = config.autopilotPrompt
+  }
+
+  /**
+   * The IANA zone the intake day is measured in.
+   *
+   * Read per call: a settings surface can rewrite it while the service runs. An
+   * invalid zone must not break the startup check or a dispatch, so it falls
+   * back to the host zone and is reported once per changed value.
+   * @returns the configured zone, or an empty string for the host zone.
+   */
+  private intakeTimeZone(): string {
+    const zone = this.config.autopilotTimeZone.get()
+    if (zone.length === 0 || isValidTimeZone(zone)) return zone
+    if (this.warnedTimeZone !== zone) {
+      this.warnedTimeZone = zone
+      this.warn('autopilotTimeZone "' + zone + '" is not an IANA time zone; measuring the day in the host zone')
+    }
+    return ''
   }
 
   /**
@@ -447,7 +458,7 @@ export class GithubIssueService extends TypertRemoteService {
    */
   protected async [Service.init](): Promise<void> {
     await this.openIntakeState()
-    if (!this.autopilotEnabled) return
+    if (!this.config.autopilotEnabled.get()) return
     if (!this.intakePersistent) {
       this.warn('autopilot is enabled but no durable intake state is available; skipping the startup check so it cannot dispatch the same issue twice')
       return
@@ -511,7 +522,7 @@ export class GithubIssueService extends TypertRemoteService {
    */
   @Remote('prefilledIssueUrl')
   prefilledIssueUrl(request: GithubIssuePrefillRequest): GithubIssuePrefillResult {
-    const repoUrl = request.repoUrl.length > 0 ? request.repoUrl : this.repoUrl
+    const repoUrl = request.repoUrl.length > 0 ? request.repoUrl : this.config.repoUrl.get()
     if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/u.test(repoUrl)) {
       return { ok: false, error: { code: 'invalid-url', message: `repoUrl "${repoUrl}" is not a valid GitHub repository URL` } }
     }
@@ -583,8 +594,8 @@ export class GithubIssueService extends TypertRemoteService {
    */
   @Remote('listClaimableIssues')
   async listClaimableIssues(request: GithubIssueListRequest = {}): Promise<GithubIssueListResult> {
-    const claimLabel = firstNonBlank(request.claimLabel, this.claimLabel) ?? this.claimLabel
-    const max = clampCount(request.max ?? this.maxIssuesPerRun)
+    const claimLabel = firstNonBlank(request.claimLabel, this.config.claimLabel.get()) ?? this.config.claimLabel.get()
+    const max = clampCount(request.max ?? this.config.maxIssuesPerRun.get())
     const client = await this.createClient(request.repoUrl)
     const result = await client.listClaimable(claimLabel, max)
     if (!result.ok) {
@@ -622,9 +633,9 @@ export class GithubIssueService extends TypertRemoteService {
    */
   @Remote('runIntake')
   async runIntake(request: GithubIssueIntakeRequest = {}): Promise<GithubIssueIntakeResult> {
-    const repoUrl = firstNonBlank(request.repoUrl, this.repoUrl) ?? this.repoUrl
-    const claimLabel = firstNonBlank(request.claimLabel, this.claimLabel) ?? this.claimLabel
-    const max = clampCount(request.max ?? this.maxIssuesPerRun)
+    const repoUrl = firstNonBlank(request.repoUrl, this.config.repoUrl.get()) ?? this.config.repoUrl.get()
+    const claimLabel = firstNonBlank(request.claimLabel, this.config.claimLabel.get()) ?? this.config.claimLabel.get()
+    const max = clampCount(request.max ?? this.config.maxIssuesPerRun.get())
     const listed = await this.listClaimableIssues({ repoUrl, claimLabel, max })
     if (!listed.ok) return listed
     const claimed = new Set(this.intakeState.dispatched.map(row => row.number))
@@ -650,7 +661,7 @@ export class GithubIssueService extends TypertRemoteService {
       failures.push({ number: issue.number, code: result.error.code, message: result.error.message })
     }
     const checkedAt = Date.now()
-    await this.commitIntakeState(localDayKey(checkedAt, this.autopilotTimeZone), dispatched)
+    await this.commitIntakeState(localDayKey(checkedAt, this.intakeTimeZone()), dispatched)
     return {
       ok: true,
       value: Object.freeze({
@@ -680,8 +691,8 @@ export class GithubIssueService extends TypertRemoteService {
     const controller = optionalService<GithubSessionController>(this.ctx, 'sessionController')
     const agents = optionalService<GithubAgents>(this.ctx, 'agents')
     if (controller === undefined || agents === undefined) return SESSION_UNAVAILABLE
-    const cwd = firstNonBlank(request.cwd, this.autopilotCwd)
-    const agentPreset = firstNonBlank(request.agentPreset, this.autopilotPreset)
+    const cwd = firstNonBlank(request.cwd, this.config.autopilotCwd.get())
+    const agentPreset = firstNonBlank(request.agentPreset, this.config.autopilotPreset.get())
     let sessionId: string
     try {
       const created = await controller.create({
@@ -701,7 +712,7 @@ export class GithubIssueService extends TypertRemoteService {
     }
     try {
       handle.agent.followup({
-        content: [{ type: 'text', text: renderDispatchPrompt(this.autopilotPrompt, request.issue) }],
+        content: [{ type: 'text', text: renderDispatchPrompt(this.config.autopilotPrompt.get(), request.issue) }],
         source: { kind: 'github-issue' },
       })
     } catch (error) {
@@ -745,7 +756,7 @@ export class GithubIssueService extends TypertRemoteService {
    */
   private async startupIntake(): Promise<void> {
     try {
-      const today = localDayKey(Date.now(), this.autopilotTimeZone)
+      const today = localDayKey(Date.now(), this.intakeTimeZone())
       if (this.intakeState.lastCheckedDay === today) return
       const result = await this.runIntake({})
       if (!result.ok) {
@@ -815,7 +826,7 @@ export class GithubIssueService extends TypertRemoteService {
    */
   private async createClient(repoUrl: string | undefined): Promise<GithubIssueClient> {
     return new GithubIssueClient({
-      repoUrl: firstNonBlank(repoUrl, this.repoUrl) ?? this.repoUrl,
+      repoUrl: firstNonBlank(repoUrl, this.config.repoUrl.get()) ?? this.config.repoUrl.get(),
       apiBaseUrl: this.apiBaseUrl,
       token: await this.resolveToken(),
       timeoutMs: this.requestTimeoutMs,

@@ -29,6 +29,8 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `autopilotTimeZone` | 空 | 判定「今天」所用的 IANA 时区。空值跟随宿主自身时区，因此用户的本地午夜才是新一天的开始。 |
 | `autopilotPrompt` | 内置模板 | 交给每个派发会话的提示词模板。占位符 `{number}`、`{title}`、`{url}`、`{body}`、`{labels}` 会被替换；未知占位符保留原样可见。 |
 
+**可在设置页编辑的字段。** 其中八个——`repoUrl`、`claimLabel`、`maxIssuesPerRun`、`autopilotEnabled`、`autopilotCwd`、`autopilotPreset`、`autopilotTimeZone`、`autopilotPrompt`——声明了 `.volatile()`，这正是 `@zhangj1164/dsh-client-ui-memo-settings` 能把它们放进设置面板的原因：`dsh-settings` 只投影易变字段，被接受的写入落进 profile 的用户层，而服务在用到的位置读取每个值、不在构造时拷贝，因此改动无需重启就能到达运行中的进程。`autopilotEnabled` 由 `Service.init` 的启动检查读取，拨动它从下一次宿主启动生效。其余字段仍只属于部署层。
+
 ## Remote 方法
 
 | 方法 | 行为 |

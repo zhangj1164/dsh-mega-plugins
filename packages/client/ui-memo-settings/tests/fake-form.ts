@@ -23,20 +23,20 @@ export interface RecordedWrite {
 }
 
 /** A Host form whose accept/refuse behaviour each test decides. */
-export class FakeForm implements ConfigForm<MemoSettingsValues> {
+export class FakeForm<T = MemoSettingsValues> implements ConfigForm<T> {
   /** Every write received, in order. */
   readonly writes: RecordedWrite[] = []
   /** Whether the next write is accepted. */
   accept = true
   /** Snapshot subscribers. */
   readonly listeners = new Set<() => void>()
-  private snapshot: ConfigFormSnapshot<MemoSettingsValues>
+  private snapshot: ConfigFormSnapshot<T>
 
   /**
    * @param value - the accepted section.
    * @param user - the user layer as stored, which marks overrides.
    */
-  constructor(value: MemoSettingsValues, user: unknown = {}) {
+  constructor(value: NoInfer<T>, user: unknown = {}) {
     this.snapshot = {
       status: 'ready',
       value,
@@ -48,7 +48,7 @@ export class FakeForm implements ConfigForm<MemoSettingsValues> {
   }
 
   /** @returns the current Host snapshot. */
-  getSnapshot(): ConfigFormSnapshot<MemoSettingsValues> {
+  getSnapshot(): ConfigFormSnapshot<T> {
     return this.snapshot
   }
 
@@ -98,7 +98,7 @@ export class FakeForm implements ConfigForm<MemoSettingsValues> {
    * @param value - the new accepted section.
    * @param user - the new user layer.
    */
-  replace(value: MemoSettingsValues, user: unknown): void {
+  replace(value: T, user: unknown): void {
     this.snapshot = { ...this.snapshot, value, user, revision: this.snapshot.revision + 1 }
     this.notify()
   }
@@ -116,7 +116,7 @@ export class FakeForm implements ConfigForm<MemoSettingsValues> {
    * Move the namespace to another mirror state.
    * @param status - the new state.
    */
-  setStatus(status: ConfigFormSnapshot<MemoSettingsValues>['status']): void {
+  setStatus(status: ConfigFormSnapshot<T>['status']): void {
     this.snapshot = { ...this.snapshot, status }
     this.notify()
   }
@@ -141,6 +141,6 @@ export class FakeForm implements ConfigForm<MemoSettingsValues> {
       next[field] = value
       user[field] = value
     }
-    this.replace(next as MemoSettingsValues, user)
+    this.replace(next as T, user)
   }
 }

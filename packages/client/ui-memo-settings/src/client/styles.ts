@@ -68,6 +68,7 @@ export const CSS_TEXT = `
   font: inherit;
 }
 .dsh-memo-settings-textarea { resize: vertical; font-family: inherit; line-height: 18px; }
+.dsh-memo-settings-toggle { inline-size: 18px; block-size: 18px; margin: 0; accent-color: var(--dsw-alias-brand-primary); }
 .dsh-memo-settings-input:focus-visible,
 .dsh-memo-settings-select:focus-visible,
 .dsh-memo-settings-textarea:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }

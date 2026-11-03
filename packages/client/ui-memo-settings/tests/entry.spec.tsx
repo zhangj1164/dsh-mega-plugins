@@ -2,11 +2,12 @@
 /**
  * The browser half's wiring, exercised through the entry point the shell calls.
  *
- * What matters here is not the page — its own suite covers that — but the three
- * things the entry point decides: which services it requires, that it registers
- * exactly one `settings.section` with the memo page's nav identity, and that it
- * registers nothing at all while the Host does not serve the `memo` namespace.
- * That last one is why a deployment without memo never shows an empty page.
+ * What matters here is not the pages — their own suites cover those — but the
+ * decisions the entry point makes: which services it requires, that it
+ * registers one `settings.section` per namespace with that page's nav identity,
+ * and that it registers nothing for a namespace the Host does not serve. That
+ * last one is why a deployment without memo or without github-issue never shows
+ * an empty page.
  *
  * @module @zhangj1164/dsh-client-ui-memo-settings/tests/entry
  */
@@ -14,12 +15,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   apply,
+  INTAKE_SETTINGS_NAMESPACE,
+  INTAKE_SETTINGS_SECTION_ID,
+  INTAKE_SETTINGS_SECTION_ORDER,
   inject,
   MEMO_SETTINGS_NAMESPACE,
   MEMO_SETTINGS_SECTION_ID,
   MEMO_SETTINGS_SECTION_ORDER,
 } from '../src/client/index.ts'
 import type { MemoSettingsView } from '../src/client/form.ts'
+import type { IntakeSettingsView } from '../src/client/intake-form.ts'
 import { FakeForm } from './fake-form.ts'
 
 afterEach(() => {
@@ -37,9 +42,18 @@ interface RegisteredSection {
   readonly component: (props: never) => unknown
 }
 
-/** The injected face, as the page receives it. */
-interface InjectedFace {
+/** The memo page's injected face, as the page receives it. */
+interface MemoFace {
   readonly hooks: { readonly memoSettings: { getSnapshot(): MemoSettingsView } }
+  readonly edit: (field: string, text: string) => void
+  readonly resetField: (field: string) => void
+  readonly save: () => void
+  readonly discard: () => void
+}
+
+/** The intake page's injected face, as the page receives it. */
+interface IntakeFace {
+  readonly hooks: { readonly intakeSettings: { getSnapshot(): IntakeSettingsView } }
   readonly edit: (field: string, text: string) => void
   readonly resetField: (field: string) => void
   readonly save: () => void
@@ -48,15 +62,21 @@ interface InjectedFace {
 
 /**
  * Apply the browser half against a stand-in for the client context.
- * @param options - whether the namespace is served and whether slots resolve.
- * @returns what the entry point registered, plus a disposer.
+ * @param options - whether the namespaces are served and whether slots resolve.
+ * @returns what the entry point registered, plus the two forms and a disposer.
  */
 function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
   const sections: RegisteredSection[] = []
   const dictionaries: Record<string, Record<string, Record<string, string>>> = {}
   const effects: (() => void)[] = []
   const served: string[][] = []
-  const form = new FakeForm({ repoUrl: 'https://example.test/repo' })
+  const memoForm = new FakeForm({ repoUrl: 'https://example.test/repo' })
+  const intakeForm = new FakeForm({
+    repoUrl: 'https://example.test/repo',
+    claimLabel: 'ready-for-agent',
+    maxIssuesPerRun: 3,
+    autopilotEnabled: false,
+  })
 
   const slots = {
     inject(_key: string, callback: () => () => void): () => void {
@@ -86,7 +106,7 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
       bind: (namespace: string) => (key: string): string => dictionaries[namespace]?.zh?.[key] ?? key,
     },
     configForms: {
-      get: (id: string): FakeForm => form,
+      get: (id: string): FakeForm => (id === 'memo' ? memoForm : intakeForm),
       whileServed(namespaces: readonly string[], register: () => () => void): () => void {
         served.push([...namespaces])
         return register()
@@ -95,7 +115,7 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
   }
 
   apply(ctx as never)
-  return { sections, dictionaries, effects, served, form }
+  return { sections, dictionaries, effects, served, memoForm, intakeForm }
 }
 
 describe('ui-memo-settings client entry point', () => {
@@ -103,25 +123,31 @@ describe('ui-memo-settings client entry point', () => {
     expect(inject).toEqual(['slots', 'locale', 'configForms'])
   })
 
-  it('waits for the memo namespace before registering', () => {
+  it('waits for each namespace before registering its page', () => {
     const { served } = applyPlugin()
-    expect(served).toEqual([[MEMO_SETTINGS_NAMESPACE]])
+    expect(served).toEqual([[MEMO_SETTINGS_NAMESPACE], [INTAKE_SETTINGS_NAMESPACE]])
     expect(MEMO_SETTINGS_NAMESPACE).toBe('memo')
+    expect(INTAKE_SETTINGS_NAMESPACE).toBe('github-issue')
   })
 
-  it('registers one settings section with the memo page identity', () => {
+  it('registers one settings section per page', () => {
     const { sections } = applyPlugin()
-    expect(sections).toHaveLength(1)
-    const section = sections[0]!
-    expect(section.name).toBe('settings.section')
-    expect(section.id).toBe(MEMO_SETTINGS_SECTION_ID)
-    expect(section.order).toBe(MEMO_SETTINGS_SECTION_ORDER)
-    expect(section.locale).toBe('memo.settings')
-    expect((section.label as () => string)()).toBe('备忘')
+    expect(sections).toHaveLength(2)
+    const memoSection = sections[0]!
+    expect(memoSection.name).toBe('settings.section')
+    expect(memoSection.id).toBe(MEMO_SETTINGS_SECTION_ID)
+    expect(memoSection.order).toBe(MEMO_SETTINGS_SECTION_ORDER)
+    expect(memoSection.locale).toBe('memo.settings')
+    expect((memoSection.label as () => string)()).toBe('备忘')
+    const intakeSection = sections[1]!
+    expect(intakeSection.id).toBe(INTAKE_SETTINGS_SECTION_ID)
+    expect(intakeSection.order).toBe(INTAKE_SETTINGS_SECTION_ORDER)
+    expect(intakeSection.order).toBeGreaterThan(MEMO_SETTINGS_SECTION_ORDER)
+    expect((intakeSection.label as () => string)()).toBe('GitHub 接单')
     expect(MEMO_SETTINGS_SECTION_ORDER).toBeGreaterThan(15)
   })
 
-  it('registers nothing while the namespace is not served', () => {
+  it('registers nothing while the namespaces are not served', () => {
     const { sections } = applyPlugin({ served: false })
     expect(sections).toEqual([])
   })
@@ -131,11 +157,12 @@ describe('ui-memo-settings client entry point', () => {
     expect(Object.keys(dictionaries)).toEqual(['memo.settings'])
     expect(dictionaries['memo.settings']?.zh?.title).toBe('备忘设置')
     expect(dictionaries['memo.settings']?.en?.title).toBe('Memo settings')
+    expect(dictionaries['memo.settings']?.zh?.intakeNav).toBe('GitHub 接单')
   })
 
-  it('hands the page a store over the memo form and the four actions', async () => {
-    const { sections, form } = applyPlugin()
-    const face = (sections[0]!.inject as () => InjectedFace)()
+  it('hands the memo page a store over the memo form and the four actions', async () => {
+    const { sections, memoForm } = applyPlugin()
+    const face = (sections[0]!.inject as () => MemoFace)()
     const draft = face.hooks.memoSettings
     expect(draft.getSnapshot().status).toBe('ready')
 
@@ -144,16 +171,29 @@ describe('ui-memo-settings client entry point', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     face.save()
     await new Promise(resolve => setTimeout(resolve, 0))
-    expect(form.writes).toEqual([{ kind: 'set', field: 'provider', value: 'cu' }])
+    expect(memoForm.writes).toEqual([{ kind: 'set', field: 'provider', value: 'cu' }])
 
     face.discard()
     expect(draft.getSnapshot().drafts).toEqual({})
   })
 
-  it('disposes the draft when the plugin unloads', () => {
+  it('hands the intake page a store over the github-issue form', async () => {
+    const { sections, intakeForm } = applyPlugin()
+    const face = (sections[1]!.inject as () => IntakeFace)()
+    const draft = face.hooks.intakeSettings
+    expect(draft.getSnapshot().status).toBe('ready')
+
+    face.edit('maxIssuesPerRun', '5')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    face.save()
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(intakeForm.writes).toEqual([{ kind: 'set', field: 'maxIssuesPerRun', value: 5 }])
+  })
+
+  it('disposes both drafts when the plugin unloads', () => {
     const { effects } = applyPlugin()
-    // styles, dictionaries (no disposer), draft, page
-    expect(effects.length).toBeGreaterThanOrEqual(2)
+    // styles, dictionaries (no disposer), memo draft, memo page, intake page
+    expect(effects.length).toBeGreaterThanOrEqual(3)
     expect(() => { for (const dispose of effects) dispose() }).not.toThrow()
   })
 
