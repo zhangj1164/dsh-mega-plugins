@@ -98,19 +98,81 @@ export const CSS_TEXT = `
 .dsh-memo-settings-discard:disabled,
 .dsh-memo-settings-save:disabled { opacity: 0.5; cursor: not-allowed; }
 .dsh-memo-settings-actions { display: flex; align-items: center; gap: 12px; }
+.dsh-memo-settings-actionGroup { display: flex; align-items: center; gap: 12px; margin-left: auto; }
 .dsh-memo-settings-notice { color: var(--dsw-alias-text-2); font-size: 12px; }
+/* The page-level tool at the leading edge of the action row: an icon button,
+   because its label lives in the dialog it opens. */
+.dsh-memo-settings-iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 8px;
+  color: var(--dsw-alias-text-2);
+  cursor: pointer;
+}
+.dsh-memo-settings-iconButton:hover { color: var(--dsw-alias-text-1); background: var(--dsw-alias-bg-layer-1); }
+.dsh-memo-settings-iconButton:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 
-/* ── Version & updates card ── */
-.dsh-memo-update { display: flex; flex-direction: column; gap: 10px; }
+/* ── Update dialog ── */
+.dsh-memo-update-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--dsw-alias-bg-mask-1, rgba(0, 0, 0, 0.42));
+}
+.dsh-memo-update-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(520px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 18px 20px 16px;
+  border-radius: 20px;
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
+  box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0, 0, 0, 0.18));
+  color: var(--dsw-alias-text-1);
+}
+.dsh-memo-update-head { display: flex; align-items: center; gap: 12px; }
+.dsh-memo-update-heading {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.dsh-memo-update-close {
+  flex: 0 0 auto;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  color: var(--dsw-alias-text-3);
+  font-size: 18px;
+  line-height: 22px;
+  cursor: pointer;
+}
+.dsh-memo-update-close:hover { color: var(--dsw-alias-text-1); }
+.dsh-memo-update-intro { margin: 0; color: var(--dsw-alias-text-2); font-size: 12px; line-height: 18px; }
 .dsh-memo-update-grid { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
 .dsh-memo-update-pair { display: flex; flex-direction: column; gap: 2px; }
 .dsh-memo-update-pair dt { font-size: 11px; color: var(--dsw-alias-text-3); }
 .dsh-memo-update-pair dd { margin: 0; font-size: 13px; color: var(--dsw-alias-text-1); }
-.dsh-memo-update-actions { display: flex; align-items: center; gap: 10px; }
-.dsh-memo-update-state { font-size: 12px; color: var(--dsw-alias-text-2); }
-.dsh-memo-update-state[data-available] { color: var(--dsw-alias-brand-primary); }
-.dsh-memo-update-command { display: flex; flex-direction: column; gap: 6px; }
-.dsh-memo-update-commandLabel { font-size: 11px; color: var(--dsw-alias-text-3); }
+.dsh-memo-update-status { margin: 0; font-size: 12px; color: var(--dsw-alias-text-2); }
+.dsh-memo-update-status[data-available] { color: var(--dsw-alias-brand-primary); }
+.dsh-memo-update-status[data-error] { color: var(--dsw-alias-brand-primary); }
+.dsh-memo-update-manual { display: flex; flex-direction: column; gap: 6px; }
+.dsh-memo-update-manualTitle { margin: 0; font-size: 12px; font-weight: 600; color: var(--dsw-alias-text-2); }
+.dsh-memo-update-manualHint { margin: 0; font-size: 11px; line-height: 17px; color: var(--dsw-alias-text-3); }
 .dsh-memo-update-commandRow { display: flex; align-items: flex-start; gap: 8px; }
 .dsh-memo-update-code {
   flex: 1 1 auto;
@@ -125,5 +187,24 @@ export const CSS_TEXT = `
   white-space: pre-wrap;
   word-break: break-all;
 }
-.dsh-memo-update-error { color: var(--dsw-alias-brand-primary); font-size: 12px; margin: 0; }
+.dsh-memo-update-applied { margin: 0; font-size: 12px; color: var(--dsw-alias-text-2); }
+.dsh-memo-update-error { margin: 0; color: var(--dsw-alias-brand-primary); font-size: 12px; }
+.dsh-memo-update-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.dsh-memo-update-button {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 8px;
+  color: var(--dsw-alias-text-1);
+  font: inherit;
+  cursor: pointer;
+}
+.dsh-memo-update-button--primary {
+  background: var(--dsw-alias-brand-primary);
+  border-color: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-bg-layer-1);
+}
+.dsh-memo-update-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.dsh-memo-update-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 `

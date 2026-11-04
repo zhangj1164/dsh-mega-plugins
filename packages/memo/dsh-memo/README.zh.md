@@ -137,7 +137,9 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 
 ## 版本与检查更新
 
-设置页的版本卡片在挂载时读 `pluginInfo`（只读本地事实），用户点击时才调用 `checkUpdate`。这个区分正是重点：打开设置不产生任何网络请求。`checkUpdate` 只读 registry，因为面板点击发生在轮次之外，那里申请不到人工确认；因此它只报告已发布版本和完整的 `dsh plugin --profile … add --save-exact …` 命令，绝不自动安装。包名、registry、profile 与超时都是 Config 字段，fork 或镜像部署无需改代码即可改指向。
+设置页的更新按钮只在挂载时读一次 `pluginInfo`（只读本地事实），打开弹窗时才调用 `checkUpdate`。这个区分正是重点：打开设置不产生任何网络请求。`checkUpdate` 本身只读 registry，宿主也从不安装任何东西；它报告运行版本、已发布版本、是否有更新、目标 profile，以及完整的 `dsh plugin --profile … add --save-exact …` 命令。弹窗里可以触发的安装走部署自己的 `pluginManager/installBundle`，因此 profile 锁、兼容性检查与回滚都是平台的事，而不是本服务重新实现一遍。
+
+包名、registry、profile 与超时都是 Config 字段，fork 或镜像部署无需改代码即可改指向。
 
 ## 四维度周期
 

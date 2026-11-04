@@ -29,7 +29,7 @@ import { MemoSettingsDraft, type MemoSettingsValues } from './form.ts'
 import { IntakeSettingsDraft, type IntakeSettingsValues } from './intake-form.ts'
 import { MemoSettingsSection, type MemoSettingsSectionProps } from './MemoSettingsSection.tsx'
 import { IntakeSettingsSection, type IntakeSettingsSectionProps } from './IntakeSettingsSection.tsx'
-import type { MemoUpdateCheck, MemoUpdateInfo } from './UpdateCard.tsx'
+import type { MemoUpdateCheck, MemoUpdateInfo, MemoUpdateInstallResult } from './UpdateDialog.tsx'
 import { en, zh, type IntakeKey, type MemoKey } from './locales.ts'
 import { CSS_TEXT } from './styles.ts'
 
@@ -125,6 +125,63 @@ async function callMemo<T>(rpc: RpcCaller, method: string): Promise<T | { readon
   }
 }
 
+/**
+ * The subset of the plugin manager's `ChangeResult` this page reads.
+ *
+ * Spelled structurally for the same reason as {@link RpcCaller}: the browser
+ * package does not depend on the Host package's declarations.
+ */
+interface InstallOutcome {
+  readonly changed?: boolean
+  readonly application?: string
+  readonly version?: string
+  readonly error?: { readonly message?: string }
+}
+
+/**
+ * Install the checked version through the deployment's plugin manager.
+ *
+ * `pluginManager/installBundle` is the same path `dsh plugin add` takes, so the
+ * profile write lock, the compatibility check, and the rollback-on-failure all
+ * belong to the platform; this page only names the package spec. An install
+ * that needs a process restart reports success here and applies on the next
+ * DSH Web start, which is what the dialog tells the user.
+ * @param rpc - the client connection's RPC caller.
+ * @param check - the registry check whose version should be installed.
+ * @returns whether the install was accepted, and the version or the reason.
+ */
+async function installUpdate(
+  rpc: RpcCaller,
+  check: MemoUpdateCheck,
+): Promise<MemoUpdateInstallResult> {
+  try {
+    const envelope = await rpc.call(API_CHANNEL, 'pluginManager/installBundle', {
+      args: {
+        spec: `${check.packageName}@${check.latestVersion}`,
+        options: { saveExact: true, registry: check.registryUrl },
+      },
+    }) as TransportEnvelope<InstallOutcome>
+    if (envelope.ok !== true || envelope.value === undefined) {
+      return { ok: false, reason: envelope.error?.message ?? 'transport failure' }
+    }
+    const outcome = envelope.value
+    if (outcome.application === 'cancelled') {
+      // The manager aborted the install (its own cancel path, or shutdown): the
+      // profile is unchanged, so there is nothing else to report.
+      return { ok: false }
+    }
+    if (outcome.application === 'failed' || outcome.error !== undefined) {
+      return {
+        ok: false,
+        reason: outcome.error?.message ?? outcome.application ?? 'the package manager refused the install',
+      }
+    }
+    return { ok: true, ...(outcome.version === undefined ? {} : { version: outcome.version }) }
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) }
+  }
+}
+
 /** Settings-navigation id of the memo page. */
 export const MEMO_SETTINGS_SECTION_ID = 'memo'
 
@@ -188,6 +245,7 @@ export function apply(ctx: ClientContext): void {
     : {
         readInfo: () => callMemo<MemoUpdateInfo>(connection.rpc, 'pluginInfo'),
         checkUpdate: () => callMemo<MemoUpdateCheck>(connection.rpc, 'checkUpdate'),
+        applyUpdate: (check: MemoUpdateCheck) => installUpdate(connection.rpc, check),
         copyText: (text: string) => navigator.clipboard.writeText(text),
       }
 

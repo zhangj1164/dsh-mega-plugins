@@ -2,8 +2,8 @@
  * The memo settings page.
  *
  * A thin wrapper over the shared {@link SettingsSection}: it resolves the memo
- * dictionary into page copy, supplies the memo field and group specs, and
- * forwards the shell's injected model hook.
+ * dictionary into page copy, supplies the memo field and group specs, forwards
+ * the shell's injected model hook, and hands the action row its update entry.
  *
  * @module @zhangj1164/dsh-client-ui-memo-settings/client/MemoSettingsSection
  */
@@ -17,7 +17,12 @@ import {
   type MemoSettingsView,
 } from './form.ts'
 import { SettingsSection, type SettingsCopy } from './SettingsSection.tsx'
-import { UpdateCard, type MemoUpdateCheck, type MemoUpdateInfo } from './UpdateCard.tsx'
+import {
+  UpdateEntry,
+  type MemoUpdateCheck,
+  type MemoUpdateInfo,
+  type MemoUpdateInstallResult,
+} from './UpdateDialog.tsx'
 import type { MemoKey } from './locales.ts'
 
 /** Dictionary keys for the three summary languages, in the picker's order. */
@@ -45,13 +50,15 @@ export interface MemoSettingsSectionProps extends SettingsSectionOwnerProps {
    * The version/update readers.
    *
    * Optional because an older Host may not serve `pluginInfo`/`checkUpdate`;
-   * the card is then absent rather than permanently failing.
+   * the entry is then absent rather than permanently failing.
    */
   readonly update?: {
     /** Read the local running facts. */
     readonly readInfo: () => Promise<MemoUpdateInfo | { readonly error: string }>
     /** Ask the registry for the latest version. */
     readonly checkUpdate: () => Promise<MemoUpdateCheck | { readonly error: string }>
+    /** Install the checked version through the deployment's plugin manager. */
+    readonly applyUpdate?: (check: MemoUpdateCheck) => Promise<MemoUpdateInstallResult>
     /** Copy the manual command. */
     readonly copyText: (text: string) => Promise<void>
   }
@@ -93,15 +100,13 @@ export function MemoSettingsSection(props: MemoSettingsSectionProps): React.Reac
       groups={MEMO_SETTINGS_GROUPS}
       selectLabels={selectLabels}
       useView={useMemoSettings}
-    >
-      {update === undefined ? null : (
-        <UpdateCard
-          t={t}
-          readInfo={update.readInfo}
-          checkUpdate={update.checkUpdate}
-          copyText={update.copyText}
-        />
-      )}
-    </SettingsSection>
+      footerLead={update === undefined ? undefined : React.createElement(UpdateEntry, {
+        t,
+        readInfo: update.readInfo,
+        checkUpdate: update.checkUpdate,
+        ...(update.applyUpdate === undefined ? {} : { applyUpdate: update.applyUpdate }),
+        copyText: update.copyText,
+      })}
+    />
   )
 }

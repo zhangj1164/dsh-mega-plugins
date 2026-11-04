@@ -137,7 +137,9 @@ Summaries come from DSH's own session archive: `workspaceRegistry.archivedSessio
 
 ## Version and update check
 
-The Settings page's version card reads `pluginInfo` on mount — local facts only — and calls `checkUpdate` when the user clicks. That distinction is the point: opening settings costs no network request. `checkUpdate` is a read-only registry lookup, because a panel click happens between turns, where no approval can be requested; it therefore reports the published version and the exact `dsh plugin --profile … add --save-exact …` command, and never installs. Package name, registry, profile, and timeout are Config fields so a fork or mirror can retarget the check without editing code.
+The Settings page's update button reads `pluginInfo` once on mount — local facts only — and opens a dialog that calls `checkUpdate` on open. That distinction is the point: opening settings costs no network request. `checkUpdate` itself is a read-only registry lookup and the host never installs anything; it reports the running and published versions, whether the published one is newer, the target profile, and the exact `dsh plugin --profile … add --save-exact …` command. The install the dialog can run on request goes through the deployment's own `pluginManager/installBundle`, so the profile lock, compatibility check, and rollback stay platform concerns rather than something this service re-implements.
+
+Package name, registry, profile, and timeout are Config fields so a fork or mirror can retarget the check without editing code.
 
 ## Four-dimension periods
 

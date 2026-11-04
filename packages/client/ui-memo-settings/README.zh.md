@@ -57,11 +57,15 @@
 
 不在本页的字段：`token`、`tokenEnv`、`tokenCommand`、`apiBaseUrl`、`requestTimeoutMs` 留在 `cordis.yml`——凭据和部署级传输设置不该出现在浏览器界面里。
 
-## 版本与检查更新
+## 版本与更新弹窗
 
-表单下方，备忘页还会渲染一张版本卡片：挂载时读 `memo/pluginInfo`（只读本地事实，返回运行中的包版本与配置好的更新目标），只有按下「检查更新」才调用 `memo/checkUpdate`。因此打开页面不产生任何网络请求。
+操作行最左侧只有一个更新图标按钮，放弃修改与保存被推到最右，保存排最后。按钮在按下之前什么也不做：页面挂载时读一次 `memo/pluginInfo`（本地事实：运行版本、包名、registry、目标 profile），因此打开设置页不产生网络请求。
 
-检查通过备忘宿主读取 npm registry，报告已发布版本，并给出完整的 `dsh plugin --profile … add --save-exact …` 命令。它绝不安装：面板点击发生在轮次之外，那里 `ctx.approval.request()` 无法运行，所以真正会改变部署的那一步始终留给人工。registry 失败时以原因（`update-check-failed`）展示，运行版本仍留在屏幕上。包名、registry、profile 与超时都是宿主的 `update*` Config 字段，fork 或镜像无需改本包即可改指向。
+按下后打开弹窗，通过 `memo/checkUpdate` 读取一次 registry，报告运行版本、最新版本、是否存在新版本以及目标 profile。事实下方给出完整的 `dsh plugin --profile … add --save-exact …` 命令和「复制命令」，供自动通道不可用时使用。「重新检查」会再读一次。
+
+「自动更新」安装的正是这次检查报告的版本，走 `pluginManager/installBundle`——也就是 `dsh plugin add` 走的同一条路。这一点很关键：profile 写锁、DSH 兼容性检查、失败回滚、以及「需重启才生效」的结论都属于平台，本页只提供 `@zhangj1164/dsh-memo@<版本>` 和应答的那个 registry。它不自己拼装安装命令，也不假装握有并不存在的审批。没有 `pluginManager` 的部署仍然可以检查并拿到手工命令，此时自动按钮禁用；安装失败时，管理器的原因显示在手工命令上方而不是替换它。
+
+包名、registry、profile 与超时都是宿主的 `update*` Config 字段，fork 或镜像无需改本包即可改指向。
 
 ## Bundle 层
 
@@ -75,7 +79,7 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 ## 测试
 
-`tests/form.spec.ts` 用替身宿主表单驱动草稿模型：暂存不写入、只保存被改动的字段、留空存成 unset、被拒绝时保留草稿、只读与不可用状态、四组边界值，以及宿主认可后丢弃草稿的对账逻辑。`tests/MemoSettingsSection.spec.tsx` 在 jsdom 里用真实模型渲染页面，覆盖每个控件，包括「已覆盖」标记与恢复默认、非法数字的告警、放弃修改的路径。`tests/entry.spec.tsx` 把真实浏览器半边应用到一个替身客户端上下文上：声明的服务、唯一一次 `settings.section` 注册及其导航身份、对命名空间是否被提供的门控、字典、注入的 store 与动作，以及样式卸载。
+`tests/form.spec.ts` 用替身宿主表单驱动草稿模型：暂存不写入、只保存被改动的字段、留空存成 unset、被拒绝时保留草稿、只读与不可用状态、四组边界值，以及宿主认可后丢弃草稿的对账逻辑。`tests/MemoSettingsSection.spec.tsx` 在 jsdom 里用真实模型渲染页面，覆盖每个控件，包括「已覆盖」标记与恢复默认、非法数字的告警、放弃修改的路径、操作行顺序（更新按钮在前，其后放弃修改，保存最后），以及整个更新弹窗：打开前静默、两个版本与目标 profile、可复制的命令、重新检查、经插件管理器执行的自动更新及重启提示、已是最新时按钮禁用，以及两条失败路径。`tests/entry.spec.tsx` 把真实浏览器半边应用到一个替身客户端上下文上：声明的服务、唯一一次 `settings.section` 注册及其导航身份、对命名空间是否被提供的门控、字典、注入的 store 与动作，以及样式卸载。
 
 ## 本地开发与排查
 
