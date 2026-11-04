@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ec82eab2027fe466f682886f6b507c36882f4242fdffd6625cee0ebe95d6e784",
+  "pageVersion": "sha256:623090181211b699d47028b5c4dc28058f40088037d1bf0b8007a708e6929b96",
   "claims": [
     {
       "id": "claim_912cf2a71a98421d99b07eb0964fc10a",
@@ -457,10 +457,68 @@
           "version": "repo-lines-v1:sha256:bda069f8d7fb2b13ad005fe2befd03426fd6fcb078d7a7955a083e55617c4608:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkM2I2YzViOTQ0MjJhN2MwNGYwMDkzMzgxYmY4ZDE3MDdlNmVjY2E2Zjc4NzMyMWE2Nzk0ZWEzZGYxNjQ1MmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjZjU0NDFmYTE3OTVmNzFmNzYxMGU0NmM2NzM5NGI3NTUxZTY5YTNhOWYzYzBmMzNiYzZmZWZlYWNkODBiOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmZTllNmRiYzM5NDM4OWM5Nzg5NjRlYTA5ZTdlMmNlMzQ5ZmY5ZDk5OGY4YTQ5ZGM4YmUzYmFkMTIwNTNlYmUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_8ebc95b026624426b00cac19b9a7f336",
+      "statement": "总览的包 / 服务图把浏览器侧固定为只有两类边：ui-memo 看板与 openwiki-visualize client 分别对 memo、githubIssue、openwikiVisualize 发起 Remote 调用，ui-memo-settings 走 configForms 读写；configForms 通向 memo 与 github-issue 两条 Loader 行的边不是 Remote 命名空间，而是按命名空间守门的配置表单镜像，因此图中不存在跨包的浏览器半边引用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L140-L193",
+          "version": "repo-lines-v1:sha256:f5979076c1a61e4ef856d9e3b8ead329abc9ba5fd72de1f6f70064b11fb0b8f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGZlODIxMGYxYTZlNjEzZGNkOWFmOTdkMzVmMzM1ZjIwZTA5OTg2ZmRhMzc5ZDFlNTkxNmVmOGQxMjRhYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZmVjNDUzN2I2ZWIxMWMwNWM5ZWE0OTBmMjhlYjY2NDk0YjZlOWM4NjBlNDBmNTc2Yjk0ZDRmMzY4MGVjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhZTA2NzY5NjZkZjE5MGUxNjM4N2Q1NTUzYWUyYjljNTRhMWJiYTY4N2Y3N2Q4ZjhiMjY5OTMyNDZiMmU0NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L95-L141",
+          "version": "repo-lines-v1:sha256:9bd665807c401c1ae2abd6265040d2880a78c3678f20015e7fe9db1fd0633483:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiOWYyZmFkNTEyYWFkNjdjM2U3NTgwZmUzNTM5YTMwNzA1NTljMjRlMTQzMTViMDI0MTQ1ZDFlMzA3MDFkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNjY4YWY4MDNiMjk2MzM5YjQwYTgyMDcyNWU5MTZiMjc5Nzk4ZmFmYjBiOTIzNmFhZTkyNGFhMTJmODNmM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlM2NkZDRmM2QyMTFkOTQyZWFlNzZhNGVjZTZmOWE2YzViOWU3NmI4NjMzZTM0ODkyYTdmYWViOTQ4NTkwZTEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L111-L174",
+          "version": "repo-lines-v1:sha256:1f54bddc445aaeb2d54c2e7c2c43b92d1c7b9387757196aa797a562d600659ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NmM5MzJkNjVhNDUyYWE0YTUxNGJlMGRiMjhmODMyODVjY2UwZGIzMWU5YTVmNzNkYmRkOWMxMDljNmQ3YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwM2JjMjMzYzVmMWMyYTUxMzczODhhMzAyM2U0MjBlYjk3MzYzY2VjOTRmMzUwMDllMGQ3OTBjNTA5MmYzMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyODU1YjgxYTEzOTg0NGMzYzhmZWZkZTBkMmNkYTJlZjlhM2Q2NzVkMjQ2YTBlN2FlNGZlZDUwODQyNjcyYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3d4c8c6eccb4258b1f81a4ac6315493",
+      "statement": "六个持久叶子各自只有拥有它的那一方写入：telemetry 写 memo_telemetry 的 events 表，github-issue 写 github_issue_intake 的 state 表，memo 写 memo 的 weeks、memo_archive 的 quarters 与 $DSH_HOME/memo/ledger.json；workspace 的 openwiki 目录树不属于任何 storage-domain 域，它由被监督的 openwiki visualize 子进程读取并对外服务。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/spec.ts#L49-L69",
+          "version": "repo-lines-v1:sha256:52688bfdb635e2c63fb6007db0eb32fe1ad6152d88e1c10f74822f11970190dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMDBjODlhY2UzNTBlYWM0ZjIzNzg3MTE0MzM0YTRjZTMxNDI0NDdmYmU4MWE2OWQ3MzY1MDVkYzczMGYwYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L394-L411",
+          "version": "repo-lines-v1:sha256:bd0a4939c921965bc9199a38d9373ab9a9589105b85280f09b0b7bc456ae29ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ODExM2I5YmFlNWM4ZDQ2ZTU0M2M5NDgxMTNkYWVmMTIzYjhhMWQ0NDhmODBmYzIxZDIxNTYzZjk0NzE5NmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3NDZjNTIyZTk5OTY5ZDFkNWJhODU3ZjIwYzY1MzI1NTNhZGQ5NjI2ODE4MGNmMGY1ZDM1YjRhOTgwYzI1ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNmJmMDk1Mzc2OWRmYzA4NTExZGEwY2FiMDNhOTJiNzA1MWUxYzA1Y2JiMDgzOWIwNTg4YjcwZTMwMWZlMWUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/spec.ts#L62-L99",
+          "version": "repo-lines-v1:sha256:5616d9497f17bee3cd811dc668b6542123ca9f82ab8793c8ead16dde7d23e67f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjNGZiM2Y3OGIyZDcwZWYwZTBiNThmM2IxMDcyNjg0ZTc0NDdhN2I2NzNkMWY1ZmRjMGZmZTY3NDUzYzA0MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNzliOGVjNGQ3MTQ4OTA4ZjgyZThhMDViZjc0YzFhY2I0YjhkZGJkN2MwZmE1ZjI2OGU4NTBhYmEyNTVhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2NWY2YWUwNjQwNDY5ZmVkYWZhYmM2NWQ5N2U3ZTJhNjBiNjJhODgzNTU5YzBjNDYwYWZkYjdhYmYwYmE4ZmEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:2a57309b5413983cd07bc0207fb47e498ae1838759d43a3544d38e656843e3d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMTJlOTNmYjZkZTRjNzlkNjlhN2EzMWQxNzI0M2M1ZDNiMTBhMTNmMjVjYmNiYTQ2YjJmOGZlNjRjYWU4ZWMifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L161-L177",
+          "version": "repo-lines-v1:sha256:3bcfe8c25958c08b20be4c67be6d663a696c275efcd32c3812928b2b88bfe4ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYjY1MWUxN2RlNzhiYmY1ZDI1NTM0NDZmMDkyYjkxZTlkMzYyOTBjOGEzNTVmNzM5ZjZkNmI5NGRjNGMyY2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmNTgxZTEyMDVhYzZiOTlmMzExOGM2OTYyYTIyNWUyMGUyNzQwZmUwNmY3NTJhYmYzMDUwNDA5MjhlZjI4YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhOTUxMzZkNzVjZDg1NzQ2ZTM4YWYxMWVhMjExYTMyMzgyNjM4Yjc3ZmNiNjg1NGYyNDZmMTc3NWU4NjM1ZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_900222f56db94deca89168f70f945bdf",
+      "statement": "ui-memo 浏览器半边贡献一个 slot 注册对：sidebar.panellist 里 id 为 memo 的入口按钮，以及 key 同为 memo 的 main 面板（看板本体）；看板的关闭动作走 layout.selectPanel 回到会话面板，而不是本地组件状态，所以面板 id 是 both 两个 slot 共用的那一个常量。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L138-L160",
+          "version": "repo-lines-v1:sha256:b6ac598aded7ec11164f1ba78fabca29ebfca4c808ffe9ad3d7341940d5766d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MjkwOWE0MDM5MmEwNjcyMzc5OTEzNDQ0NjAwMDMxMDIzODlmNTBjNjc5ZDZmNWJkY2M5MWM5OWUwN2U3YTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxOTE0YTI5YTg4MjA1YTFlNWNmODRlY2U4OTc1ODE1NDk1NTFiM2RiYTc5NTQ1MzMxYWFhMjI5NTFmNmQ0MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L34-L34",
+          "version": "repo-lines-v1:sha256:08b011b6599b2e51042b55c9f2ac878b3bce689db7f7756af14b7c0a0e99a5f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDhiMDExYjY1OTliMmU1MTA0MmI1NWM5ZjJhYzg3OGIzYmNlNjg5ZGI3Zjc3NTZhZjE0YjdjMGEwZTk5YTVmNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDhiMDExYjY1OTliMmU1MTA0MmI1NWM5ZjJhYzg3OGIzYmNlNjg5ZGI3Zjc3NTZhZjE0YjdjMGEwZTk5YTVmNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzk2NDJjMjhiY2M1OWRjYzI4NWQ1MWRlNWNmNTUxNmVhNjNjMGQ0ZmE4YTY5NjBiYjk3ZDg0Zjc0N2EyODllNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjYyOWMwZTkzY2RmYThkMzE4Y2E4YzkyOTAzNWIzNDFmODYzZTY2NDViNTA0NTlkYTg1ZGJhZmIxZTg2YTNkYiJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-11-03T09:53:43.931Z"
+    "at": "2026-11-04T06:11:45.203Z"
   }
 }

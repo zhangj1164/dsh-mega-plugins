@@ -5,7 +5,7 @@ description: 仓库全局地图：六个包各属宿主还是浏览器半边、�
 tags: [architecture, monorepo, plugins, cordis, host-client, bundles, storage]
 verified:
   - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
+    at: 2026-11-04T06:11:45.203Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -87,7 +87,7 @@ sources:
     resource: repo://scripts/verify-client-bundle-id.ts
   - id: openwiki-source-fbadcd8591b65031efaaedce
     resource: repo://vitest.config.ts
-generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-11-04T06:11:45.203Z" }
 ---
 
 # 系统总览：六个插件与宿主/浏览器两侧
@@ -139,20 +139,19 @@ generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 
 ## 包 / 服务图
 
-<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: an unescaped angle bracket inside a label breaks rendering; rephrase the label. -->
-```text
+```mermaid
 flowchart TB
   subgraph Browser["浏览器半边 web"]
-    UIM["ui-memo 看板<br/>sidebar.panellist + main"]
-    UIMS["ui-memo-settings 页面<br/>两个 settings.section"]
-    OWVC["openwiki-visualize client<br/>右栏 tab + 会话头按钮"]
+    UIM["ui-memo 看板 · sidebar.panellist + main"]
+    UIMS["ui-memo-settings 页面 · 两个 settings.section"]
+    OWVC["openwiki-visualize client · 右栏 tab + 会话头按钮"]
     CFG["configForms"]
   end
   subgraph Host["宿主 cordis 组合"]
-    MEMOH["MemoService<br/>服务名 memo"]
-    GHI["GithubIssueService<br/>服务名 githubIssue"]
-    TELH["TelemetryService<br/>服务名 telemetry"]
-    OWVH["OpenWikiVisualizeService<br/>服务名 openwikiVisualize"]
+    MEMOH["MemoService · 服务名 memo"]
+    GHI["GithubIssueService · 服务名 githubIssue"]
+    TELH["TelemetryService · 服务名 telemetry"]
+    OWVH["OpenWikiVisualizeService · 服务名 openwikiVisualize"]
     CHILD["openwiki visualize 子进程"]
   end
   subgraph Leaves["持久域叶子"]
@@ -163,27 +162,27 @@ flowchart TB
     D5[("$DSH_HOME/memo/ledger.json")]
     D6[("workspace 的 openwiki 目录")]
   end
-  UIM -->|"Remote memo"| MEMOH
-  UIM -->|"Remote githubIssue"| GHI
+  UIM -->|"Remote 调用 memo"| MEMOH
+  UIM -->|"Remote 调用 githubIssue"| GHI
   UIMS -->|"configForms 读写"| CFG
-  CFG -->|"Loader 行 memo"| MEMOH
-  CFG -->|"Loader 行 github-issue"| GHI
-  OWVC -->|"Remote openwikiVisualize"| OWVH
+  CFG -->|"Loader 行 memo 的表单镜像"| MEMOH
+  CFG -->|"Loader 行 github-issue 的表单镜像"| GHI
+  OWVC -->|"Remote 调用 openwikiVisualize"| OWVH
   MEMOH -->|"inject telemetry"| TELH
   MEMOH -->|"inject githubIssue"| GHI
-  GHI -->|"ctx.get telemetry 可选"| TELH
-  TELH --> D1
-  GHI --> D2
-  MEMOH --> D3
-  MEMOH --> D4
-  MEMOH --> D5
-  OWVH --> CHILD
-  CHILD --> D6
+  GHI -->|"可选 ctx.get telemetry"| TELH
+  TELH -->|"写 events"| D1
+  GHI -->|"写 state"| D2
+  MEMOH -->|"写 weeks"| D3
+  MEMOH -->|"写 quarters"| D4
+  MEMOH -->|"写 ledger.json"| D5
+  OWVH -->|"spawn 并监督"| CHILD
+  CHILD -->|"读 workspace 的 wiki 树"| D6
 ```
 
 一张图读完四个宿主服务、三个浏览器面、一条 configForms 通路与六个状态叶子；箭头方向就是调用、注入或写入的方向。
 
-浏览器侧共有四条边：三条走 Remote（`memo`、`githubIssue`、`openwikiVisualize`），一条走 `configForms`。`configForms` 那两条边不是 Remote 命名空间，而是设置页对 Loader 配置 ref 的读写；图中没有跨包的浏览器半边引用。
+浏览器侧共有四条边：三条走 Remote（`memo`、`githubIssue`、`openwikiVisualize`），一条走 `configForms`。`configForms` 自身指向两个 Loader 行的两条边同样不是 Remote 命名空间，而是它按命名空间守门的那份配置表单镜像；图中没有跨包的浏览器半边引用。
 
 ## 一次装配的先后顺序
 
