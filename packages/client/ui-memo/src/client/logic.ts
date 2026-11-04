@@ -487,3 +487,53 @@ export function groupArchivedSessions(
   }
   return groups
 }
+
+/** How one group's selectable rows stand against the current selection. */
+export type GroupSelection = 'none' | 'some' | 'all'
+
+/**
+ * Read one group's checkbox state.
+ *
+ * A session already summarized into the target week is not selectable, so it
+ * must not count towards "all": the group checkbox would otherwise sit at
+ * indeterminate forever on a workspace whose rows are all done.
+ * @param selected - the ids currently selected.
+ * @param eligible - the ids in this group that could still be selected.
+ * @returns whether none, some, or every eligible row is selected.
+ */
+export function groupSelection(
+  selected: readonly string[],
+  eligible: readonly string[],
+): GroupSelection {
+  if (eligible.length === 0) return 'none'
+  const chosen = eligible.filter(id => selected.includes(id)).length
+  if (chosen === 0) return 'none'
+  return chosen === eligible.length ? 'all' : 'some'
+}
+
+/**
+ * Toggle one whole group, respecting the host's per-call limit.
+ *
+ * A group that is fully or partly selected is cleared, because "click the box
+ * again to undo" is the affordance a checkbox promises. A group that is empty
+ * of selection takes as many of its rows as the remaining budget allows: the
+ * limit is the host's, so the picker stops offering a choice before the request
+ * could be refused for it.
+ * @param selected - the ids currently selected.
+ * @param eligible - the selectable ids of the group being toggled.
+ * @param maxSessions - the host's per-request limit.
+ * @returns the next selection.
+ */
+export function toggleGroupSelection(
+  selected: readonly string[],
+  eligible: readonly string[],
+  maxSessions: number,
+): string[] {
+  if (groupSelection(selected, eligible) !== 'none') {
+    return selected.filter(id => !eligible.includes(id))
+  }
+  const room = maxSessions - selected.length
+  if (room <= 0) return [...selected]
+  const added = eligible.filter(id => !selected.includes(id)).slice(0, room)
+  return [...selected, ...added]
+}

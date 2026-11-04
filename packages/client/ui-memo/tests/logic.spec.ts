@@ -3,6 +3,7 @@ import {
   cardsInPeriod,
   filterArchivedSessions,
   groupArchivedSessions,
+  groupSelection,
   labelMatches,
   periodDisplay,
   periodHasCards,
@@ -11,6 +12,7 @@ import {
   sessionRangeStart,
   toCards,
   targetWeekId,
+  toggleGroupSelection,
   UNGROUPED_SESSION_KEY,
   visiblePeriods,
   writeSelection,
@@ -366,5 +368,47 @@ describe('groupArchivedSessions', () => {
     expect(groups).toHaveLength(1)
     expect(groups[0]?.key).toBe('ws-gone')
     expect(groups[0]?.title).toBe('gone')
+  })
+})
+
+describe('groupSelection', () => {
+  it('reads none, some, and all from the selectable rows', () => {
+    expect(groupSelection([], ['a', 'b'])).toBe('none')
+    expect(groupSelection(['a'], ['a', 'b'])).toBe('some')
+    expect(groupSelection(['a', 'b'], ['a', 'b'])).toBe('all')
+  })
+
+  it('ignores ids outside the group and rows that cannot be chosen', () => {
+    // A session already summarized into the target week is not eligible, so a
+    // group whose every remaining row is done must not read as partly selected.
+    expect(groupSelection(['x'], ['a'])).toBe('none')
+    expect(groupSelection(['a'], ['a'])).toBe('all')
+    expect(groupSelection(['a', 'b'], [])).toBe('none')
+  })
+})
+
+describe('toggleGroupSelection', () => {
+  it('takes a whole group and clears it again', () => {
+    const taken = toggleGroupSelection([], ['a', 'b'], 5)
+    expect(taken).toEqual(['a', 'b'])
+    expect(toggleGroupSelection(taken, ['a', 'b'], 5)).toEqual([])
+  })
+
+  it('clears a partly selected group instead of adding to it', () => {
+    expect(toggleGroupSelection(['a'], ['a', 'b'], 5)).toEqual([])
+  })
+
+  it('stops at the host limit rather than overfilling the request', () => {
+    expect(toggleGroupSelection([], ['a', 'b', 'c'], 2)).toEqual(['a', 'b'])
+    expect(toggleGroupSelection([], ['a', 'b'], 0)).toEqual([])
+  })
+
+  it('leaves an already-full selection untouched', () => {
+    expect(toggleGroupSelection(['x', 'y'], ['a'], 2)).toEqual(['x', 'y'])
+  })
+
+  it('keeps selection order stable and never duplicates an id', () => {
+    expect(toggleGroupSelection(['c'], ['a', 'b', 'c'], 5)).toEqual([])
+    expect(toggleGroupSelection([], ['a', 'b'], 5)).toEqual(['a', 'b'])
   })
 })

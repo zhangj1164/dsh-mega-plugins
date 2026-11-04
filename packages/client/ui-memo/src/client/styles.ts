@@ -638,13 +638,49 @@ export const CSS_TEXT = `
 }
 .dsh-memo-sessionGroupHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
-  padding: 2px 2px 0;
+  padding: 4px 2px 2px;
   position: sticky;
   top: 0;
   background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
   z-index: 1;
+}
+/* The heading is the expand/collapse control: the whole band is one button, so
+   the target is the row rather than a 12px chevron. */
+.dsh-memo-sessionGroupToggle {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dsh-memo-sessionGroupToggle:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.dsh-memo-sessionGroupChevron {
+  flex: 0 0 auto;
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dsw-alias-text-3);
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+}
+.dsh-memo-sessionGroupChevron[data-collapsed] { transform: rotate(-90deg); }
+.dsh-memo-sessionGroupCheck {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--dsw-alias-brand-primary);
 }
 .dsh-memo-sessionGroupTitle {
   font-size: 12px;
@@ -657,6 +693,16 @@ export const CSS_TEXT = `
 .dsh-memo-sessionGroupCount {
   font-size: 11px;
   color: var(--dsw-alias-text-3);
+}
+.dsh-memo-sessionGroupBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* A chosen row reads as chosen even when its checkbox is scrolled out of view. */
+.dsh-memo-sessionRow[data-selected] {
+  border-color: var(--dsw-alias-brand-primary);
+  background: var(--dsw-alias-bg-layer-2);
 }
 .dsh-memo-failureList {
   margin: 0;

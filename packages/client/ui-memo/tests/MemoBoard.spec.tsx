@@ -1080,4 +1080,96 @@ describe('MemoBoard session summary', () => {
     await waitFor(() => { expect(reads()).toBe(2) })
     expect(within(dialog).getByText('Fix CI')).toBeTruthy()
   })
+
+  it('collapses and expands one workspace group at a time', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's2', title: 'Write docs', workspaceId: 'ws-b', workspaceTitle: 'beta' },
+      ],
+      workspaces: [
+        { id: 'ws-a', title: 'alpha', path: '/alpha' },
+        { id: 'ws-b', title: 'beta', path: '/beta' },
+      ],
+    })
+
+    const toggle = (title: string): HTMLElement =>
+      within(dialog).getByRole('button', { name: new RegExp(title) })
+    expect(toggle('alpha').getAttribute('aria-expanded')).toBe('true')
+
+    fireEvent.click(toggle('alpha'))
+    expect(toggle('alpha').getAttribute('aria-expanded')).toBe('false')
+    expect(within(dialog).queryByText('Fix CI')).toBeNull()
+    // Collapsing one group leaves the other open.
+    expect(within(dialog).getByText('Write docs')).toBeTruthy()
+
+    fireEvent.click(toggle('alpha'))
+    expect(within(dialog).getByText('Fix CI')).toBeTruthy()
+  })
+
+  it('expands and collapses every group from one control', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's2', title: 'Write docs', workspaceId: 'ws-b', workspaceTitle: 'beta' },
+      ],
+      workspaces: [
+        { id: 'ws-a', title: 'alpha', path: '/alpha' },
+        { id: 'ws-b', title: 'beta', path: '/beta' },
+      ],
+    })
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.sessionSummaryCollapseAll }))
+    expect(within(dialog).queryByText('Fix CI')).toBeNull()
+    expect(within(dialog).queryByText('Write docs')).toBeNull()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.sessionSummaryExpandAll }))
+    expect(within(dialog).getByText('Fix CI')).toBeTruthy()
+    expect(within(dialog).getByText('Write docs')).toBeTruthy()
+  })
+
+  it('selects a whole workspace from its group checkbox and clears it again', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's2', title: 'Write docs', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's3', title: 'Scratch notes', workspaceId: 'ws-b', workspaceTitle: 'beta' },
+      ],
+      workspaces: [
+        { id: 'ws-a', title: 'alpha', path: '/alpha' },
+        { id: 'ws-b', title: 'beta', path: '/beta' },
+      ],
+    })
+
+    const groupBox = (title: string): HTMLInputElement =>
+      within(dialog).getByLabelText(`${zh.sessionSummarySelectGroup}: ${title}`) as HTMLInputElement
+
+    fireEvent.click(groupBox('alpha'))
+    expect((within(dialog).getByLabelText('Fix CI') as HTMLInputElement).checked).toBe(true)
+    expect((within(dialog).getByLabelText('Write docs') as HTMLInputElement).checked).toBe(true)
+    expect((within(dialog).getByLabelText('Scratch notes') as HTMLInputElement).checked).toBe(false)
+    expect(groupBox('alpha').checked).toBe(true)
+    expect(dialog.textContent).toContain(`${zh.sessionSummarySelectedCount}: 2 /`)
+
+    fireEvent.click(groupBox('alpha'))
+    expect((within(dialog).getByLabelText('Fix CI') as HTMLInputElement).checked).toBe(false)
+    expect(groupBox('alpha').checked).toBe(false)
+  })
+
+  it('stops a whole-group selection at the host limit', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's2', title: 'Write docs', workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+      ],
+      workspaces: [{ id: 'ws-a', title: 'alpha', path: '/alpha' }],
+      maxSessions: 1,
+    })
+
+    fireEvent.click(within(dialog).getByLabelText(`${zh.sessionSummarySelectGroup}: alpha`))
+    expect((within(dialog).getByLabelText('Fix CI') as HTMLInputElement).checked).toBe(true)
+    expect((within(dialog).getByLabelText('Write docs') as HTMLInputElement).checked).toBe(false)
+    // One of two chosen is "some", so the group box reports the partial state.
+    expect((within(dialog).getByLabelText(`${zh.sessionSummarySelectGroup}: alpha`) as HTMLInputElement).checked).toBe(false)
+  })
 })

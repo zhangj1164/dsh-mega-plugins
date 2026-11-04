@@ -33,6 +33,8 @@ export type MemoKey =
   | 'sessionSummaryAllTime' | 'sessionSummaryRange7d' | 'sessionSummaryRange30d'
   | 'sessionSummaryRange90d' | 'sessionSummaryRangeYear' | 'sessionSummaryFiltered'
   | 'sessionSummaryNoMatch' | 'sessionSummaryRefresh' | 'sessionSummaryRefreshing'
+  | 'sessionSummarySelectedCount' | 'sessionSummarySelectGroup' | 'sessionSummaryExpandAll'
+  | 'sessionSummaryCollapseAll'
   // Result cards
   | 'collapse' | 'expand' | 'closeResult'
 
@@ -122,6 +124,10 @@ export const zh: Record<MemoKey, string> = {
   sessionSummaryNoMatch: '没有符合筛选条件的会话',
   sessionSummaryRefresh: '刷新列表',
   sessionSummaryRefreshing: '刷新中…',
+  sessionSummarySelectedCount: '已选',
+  sessionSummarySelectGroup: '全选该组',
+  sessionSummaryExpandAll: '全部展开',
+  sessionSummaryCollapseAll: '全部收起',
   collapse: '折叠',
   expand: '展开',
   closeResult: '关闭此卡片',
@@ -213,6 +219,10 @@ export const en: Record<MemoKey, string> = {
   sessionSummaryNoMatch: 'No sessions match these filters',
   sessionSummaryRefresh: 'Refresh list',
   sessionSummaryRefreshing: 'Refreshing…',
+  sessionSummarySelectedCount: 'Selected',
+  sessionSummarySelectGroup: 'Select this group',
+  sessionSummaryExpandAll: 'Expand all',
+  sessionSummaryCollapseAll: 'Collapse all',
   collapse: 'Collapse',
   expand: 'Expand',
   closeResult: 'Close this card',
