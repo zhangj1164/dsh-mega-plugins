@@ -58,6 +58,9 @@ import type {
   MemoArchiveQuarterResult,
   MemoArchivedQuarter,
   MemoArchivedSession,
+  MemoArchivedWorkspace,
+  MemoCheckUpdateRequest,
+  MemoCheckUpdateResult,
   MemoDeleteEntryRequest,
   MemoDeleteEntryResult,
   MemoEntry,
@@ -81,6 +84,8 @@ import type {
   MemoListPeriodsRequest,
   MemoListPeriodsResult,
   MemoMemoFailure,
+  MemoPluginInfoRequest,
+  MemoPluginInfoResult,
   MemoQuarterLabelRequest,
   MemoReadExternalPathRequest,
   MemoSessionSummaryOutcome,
@@ -205,6 +210,19 @@ export interface Config {
   readonly sessionSummarySourceTemplate: Volatile<string>
   /** System prompt used to summarize an archived session. */
   readonly sessionSummaryPrompt: Volatile<string>
+  /**
+   * npm package the Settings page's update check asks about.
+   *
+   * The memo Host and its browser halves ship as separate packages, so which
+   * one a deployment tracks is a deployment choice rather than a constant.
+   */
+  readonly updatePackageName: Volatile<string>
+  /** npm registry the update check reads; a mirror deployment overrides it. */
+  readonly updateRegistryUrl: Volatile<string>
+  /** Profile name the generated manual upgrade command targets. */
+  readonly updateProfileName: Volatile<string>
+  /** Network timeout, in milliseconds, for one registry lookup. */
+  readonly updateCheckTimeoutMs: Volatile<number>
 }
 
 /** The plugin ids log analysis covers unless the deployment configures others. */
@@ -295,6 +313,10 @@ export const Config: s<Config> = s.object({
   sessionSummaryMaxCharsLimit: s.number().step(1).min(100).max(20_000).default(2000).volatile(),
   sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE).volatile(),
   sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT).volatile(),
+  updatePackageName: s.string().default('@zhangj1164/dsh-memo').volatile(),
+  updateRegistryUrl: s.string().default('https://registry.npmjs.org/').volatile(),
+  updateProfileName: s.string().default('web').volatile(),
+  updateCheckTimeoutMs: s.number().step(1).min(1_000).max(60_000).default(10_000).volatile(),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -644,6 +666,68 @@ const REPORT_EXPORT_PROMPT = [
 ].join('\n')
 
 /**
+ * Normalize a configured registry URL so joining a package name is predictable.
+ *
+ * npm treats a registry without a trailing slash as the same registry, so the
+ * normalized form is also what the rendered manual command should show.
+ * @param configured - the registry URL from Config.
+ * @returns the URL with exactly one trailing slash.
+ */
+function normalizedRegistryUrl(configured: string): string {
+  const trimmed = configured.trim()
+  return trimmed.endsWith('/') ? trimmed : `${trimmed}/`
+}
+
+/**
+ * Build the registry document URL for one package.
+ *
+ * A scoped name is percent-encoded (`@scope%2Fname`), the spelling the npm
+ * registry serves; an unencoded slash would address a different route.
+ * @param registryUrl - normalized registry base.
+ * @param packageName - the package to ask about.
+ * @returns the absolute metadata URL.
+ */
+function packageMetadataUrl(registryUrl: string, packageName: string): string {
+  return new URL(encodeURIComponent(packageName), registryUrl).href
+}
+
+/**
+ * Compare two versions by their numeric core.
+ *
+ * The check only has to answer "is the registry ahead of what is running", and
+ * semver's full precedence rules (build metadata, prerelease ordering) would
+ * mean a dependency for one comparison. An unparsable pair falls back to plain
+ * string order so a non-semver version is never reported as an upgrade by
+ * accident.
+ * @param left - one version string.
+ * @param right - the other version string.
+ * @returns negative, zero, or positive as `left` sorts before, with, or after `right`.
+ */
+function compareVersions(left: string, right: string): number {
+  const core = (value: string): readonly number[] | undefined => {
+    const match = /^v?(\d+)\.(\d+)\.(\d+)/u.exec(value)
+    return match === null ? undefined : [Number(match[1]), Number(match[2]), Number(match[3])]
+  }
+  const a = core(left)
+  const b = core(right)
+  if (a === undefined || b === undefined) return left === right ? 0 : (left < right ? -1 : 1)
+  for (let index = 0; index < 3; index += 1) {
+    const difference = (a[index] ?? 0) - (b[index] ?? 0)
+    if (difference !== 0) return difference
+  }
+  return 0
+}
+
+/**
+ * Render one CLI argument, quoting only when it carries whitespace or a quote.
+ * @param value - the argument to quote.
+ * @returns the argument as a shell-safe token.
+ */
+function commandArgument(value: string): string {
+  return /[\s"']/u.test(value) ? `"${value.replaceAll('"', '\\"')}"` : value
+}
+
+/**
  * Local memo service: week-keyed personal memos with AI analysis and export.
  */
 export class MemoService extends TypertRemoteService {
@@ -735,6 +819,26 @@ export class MemoService extends TypertRemoteService {
   /** System prompt used to summarize one archived session. */
   private get sessionSummaryPrompt(): string {
     return this.config.sessionSummaryPrompt.get()
+  }
+
+  /** Package the update check asks the registry about. */
+  private get updatePackageName(): string {
+    return this.config.updatePackageName.get()
+  }
+
+  /** Registry base the update check reads. */
+  private get updateRegistryUrl(): string {
+    return normalizedRegistryUrl(this.config.updateRegistryUrl.get())
+  }
+
+  /** Profile the generated manual upgrade command targets. */
+  private get updateProfileName(): string {
+    return this.config.updateProfileName.get()
+  }
+
+  /** Network timeout, in milliseconds, for one registry lookup. */
+  private get updateCheckTimeoutMs(): number {
+    return this.config.updateCheckTimeoutMs.get()
   }
 
   /** Open and own the memo domain and the archive domain beside it. */
@@ -870,34 +974,122 @@ export class MemoService extends TypertRemoteService {
     }
     const sessionIds = [...new Set(archive.archivedSessionIds.filter(id => typeof id === 'string' && id.length > 0))]
     const headers = await this.readSessionHeaders(query)
-    const titles = await this.readSessionTitles(query, sessionIds)
+    // Subagent children are filtered before anything is read for them: their
+    // logs are the model's own delegation, not the user's work, and each one
+    // would summarize into a near-duplicate of its parent.
+    const visibleIds = sessionIds.filter(sessionId => !isSubagentSession(headers.get(sessionId)))
+    // Titles are the expensive half: folding one reads and replays its whole
+    // log, and an archive of a few dozen large sessions took long enough that
+    // the picker looked broken. The host's projection cache already holds the
+    // same title for every session the sidebar has listed, at zero I/O, so the
+    // expensive fold runs only for the sessions the cache cannot answer for.
+    const titles = this.readCachedTitles(headers, visibleIds)
+    const uncached = visibleIds.filter(sessionId => !titles.has(sessionId))
+    if (uncached.length > 0) {
+      for (const [sessionId, title] of await this.readSessionTitles(query, uncached)) titles.set(sessionId, title)
+    }
+    const { workspaces, bySession } = this.archivedWorkspaceIndex(sessionIds)
     const summarized = this.summarizedSessionWeeks()
     const sessions: MemoArchivedSession[] = []
-    for (const sessionId of sessionIds) {
+    for (const sessionId of visibleIds) {
       const header = headers.get(sessionId)
-      if (isSubagentSession(header)) continue
       const weeks = [...new Set((summarized.get(sessionId) ?? []).map(row => row.weekId))]
+      const workspace = bySession.get(sessionId)
       sessions.push(Object.freeze({
         sessionId,
         title: sessionTitleOrFallback(titles.get(sessionId), sessionId),
         createdAt: typeof header?.createdAt === 'number' ? header.createdAt : 0,
         ...(typeof header?.cwd === 'string' ? { cwd: header.cwd } : {}),
+        ...(workspace === undefined
+          ? {}
+          : { workspaceId: workspace.id, workspaceTitle: workspace.title, workspacePath: workspace.path }),
         summarizedWeekIds: Object.freeze(weeks),
       }))
     }
     sessions.sort((a, b) => b.createdAt - a.createdAt)
     const limit = Math.max(SESSION_SUMMARY_MIN_CHARS, this.sessionSummaryMaxCharsLimit)
-    this.track('listArchivedSessions', 'success', { count: sessions.length })
+    this.track('listArchivedSessions', 'success', {
+      count: sessions.length,
+      workspaces: workspaces.length,
+      uncachedTitles: uncached.length,
+    })
     return {
       ok: true,
       value: Object.freeze({
         sessions: Object.freeze(sessions),
+        workspaces: Object.freeze(workspaces),
         maxSessions: this.sessionSummaryMaxSessions,
         currentWeekId: computeWeekBounds().weekId,
         summaryMaxChars: Math.min(Math.max(this.sessionSummaryMaxChars, SESSION_SUMMARY_MIN_CHARS), limit),
         summaryMaxCharsLimit: limit,
       }),
     }
+  }
+
+  /**
+   * Index the archived sessions by the workspace that accounts for them.
+   *
+   * The registry's own list is synchronous and already filtered by its header
+   * index, so this costs no persistence read. Archiving keeps a session's
+   * workspace slot, which is what lets an archived session stay in its project
+   * instead of falling into the ungrouped bucket.
+   * @param sessionIds - the archived session ids the picker is about to show.
+   * @returns the workspaces that hold at least one archived session, and the
+   *   per-session owner lookup.
+   */
+  private archivedWorkspaceIndex(sessionIds: readonly string[]): {
+    workspaces: MemoArchivedWorkspace[]
+    bySession: Map<string, MemoArchivedWorkspace>
+  } {
+    const archived = new Set(sessionIds)
+    const bySession = new Map<string, MemoArchivedWorkspace>()
+    const workspaces: MemoArchivedWorkspace[] = []
+    const registry = this.ctx.get('workspaceRegistry') as SessionArchiveSource | undefined
+    if (typeof registry?.list !== 'function') return { workspaces, bySession }
+    for (const workspace of registry.list()) {
+      const entry: MemoArchivedWorkspace = Object.freeze({
+        id: workspace.id,
+        title: workspace.title,
+        path: workspace.path,
+      })
+      let holdsArchived = false
+      for (const sessionId of workspace.sessionIds) {
+        if (!archived.has(sessionId) || bySession.has(sessionId)) continue
+        bySession.set(sessionId, entry)
+        holdsArchived = true
+      }
+      if (holdsArchived) workspaces.push(entry)
+    }
+    return { workspaces, bySession }
+  }
+
+  /**
+   * Read titles the host projection cache already holds, without touching a log.
+   *
+   * The current-format snapshot is asked first; a title that only exists in a
+   * predecessor checkpoint is the fallback, because a session written before a
+   * format upgrade still deserves its title rather than a short id.
+   * @param headers - headers by session id, from the corpus listing.
+   * @param sessionIds - the archived sessions to title.
+   * @returns session id to cached title, for the sessions the cache answered.
+   */
+  private readCachedTitles(
+    headers: ReadonlyMap<string, SessionHeaderLike>,
+    sessionIds: readonly string[],
+  ): Map<string, string> {
+    const titles = new Map<string, string>()
+    const cache = this.ctx.get('sessionProjectionCache') as ProjectionCacheSource | undefined
+    if (cache === undefined) return titles
+    for (const sessionId of sessionIds) {
+      const header = headers.get(sessionId)
+      if (header === undefined) continue
+      const title = cachedProjectionTitle(cache, header)
+      // A `null` title is a real answer ("this row holds no title yet"), so it
+      // is recorded as an empty string: the picker then shows the short-id
+      // fallback instead of paying for a log fold that would find nothing.
+      if (title !== undefined) titles.set(sessionId, title ?? '')
+    }
+    return titles
   }
 
   /**
@@ -1460,6 +1652,127 @@ export class MemoService extends TypertRemoteService {
   }
 
   /**
+   * Check the npm registry for a newer version of the memo package.
+   *
+   * Deliberately a read-only lookup: it reports what is published and the exact
+   * command a human can run, and never executes an install. A panel click
+   * happens between turns, where no approval can be requested, so the one
+   * capability that would change the deployment stays a human action.
+   *
+   * The package name, registry, and profile are Config fields: a mirror, a
+   * renamed fork, or a profile other than `web` must be able to retarget the
+   * check without editing code.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the running and published versions plus the manual command.
+   */
+  @Remote('checkUpdate')
+  async checkUpdate(request: MemoCheckUpdateRequest): Promise<MemoCheckUpdateResult> {
+    void request
+    const packageName = this.updatePackageName
+    const registryUrl = this.updateRegistryUrl
+    const currentVersion = this.runningPackageVersion()
+    try {
+      const response = await fetch(packageMetadataUrl(registryUrl, packageName), {
+        headers: { accept: 'application/vnd.npm.install-v1+json' },
+        signal: AbortSignal.timeout(this.updateCheckTimeoutMs),
+      })
+      if (!response.ok) throw new Error(`registry responded with HTTP ${response.status}`)
+      const payload = await response.json() as { 'dist-tags'?: { latest?: unknown } }
+      const latest = payload['dist-tags']?.latest
+      if (typeof latest !== 'string' || latest.trim().length === 0) {
+        throw new Error('registry returned no dist-tags.latest')
+      }
+      const updateAvailable = compareVersions(latest, currentVersion) > 0
+      this.track('checkUpdate', 'success', { packageName, updateAvailable })
+      return {
+        ok: true,
+        value: Object.freeze({
+          currentVersion,
+          latestVersion: latest,
+          updateAvailable,
+          packageName,
+          registryUrl,
+          manualCommand: this.manualUpdateCommand(packageName, latest, registryUrl),
+          checkedAt: Date.now(),
+        }),
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      this.trackError(
+        'checkUpdate',
+        { code: 'update-check-failed', message, featureCodeRef: 'memo:checkUpdate' },
+        { packageName },
+      )
+      return this.failure({
+        code: 'update-check-failed',
+        message: `could not read "${packageName}" from ${registryUrl}: ${message}`,
+      })
+    }
+  }
+
+  /**
+   * Read this package's own version from the manifest it ships with.
+   *
+   * The manifest sits one level above both `src/` (tests) and `lib/` (the
+   * published build), so the same relative URL works in either layout. A
+   * manifest that cannot be read is reported as `0.0.0` rather than guessed:
+   * the comparison then simply says an update exists.
+   * @returns the running package version.
+   */
+  private runningPackageVersion(): string {
+    try {
+      const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version?: unknown }
+      return typeof manifest.version === 'string' && manifest.version.length > 0 ? manifest.version : '0.0.0'
+    } catch {
+      return '0.0.0'
+    }
+  }
+
+  /**
+   * Report the local update facts without touching the network.
+   *
+   * The Settings card renders the running version immediately and only asks the
+   * registry when the user clicks, so opening the page costs no request.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by
+   * name, so the client's `{ args: { request } }` needs this parameter to exist.
+   * @returns the running version and the configured update target.
+   */
+  @Remote('pluginInfo')
+  pluginInfo(request: MemoPluginInfoRequest): MemoPluginInfoResult {
+    void request
+    return {
+      ok: true,
+      value: Object.freeze({
+        currentVersion: this.runningPackageVersion(),
+        packageName: this.updatePackageName,
+        registryUrl: this.updateRegistryUrl,
+        profileName: this.updateProfileName,
+      }),
+    }
+  }
+
+  /**
+   * Render the exact command that installs one published version.
+   * @param packageName - the package to install.
+   * @param version - the exact version to pin.
+   * @param registryUrl - the registry to install from.
+   * @returns a copyable `dsh plugin` command.
+   */
+  private manualUpdateCommand(packageName: string, version: string, registryUrl: string): string {
+    return [
+      'dsh plugin',
+      '--profile', commandArgument(this.updateProfileName),
+      'add',
+      '--save-exact',
+      commandArgument(`${packageName}@${version}`),
+      `--registry=${registryUrl}`,
+    ].join(' ')
+  }
+
+  /**
    * Resolve the output language from the deployment Config and the request.
    *
    * A forced Config language wins so one deployment's weekly reports stay in one
@@ -1925,6 +2238,78 @@ interface FsTextSource {
 interface SessionArchiveSource {
   /** Sessions the user hid from every grouping surface. */
   readonly archivedSessionIds: readonly string[]
+  /**
+   * The registry's synchronous workspace projection, when the deployed version
+   * offers it. Optional so an older registry still serves the archive set.
+   */
+  list?(): readonly SessionArchiveWorkspace[]
+}
+
+/** One workspace as the registry projects it. */
+interface SessionArchiveWorkspace {
+  /** Registry identity. */
+  readonly id: string
+  /** Display title. */
+  readonly title: string
+  /** Canonical directory. */
+  readonly path: string
+  /** Sessions accounted to this workspace, archived ones included. */
+  readonly sessionIds: readonly string[]
+}
+
+/**
+ * Minimal shape of the host projection cache's zero-I/O title reads.
+ *
+ * Declared structurally for the same reason as the other seams: the memo
+ * package must not depend on `@deepseek-ai/dsh-session-projection-cache`, and a
+ * deployment without the cache simply falls back to folding titles from logs.
+ */
+interface ProjectionCacheSource {
+  /** Current-format projection block for one header, when a usable row exists. */
+  cachedSnapshot?(header: SessionHeaderLike, keys?: readonly string[]): ProjectionSnapshotLike | undefined
+  /** Title-only block from a predecessor checkpoint, for an older log. */
+  cachedPredecessorTitle?(header: SessionHeaderLike): ProjectionSnapshotLike | undefined
+}
+
+/** The projection block's shape: a title string under `values.title`. */
+interface ProjectionSnapshotLike {
+  readonly values?: { readonly title?: unknown }
+}
+
+/**
+ * Read a cached title for one session header, preferring the current format.
+ *
+ * Three outcomes matter to the caller: a title, `null` for "the cache holds a
+ * row and that row has no title yet", and `undefined` for "the cache cannot
+ * answer". The middle case is still an answer — folding the log would replay a
+ * whole session just to learn it has no title, which is the cost this path
+ * exists to avoid.
+ * @param cache - the projection cache service.
+ * @param header - the session header serving as the lifecycle witness.
+ * @returns the cached title, `null` for a row without one, or `undefined` on a miss.
+ */
+function cachedProjectionTitle(cache: ProjectionCacheSource, header: SessionHeaderLike): string | null | undefined {
+  const titleOf = (snapshot: ProjectionSnapshotLike): string | null => {
+    const title = snapshot.values?.title
+    return typeof title === 'string' && title.trim().length > 0 ? title : null
+  }
+  if (typeof cache.cachedSnapshot === 'function') {
+    try {
+      const snapshot = cache.cachedSnapshot(header, ['title'])
+      if (snapshot !== undefined) return titleOf(snapshot)
+    } catch {
+      // Fall through to the predecessor read.
+    }
+  }
+  if (typeof cache.cachedPredecessorTitle !== 'function') return undefined
+  try {
+    const snapshot = cache.cachedPredecessorTitle(header)
+    return snapshot === undefined ? undefined : titleOf(snapshot)
+  } catch {
+    // A cache row that cannot be read is a miss, never a reason to fail the
+    // picker: the log fold still produces the title.
+    return undefined
+  }
 }
 
 /** The parts of a DSH session header this feature reads. */
