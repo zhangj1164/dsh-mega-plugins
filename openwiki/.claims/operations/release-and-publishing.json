@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:81f4f2ed7ddd03fd6663243163fcdfb91475a1772d4f095f83d19f7b364561f3",
+  "claims": [
+    {
+      "id": "claim_0699bbd1883c4dc7b6422dfebe87246a",
+      "statement": "发布契约要求唯一的打包器是 `pnpm publish`：它在 pack 时把 `workspace:` 范围替换成被引用包的真实版本（`dependencies`、`devDependencies`、`peerDependencies` 同等处理），而 `npm publish` 把协议原文写入 registry 上的 manifest，因此只有 pnpm 发布的产物能被任意包管理器解析。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L89-L91",
+          "version": "repo-lines-v1:sha256:544311050d7f61e1612e685c5442a9def3a4728620931f2925a3d97ccfe3ad57:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGRiZDBiMDRmYWM4ZjFkOTBkMjE3NTBhM2EyYjg1ZmUwY2E5YzkyNGQyMjk1NTRmMjAxOThkMDQ3N2U4YzkzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1MTBiNGNmZDA4YzRkMGY2ODI1NmM1NDc0OTQxZDZkNDI0NWZmNmJhNmE4NzVlZmQ1ODZlYzhiNzliODM1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWMwMzJkODYyZjRkYjhmMjUzOWVlZjA3MDM0OTIyMzUwYzJiMTZmNDFiMmU4ZjQxMGEwYzAzMzIwYjk5MjFhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzRiYTJkM2MxODVhYmY1NTRhODJjZmUzYzg3MmIxZTgwZTBjOGEwYjI2NWZiOTdkOWQ0YWE1ZTZiYTJkZjJjNiJ9"
+        },
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L1-L26",
+          "version": "repo-lines-v1:sha256:14d517aa81beef81f68420d800d5ae46e67f66561562b0c48aa990b9b12b9dd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3Y2MwMmYzY2Q1ODFkM2Q0NDY4NDUxOTEwYmE2Y2Y4OGE2NDRmMDQxYjExNDQ3MTI3ZDYxMjdjY2ViMTFlZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_38a5a1a6528e4baf856d4dbfe6e24a38",
+      "statement": "`@zhangj1164/dsh-memo@0.1.0` 曾以 `\"@zhangj1164/dsh-telemetry\": \"workspace:^\"` 作为 peer 范围上架，npm 消费者安装时得到 `EUNSUPPORTEDPROTOCOL: Unsupported URL Type \"workspace:\"`；pnpm 对该协议只打印警告，所以工作区内安装与门禁全绿都无法暴露该缺陷。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L91-L91",
+          "version": "repo-lines-v1:sha256:67510b4cfd08c4d0f68256c5474941d6d4245ff6ba6a875efd586ec8b79b8353:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1MTBiNGNmZDA4YzRkMGY2ODI1NmM1NDc0OTQxZDZkNDI0NWZmNmJhNmE4NzVlZmQ1ODZlYzhiNzliODM1MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1MTBiNGNmZDA4YzRkMGY2ODI1NmM1NDc0OTQxZDZkNDI0NWZmNmJhNmE4NzVlZmQ1ODZlYzhiNzliODM1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDY4YTFlNmRhMjk4NjhmZWZjOTc2Y2E1YWU5NjUwYzQyODQ4NjlhN2E5N2EyNWI0OGI3Mjg5MzczN2E2ZmNjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzRiYTJkM2MxODVhYmY1NTRhODJjZmUzYzg3MmIxZTgwZTBjOGEwYjI2NWZiOTdkOWQ0YWE1ZTZiYTJkZjJjNiJ9"
+        },
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L8-L13",
+          "version": "repo-lines-v1:sha256:6c22bc2211b35925cb46d64f2d6a86b84c6315546d6023dfae8ea921f7b40e08:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ5ZjY2ZGM5MTE5Y2Q5ZDJiNzA0NTFkNWI1ZWE2MTA0ZDAxNDMwZWY2NjRjNmZmMDM3ZGIyMjdjOTljNGRhNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBlODVmOTZmYjUzZTI3ZmI3YTAzZTA4ZTRlYmM5ZTIxYTk2MDAzMDVlNzlhMGEzMTFiZGZjYTQ1MjRhMDA3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZiMWE3MmRiNjg1ZmU2MWU3ZDNlYTVhNTEzNGQxYTk2NGJiY2QxM2E0ZjhhYjQ5YWYxZWYwMmM1YmQwYjg3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzE1NGM2M2Y0NzhlYjU5MTYxYmM5N2FiOGQwNzFmMjUyZDNiYjFkM2Y5Njk5ZWExYjYxMzY5ODRjODQxN2RiZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_abcb69e747f0469bb4673dc8d0a71cf9",
+      "statement": "`scripts/publish-guard.mjs` 的判定逻辑：读取 cwd 的 `package.json`，在 `dependencies`/`devDependencies`/`peerDependencies`/`optionalDependencies` 四个字段里收集以 `workspace:` 开头的范围；没有范围时退出 0（任何打包器都安全），有范围时取 `npm_config_user_agent` 的第一段作为打包器身份，只有 `pnpm` 才放行，其余一律打印范围清单、原因与正确命令并以退出码 1 拒绝。",
+      "evidence": [
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L30-L99",
+          "version": "repo-lines-v1:sha256:54e8a1d132b96afae9a0eeed18bf7861c462e70624a0e52b1811b67139874003:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlOWY1OWY4ODliNGQyMGIzNzA5MWM1YTFhMDIwMzg4MGM3ZTJjMWY4OGMwZDc1ZmY2ZTMzNWJjZWQ5NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3Y2MwMmYzY2Q1ODFkM2Q0NDY4NDUxOTEwYmE2Y2Y4OGE2NDRmMDQxYjExNDQ3MTI3ZDYxMjdjY2ViMTFlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxNmVlNWZmNmE3MjVhOTI3ZDc5NDEyOGI2MWZmMTg1ZjAyOWQwODMwODYxNTZhMzUxMGE0ZDc1YjA4YTU5M2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_89884c223e25481885076983e0284d29",
+      "statement": "publish guard 刻意 fail closed：无法识别的打包器被当作不安全而不是当作 pnpm，因为错误放行的代价是一份 npm 用户无法安装的 manifest，错误拒绝的代价只是一条显式命令；因此直接 `node scripts/publish-guard.mjs` 手工运行（没有打包器身份）也会被拒。",
+      "evidence": [
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L23-L25",
+          "version": "repo-lines-v1:sha256:374abc7fc364c7d9b24ca682bcf793d4dc8e46ff0005fe114a620216fab0c04f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQyMjJiNzU2ZjU5YmQxNDUzZmI5YjA1NjAzN2YwOTllNGY4NWVhZGU2NzIxNTM5NzFjMGYzMGIyMmY3NjRmZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzYwODQ4N2JlODYyMDNkZWU5NDMzMmVlYjJjYzdjNGJhYjI2NDAyMTJmYTM4YTIxNDM5MzY1NzkyYjBjYThjNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM3YjBlOTI3NjgxOTE2NjQwOTNkZTk2OTAwOTgyOTk5MDA1MmI3MGMzNjFiMGQ4OTA5Mzk4MjRlYTJhOWYzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTAxYWIxYmQ0YjcxMzI4NjRhY2Q2NDBkYWJmOTIxYTNiZTI3YzE1YjBkNjg5YTY0ODFjZjNjMmFhODI3ZjQyZSJ9"
+        },
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L76-L86",
+          "version": "repo-lines-v1:sha256:31e6574c75a24dc3ae378e97b70d79752390bf7e8dcba4ebe36dab8eb2fbf56b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2M2MwZTYwZjYwZmMyNmNlMDI3NjMzZGVlODJhMGI1NzIwMjJhMmNlNmI2NWM1YjgwMmJlMTZlYmNlMTAyM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MWEzMzNjNjhiNzY2Y2IyZWZiNzA1ZTUzZjM0MmNhYTk3MTYxYTZiMGY0MTBmNjM0YTA1OWVjM2MzOTU5OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3Yzc3NzliOGRlYmRkNDZmMGNiNTEyYmU5Y2QyMjViOGFhZmNiZGE4MDRiNjdhZDkyOGQ5MGViYTVkNzhhZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1MWRlNmQwZWViMzgwNWY1YzU5MWJkN2ViNDZlY2FiM2I3ZjdhMDI0ODY4NDljODA1NDUxNDc1NGMwNjcyNmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fbd12a198ad8499f8e92a0d2d1e396f4",
+      "statement": "guard 不重新实现范围重写，只判断打包器身份；它作为 `prepublishOnly` 在 npm 与 pnpm 的 publish 打包前执行，而两者都不在 install 时执行该生命周期，因此 git 安装路径不受影响——从 checkout 读出的 manifest 照旧保留 `workspace:^`，pnpm 只打 peer 警告，boot 不受影响因为 profile 逐包命名依赖并设 `autoInstallPeers: false`。",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L68-L70",
+          "version": "repo-lines-v1:sha256:93d4bb6dc8658aa1baa46ad19e6f9bb01b6092bff4c6b37f50b0ede899685f63:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOWQwNGUwNGU5ZjgxMzNjYTlmOGFiOTM1Yzk0ZGQ3NzY2NmUwMzVlYTk2YjY2OWQ3ZWVhY2YxYzU2OWE2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTM4NzE1NTViNDViMDAyNWM1NmI5MGY5NDQ1YTdmMTAyZGI1OWM0NWY0NTgzYWMzZjg1M2I5MGM2MzU4NDIxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTA2NzI5ZjE3MWM2YzU1NjViOGM0ZmU4MjIzN2Q3ZTZmYjE3MTUzMjhlZGI3NzMzMTA1NDUwZTBkMzg3ODgzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzkyYjQ1NTFhZGZiZTFiNTVkNmQwY2ViOWVjMjQzZTJhYmIwMzg1NTE3MTA4Yzc4ZGFjMjZjZTM0NDk2ZTNkZiJ9"
+        },
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L15-L21",
+          "version": "repo-lines-v1:sha256:7b5d3039d22a48888bf8b39023be8e566b54efdd819c9b3819e811b7f0067918:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNjZjZhZTFhZWFjZTg1MTdjMWJkYTQxN2Y5MzA3ZWY4YzJjMjNhOTM4YjllZjRkMzM4ZGVkM2QyNWExOWJkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjJiODRlYWRhNTk0MGJmZTljYWRjMDhiNGU5MDU1MzdlMDc3YmNlMjE5ZjUzNTQ4ZmVmOTQwM2Q0OGQ0YmRlYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzI1MmRkNzFjODcyMTI4NTk3YWQwOTY3Y2IzMmY2YTNjMWFjMjY3YWQyMzViMGQ0MmM1MzVlNzVjOWYwYzU2NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjczZDRmYzllZmM5MmEyYjVhZWQwMzYwOTNmZDcyY2M5NTM5ZDU1MzA2M2ZiM2IzZjExMmI0ZWNiNmJlMjNmZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_51772aa46b0b4a9db4bc44981c1ac361",
+      "statement": "`scripts/verify-publish-guard.ts` 静态检查接线：任何带 `workspace:` 范围的包必须把 `scripts/publish-guard.mjs` 作为 `prepublishOnly` 跑，该命令里的 token 必须按包目录 `resolve` 成仓库根的 guard 绝对路径且文件存在；用解析而非字符串比对，是为了抓住拷贝接线时 `../../../` 深度写错的情形。",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L115-L170",
+          "version": "repo-lines-v1:sha256:050bc014bf4f61239a859db11967963cb5af2da178c001d0fd153cdd50e1e73c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwODM2ZTMzYTNiMWE3NWE2MjU3NTU5YjM4ZjZlNTE0Y2ZhOWQ5NTYyYWUyNmMyNWZkNjNiYjQ2YzUyODFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjOTg3NDEyY2I2NWEyYTUyYTk5YTk4NDA1ODk0OGY3ZTUwNTlkOTk5MmE2ZGE4NWY4ZWYyNDMwZDQ1MDM5MzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f4d2a90bf02343b1a185afb5d77a1e1a",
+      "statement": "该门禁只读 manifest：它能验证接线，不能观察一次真实的发布，因此绕过 `prepublishOnly` 的发布（例如直接上传 `pnpm pack` 出来的 tarball）它看不到；真正阻断发布的是 guard 本身，两者是分工而非冗余。",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L19-L24",
+          "version": "repo-lines-v1:sha256:3195f0f383ef5079a4635b6f4707c04412a1464f2c5db6ebf9a4a149e6f9f313:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNiYmM0YTk3ZGJkMjlkNGQ5YWMyMjVkMjQ1Zjk1M2UxZDU5N2Y4NTIzZTljNmJkMTBkZjRiMmRkMDc5NTJlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE3ODQ1ODBhOTA4Nzk0NjY1M2I3MzljMTkyMmNiMjYyMTRkYmQ5ODMzNDg5MmRmYzVhYWJkZTU5MjhhMTYxNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWY0MWE2OWEyMjE4NmQ2YTExZmQ4M2EyMTljYWNmZTVhMGJmZWE2ZjkwOTUwODBhZGVhYjM2MzY3YTZiMTkxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjBkNjVmMDk3M2I5ZGNiNDMwZDgwYTQ1YTVlYzE0MzJhNjNkNmVkZTIxMTljNjcyMWE4ZTUwODE3NDk5OGMxZCJ9"
+        },
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L96-L113",
+          "version": "repo-lines-v1:sha256:8016d355caf7593f5b68d75635464d67ea1c512bd9ea936c76b9a346015b63bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzZDM0YWIyOWUxZTdlYjQ0NjgyMDZhNmM5ZGY3ZTdlZDY0NmM3Y2RmMGE1ZjdlMjBhYjU3ZjZiMzNiMjhhNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxYmNlN2NkOTk0MGQ5ZWZlNjg4NTg0YzNlZTZmYzZjYTA4N2VmMTE3ZDlkYjY3YmUyMjk4YmMzOWFhNGJhNzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7cfd8bc6e8e34938bf72b98878931ab8",
+      "statement": "`publish-guard` 在 `check-all` 里不声明 `needs`，因为接线是 manifest 事实而非构建产物事实；门禁失败时的修复模板固定为 `\"prepublishOnly\": \"node ../../../scripts/publish-guard.mjs\"`，与六个包都位于 `packages/<组>/<包名>` 的深度一致。",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L190-L197",
+          "version": "repo-lines-v1:sha256:54e8a6c4dc680bc6496416ab1e23c544b89d18073ff01779fa88ef3bba6b73ba:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjY0OGJlZWIxMDA1MGZjM2E1MDQzODUxODY4M2MyYTUyMWZiMWFlZDQ2MTU4MTk2NTQ4MmJhOWQ4NDkwNzAyOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjg2MjhlM2MxMDMyZmM1NWE4ZGRiMTZkYzNmYWZhYTIzNjU2Y2VlZTc3YzllYWFmMjJhZGYzZmUyYjgxNzI1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzhhNzdmNTVhYjcwZGIwNTE4MmExMmZlMTk2ODE0ODk5ZDZmMDZiYmViN2I5M2U3NGFhM2ZiZWY4NGE5NDdhNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjVmNTljYTBkZmM3ODc5Y2Y1MmI4N2ZkYTIxNTUzMTVmMGY1N2FhZGVjM2ZiZmZkZjgwNzBlZTU3M2IyNDFmNiJ9"
+        },
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L186-L190",
+          "version": "repo-lines-v1:sha256:e8f54fbd2b06c24a1c285d1e295faa68db1a6bafca5d04960ac9a68c2c03b10c:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWRjZjIwZDFmNmY3MDUxMjYyNjI1ZjQ2ODllMjk4NmFlNmIzYTIxMDMzMGMyNDliN2QwZjViMDc4NWM4YjM2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmU0YjhjOTA0Mzg3MTM0MzVkZDljMjVkYjM0ZWY1NjJhZDNjY2ZiMDg1Mzg4NDY3OTlhM2IzZjBkZThmNmVmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzdjNzc3OWI4ZGViZGQ0NmYwY2I1MTJiZTljZDIyNWI4YWFmY2JkYTgwNGI2N2FkOTI4ZDkwZWJhNWQ3OGFmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTI5ZjMzNjkyYWNmNWFjOGU3MGEyODlmOGMwNGViMTExODQ4MzVmZDc5YmE0Y2RjYjFiZjc0NjkzZTRkODkwYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_83b3924a15b540ca881c3332c02b079e",
+      "statement": "当前只有 `@zhangj1164/dsh-memo` 与 `@zhangj1164/dsh-client-ui-memo` 同时带 `workspace:` 范围与 `prepublishOnly` 接线；`@zhangj1164/dsh-client-ui-memo-settings` 接了线但没有工作区范围，telemetry、github-issue、openwiki-visualize 三个包两者都没有。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L39-L63",
+          "version": "repo-lines-v1:sha256:e167081a0e48a65696ceaac7a6b00645cbdf1a21fc4e181e47a1a07479527a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NDA2OTg0YmRlZmNhMzRkZDZiYzkwMDI3ZjFkMTFhYmNiMTcwMzRjNTI1YzlhNWNlZmExZDg0ZmNjZDgxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYWQ2YTYxZTkwMDllOTQ2YzE2OWVmMzBlNmE0MmZkOWJhZjdiZjFhMDUzYTJhN2Q3OGUwYWExYjNmOTVmNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlYTQ2YzM0YmRhNjc3ZWJiYmI1YjYzY2Y4ZDZiZjgyZDU3MzM0YTUwOGZmMDNhOGQyMTAxM2ZlZmE5MGJiNzgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L43-L95",
+          "version": "repo-lines-v1:sha256:ec1c2efb45809995cb16bd78f61ae5dc186c4a0dcac33242ad31457def295c64:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NDA2OTg0YmRlZmNhMzRkZDZiYzkwMDI3ZjFkMTFhYmNiMTcwMzRjNTI1YzlhNWNlZmExZDg0ZmNjZDgxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYWQ2YTYxZTkwMDllOTQ2YzE2OWVmMzBlNmE0MmZkOWJhZjdiZjFhMDUzYTJhN2Q3OGUwYWExYjNmOTVmNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L48-L96",
+          "version": "repo-lines-v1:sha256:e92e5ff2bfac9cdc71ec9cbdbce03a0ea00ec7c2162f4f4620517fb91a7dced4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NDA2OTg0YmRlZmNhMzRkZDZiYzkwMDI3ZjFkMTFhYmNiMTcwMzRjNTI1YzlhNWNlZmExZDg0ZmNjZDgxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3YjBkZjJlNTBiZTNhMGEzNWVlZjY0MzZkZWZjZTdkZmQwMGI3MDYwYzdiNzYzYWU5MjFlZDAxOWNjM2Q2MDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkNzgwY2RjNmFkZjA5YzNmNGFhMjdhODhmMmIxZTZiNzdlZjkzMTIzMDdmOTdlZWQzOTViMTc3ZTUzOWM5NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMzhmZTg3YzZhMGRiNGRhMjM3NDBkNTBmY2UzYmI4NGVhZWFiZDllOTdlNmNlYzM5ODRmODEzOTA4NjQ2MzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b35960820dd04ba989dbcad56b86788c",
+      "statement": "发布产物契约：六个包的 `files` 只列 `lib/**/*.js` 与 `lib/**/*.d.ts`（声明 `dsh.bundle` 的包另加 `cordis.patch.yml`），`main`/`types` 与 `exports` 的运行时、类型目标指进 `lib/`，`publishConfig.access` 为 `public`；`lib/` 被 `.gitignore` 忽略，所以 `prepare: \"tsdown\"` 是干净检出与 git 安装唯一产出它的路径。",
+      "evidence": [
+        {
+          "resource": "repo://.gitignore#L4-L7",
+          "version": "repo-lines-v1:sha256:8d7c26bfed4bd9a5a22e95a488c394c27565cf8e67bdfd74f89171b4b2fab795:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2E3NWJmMThkNDYxMGVjYzRhYjFiODBhY2Y0ZjY3MGIzMGI5YmNmMmFlZGEzMmEyN2RjOWNiYTJhOTVjODA2NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJiZjJkYTQ0MDBkMWYyODQzNWJkYzE3ZDA0YWQ3Yzc4ZTVmZjRhYzMzOGRiODFjNjhiOGUzZGYwYWQ1YWE3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWUyNzc5YjFkMTg0NDZlZTE5NDBlNzRiYTg2YzhkN2RkZDhlYjdmMDE3MDE5NzRjNTg3NTdmMzQ0YjU0NTFkNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzdmODc2NDNiZmU4MzliMDk0YWQwZTc4NzU4MmQ2MWJlYzRkMTQzYTE2ZTU5YjE0Y2RlMzVjYWRmMWJmMzkyNCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L57-L60",
+          "version": "repo-lines-v1:sha256:e5259d0dd2cbfd7c355ca5ab78dcf5b72cf34d4f9efcf5e56176ac6d121884d5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE4ODYzMmUyNzEyODQzNWNmOGZlNDcyYzFlYjc4MTU5NWI2NzE4NzdjY2I4N2UyZTQyNWM3NjgyZDBmODQ5OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VhYTQ5YWVjNDJmMmI3YThjOWZmN2YyYjQzYjMwMzc3NzhjYmNkMjc5ZDYyNTVlMmU1YzQ2NzJhYTNkMDkxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZhZjlkYWI2N2Y2NjhhODk5MjM2MmJjMWQxZWRlOWM2MmQ0NzhkYzI2NjBkNWNlYmQ2ZmQzODM3OGIzMzMyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY4MTFhMDE5OTE4MTRlYmM1ZGY1NmNjMzVkZWQ1NGYzOTc4MGE2NjNjMWExOTNmNTU1YzY0ZDE5NDdmNGM2OSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L14-L52",
+          "version": "repo-lines-v1:sha256:ea75f56bf50de30fb4183c2458e74a6675681509c893c688b7feb30802bd27b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MmJkMGFiMjJkNDUwNzAxMDFjYTU3MDU4YTdmZTBjMzAyMGExMzZmODgwYWNiMTY5Y2UwM2MwOGQ4MDRhYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4M2UzM2Q3MjVlY2ExYzVhMDY5M2VlMTcyYjMyOWY3NTE0ZGM4YWRkODExMGZhODhlMDkzZTIwMTVkN2Q2ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzY2VmZWE0ZWNjZDlkNDdhYTg5MzJhZjg4ZGNmZWI4YzgzMWEyMDU1OTMwNmYzM2MwZDNiY2ZkZGRhNGNmZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2912b0ab52c54c19a6a463ce656e994b",
+      "statement": "`@zhangj1164/dsh-memo` 与 `@zhangj1164/dsh-client-ui-memo` 互为 peer 且都用 `workspace:^`，工作区图在 peer 层面循环，因此发布顺序只能近似依赖图，真正保证 tarball 内范围正确的是在打包前把所有待发版本的 manifest 全部定好。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L65-L95",
+          "version": "repo-lines-v1:sha256:dbcc0c6b69cb3ca7f0b31d813661bfd5038153eb81a89402f8f8c5e606c393b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OGY1NzQwMWFlMmEyYTcwNDc5YmI4M2UyMmMxM2QwNDRhOTJkZTZkNzRjN2FjY2Y5MWJjMzI1MDcxOTc4ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmY2FjNTM1YWNlYzE1NmVmY2NiYjk3OTNhOGQ5NWM1MzkxYWY0OGU4ODUyNjM0NTc4NTkzNjc5NGVkMGNhYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L72-L95",
+          "version": "repo-lines-v1:sha256:4c78524bd218806deb8d48d73c8b4cad23511e99f12e9bc50721b18bd2a9339b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OGY1NzQwMWFlMmEyYTcwNDc5YmI4M2UyMmMxM2QwNDRhOTJkZTZkNzRjN2FjY2Y5MWJjMzI1MDcxOTc4ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNTBiNjliZmI4NDY4MDdjZTJkM2U2NTIyYTlhMTVmNmY5MDQ0NDBmNjFlNWQ5ZmQ3YTIyNjcxNTU2OGE4MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmY2FjNTM1YWNlYzE1NmVmY2NiYjk3OTNhOGQ5NWM1MzkxYWY0OGU4ODUyNjM0NTc4NTkzNjc5NGVkMGNhYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjMzgwMjRmMGMzMzExY2IyYmQ4NjQ2YTMzN2NmYzExMjEyOThkOTZmNDY2ZjkxMmRkOTJjZWZmMTQ5Y2JkYzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a2d6bae77ba47ab96f1d2beee61329f",
+      "statement": "发布前必须先用 `pnpm pack` 打包并直接读 tarball 里的 `package/package.json`，确认新版本号、全文没有 `workspace:`、重写后的 peer 范围指向本批版本、`files` 符合预期——这是发布前唯一能看到用户将拿到什么的窗口。",
+      "evidence": [
+        {
+          "resource": "repo://.agents/skills/plugin-release/SKILL.md#L62-L74",
+          "version": "repo-lines-v1:sha256:1a3767c1a549199a3441a1940e384fc6887055cb7bd170be18ae8e565557e187:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjYzRjYzhlOTZiZTY4MmMyYWY4NjE2OTllYTQwYTg1YTU0YmJkM2Y0ZjZhZmQwNzhlZTY0ZmFhODc3NDcyZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MzI2YzdiZTU2MzBiNTYxZTE3MmMzNTY4NzdhOTY0YmEyZjlkNmVhNzFjNWZmZWFmNzQ4NWQ4YjQ0NTVmYjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ZDg2MjE5NzBmMTlhNWE3YWYzOWUzMzI1ZjkxMDRkMWY3YzYzNGU3YWZjZTM3ZjI0NTA2ODQ3M2IxNTdmYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYzFmNGYxNWY5N2JlYzU5ZTVmNGJkZWQwY2FkZThlNTNlMDIwNjcyZGU0NWVjZjgwYWUwZmI0ZjhiYTZjYzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2816e39c31a8480da21f04a6fa529cac",
+      "statement": "发布必须从最新的 `main` 出发：`pnpm publish` 会拒绝一棵脏的或落后于远端的树（`ERR_PNPM_GIT_UNCLEAN`），所以版本号只能先经 PR 落到 `main`；发布动作本身停在技能边界之外，由人执行。",
+      "evidence": [
+        {
+          "resource": "repo://.agents/skills/plugin-release/SKILL.md#L12-L18",
+          "version": "repo-lines-v1:sha256:f1a8a94729bff426febbbc147948b3c031ec09267dc564b0791926fc5c00a989:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDI3NDIzMDZlOGJiOTI1ZTM4MjFjODQ2YmMxNjczYmQ0ZTY1ZmU3YjY5MGEwZmMyMWIwOWZmNGYxZDZkNWM1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2VjNTY4ZWFkZGNjNDg0MDI2ZjFlMzJhZjIyYzc1ZjM4NTM2MmNmMmM1YzFkZDk2OGMwNTkyZjU3MTk1ODMzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDFjMjUzODZkZWZjMjM4Yzg2MGZjNTY2MTQ0NTQ2ZDVlYTYzYzU3M2Q4YmZiOWE4ODJhMzI3ODNjODVlYTRlNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTcwMTczMmFjODQzYjM0YjNjMGY3YzAwN2U1ZGI0YTk5ZTdiMzY5NWM5NmI0ZDFmZWZiZTJlZGYzYmJhODk3OSJ9"
+        },
+        {
+          "resource": "repo://.agents/skills/plugin-release/SKILL.md#L95-L99",
+          "version": "repo-lines-v1:sha256:99237f79fd7b4dce515aaf994ee7b2e67ad755bb2fd8a234d39e5ebe3adecb6c:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQwMGQ0YTIzMjFkYjFjNTA1YjkwMGQ2OWU2MTFiNmY1MWMyMTZmMDIyZTM2YjEzMTI0MWU4YzhlMGQ1MmFlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjU4YjkyOGE0ZThlODBiZWQzYjc5M2MyMGZhMTI2YzU4OTY0M2JjZjJiYzUxYTIyZTdlMzBhODUwOTJlNDEwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWY2ZWIxYWI1NDViZjA0MjU3ZTFmMDVhNTcwY2QwY2RlMDczZWRmMzQ1NDY1MDk5ZGRlZWEzZTUxZjRkZDQxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWVjODMxNTI4NjllY2M5MThiODc5MjI2YmVhZmUzZDNhZTYyZmY5MDg4ZTViMDA1M2MxMjVjODJjNjAwOTk3NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_075b6bcd46bf40eda74084a5436af103",
+      "statement": "发布后必须核对 registry 副本两项：`npm view <pkg>@<version> peerDependencies` 不得出现 `workspace:` 范围，以及在干净目录 `npm install <pkg>@<version>` 必须成功——工作区内的安装与 `pnpm run gates` 都无法证明已发布包可安装。",
+      "evidence": [
+        {
+          "resource": "repo://.agents/skills/plugin-release/SKILL.md#L88-L93",
+          "version": "repo-lines-v1:sha256:0924360bab72b11987d07b43e58e8821fc55939cd9455a06999ec3d41cdca523:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTdhODI3ZGY0YjNjOTIyMmZlOGI3MzVkNzk2MjUwNWIxZDE2YzZiOWJmOGExNDNkYzdmZDZiNWI4OWFmNTUxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2VjNTY4ZWFkZGNjNDg0MDI2ZjFlMzJhZjIyYzc1ZjM4NTM2MmNmMmM1YzFkZDk2OGMwNTkyZjU3MTk1ODMzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDQzMzJmY2MxNzkwMjNlYjNjYmQ2NGM5MjlkMDRhMzNjN2YxYWUwZDQ2OWI3NmU0OWNmODA4NmFiMTZjZjQ0MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGE3ZGIxNDZlMzFmZWMwNWQxYmU0MWY1N2M5YWQzMmI3MmMyMzM2MTgwOTA5ZGQzN2RiMzI1YWY2Y2E4YTYyZCJ9"
+        },
+        {
+          "resource": "repo://AGENTS.md#L91-L91",
+          "version": "repo-lines-v1:sha256:67510b4cfd08c4d0f68256c5474941d6d4245ff6ba6a875efd586ec8b79b8353:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1MTBiNGNmZDA4YzRkMGY2ODI1NmM1NDc0OTQxZDZkNDI0NWZmNmJhNmE4NzVlZmQ1ODZlYzhiNzliODM1MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1MTBiNGNmZDA4YzRkMGY2ODI1NmM1NDc0OTQxZDZkNDI0NWZmNmJhNmE4NzVlZmQ1ODZlYzhiNzliODM1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDY4YTFlNmRhMjk4NjhmZWZjOTc2Y2E1YWU5NjUwYzQyODQ4NjlhN2E5N2EyNWI0OGI3Mjg5MzczN2E2ZmNjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzRiYTJkM2MxODVhYmY1NTRhODJjZmUzYzg3MmIxZTgwZTBjOGEwYjI2NWZiOTdkOWQ0YWE1ZTZiYTJkZjJjNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab0ceefaf8c344c88b2a402e7ac17069",
+      "statement": "`@zhangj1164/dsh-openwiki-visualize` 的自更新把这些发布当作更新源：`readOwnVersion()` 从构建产物旁的 `package.json` 读 `version`，`checkUpdate()` GET `${registryUrl}/${encodePackageName(packageName)}` 取 `dist-tags.latest`，并令 `updateAvailable = latest !== current && meetsMinimum(latest, current)`，因此相等或更旧的 registry 版本都不算更新。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L424-L441",
+          "version": "repo-lines-v1:sha256:5d7b7bbbc9737cddd5581d964855f59dac7ddbb97f185dad3a192adc6a3cb13c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMDlhOTc2MzhiZDY1NmNjNWJhNmEyZTdkNDM4ZDdiNGQzZmU2N2RiZThkNGM3Njg3YmM1ZjIwNDIwYjYxM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlMTIzNmYyYWVhMWNlNDJmYTJiMGNjYjI3ODMyYzc4ZjVkOGMxYzE5MjM4YTI0MDkyMjEwNjYzZDUzOWVkNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlYjEyMzMyNGZmYmU1Y2I0MWI2NDM1ZDg3ODYzY2IzY2U4NDEyZGVhOWEzYWYyNGVjZGUxMDcxMjYxMjBiNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3MTIxY2Y1ZTQxOTM3MWU5YmE3ZjdhMTlmNjcwMGZhZDZiNmM0OTQ2YzAyOTM3NjkzZjdjODA2NWE1NjUxZjMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L614-L636",
+          "version": "repo-lines-v1:sha256:0751461423b7c1148bc863a3129f96763d91204349d2bcaa90aee36e5393e9bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmNzIwYjRhOWNjNTE1MTc2NGI3NTk5ZjI5MjU3NTlhMzc4ZTZjMWVhMjMzY2E4MmYyMGNiYjc4ZDc0M2Y1OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1MDI5NWRlM2M1YjdmNzUzZTE5YTFlNjczZjk5ZGVjNDQ1YTQyOGZhODIxY2ViMzhlY2M2YmU3NWU5MWU5ZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e70cdaafea6046a1bfe5fee201142c9f",
+      "statement": "自更新检查对 registry 不可达 fail closed：报告带 `failure.code = 'registry-unreachable'` 且 `updateAvailable` 保持 false，而不是把离线读成「已是最新」。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L444-L452",
+          "version": "repo-lines-v1:sha256:09f844a42e9f69eaff4ed3a4cf4611c0be334818306d42163b1e96ffea1b0a96:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzljMzUzNWU2ZTY2MDU5ZjRlNWZkYjMzYjkxZjBmMDU4MDdjMDkwMmNiNTdjNzYwYTc4MDEzMDkyYThjZTFhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWNkYWM3MTI2ZDUyMmY2ZGQzMGU4MGUzNzgyNTkyYjYzNWJhMzVmZDEyOGUxMTJlNTA0NzZmNjRhNDQwM2Q1MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWE4NzBlZDFmMDYyMDJkYTEzMTJhY2YyMGNmYWZlMjIyMTcyZDU2ZjU2MjNmOTRiY2IyZWU4OTllYTA0NTlhZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b4a0dfd570049b1aeabf79cf3031502",
+      "statement": "自更新的检查与安装是两个独立步骤：启动时的检查是 fire-and-forget、失败被吞掉且不阻塞挂载，`version({ cached: true })` 不再打 registry；`update()` 才显式跑 `dsh plugin --profile <profileName> add <packageName>@latest`，返回实际命令与输出并标记 `reloadRequired`，失败以 `updated: false` 作为数据返回。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L286-L291",
+          "version": "repo-lines-v1:sha256:14c2760232419d3c0c4500fea7d3e7f8cfe2a8c7c085ce4299985200e04c0031:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjM0MDkyN2MwZmI0ZDY5NTA5YmNjMWM2MTQ2NmI4NGViYmRmYWZkNGRlZDk4MWMwYzZmZDU5OTNjOTVjNjI4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzE5Yzg5ZDZhOWVmMDMwNDRkZGQ1YmFlZjc4ZDQxMTU1OGU3MzkyOWFiYzc3Mzc0ODBjN2RlOWQ5MmY3NmFjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjg1ODI5ODNmZDk1NDA3MjliMjhmMzgyNjkzZjY1MzBjMGIwMjgxZjYxODBhYTM5ZDk4MDA2YWRlZjMyOGYwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTdmMjc2YjA5ZTZiNWUyZTA2ZjAxZGQyNGRmZDFmNWRkZWMwZGJhYjk1Yjk4M2Y2OGE3NGE1MmZjOWI2OTg5ZCJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L455-L486",
+          "version": "repo-lines-v1:sha256:659dd86a838389e8e06aa42b1027b1fe3ba6082321136cb22dd86ae7f5d4fd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYjgyZDM2ZTM3M2Q1YjM3ODdmN2M0MWQ2ZTFhNjkwNTY3YzA1ZDhiYWRlMjEzZDdiYTJlMzkyYzA2ZTJmZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2fdbd8e8103143b29b7f97e3b0c3f870",
+      "statement": "自更新的 `registryUrl`、`packageName`、`profileName`、`dshCommand`、`updateCheckOnStart`、`registryTimeoutMs` 都是 `Config` 字段（`registryUrl` 默认 `https://registry.npmjs.org`，`packageName` 默认本包，`profileName` 默认 `$DSH_PROFILE` 或 `web`），私有镜像或内部 registry 只需改配置而不需要改代码。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L128-L145",
+          "version": "repo-lines-v1:sha256:cd0b0275a4262227f011944e7d0cbc11baec588d9859f1b6b3e4d507f6de6ae1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzYmQ5OThhMGQzZWIzNzU2NWNiNzIxNzcyYmI5YjNmM2JjMDAwOTkyYWM1NjhlYjE5OTcwYmRmMmU3MzRhZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxODJlYzlmZTFlNzg0ZTQ3MjI2NTkyZjI4NmRkNTAzNDU1NGY2YmQ3MTZjNGUwZWQ3NmY2NjJhZjEyMGY2N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2edeebbaccea43fbb83cfb8b25f72e61",
+      "statement": "自更新的 version/update 语义由 `tests/service.spec.ts` 钉住：更高版本报可用更新、与自身 manifest 相等的版本不算更新、registry 抛错得到 `registry-unreachable`、`cached` 请求不产生第二次 fetch、`updateCheckOnStart` 启动恰好查一次、`update()` 的命令参数逐项断言且失败时 `updated` 为假。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L360-L457",
+          "version": "repo-lines-v1:sha256:27b7487ca379edabac01bbc7ddde8b485cc95ec87a3adb3cdf5b38c606c71e12:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNmE5NDM1NmY4MDQ5MGNhNzQ5Yzc4ZjJiODM5ODJiZDVhNzJlMWFmODIyM2ViZWVjZWYyNGYxMGJlNTNmYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

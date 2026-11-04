@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:7ca9edfab383d646aa30367435e6a296cc2957d20b80c8cebb4c50a6c2b66ce7",
+  "claims": [
+    {
+      "id": "claim_9fa48887cc25468fb62f255e3c70c2a0",
+      "statement": "`memo.analyzeLogs` 是日志分析链路的唯一编排者：它对每个插件调用 `telemetry.analyzeForPlugin`，用 `mergeAnalyses` 合并，再依次调用 `githubIssue.generateReport` 与 `prefilledIssueUrl`，最终返回 `{ report, issueUrl, analysis }`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1638-L1705",
+          "version": "repo-lines-v1:sha256:98be2721b28b77886d3932051c5939d3e612c517d518aba46033857f73ee0aa1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyNjI0Y2EyMDZhYmI3MmQwY2ExM2U4OGY4ZGU2MWFlZjc5OGUxZTlmMDdmMTA2MmFiODk0MTQyNjM4YzY1NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmOTA1OTM1NzgwNjQ0M2Y1NDE2NTRiNzM2NWE1MDM2NzBhYmFiMDU3M2U4ZDM4NTBhMmQ2ZDc2NTYwM2FlMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNjUwYzljMDJiMTM5YWJkMmFhNjVkZTkzYmNlOGY5MTZhZmYyN2FmZWNhZGJlMzlmODA5MDNmMTZlOTFjMDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a95db48724884dacb30591123e3f55e5",
+      "statement": "分析覆盖的插件集合由宿主配置 `logAnalysisPlugins`（默认 `['memo', 'github-issue']`）决定，单次请求可用 `pluginIds` 覆盖；遥测没有插件枚举 API；空集合被拒绝为 `no-plugins-configured`，而不是生成一份覆盖零个插件的报告。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L146-L155",
+          "version": "repo-lines-v1:sha256:b690219bff5283e82354ca681f4310b227a91778e06ecebdb847b34b79b858cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzOGQ5NzVkYWRlMDZmYjBiYzgxZTM5Njk3NGI2MmRkZTI4M2E1ZjhhODhmNjhjYjYwMzFmOWNjZjg3NjIyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MTQwNTM1MGQxZDRkMGY0YzA5YjE1OGFlZjNkZjg0YjFlYTExYmVjMzMyMmFjY2IyYzgzMWNlMzk1YmRiZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODllYTQyZjg3M2QyMThjZjRkNDUyN2I4ZjA2NTQxM2NiMmU0ZjdiMTA2YzNiMzY0YTVhZGY4Y2VlNTQ1MDkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1648-L1655",
+          "version": "repo-lines-v1:sha256:e1e1def4892261075158f4334cb145dc7d1a3579d793f002553ee22cc2eec48a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2YyMDcxYjExOGIyNTBkZjA5NzdlZTc2ZDIxZGQ3NzE2ODQ4NWEzNmFhMjAyNGNkMzcxOTkxMzJlZTMxOWIyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI5NTIzZWQwZjFmYjlkMDQ5YTA1YWQ3Zjg4ZTIzYWYzYzcwMzU4OTVlNWQ5OGU2OGJjYjM0ZjExMTg0NzRmNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTVjNTk2YjNlMTMxNThhMzE2ZGU1MDA0YTZlMWM0ZGJhYTk5Y2I4MTQ4ZTY2YTg2YzY1Y2QzYmFmNjY1ZDdlNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTI3NTFhODc0OTdjMzYyZGM0NmYxMTRiMzQ3ZmYxNTdhODFkYTY2ZmFhOGM2M2YyYmVkNTk1YjcxMDAxNzlmNSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L209-L222",
+          "version": "repo-lines-v1:sha256:4133f0d72ac8856bdb157b97340d66c9279a0db26d6a263c267e5a79de331981:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxMjRmMmZkZjc0ZDlmMmVmYjc2YmY0YWZmY2Q1OGU5ODY0YjZmNDY2YjQxMmJhMzk4NjA5YTNhNjAwZjU0ZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZjJiMzk4MjM2NDdlOGI5YjMyM2RmZWQxNzVmMzBiOWUxNjFhYTFkNjdjYjliMTIzYzUyNmJhNjNlMWU2NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiNmNmMGFjOGNkNDM3YTZmMGJjMmE2N2M2MTY3MmZhYmQxYWM5ZGZkN2RmMzU4ZjYwZGJmZGVkZGY0MTI5ZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_066586059a6b480f8744a775e6fd8697",
+      "statement": "合并是多插件分析的显式一步：总数相加，窗口只合并存在窗口的 min/max 并在全部缺席时省略该键，失败组直接拼接后按 `count` 降序排列，合并对象的 `pluginId` 变成逗号连接的字符串。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L413-L447",
+          "version": "repo-lines-v1:sha256:f8d8d1390306f6123ef0b2de89a594296b905d30291cffc45907ed331df21a74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2NThhODI1M2MzNDQ0MzlhYzQ1YzUzYTA0YmQ4MzhiOWUyOTdlYjc4ZTlmZDhkMzRlN2JlOTA5NDFmMTBhMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyODgyNjY5MjAxNDZjZWU1MTJkNmUwN2ZlNmVlNTU4OGNmMDgzYzAyNWQ1MWExNTdmODZlNDQ0M2JjYTNkNDgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L362-L409",
+          "version": "repo-lines-v1:sha256:f93b0c8dbbf040bb1bed7b27c144ab755184fe63c44218b758be76869bc4163c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2M2VlYWVmNWJlOTlkZWM3NmY0M2EyMGI2OWJmMzBhODk0MDg1YTJhNDY1YWRkNjQxMjQzYzQ0MWZhZjU0MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiMzYxNGRmMGEzMzE3MzBiMGI5ZjBlMWRjYWNhZTVjYzVjYjhlNGUwMGU0MmYyNTI2YmI0YWY0NDBlM2YwMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3YjhlZmRkNGZlNjliZmQzNDNhZmEzYTI4Mjk5ZDJhMzA5MDFmYmIzN2VjMzY3YWQwMjI1ODI4OTM1NjM0NjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c71fca0c426c4cb2a245f9b3af54327a",
+      "statement": "投影到 `generateReport` 请求的每组字段只有 `featureCodeRef`、`count`、`latest.error` 的 `code`/`message`、`latest.timestamp` 得到的 `lastFailureAt`、`attemptsAfterLastFailure` 与可选的 `route`；`errorCodes` 复数与 `stack` 不进入提示词。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1014-L1036",
+          "version": "repo-lines-v1:sha256:2349a1fb5927499fb52f9823d7061b3cebdccdffb7493b6b5c2ec5c41bc8588a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MDMxZTg2NWUyNTE5NjFkYzVhN2RiMGM0ZDc0NDRmZTZlODFiODhmY2ZiMzFlNWQ3NDk3NDFkNmQyM2I2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlNGZlNmNlZmNiZTg1MTFhODBhZWIzOWNkYzAwYjEwMWM1ZTBhODBhZDJhYTdlODU2YTA5Y2Q3OWI4OGE4ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNmI2YmQyYjUwMjJiYTNiZWZhYTM1OGVhMGQ1NmE5ZmQwZDgzNTZlZWQ5MDE2OWNhOGQ3MWMwODQxZGRjZDUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/types.ts#L51-L67",
+          "version": "repo-lines-v1:sha256:8954e6d1dde6379b0bfad7cf3112dbfd7a85596b3cd0d84a0c10454078c93bea:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYmYxODkyZjQ3YTQyNDBhOTNlODBlMGYwY2E0YThjZGY4ODc1ZjQyM2RiMTRjNjZkMDFmYjQxOGM5NmIzNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMDIxOTc4YTljNDFjZWI5Nzk2YmIzOTQwNmQxN2E0MmFlODc1NDgyYTY0NzM5NzUyMWM1ZjQwYjZlNzYyZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NzRjMDRhMDJlZmIwOGNhYzNlY2ExZTc1MThhMDBmMzkxMTc1MzZjODRiOTU4ZmY5OTdmYWFhY2E4NTY4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1664-L1672",
+          "version": "repo-lines-v1:sha256:86f36632592f7bcac6820b9091778a17f9d934ab3e0fa8db5da8db4bb67ef0c7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQzMDk0MmFmNTg3MGZiOGQzNWYzYTlmMGM3NmNjYjdkZDI1YTY4NmFlMTJkNTYyNWEwMGM0NTE1YWIwZmRiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTVmYWJkODdmYzgxNDE2YzM4N2E0YjRlMzQ5Mzg3NzY5ZDczZDI2YTRjYzY4ODljMjgzMmUwMmI3ZjBkYTg4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTA0ZmUzNmExMDhlODkwNjRlMzAwNTBkYjZlMTNjYTMzYjkxOGMxZmE2ZDdiMjBmNzRlMzYwZWJjMzE1NGFjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjAxYmIxNGZlMzExY2YyY2ZiMzRkODgwZWU0OGUwZWRkZTQxMGIyNTMwMmJmNmI0OGIzYmJiMjExMTU0MjA1NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L229-L243",
+          "version": "repo-lines-v1:sha256:58d79dc6b827a0abfe8fb1aa38cef3e7d5a2a5dd281a5aa2fac823c234e0e728:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMmZlNTQxMGNjZTcwMmY5Y2VhNzdiOWE1YTRiODVjY2Y5NGNhN2M1MDc2MjQ2NmI4ODk0OTU0YjM3NzBiMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5ZDlmMmRjMzUzNzgxMGU2OTY3MTBiMTQ3MWQ0ZDEwMTMxMDU0MzdjOTFmZmU0ODdhMjg3ZGUzNTE3ZDEwMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4YWI5ZjkwNTUyNGI0YWM4M2Y3NTA0MDczMWY0NTRmODVmMDllNzhmMzQ4OTI0Zjc4OTFlZGMxNjBjMDliMjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f743d97db2e84eefa49eb933d9951eb0",
+      "statement": "`buildReportUserPrompt` 把分析未携带的事实写成 `not recorded`、空失败组写 `(none)`，并把插件清单、分析窗口、路由、最近失败时间与之后尝试数逐行写入提示词。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1014-L1036",
+          "version": "repo-lines-v1:sha256:2349a1fb5927499fb52f9823d7061b3cebdccdffb7493b6b5c2ec5c41bc8588a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MDMxZTg2NWUyNTE5NjFkYzVhN2RiMGM0ZDc0NDRmZTZlODFiODhmY2ZiMzFlNWQ3NDk3NDFkNmQyM2I2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlNGZlNmNlZmNiZTg1MTFhODBhZWIzOWNkYzAwYjEwMWM1ZTBhODBhZDJhYTdlODU2YTA5Y2Q3OWI4OGE4ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNmI2YmQyYjUwMjJiYTNiZWZhYTM1OGVhMGQ1NmE5ZmQwZDgzNTZlZWQ5MDE2OWNhOGQ3MWMwODQxZGRjZDUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L208-L209",
+          "version": "repo-lines-v1:sha256:c91f50d46d6683d79778b372998694b20866d43f286302654ddacaa78e9eda8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzdlNTNlNjkzNTRjODU5Njg2YTJiOWYyMmM3M2Y4ZmY3ZTZlNjNjODA2NDRkNmExNGU4MGE4Y2FiZWIzNWM5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWE1ZjIzY2RjYTY0YjdkNWMzNDJmMDAyN2FlN2JhZjkyMTg0MDBjMDgzNTYzMDc2ZDdiNWI1M2IyOGE1Y2E1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGYwMzcyOGM0Y2ExMDY3MGIwYTJkMjNlYjRlYzM1Zjk0NGFkZDdkNDYzOTYyYWZiNTZkZWVhODlkMjFiNWY3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmVjOWVkMWU3MzMxOTgwMzkyYjgzNGQ4NjM3NmJkNzFkYTA0ZjVjMDNmMTFhNDYzYWU4NjIzYTM3ZWNkYjk2OCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L273-L321",
+          "version": "repo-lines-v1:sha256:16b0e76852d0ccad2069ffe26b23dc3bdd8daa6afe7c2cdbf8dd74a7f3377188:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYWE2MDI5MWFiMTdlZGQ1ODM4ZTk5MmQ1ZjBjYWY1OTFmODU5ODQ0ZWJjMTI0MmE4MzU4ZWQ3NDg1ZDg0NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMDFiZDFjMzAyOTlhMTBiNjYzMjk3NzVlOTllNmU0OWI4ZmI0NDQyYzYzYmFjMjNmYzg3MzI5YWY0ZTIwM2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlZmQ5ZmM2ZmNmYmRlNDgxYTUzMGFhYzEzZjNmMjEwYWYxMzlhMzA5ZjVjNTRkMTM3ZDZlODZlNzVjNjFlNGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_82be481e0e74488188b2067e9052bf95",
+      "statement": "报告系统提示词禁止引用分析没有证据的机制（采样参数、token 预算、超时、分块、流式、响应解析），要求把未复现的失败读成非当前缺陷，并禁止写「需要补充采集」。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L253-L295",
+          "version": "repo-lines-v1:sha256:8bcd322557307fcd0f90da9e5a94ca9d14a16a1abe9268e6569d0fc0cc20520f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4Nzk2YzgyN2U3MzQ1MTBkZGRiMDc4Y2IwN2YwY2QyOWRiMTFjYmIxODYwYzkzMTAzMzRjZWNlNWMzOGU5MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTRlNTYyY2E4MTk4ZGI1YTNkNmY1MDY4MjhiNjA1MmUwMzBmZWIyMjdmYzEyZDQ0OGQ1NGFiNzg5Y2NmMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYjI1MjcwMzA1NmZiNzQ2ZjBjMzM2MmZhMGVmN2IyY2I1OWViMDZjZmU1YTYyNTA2YmZlNzU5NDI2Yjg5NzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2MWU2OGQ2MDY2NWIwZDRjNTgwZWY1ZmYzODdhOTljNmIwNWQ1MDc0Y2MxODFjMzAxNTNlYWE3ZGJjZTY5OTQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L323-L344",
+          "version": "repo-lines-v1:sha256:e05af58656274850b846222909077a85da18e079026641a571d4137b687400a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4OTBlZGNiMjAzZmY3Y2ZlYzI5ODc3ZDAzNjhmZWI1YzZmZTcxZjE4MWYxNTI3YzQ5ZTk5N2U2ZDk1ZDIwOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0NzBiNWU3YzZlOWRjMzAwMTU4ZGVhYTFhNGY5ZmFkNjEwMWZlMzY3NDBlZjc0ZWNiYzQzZjA1YTFkMWJjNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkZDg5ZjI3N2VlOTIxZTI0ZGZhMDJiZWJkNjM3NDFhNDVmMmNhODRiMmE0ZjQ1NmMzZGRiYzRhZTQ5MTRiYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af00578754864205a4564c8a2be5217f",
+      "statement": "报告的标题取模型输出的第一个 `## ` 标题（缺失时回落到 `Telemetry failures in <pluginIds>`），标签固定为 `['bug', 'telemetry']`，正文就是模型输出原文，宿主不做二次校验。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1043-L1046",
+          "version": "repo-lines-v1:sha256:4599227a6ebc2af01da700402cde58cfbccec7e2e25dac779984a492bc616077:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjUxMWUzZjNlYzFjMDUzYmZmODk2NjkwY2NiNTEzMjMxMWQ2MmU4ZTExMzQ1ZGJjNmE1NDk4NDIyYzJkZTRjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGU1MDAyOGM0ZGJkNjkwZWQwNDcyMTIzODM3ZmMwMmU2ZTZhYjZjODRhNGJkYjQ0ZjQ3NWJmYjdmN2EzOWU2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ0YTlkMThlYzVlY2JlMmZmMzY1MGVmNGIxMTY5YjAwZWMzYTQxYjBjYzc5Nzk1YzAwNGYyMjA3MmI3Y2NhMiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L497-L510",
+          "version": "repo-lines-v1:sha256:93a1b12fb84401cca1b1b1c1530f66b7a176e191f5127b394351e694300895ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZjNhMGViMDFkMjBhMzkxMWE0OTA4MTk2YzQ4MDYxYjU1NWEzYzYzYTNhN2IwOTE3ZmM4ODdmZWFjZGVkYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjU5Y2E0OWU0NzUwNGYwODU4OTc2ZmVmYTMxMTY4MzhhODIxYWRhNjg0MWI0NzljOGYxMzlmNGY1ZjlmNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZjc3NTE4YTg1ZTA3MDQ4MzE2MDU1NzBkNWEwMGY4NjFhZjk0NWU2OGFkMGE3MDliN2Y0YTRkZmVlZDcwODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3525d68043044e39b65bb7bf28c13aa",
+      "statement": "`attemptsAfterLastFailure` 只统计同一插件内、写序晚于组内 `latest`、且 action 属于该组记录过的 action 集合的事件；因为按 `seq` 定序，与失败同一毫秒发出的重试仍被计入。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L264-L321",
+          "version": "repo-lines-v1:sha256:998c88ae31e0066f37ead0b7a1c732b7ed068a71909421d03571ad9bece87c36:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YjBhNWY5ZWQyNmVhZjJlMWE2OTIwYWJkZTM5NTM4MDIzMDliZDJhYmI3NjJkMGYxYzdlMmYzMjkyYzIwNjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwNmU3YWY1ZWQxYTE4M2JjYWM2MzM2ZWE3ZWUyYTAxNTZhNTIwOThiZGNjYWFjMjllYzlhZDAzMzgxM2U1ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkMWIzZDcxMDY2ZGYwODliNjM3M2VkYjVkYWM0YTI1NjdiYmM4NDRiOWNmYjc2ODgxZDhiOWYyZWRlMjFhMzAifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L462-L486",
+          "version": "repo-lines-v1:sha256:d100c37e2917d870b7f006c767c270657c8a98731277efaaba00d133db3013b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ZDUzYmExOTNkYmRmZjMyMzQ3ZWMzMGFiMzFhMjczZjY1YjMyZjY0ZDFkZmFjYzIxYWE2MTU2ZWZlMzU0ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjZGU4ZTIwZTAzZTkzYmI5ZjVmNmQyYzRiYzRjNGVlMTZiN2EyOTA4ZmE3MzgzNDBkOTI3YWFmNGY5N2UxOTIifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L237-L255",
+          "version": "repo-lines-v1:sha256:9967143c1daa2a4e000d42338c6823216781ad0764ddc352a316f5d9f0b01428:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNGMxYzJlMGQ4OGYwZTJmOTIzODVhYzBjOWNjNGE0NTY5ZTIyYjVjNjA1MmE1N2VlZmRlNzJhM2UzODYyMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhYTY2ZjA0NjcxYThlNzAyOTEwNDczYzY3ZjUxODVjMGNjNzY1MjlmMzFkOGQ5N2QzNThjNWRlNWY3YjA0MjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZGZlMjY4YjQ5ZGIwZTE2YTg4NWZjYmQ1MmU3YmU2Nzg1ZjdkNTFmOTgwNjk1OWQxZTRhNzhmNWVkNWFlMTUifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L302-L322",
+          "version": "repo-lines-v1:sha256:cc98276cac84c590302ecfe41a3bf5b73a105e3e03f69b1a03daa5a65e72dabe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmMmZjY2QxOGU1OTA2N2VkYzI1M2UzNTU2Mjg3ZTkwNmUwNzYyZTAxN2FmM2IyYzBmMzFmNWRjM2UzNTNjNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MGEyN2EyNzRmYjk2NjEzYzg3ZDBiZTI0NDhiZWNmMWFjZjU1NjNkY2IyMWNhZDY5ODE0OGMwN2U1NmYxMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1Y2IxZmJjYTU1ODI3MjJjZDRlOGQyNGRjYTdiMmM2OTUwNjgxY2Q2ZjQ5ZmZjODVkOTFkYjhhY2MyZjg3M2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7303dd91fc3742308fc888b5710b7980",
+      "statement": "窗口与「最近失败时间 + 之后尝试数」是报告判断失败是现状还是旧账的唯一依据：累计比率无法区分两者，报告只能陈述事实与差值，不能断定已修复。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-09-15-log-analysis-report-fidelity-design.md#L84-L86",
+          "version": "repo-lines-v1:sha256:4f0db36a442f396f3808c8922165a949ff3e896669ab227231f2f4fd9feda78c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTRjMzU4OWMxOGM1NzgyYzY5ZWQ4MTQyY2MyMzc1ZTk2OTdiODZkZTQxZjMxZjE2YTViMTRiZDRjMzhmZWJhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGZiMDQ1ZTU0ZTM4ZjkzNDRjYjQ1MDU1OTA3NDJkYjY4MWE2ZDkwMmM5MjY4ZTYwY2E3OTJkMDBiNTk0ZDlkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM3YzViMjkyZmJhMGViYzExYzg2NmYxNTM5NDg4OWUyNThhYzBlODk1Y2Y5MjM2N2Q0NTM0ZjVlMGYxNDcxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDgzMGFmMDQ4ODQ5OTFmZTVlMjY5NmU2ZWQzYzJkODVhZjcyYzUwOGVlNTEzMGMyYjgyNzM1ZWExMGNhOWEzZCJ9"
+        },
+        {
+          "resource": "repo://docs/plans/2026-09-15-log-analysis-report-fidelity-design.md#L9-L20",
+          "version": "repo-lines-v1:sha256:ab6f8b086322d8cfa7b1c2ef0a9f44c75f7fd42542b887ad6d120ff80e60a697:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlODQ3ZDcwYjI0MmJjNGM3N2E1ODBkMTY4NjliNzQwYThhZjVlOWMzMzM4YWY0M2RiYzAwOWE1MDJjZmVkZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzZTdlODZlZmUwNzJkZGViOGYzMDkzOWJkYzY1OGY3ZmM2YzAyNTZlY2JhMGMzZDU2ZGJmZDY4YTY2ZDgxZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNGExNmJhYjlkMWJlMzI1MzZkNjY2MGU1MzdiZjc0OWYwODhkYzA1OTliZGY3MWNjMzAzZTQ3ZDM3YmI1NjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3ZGVmZTE2YzJiYjQyYTM0YWJmOGZjNjE3OWFmOWYwMzc3MTRiYTYxYjVjZmY1NGUwZmQ4ZjI1ZjY3Yzg2ZjYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L261-L272",
+          "version": "repo-lines-v1:sha256:70c096cc2757cfc166b3720afd098561eb11357a40d4bb8e67810d7e48b6cb30:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNjYyZTEzNzQwNmUzNzdkY2VjODU4Njc5ZjIzMDFhYWIwYzBiZmZhZWE4N2JiM2FiNTllOGQ1YWUwMTgyNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjYjAwYWM0ZDRlODRjMTJiZjJhOGI4ZDBkMzFkNzJjY2E4YjhiMjU4MjI1NzAzNzEwNWZhZjllMTA1NGQzNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0MzQ2ZDM4OTA2MTkxOWIwOGZhZDlmYjRmYWZiMGVjMjZmOTBiOWYwNjU0Y2EwMzZlZGE1MzQ2NzdiYjJmYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1ZmFmYjdiNzM4OTU0ZmRmNjhlMmU5NzQ5YWE2MTY0YzcwNGY4NzYwN2ZjODFhMDM4MmEzMDI3NjUzNDdlY2EifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L248-L262",
+          "version": "repo-lines-v1:sha256:501ae1e423442df0b9ed474a31ec9667faeac30f95de232ab339f28ee44f3d0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZDU4Y2U5MjEyMDZkZGQyMmU1NmJmNjJmY2IxNzczOWI3NWM4YTk4OWRjNWMxMzc4N2ZhOWVhNjhmNTFlOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlZmU4MWE5NTZkMjkwOWU0YmNjZGRhNzc3YTU0ZWI2ZTFlNWY4ZTE3NWJlOGJkMjgwYjgxYmQxYzdhY2I2NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxNDc4NDcxN2E5M2QwYmQ2MGFlNjRjYzBiY2NmYzA5NjkwY2JmMzM1ZDAxNzI3ZDlmNzM0ZWJmMzI1ZmFjYzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dfc1dd246a8b4e949415382dc3061e80",
+      "statement": "失败路由只按白名单从 `metadata` 提取 `provider`/`model`/`status`：前两者必须是非空字符串、`status` 必须是有限数，否则 `route` 键不出现；`metadata` 的其余键不跨出遥测服务。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L516-L538",
+          "version": "repo-lines-v1:sha256:b257961d9ce676ebdc41dd96860fd4a72e608d3d651d28687e13329a69976691:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzA3YWIzMTRmNWUwNTJlYjFkMzc4Yzk1MmVmYTU1ZTFhMDIzYTQ4NGE2ODZmOWIzMWY4YWZlNjczNjljMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMDEzMGUwOGQ5NDAzYmFkZWYxZDZkMWQ1M2Y1MGEyNTVjYzRlNDVlNmYwMTE0ZjUwOGVkMDhhZWIwZmI1NGIifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L257-L292",
+          "version": "repo-lines-v1:sha256:308b8c070844e4fb694624fb0745d868b020f6980c267319a2bb4c9bbbf6818c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwODUzMGE1ZTNkZjE3MjM1MGY5ZjUyZjY2Zjc2YzRmOWI0NzYyN2Y5YzI5ZmZlZTEyYjlmNjFhOWE0MGQ0M2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkZDQ5OGRmNWFmZDgwNTI4MWM3ZmMwYjM2MDRkM2Y1NWExMTk4ODY1OWE2ZmFmZDNlNzEyZTQ1OWY0ZTU3NWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3N2EwZTkwZDJlOGMwZDAzZWViNjk2NjEyMjZlZmQ2YzUwZjExODM5ZjcxYTMyOWJhMzVmYmM4YzU2ZDJkZjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eedd0b58b9ca496eb0f34a9f88f79d75",
+      "statement": "遥测在写入与分析出口各跑一遍同一套脱敏规则，且只作用于自由文本；`code` 与 `featureCodeRef` 始终可读；`provider`/`model` 这类路由值不匹配任何默认规则，因而能在脱敏后存活。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L380-L427",
+          "version": "repo-lines-v1:sha256:fe5c732b4f52a4c63ddc868d87eeff6e8eb4c1362c92c4cc36fccbb08661831c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0MjY3MjI1NzdkODg2Y2E0ODFkODNlMzRmZGZlMzY5MjM0NjQyYjI2YzY5ZjM5NjJhNjcyYmNhN2JkNDEwNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3YWU5OTUwNmQ0OTJkMjU2ZDYwNzk1ZGY4MzAwNmZkZDQyMDFiZjAwNDU0YTI0YjBlOTU3NmNkZmFlNDJlZmMifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tests/redaction.spec.ts#L106-L112",
+          "version": "repo-lines-v1:sha256:a9111850f8dc52f9cd2f71e6d535ffe5fe035d0dee422b0dbc9425f32c2454a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjM2YjY5NzM0OTFlODk0ZjI5ZGZjNTJkZmIzODU3NGUxODg1YTExNDNlM2U0ZmVlY2ViZTdiOTk5YzA3ZmQzMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDI5NGUzOTEyNTY2ZTYyNjk5ZTdjNWE5MTQ3MjI1NjU4YTFlMTAwMmJmMDFmYzNlMGM3NGFlNzVmMjJkM2Y0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWJkY2JkZTY2MmE2OWZiOTVjNGMzYjUwMmI0MGY0MGNlOThhYzk3ZmFiMTUzNGEzZjU4ZmI3OTgxMDEwZjgzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDVhYjA0ZDJkMWFiNzFhZDBkMmE4YjY1OTdlZTczNDgyOGEyNzMwZWQ5ZGRhM2IzNTg4ZDQ3OGYzYmYyYzhmNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_03515c7dbf474682accaa6ca5154a4d5",
+      "statement": "`memo.analyzeLogs` 把下游所有失败（遥测服务缺失、github-issue 服务缺失、`route-missing`、`llm-failure`、`invalid-url`）统一折成 `github-issue-failure` 并只保留底层 message，因此看板无法从码上区分是哪一步坏了；逐步区分只存在于 `github-issue` 服务自己的返回码里。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/types.ts#L89-L105",
+          "version": "repo-lines-v1:sha256:fea6e657a7ddb1a71f65cf60be96c76ea259d356acb2afa57c7b8a6b145bd49b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NjdiMmFjMzU1N2JjODgxMzI5YzRhYmY0ZDFhZmI5M2NiZmNmMGM5Y2I4MGQwZmVhNDMyYTY3ZWFjMWViMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MmJhYzk1ZWU2NjNhYTAxNjM2M2VhOWZkYzQ2NjIzMmY4MGRiOTRkNmU3NTE4ZTE3MjBhNDc1MzNjNThhNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDY3OTdmYWU5NGZmOTc3NjIwZWU1MDQ3MGIxMzZhZWQ5MTRkOWVmYjA4YzM1OGRhNWM2Yzk1ODE2YTc2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwOTFmYjg5YmEyZjI4Y2VmYzY5ODIzOTk5NGNkZTUyNmVlZWFjYTg2OWQ2NmVjZGZiY2Q0MjcwOGI3YTViOTMifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1640-L1685",
+          "version": "repo-lines-v1:sha256:d8ec541978ee66f5fe8794c7b266c0df5f720cb1ee08af11f9f216600d62daf1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4NjM5ODVlOTlkNTI0ZDQ0NWQzNjViMjRmNzM0ODAwMzQ0OWUyMTg2MjI2ZmEwYTIxZDBkZWQ3MmJjN2YxOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NTU1ODllOWRhYzMwNjVhYzM2YTMyN2RlZDk3ZDk5NDkxN2FlYzdjZjlkYjRhODFmZGZkNmZjMmYwYzZhNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwMTBhMGQ0YTdhMTczZWRjZmU2ZGEzNTA3Y2VjOWVlZTExMmM4MWE4ZTk5NjY2Mjc2MWZjMjFiYWE4OGQ4ZTgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L269-L303",
+          "version": "repo-lines-v1:sha256:88f85225e15c77b7612b58bbfec4d06ab748e019692d2e41909941f535fe61a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwZmJiMmY2ZjRkY2RlZGExYTU0ODJkZjNjNTAwODIxNGZiYmY5MTNkOGMyYTk3MTZiZGJlZTJhZDk0NzEwMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkYjc2OWRiZjEyMjQ1YzU3MjYzMzc3NWI5OGI4ZGYxMGZmZWFjNjFkZjllZDExZGZlNWU3YmU4M2ZiNDAyYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjOGI1ZjgxZmUyODI4MTA3ZTRkY2NkMDUzMWIyOGJmM2NhYTlmMGExNTFmMjMwZTZhNzNhYTVkYzhlNzUxMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyN2JjOGNkZTg3OGE3OTU3MWMzNGViNDExOTdhNmZjOWQ3M2YxMzRkNGVkYjZiMjliMDBlMWQ5MDIxMDAxMTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d632fd524a242dd916e95d995f08f3d",
+      "statement": "零事件不是失败：分析给出零计数且没有 `window`，`generateReport` 仍被调用，提示词写 `Analysis window: not recorded` 与 `(none)`，报告照常生成。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1024-L1034",
+          "version": "repo-lines-v1:sha256:4093ff7c1427b60f88937fda2b482fe2bc7699f72f584f7a14bdfcefa86b2477:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YmJjYWUwOTk1YTZjMDBiZjc0ZjY4ZGNhYTVjYmM1ZTg4MTE4MWQ0ZTljZmRkYWRjNjA4NjczNWM3ZThmYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxYzkwNWIxNzBkYmYwZTZmODQ2YmE0OWQzM2Y5MTgwZWY1MTNiYzAyNDFjMWZjM2E1NTAwOGViNWE0NzJjNjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjZGUxNGNhM2NjYTk0ZjNmMzY4OWFmMmNmMWUwYzUyNWE2YzBjNTUzY2VlNzg5ZTAwOGY2YTUwY2Q0NTQyZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMGVmZTJiYjU0YWJlYzFiNDMyMTg5NTQ0NGQxM2VjOTA0ZTEyODM1NjgyOTc0NjBmYzc5OWEwYTc0MmY0YzcifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1655-L1675",
+          "version": "repo-lines-v1:sha256:7c643fc9754fe210a113426edf216cec47feb8392950ba398e15abd5e3455909:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViOTUyM2VkMGYxZmI5ZDA0OWEwNWFkN2Y4OGUyM2FmM2M3MDM1ODk1ZTVkOThlNjhiY2IzNGYxMTE4NDc0ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYjYxOTU5OWQzYjQ2OTAyNDZjNTU2Yjc3ZDdhNDY3ODBmMjBkYzRkYWUxYTM1MDA4Mzg4YTA1OWE0N2U0YTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMjM4YzYwYWMwZjk4Njk4MWU2M2VhMTZlYmM2YWM4MzZkNTFjNzIxNDM1NzViMTE0ZWQ5ZmU5OTE1NjU5ZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliNDU4ZTQ2ZjRhZDcwNDQ3ZTExZmJhNzhjOGFhNmRjNzRhODJmYzNmMTU5OTkyNzM3YzI5NjhlM2RiMzcxMTcifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L205-L214",
+          "version": "repo-lines-v1:sha256:89f098a9ea7f869ff7a6921e40bc06ceeb3ea0234469f886eb8614d24e98e87b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxOGE1MTIyMTZlMWVjNTU2MTdjOGM3ODlhYTc2NWYxM2JhZWQ0OTNhMjU1YjkwZDBiODNkNjQwYWEyNThlNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1Zjg4ODVjNWJhMWZlMzMyMzg0NjRhZTg1NzQ5YTBmYTg1YjFhMWM3MDNhZWM1NDliZmZlNDM3Y2FmODJiYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwYTgzMzEzYzdhNjk5NGE5Y2ZmZjE5ZDFmMDFhY2VkODE5ZGNmYWU5YjAxZWMzNDRjOTFhNzZiMDg1MTBmODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1485aa35da144cbd833c62a716eb5f05",
+      "statement": "遥测记录粒度不对称：`generateReport` 成功与失败都写 `github-issue` 事件（成功也带路由），`prefilledIssueUrl` 不写任何事件，`memo` 只在 `analyzeLogs` 成功时写一条带路由与插件清单的事件。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L497-L510",
+          "version": "repo-lines-v1:sha256:93a1b12fb84401cca1b1b1c1530f66b7a176e191f5127b394351e694300895ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZjNhMGViMDFkMjBhMzkxMWE0OTA4MTk2YzQ4MDYxYjU1NWEzYzYzYTNhN2IwOTE3ZmM4ODdmZWFjZGVkYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjU5Y2E0OWU0NzUwNGYwODU4OTc2ZmVmYTMxMTY4MzhhODIxYWRhNjg0MWI0NzljOGYxMzlmNGY1ZjlmNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZjc3NTE4YTg1ZTA3MDQ4MzE2MDU1NzBkNWEwMGY4NjFhZjk0NWU2OGFkMGE3MDliN2Y0YTRkZmVlZDcwODMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L523-L533",
+          "version": "repo-lines-v1:sha256:99e4f51d680793b6c23a5af3a1a7410d30c6eb6d83320506efb2fc14290ca29f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ODY5ZjJhZjg3YjVlMzU1NGNiNmQzMDhkZTlmZDVlZWE3NWU5YTk4ZGUwOWQzMGE4YTRlNzdiNTliYjdmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNjllZjRjM2VkOWM3YWRjODUyNTI5NmM1MWEyMGQwZDEyYmE0NzkzZjI1ODE5ZDk5ZTc3YWMyYjljNjAyNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyMmIyOWM5ZWE5YjdmMWJiMjIzMjM1MzFjMzM2NGY3YzQ0NGI0OWJlMTY5ZGY0MmE5MzYyNWY2ZjFhN2FlZmMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L899-L932",
+          "version": "repo-lines-v1:sha256:eb81944c800d45735f7a7e8da44b565beffb93869fe70b38a50f61fab56ae5f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MDgxMzUxNGExNWQ1YzljNmQyZWYzMTZlNmNhYzY5ZTg5YjY1YTcxNjJjZjFmNzQ4ZjY2MmU2NzY2YmZlNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYmZhNjk1YWNiMzYzODcwZjRhZjA2NDljNDI3MjcxYjY0Y2NhOTgzODE4OTdmMWUzMGI0ZjBiOTRmMjFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2YWZiNWM2MGUwMDg3ZWQxODg0YTQxMjMwYzE2ZjY2ODc3M2NhNjM0YTUxYWQzNzgyNDEzZTA0NTY0YWI0M2MifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1704-L1704",
+          "version": "repo-lines-v1:sha256:a2842ae7204ad2dfbf88452baf13a0c8f539b2cad6ff5bb027c900be61765bcc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTI4NDJhZTcyMDRhZDJkZmJmODg0NTJiYWYxM2EwYzhmNTM5YjJjYWQ2ZmY1YmIwMjdjOTAwYmU2MTc2NWJjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTI4NDJhZTcyMDRhZDJkZmJmODg0NTJiYWYxM2EwYzhmNTM5YjJjYWQ2ZmY1YmIwMjdjOTAwYmU2MTc2NWJjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM5ODkyZWM5MmRiZTNlZTcwMTI0N2FhYzdlZDU4ODczMmVlOTM5MThlYjBkYTJlNjdmY2U4ZjhiYWYwNzdhNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGI0ODhkNmZhZmFkYmJmNTg2ZjZkM2E3ZmNiZjYzNmExM2FhOGFjOWFmOWQ5NWIxMDhmOWM3YjBjYmQ1ZGQ0MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_57f870f158fc4de7a5c72ef6b065cdf0",
+      "statement": "日志分析会写入它正在读取的同一张遥测表：每次成功运行在 `memo` 下追加一条 `analyzeLogs` 事件，并在 `github-issue` 下追加一条 `generateReport` 事件，因此反复分析会增长事件总数并可能移动窗口上界。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L505-L505",
+          "version": "repo-lines-v1:sha256:2c1aad73315965456cde93c0d870e9b84d47c7b9fac1a5a09f366b41ef3c3908:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMxYWFkNzMzMTU5NjU0NTZjZGU5M2MwZDg3MGU5Yjg0ZDQ3YzdiOWZhYzFhNWEwOWYzNjZiNDFlZjNjMzkwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMxYWFkNzMzMTU5NjU0NTZjZGU5M2MwZDg3MGU5Yjg0ZDQ3YzdiOWZhYzFhNWEwOWYzNjZiNDFlZjNjMzkwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODlhYWU4YjRlODBmYjdiZDdmOGMzMjA2ZjAxMmQzODJkZTEzOGZmYmMyN2E2ZTNhYzgyMzg0YzI2YjU3ZmNiYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQzYzYzYjc0YTUzYTM2ZGQ4MzQwNjE2NzU0MmRkMjVkZDMwOTQwNGY5ZGU3MjBhNzU1ZmY0MGRiMTM3MDEzZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1704-L1704",
+          "version": "repo-lines-v1:sha256:a2842ae7204ad2dfbf88452baf13a0c8f539b2cad6ff5bb027c900be61765bcc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTI4NDJhZTcyMDRhZDJkZmJmODg0NTJiYWYxM2EwYzhmNTM5YjJjYWQ2ZmY1YmIwMjdjOTAwYmU2MTc2NWJjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTI4NDJhZTcyMDRhZDJkZmJmODg0NTJiYWYxM2EwYzhmNTM5YjJjYWQ2ZmY1YmIwMjdjOTAwYmU2MTc2NWJjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM5ODkyZWM5MmRiZTNlZTcwMTI0N2FhYzdlZDU4ODczMmVlOTM5MThlYjBkYTJlNjdmY2U4ZjhiYWYwNzdhNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGI0ODhkNmZhZmFkYmJmNTg2ZjZkM2E3ZmNiZjYzNmExM2FhOGFjOWFmOWQ5NWIxMDhmOWM3YjBjYmQ1ZGQ0MSJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L186-L199",
+          "version": "repo-lines-v1:sha256:43c16c550ef2ca93510c80a250a837582e29ee21e4e58c5bec07dbe23fee8ab4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYjliODA5NjQwYmViMTdkOWJjNTI2OWY0OGVhMGNkZWFhNTdiNzNmZjBmYzU2ZWM2OWRlZGU1YTU4NDgxNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0OWViYzEyOWUzMTRkNjRjMTc2NTNjMTI2YzNlZTBhYzQzYzIwNzgxZmQxOGQ2MzEwNzBhNWFjYTBlZjJmZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzRiMjVlYjM1NGJiYzJiYjM4ODMzNDEzNmRiZDIwZDFmYzdlNmU4MWI4NzRlM2VjYWI4ZjY3NmVlNTlmYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_72d9c79119814c0ca22681745830ae00",
+      "statement": "预填 URL 要求 `repoUrl` 匹配 `^https://github\\.com/[^/]+/[^/]+$`，否则返回 `invalid-url`；长度预算按合成后的 URL 计算，超限时逐步截短正文并追加 `prefillTruncationNote`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1072-L1097",
+          "version": "repo-lines-v1:sha256:dd3e5a29f9194265c9d1f98e199462defa477104cbdd0a6d0ce6dd1101158505:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhYWE1NWFlMWJkMzdjMDJjZGZjZDUxNzc2OTNhYjQ1MjU2MWM3ZmIyNDNhMjk4ZjFmOTg3ZTllMmQzNDFhNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYjk0ZGYzYjFjZDVhMTVjZTcxZmIzYTNlMTVmYzM5YTY5YWM3MzY3YzZjYTU2MDUzZjY0YTY2NjBhMmQwMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2Yzc5M2I1M2RhMzdkYTEyNTExYzc4MGJmNTZhNDVjMGIwNmRlOTA4NDE0YzAzMzMzZGRiMjczMGY0ZTQwY2IifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L150-L170",
+          "version": "repo-lines-v1:sha256:0264a3cda9f19d3c59ee00f26cd3143b80b6bc21f395ad649c66770e3f635a72:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxZjZlMWNiNDljNTdkYTE5Y2E1ODNmMzA3ZGZiNGFmNWY5YWU4YmQ1Y2U3ZWRjZWUzMjQ5YWNkMzllZjAzMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ODI4ODY5YmNlMzA1NmFlMjNlZjMzMzAyYzdiMmIzMDFiNmU1ZmFlYmU5MDYwOGVmMWJhOWVjZDNhZThlMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L523-L533",
+          "version": "repo-lines-v1:sha256:99e4f51d680793b6c23a5af3a1a7410d30c6eb6d83320506efb2fc14290ca29f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ODY5ZjJhZjg3YjVlMzU1NGNiNmQzMDhkZTlmZDVlZWE3NWU5YTk4ZGUwOWQzMGE4YTRlNzdiNTliYjdmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNjllZjRjM2VkOWM3YWRjODUyNTI5NmM1MWEyMGQwZDEyYmE0NzkzZjI1ODE5ZDk5ZTc3YWMyYjljNjAyNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyMmIyOWM5ZWE5YjdmMWJiMjIzMjM1MzFjMzM2NGY3YzQ0NGI0OWJlMTY5ZGY0MmE5MzYyNWY2ZjFhN2FlZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bd513f585cc14ebdb654bbef23eec369",
+      "statement": "返回给看板的 `analysis` 是合并分析的再次投影：包含 `errorCodes`，但不含 `errorMessage` 与 `stack`，因此与喂给模型的那份载荷不同。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1686-L1703",
+          "version": "repo-lines-v1:sha256:b3614ccb1399d41fd2d161e1a08a2fa55e50824a9a66b6acec513c05566d5dbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkODE1ZmVhZjQ0YzY3OWM1YjYyZDM1YWUyYjAxN2Y2Yzg2ODY5ZDQ3OWViYjkzNzJlYjExNGE1YTA3YTJiZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYjYxOTU5OWQzYjQ2OTAyNDZjNTU2Yjc3ZDdhNDY3ODBmMjBkYzRkYWUxYTM1MDA4Mzg4YTA1OWE0N2U0YTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzNDUxYTBhYTZiM2UzN2EwN2ViNTg4MDAzYTU4ZjBkZmEyOGIwODU5MzY4NGNlNjJlMDY5MjVhZWE3NzhiNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3ODZlOWRiZThlMWY5YzU1MzJlMWMwYjUwZGRiNDU2YjE4YjE0YzQyNmJlNzYzNDdmNTYxNmQ1YzJhNDljZGEifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L229-L267",
+          "version": "repo-lines-v1:sha256:aa47f7f4e4da45f82600162a8e4ab0842623a6c8d5c2522fc175e5869dc369f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMmZlNTQxMGNjZTcwMmY5Y2VhNzdiOWE1YTRiODVjY2Y5NGNhN2M1MDc2MjQ2NmI4ODk0OTU0YjM3NzBiMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5ZDlmMmRjMzUzNzgxMGU2OTY3MTBiMTQ3MWQ0ZDEwMTMxMDU0MzdjOTFmZmU0ODdhMjg3ZGUzNTE3ZDEwMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YjMzMDEzOTA1OTBiZTdlMjVmYjVhMTNjOGU3N2Q0YTkxMDE5ODIxOTVlOTBkNDM3Y2I2OTczZDkzNjU2MDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_46195adc0652433fa7b002d52d9bde6a",
+      "statement": "看板的日志分析卡片展示完整 `report.body`、打开预填 URL、并可复制完整正文；而直接建单的 `createIssue` 读的是 issue 编辑器的 `issueReport`，所以日志分析报告不能从该卡片一键建成 issue。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L230-L252",
+          "version": "repo-lines-v1:sha256:99c264a9a20ceb66d1539656d0b7a3afedc67b2daa308e14793eca91b39fabb7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkYzQ2MDUzZmIwZDAwNWY4ZjYyZWVmY2RjNzVlY2VhNTI3MDg3ZjFlNzgyNDdkNzY0ZWMzNDY3NjZlM2M3NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYjhlMTQxNjFlOTBlMGQ1M2Q1YTk5NzU5MGRkNjJmMmJiZmU1ZTA0NWEyMWUyYWE2ZDQzNjQyY2JiNDk1ZWQifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L482-L525",
+          "version": "repo-lines-v1:sha256:12ad9384c84d5f52c29cce62b7d4f42fb9255006e4a5871d02a85a945c1369b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiYjk4NGFlMTYyZDE4MTY5NTIzMDc2M2U1ZDE1YzExYzFkNGU0NGE3MjExYjViZjA4MDA1MjE5ODI5YTMwYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MTlhYmFiZGVmMmU0MTY5YzQ0ZmU2NWJjMDI1NjEwZjQyYWE3YTYxZjAzZDIxYzVjYTQ4Yzg0NGE1Y2YyOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxNTI5MWRjZWU5ZTU5NjIyY2U1MWEyNWM3Njc2ZjQ2ZmYzMzEzYWZjYmVkYmZmMDU0YzFkMGJhMmFmYTY3MzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmZjE0MTA3N2NkMzZmMzBkMDgwNTBlM2M0MWVlNThlZmI3OWE2OTRhMWM2NGI4NzJiOGUzNDI2MzcxNTQ1OWYifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L1042-L1072",
+          "version": "repo-lines-v1:sha256:444b013710c417699ebe26026de6c3d36752794be92cb9e7a5d2fa2d44b47b2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZGRlYTI5N2YxZDlmMTBiOWY4MzI5MmNlYmU2NzZlOGRmYmE2YzZmNWI4MDk0YmIzZDRmZjBkMDU1MjU1ZTgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L1074-L1087",
+          "version": "repo-lines-v1:sha256:508b16d8a57bf8049389723f728f805f5e0e9ddc3444bccea098e92d477990dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhZTVkYTQxMDM1Y2Y2NzA1NDRiZjNhN2YwYTM0ZjBlYTU3Zjc5MGZlYTRhNjI1MTZmNzhiMjU4NmY5NjA2YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0ZjVkMzIyYTcxODRlYzM5N2Y0NDE2ZDAyMWE4ZTYyYWE5OGY3MWNhNTQxMDgzMmM4YTBhZGUzMTI2NGE4M2EifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

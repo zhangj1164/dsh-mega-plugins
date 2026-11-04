@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:79dacea89ec420a00130b7d0a367a3de88e05d04882711eb0d3f13febc0acda5",
+  "pageVersion": "sha256:fb6db4400598f6a43374405a843720420462a195c998999ca535ff9da5d866f9",
   "claims": [
     {
       "id": "claim_8944350e8f98493f8e09963e651e1fe9",
@@ -130,7 +130,7 @@
     },
     {
       "id": "claim_9e8b61ef62204fc49ad99b57df46f10a",
-      "statement": "分析（analyze）与导出（exportReport）的取数同样经由 collectEntries → weekMatchesPeriod → weekIdBelongsToPeriod 决定成员，未知维度返回 false，因此“面板上列出的卡片”与“该周期分析读到的卡片”是同一判定；collectEntries 的注释仍写着旧的按前缀匹配，实现已是星期四规则。",
+      "statement": "分析（analyze）与导出（exportReport）的取数同样经由 collectEntries → weekMatchesPeriod → weekIdBelongsToPeriod 决定成员，未知维度返回 false，因此“面板上列出的卡片”与“该周期分析读到的卡片”是同一判定；collectEntries 的注释仍写着旧的按前缀匹配，weekMatchesPeriod 的 @returns 仍写着按周一判定，两处实现都已是星期四规则。",
       "evidence": [
         {
           "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1246-L1249",
@@ -345,6 +345,60 @@
         {
           "resource": "repo://packages/memo/dsh-memo/src/index.ts#L976-L990",
           "version": "repo-lines-v1:sha256:4728c77ad4f5845c41f98345c50138d008c7e895b4c4661c349579f2ed7ac33a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTYyM2MxMzVkNWIxMjQ5YzY2MzUwYWJmZjY2MzA0MjJkNjQwMTBhNzgyNTQ4M2JiNjM5MTJjMWQ0Y2M2ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkNzY3MmZkZDk2YzhmMjMzZWE2Y2Q1ODIxMzgzZjM2ODhjYzA4ZDkzM2M2MzQ2N2ViZWE5ZTE2NDIxNjQzZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3ODI2YjA3YTE4M2NmNWY2NDczMmMyMTlhOWJhYzUxYTgxMTI1YzQ2MWNkYjk5MWFmOTUwNGI4YTAyMmRiOGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bef286429f554679b5f13e54e55f4404",
+      "statement": "“形状两侧共享、归属只由宿主计算”这条分工由依赖图强制：@zhangj1164/dsh-client-ui-memo 只从 @zhangj1164/dsh-memo/client 导入类型（MemoAnalysisPeriod、MemoPeriodEntry、MemoWeek 等），从不导入宿主已导出的 @zhangj1164/dsh-memo/period，因此浏览器包里没有那套日历数学可调；controller 测试 asks the host for the timeline instead of computing periods locally 进一步钉住刷新必须发出一次 memo/listPeriods 而不是本地生成周期列表。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/logic.ts#L12-L12",
+          "version": "repo-lines-v1:sha256:cbeebe7c1598700677ade9d323a8f2000c3ce59cf1a0289663e2b11098af0e9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JlZWJlN2MxNTk4NzAwNjc3YWRlOWQzMjNhOGYyMDAwYzNjZTU5Y2YxYTAyODk2NjNlMmIxMTA5OGFmMGU5ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JlZWJlN2MxNTk4NzAwNjc3YWRlOWQzMjNhOGYyMDAwYzNjZTU5Y2YxYTAyODk2NjNlMmIxMTA5OGFmMGU5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMxNWE1Y2MxMzFlMTcwNjM4Zjg4NzliMWJhZmRkODQxZTE4NWI2ZDJkOGNiMjMxNzNmYzM1OTM4ZTI5YzJhYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjgzZDFlNWRkYjRlODAwN2ZkOTQ3MGViNGJmMTJhZGJjYmQzNmQ2MTQwYjRmMjQwMmUzNTY2NTE4ZDAzOTdiOSJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/tests/controller.spec.ts#L49-L55",
+          "version": "repo-lines-v1:sha256:4272ef17df8a5d861598f16a698f1b6bcf40d80c10e23513deea95378264c18e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGE1NTAyYTAzYjY5N2NmMWY2ZWFmYzMyNWJkMDUyNTIwOWU1NjM3NDg5ODdkMmIwMzFkZWIyM2EzMWI0M2Q5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4ZTM4NzQ3OTA2YTA4MzUzMTk2YzYwMDNkNGQ4NmRhYTY5ZmQ3ZWMwYzBhY2YzZWY5YjU2ODA3YjhiMDIxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDYxM2VlNTFiNmEzMTFmNGUzMjdjNGM3Y2Y3NmI2MWI4ZTVhMjc1MGE3NmY3OGM0OTdlNmNjZGIwMWY5ZGM0NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L100-L115",
+          "version": "repo-lines-v1:sha256:fce3fd690512c3c0348a9e49a3bd288fa1362704cbd5a01ce4e984684eca45e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOThlODJiZjJhNTAxZjEyMWUyNDgwMTNhMTRkYmZiOTMxY2UwMDQzOGQ2MjdlMDVjNTNiZjA3YmJlNTQ1OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYWE1ZDIzZjIxNGNkMjAzNTkyMGE0Y2I3NTI0YTE5ZWY2NmRlNmJjNTk1NTk5NmI0NWRiMDJhODhiZTc2ZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1ZWI4ZWUxMGI4ODI4OWZhOTEzNmVmOWFmNjZkYTI2NTQ0NjMxMzMwZWE1ZTJjNzI2OTcxMmY3MDg3MTQ2NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNTdmOWFhZmIzZTU5YjJjYzg4ZTMwODIxNzg5NWZkNTA3NjgyMTI1ZWQ3NDk5MTE2YWE3M2I4ZDhmMDRlOGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d874eaa86ff4524a731e1571a94463b",
+      "statement": "listPeriods 的时间线只含当前周期与过去周期：offset 从 0 起、标签一律取 shiftPeriod(currentLabel, -offset)，所以永远不列出未来周期；但这只是导航契约而非写入约束——appendEntry 只校验周 id 形状并过归档守卫，一个未来的周 id（如 2027-W05）照样会被写入并建行。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1016-L1046",
+          "version": "repo-lines-v1:sha256:207bfbd6b76284b349fbd35c1f2eca4224df32060c7683a83b815dac2c4d0e85:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2NmJmNTA0YjNlNmI5ZTBjZWNiMGNiYzBiYjJjMWY2M2QwMTg2NGJlMzBjOGRlYzIxMmVjZGUxYTE2ZDUwNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDcyYTU3ODYxNTVmMjA5MjU0NzM4ZjNjOGEzZDMwOTlkZTY0NjVlYzQ3Y2QwOGJlODkwNjExMTgwZTM3ZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwOWY4MDczYTdjY2MwNGEwMGVkOTc1N2JmNzZmOTEwZDdkNDk5MDlmODMzNDE3Y2M4NWQ3MDAyMGJjMWM5MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyYmY5MzA4NjcxOWJlNjczMDNlOTg0Njg4ZTgyNDdmNTc0NGZlNjdlMjYxMDk5YjE4YmZlNzE4ZjUyYTUwODIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1747-L1753",
+          "version": "repo-lines-v1:sha256:219a6548689c1ee6fc8742c0b29e1cc7618e5595d2930933a78df0a43e5de812:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFmMzg4NDZlOWYyN2NiOTFhODk4NWFhOTZjNTc4NTc3OGRkYmEwNmNmZTM1YzJjZTUyOWZmZDRkNTZmNDcwNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFjMmU3Nzg3YzlhNTMxZjU2NjFjMjEzNTI3OWZhMjRmZWJmNWQ2ZWRhMmEyYWVjNjI0ZmRiNWM0NjNhMmM5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2E3YjkyNTcyZTYwODU2NzQzODgzMzQ0OGFhMjRlNWY1YmMzNTBkMzEwOTc2OGFiMWYxYTIwNzQyODE5NGY1MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjBjYzgwNDljNWUzNTI2OGRhZmFiMjdjM2VjNTA1YTBjYmY5MzUxYWMyYmY5Zjg4MjkwZTkzYmZlZWEwNjZlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_14a8656b5f4d4f3597411b9450c2de31",
+      "statement": "畸形或跨维度的 periodLabel 在分析与导出路径上不会得到专门的标签错误码：analyze 与 exportReport 不校验标签，只通过 fail-closed 的成员判定得到空集合，最终以 no-entries 失败；这条路径上唯一的标签错误码来自归档的 invalid-quarter-label，因为归档写入要先校验自己持久化的主键。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1246-L1252",
+          "version": "repo-lines-v1:sha256:70515e24678308161810cda0c84ae7b6fab30e32181ba1d4bde11d10b05ce58e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQyZDUwNDQ3ZDVkMDY4NDU2MTFiZDU1YTExOWEwZGZiMzY2MWJkYWEzNDk3N2NjYmZhNjA1YjJiM2Y5Mzg1MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDk2MDliN2QyNDZjZWUzNGUzYmMwMzFmNTEwMTQ1YzhhMDU1MTA2OGM2MTM4ZDY2ZDY2MDQ1N2QyZmM1MzY2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDNhNTFiYzNmZTJlMzQwZWVhZjQ2ZmQzYjkyMzEzYTU0MTlmM2VkZWRlNjUzN2IwMGEyNTM1MzBkNmI0OTk4NCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1286-L1292",
+          "version": "repo-lines-v1:sha256:9609b1d5598393cd4e344b79f29de769a59abcd162c4900fcb437d52dbd91dde:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTVmNDc2NWI0NDg2ZTlkZTcwNmEzNGEyOGY5OWU5NDFkNGI4Y2EzNTBmYzlmODM1NjVkMzY0ODIwZWMzN2VkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2IwYzg2YzI5YTdkYjNmYzE3N2YyMzY2YzIzZjk0MGJkYmZhY2VlNDFlMmIzZmE3NzAwODU3NzdkMGJkODdmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWNmZTg0NzhmODcxYzZhZjI1N2VlZmUyYTMyOTJlMTM1NjY0MmMzOWVjMzRjNzEyMTBhZDEzZGI2N2MzZGIxZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1778-L1780",
+          "version": "repo-lines-v1:sha256:87459cd21e9d2feb65473a8dd837a5e4ce771a253e893def4b7fad851ef9b288:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2NkOGQzYWQ5YjQ3ZTc1YTdhNWJkZmYyNTU2MzY1Yzc4Mjc2ZGEzZjQyZjNhYWQzZjc4Mjk3ODE2ODg5ZWM1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJhZTkzMmNmNGJiYmI5ZWZlZjA1MjUxYzM5MzU3MGE4MTVmNTU0MjlkZmRiNzM0ZGI5ZTc2N2JjZTg5MDRhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmM3NGRkZDk4ODQ5ZjYyNWZiMjEwNTA2N2U4NjkwNTNkZmFiNzY0YmJmODA0MmMxZTc5ZWUxZDhlNDVlMWMxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWE4NzBlZDFmMDYyMDJkYTEzMTJhY2YyMGNmYWZlMjIyMTcyZDU2ZjU2MjNmOTRiY2IyZWU4OTllYTA0NTlhZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L768-L777",
+          "version": "repo-lines-v1:sha256:7edaaa30b8500906d676a29f56b3ad99098d7fec50fa6f99240c38c197e7fc1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NjZmNWUyNGU4NDRjYWY5YjdmN2E5MGNmMWE1N2FhODkzYmM1NDQ5MTZjZWI4M2IzOGM3OTZhOTM0ZDc0N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyM2Y2ZTdjZDFiOGNmNTdiODc0YmM4ODQ0OTJiODU3ZjRiNDMwOGIyZWY0NjhhY2MzN2MzZGNjNzk1MjgzNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNjJkNzZhNDIyNzc2OWZlZDc4M2I0YjM3NjRhMzliMTU5Mjc4ZjdjMTgwMzFlMTQwNDk1ZWNiNjk4NjQ2MDIifQ"
         }
       ]
     }

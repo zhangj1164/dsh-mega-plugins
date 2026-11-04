@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:403828ad41b2e191ab095dabd784807ff4350585918e0ab3e16f353aa0ebd1ec",
+  "pageVersion": "sha256:ec82eab2027fe466f682886f6b507c36882f4242fdffd6625cee0ebe95d6e784",
   "claims": [
     {
       "id": "claim_912cf2a71a98421d99b07eb0964fc10a",
@@ -411,6 +411,50 @@
         {
           "resource": "repo://packages/memo/dsh-memo/tests/remote-signatures.spec.ts#L1-L56",
           "version": "repo-lines-v1:sha256:75f97110b5bb5f60d0923c394294bd21d157e425a487b6edd8729b491df431b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2NzkzOTc0MDA3YjhkZjY4N2EzYzA3ZjY3MDgxYzQyOGFkMDEzYWZlZGU0NTA4MWEzNWNkNTZhYjMxNzBkM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4c61a24ff6044ff9b6aae547c32384a",
+      "statement": "根 vitest.config.ts 除了发现测试、注入 standardDecorators() 与别名三个宿主包之外，还把握手用的 react / react-dom / jsx-runtime 全部钉到从 packages/client/ui-memo/package.json 解析到的那一份，因为 workspace 提升可能让 ReactDOM 19 与 shell 使用的 React 18 并存，jsdom 组件测试会在第一条断言前就以 Incompatible React versions 或 Invalid hook call 失败。",
+      "evidence": [
+        {
+          "resource": "repo://vitest.config.ts#L43-L50",
+          "version": "repo-lines-v1:sha256:56cbb35fd8c0df19731f799ec9d442deacb7facb8ce1ff122529f73afece97f4:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU1YjQxYzNjNzFjZWQzOWU0M2Q2YzcxZDFhYzYwOWUyNTgxNTI5ZTBmYzFiMTQ0YmYyMWNiY2YzNWU5MTg3MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmY4N2E5MDNiNzMwNjBhYmFhYzA3ZWNmMWIyYjMxODY2OTI1Nzg5NDI0NWY5NTQ5ODUzNDhhMTc0NjI1YWY3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2U1ZTZkMTkyNWM1MTNiZWExNjZhYzNlYTk2MGNlNjg0MTk0ZDNkYjY4NmRiNTU2ZjUxNGQ5NGVhNTNlOGJjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzQ0MDc0M2MxNzlhM2Y4ZTFhODRiMDhkZTVjOGE0MTJlMGM4NmEyY2VmNWQ2OTQwYjRlY2ZiNjAzMzUyZjIwNyJ9"
+        },
+        {
+          "resource": "repo://vitest.config.ts#L5-L12",
+          "version": "repo-lines-v1:sha256:f7acbcca7999273abaa7125c63880cc48bcb9235ba5a5b73125d5d45a43331aa:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjEyODI4M2UxZGFhOWE5ZDlhYWEwYWQ4YzU5NTgxOGNlNWM0NzY5YzhlN2FmNGYxYjI3MjY5ZWU3MzU1YzU4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWQ0MzVmYzg1YmU2Nzg2NjU0OTM3ZjQwNmZkZGFhZGJhMjFlY2NkMTI1MjI0ZTc0Nzg4YzUzNTRiNTgxZWFmZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTNkYmY2NTQyZGM1ZmFmNTM1NDk5NTAwZTVkMzdmNmNmNzc3YmIzYjQwMzNmZDMxMDhmZjZiYzFmYzcyMThjMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a45b660853f0495ca5a5e34b419e379d",
+      "statement": "浏览器半边的依赖有两个互不等价的声明位置：manifest 的 dsh.client.inject 列的是包行（模块表里的词，决定哪些 require 能被 shell 回答），模块里的 export const inject 列的是 Cordis 服务键（决定 apply() 何时被调用）；ui-memo 在 manifest 声明 connection/locale/ui-layout/ui-renderer/theme 而运行时注入 slots/layout/locale/theme/connection，ui-memo-settings 只在 manifest 声明 locale/ui-settings 而运行时注入 slots/locale/configForms，slots 之所以无需 manifest 声明是因为 @deepseek-ai/dsh-client-ui-slots 属于平台模块表 PLATFORM_MODULES。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L27-L38",
+          "version": "repo-lines-v1:sha256:256320087bd7549b8e676a1a4c9b26f062672ef01d2bdf8fd63e0f197e1fe85f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L108-L110",
+          "version": "repo-lines-v1:sha256:05dd6fc70b158381ce84cd30f1e987256822db1919e2ad1c37c9f13999916857:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUxOTg5ZThiOTVlNmZjYTM0YmJmNDg1YzdhOTNkZDJkNWI3OTViYWUzZTRmN2YwM2VmNDIxZTMyNGQxYTJmZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODU1NGI1YjhmOWYyM2YzNDBhZDU5ODhmYzk3ZmIzMjdiYzRjYTIxNjI2YzY1N2E3YjI5YWM5NDA3ZGEwZmViNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTkzOWJmOGYzYmFmYWNkZmY3NmNiNDYzMzQ4NWQ0MTllYjNiNjE5YWZlMjMzNGRiMjkzMDY5ODg1YTZkY2UxOCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L42",
+          "version": "repo-lines-v1:sha256:6af79d64d6f65006b5244d2ed652b92df1baaf6e96629aad8ae5d333adfe44d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L63-L68",
+          "version": "repo-lines-v1:sha256:0b4f922cb13951f94185af78397fb88d84d6c618d8d5273cd4f72e690990a813:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ2ZTE1ZmRjNjIxZjc5YjkzYzhiYzZhYjUzMGY5NGNjZDEzMTAzODg0MDg3ODU4ZDNiY2Q4NTc5MTYyNjcwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTNjZmQxMTAyZGUwMDYzMWNiZDkzOWE4YjA1M2ZjODY5MTNmZmEyMDM4MDhjN2ZkYzY5OTU2MzY1ZGFkYTIxOCJ9"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L237-L253",
+          "version": "repo-lines-v1:sha256:e355111fafca2761d9167b4b9ea8f602df59648fefe71731b466ba4172023c4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyYTIxYTgwZjJlZTQ2NDk5ZDQ5Y2VjOTY2ZGQ3NjFkMDkwMWU5MWUxMTMwZWE5ZjYxZDY0YmJiZjMzZjFlYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzOGU4YTUwZDdiMzIyOWRkOWYxYzc3OGRiZDQxZjU5Yjc2ZDI3ODVjYmY2ZDM2ZTBiMjk2ZGU2ZjUxODdhYjIifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L43-L65",
+          "version": "repo-lines-v1:sha256:bda069f8d7fb2b13ad005fe2befd03426fd6fcb078d7a7955a083e55617c4608:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkM2I2YzViOTQ0MjJhN2MwNGYwMDkzMzgxYmY4ZDE3MDdlNmVjY2E2Zjc4NzMyMWE2Nzk0ZWEzZGYxNjQ1MmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjZjU0NDFmYTE3OTVmNzFmNzYxMGU0NmM2NzM5NGI3NTUxZTY5YTNhOWYzYzBmMzNiYzZmZWZlYWNkODBiOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmZTllNmRiYzM5NDM4OWM5Nzg5NjRlYTA5ZTdlMmNlMzQ5ZmY5ZDk5OGY4YTQ5ZGM4YmUzYmFkMTIwNTNlYmUifQ"
         }
       ]
     }

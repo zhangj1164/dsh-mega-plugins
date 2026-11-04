@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:357a0ea60a9330c16b2f1b5ab5aa0b67ce85c1ca1d0da2aaf00e09fee1771140",
+  "claims": [
+    {
+      "id": "claim_9d1ddb969b8447c68961cc32f5ddd60a",
+      "statement": "`analyze` 与 `exportReport` 共用同一条宿主链路（`requireTable` → `collectEntries` → `no-entries` 判空 → `resolveRoute` → `streamLlmText` → `llmFailure` → `track`），只在系统提示词与结果去向上分叉：前者返回 `MemoAnalysis` 并追加账本，后者只把 Markdown 字符串交回调用方。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1239-L1301",
+          "version": "repo-lines-v1:sha256:153f71f51d888d705d1f4feffaf6837b48913992fedc0653b6c331733213250b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyMjU0M2NjMjA5MTcwYzczNjg5ODA5ZTZlMmM4MGE0MjllMjVlZWU2NTc2NzQxNjc0NzBjMzg1OWRiZTM5N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNmVkOGNhMzFjOWRhMzc0NmM4YjVkMmNkODQwZWYyY2I3Y2VlMmQ3YTI5ZmYwOWFlYWQ3NmQ1Y2Q5NWM0ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4931d2bf8f4e4f48bb7a09b25d1e79cc",
+      "statement": "客户端发起分析时只发送周期身份（`period` 维度与 `periodLabel`）与可选路由，宿主用 `collectEntries` 从自己的 `weeks` 表按周期归属重新收集条目并按 `createdAt` 升序排序，把每个条目渲染成 `- [type] content` 一行；因此被分析的是存储里的条目而不是看板渲染出的卡片，`attachmentRef`/`source` 等附件引用不进提示词。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L932-L955",
+          "version": "repo-lines-v1:sha256:101d3cca4465b5bca9bacbe8605861bbf4b7f8e01d100caa4b3adbe7a1958bba:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNzVhYTE1NzNjZWM3MjVkZmEwMmEzM2FiNjE5OGViOTM2YmFhZDc0OTNhOTY4ZTIxNDdiMzUyM2RiOTc3NDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlNzAyMWYxODgzYTI4MGU4YjI5YTVlMDA0MDc1ZWY2OTQyYTcwMTJjODA4Y2YyZDc1ZGI0NDI3ZjFlOTFlYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1OTkwOGFkYjIyNDE5NGE3NjFlYmI1MGNjN2Y5ZWVkM2Y3MWI0NGI4MDYxYzU5OWVhNDcwNjVkYmJiYWNjODgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1249-L1255",
+          "version": "repo-lines-v1:sha256:dabb065592075d89fb803a4721023dc96c12897e7644513fa81f68d50414a946:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzk5MGMzYjc1NDBlYjZhM2VkZjMzMzIwZGFiNzk1ZDhkNjFhZWZjMDA1YmY0MGZmNmExOTBmNDE1MzYyZmE1ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWMxNmFiNzkzZTFhNDY4NDkzYzYxODI4N2MwZTYwODA1ZWQ2MDNlZjAyODhmMjIxN2NhNWVkZDUxNjQ3NmQyYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTkwODMwZDE1MzkzNjQ2OGQ4M2FiYTBmNzQwN2M4MDJmYzU0NzQ0MDhhZDM2YTBjMmQyMTI0ZjZiNWI0MWQ0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODIzYjc1NWFhYTYwMGUxYmY4NTNmMDM1YTJhNjA1NTFmYWY4MmQ2MWVjZTYxMGIyNmEyODQ1MjcyMjFmZmI1YyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1716-L1724",
+          "version": "repo-lines-v1:sha256:306bf4eda46d5fdaa9c0854d0af33995b52230a76fc1477c0f79e9ae82e6dc6e:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODRiODZjM2RkNDdiMjQ3MjQ4OWNkOWIzZTk3OGQzODYxZTJhOTBlNjcyMjkzMTcwYWEyZjYxN2FhOTA4M2IzMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTBmZjU2ODBjM2M2NGQ5NTA3MTYzNzFkMDExNjYxMjgzNmE3NDQzNzY5NWMyNWVmZmE1ODg1NWJmMjFhZjYyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjIyNzQzNGQ0NDZlOTQyMDMxYzViM2EzY2M1ZjVhMTdjYTJhODU5ZjEwODYyZGIwMDEyNjg2NmNlNDYyODQ0NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c569d5acd244c04af5e3873e2be4a59",
+      "statement": "周期内没有条目时，`analyze` 与 `exportReport` 都在解析路由、调用模型、写遥测之前返回 `no-entries` 业务失败，message 里带上 `periodLabel`；这条拒绝不产生任何遥测事件，所以日志分析的失败分组里永远不会出现该码。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1248-L1252",
+          "version": "repo-lines-v1:sha256:346e9e183012ac20d17dd1b5c64ffa5931a14ca40e764a7f59b8aabf3fafbe85:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTIzODg4YjNlMTMzOGJkZTcwNjYzNTAyZjNlYjM4MjVmZTQxOGRiMDQ3ZGMwMzZlMzM0YzRlYjY2ZDZiNmNhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzljM2IwZmI5ZjZiMDg5ZjE3ZWM3MzJlMjE5YjI3ZDcxM2ZkYzI5ZDlmZGJmZDJiZmE2OTUyNDQ3ZTA2Yjc5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDNhNTFiYzNmZTJlMzQwZWVhZjQ2ZmQzYjkyMzEzYTU0MTlmM2VkZWRlNjUzN2IwMGEyNTM1MzBkNmI0OTk4NCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1288-L1292",
+          "version": "repo-lines-v1:sha256:346e9e183012ac20d17dd1b5c64ffa5931a14ca40e764a7f59b8aabf3fafbe85:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTIzODg4YjNlMTMzOGJkZTcwNjYzNTAyZjNlYjM4MjVmZTQxOGRiMDQ3ZGMwMzZlMzM0YzRlYjY2ZDZiNmNhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2Q0MGVjZTdiNDczNTU2YzkyYmFmNWZjMGQ0NjljZWRjNzQ1MTFkMDAwZThkN2E1M2U4ZjU4NjViYjg3NGEzMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWNmZTg0NzhmODcxYzZhZjI1N2VlZmUyYTMyOTJlMTM1NjY0MmMzOWVjMzRjNzEyMTBhZDEzZGI2N2MzZGIxZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L238-L250",
+          "version": "repo-lines-v1:sha256:467c2ee1ad27b9c8d87915bd5a304ea511db59948fbb39cbd1b531365a64be4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkMjljOWE4NmJjYzc1NGMwYTkxMjIzYWJhODQ4MzAzOWQyM2FkZjI5YzIyYzg5ZTRlY2E4ZTkxNmNiMTk1MDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzN2RkNDAxMDQ0OWNmYzgyOWI1ZDQ4ZjIwMmQ5ZDlhNDI2ZjBjNjcwYzk0N2IzYTVjYjc0ODg0NTRlMTIwY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjZjI2M2U2ODJiMmUyMjc5NWZjN2NhOWM4M2EzYmQyOTRkOWI1MjcxODA3M2M0YTA2YTJkZGU2YjVkZGIzYTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ee94ec97a3e4022a0a9fdfd11d8a7e3",
+      "statement": "分析类型是看板的本地 `useState` 状态（默认 `梳理`，三个 chip 只改它，不进视图状态也不持久化），宿主用模块常量 `ANALYSIS_PROMPTS` 按它选系统提示词，`REPORT_EXPORT_PROMPT` 是另一个模块常量，两者都不是 `Config` 字段（与可配置的 `sessionSummaryPrompt` 相反）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L152-L152",
+          "version": "repo-lines-v1:sha256:7c4861475e894af9fde41da89037e9c26ca94e107c350c134c5fd11eafcc27e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M0ODYxNDc1ZTg5NGFmOWZkZTQxZGE4OTAzN2U5YzI2Y2E5NGUxMDdjMzUwYzEzNGM1ZmQxMWVhZmNjMjdlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M0ODYxNDc1ZTg5NGFmOWZkZTQxZGE4OTAzN2U5YzI2Y2E5NGUxMDdjMzUwYzEzNGM1ZmQxMWVhZmNjMjdlOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDRiZTk4NTE1YzQ4NTc0MmNkYTYxOGRmNmJkMGM3MzkxNzJmOTQ1ODljOWUwODEwYTUzNThhZjliN2Q3YTJmNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTdiOTdkODFmOWNhZjI3ZDVhZmViM2ZkOWJlNGFiMmU3N2MyYjhmOWQyYWZlY2M5OGRiNmVkMjM5OTFmNTFhZCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L405-L425",
+          "version": "repo-lines-v1:sha256:c742be8a0e246157b4a78c476c240b3bc5286067795f117cf57c18cb04502670:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZDBkZTFmZTAwMzYwOWVmMDEyYWUwZmM0YTRhYzc5ZGE0NzQ2Y2ZmM2IxMjEzZWIxNDU5MjdiNDk1YjZhNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NjI4ZTNjMTAzMmZjNTVhOGRkYjE2ZGMzZmFmYWEyMzY1NmNlZWU3N2M5ZWFhZjIyYWRmM2ZlMmI4MTcyNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmZDk5ZjJjZTk1NTU2MmUwZjg5NWRhNmY1NTNkNzM3YjE5YWM4ZTcwZDhiY2U4NmVlODI2YzI4ODFjN2U1YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNjU4YTFkNDU4MjQ1ZWFjZDJhYjM2ZjFlNmQ4YzA3ZmIzZmFhNDE5YWYxNDc2ODU1ZDVjYzQ0NmM3MzEyMWYifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L59-L64",
+          "version": "repo-lines-v1:sha256:e8c6f1c485e4cc9f4b4956c9e22fffe485da540e22b829b876f22215324e1fae:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmExMzU5NjFlOTI2MjZiZmMwZWFhMDhlZDI0MDc4OGJkMGFiZDc2N2QwOWVkOWQ2ZmUyNGMyNWRmYmQ3NWNiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQzYjZjNWI5NDQyMmE3YzA0ZjAwOTMzODFiZjhkMTcwN2U2ZWNjYTZmNzg3MzIxYTY3OTRlYTNkZjE2NDUyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTY2MTViMmQzZDVhZTg2ODAxMGE2MDQ2MjliMDI2MzIxNGMyNDU4YzliN2EzYzRhYmMwZWNjZDNlYjRhNWEzYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjZjOTQ0ODUyN2JmOGMxNzUxMzY2MDE3YjY0ZDMzN2RjMzg1MzQyMTBlNWVjNTM0OWU0Zjg1MDI3MTZjNGE2NyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L630-L644",
+          "version": "repo-lines-v1:sha256:24912695057f5089b8aa1b8fbba2fdc9f40c15fbf6c4a49c8b348f46264ffad0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0ZjAwYzY5MDc2MjFmM2YwYTAyOTEzZjEzMzc0ZDZkMGJjZTNkZWJkMzMxZDJjOGQ4MjQyM2UzNTg0ODYwMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTRlNTYyY2E4MTk4ZGI1YTNkNmY1MDY4MjhiNjA1MmUwMzBmZWIyMjdmYzEyZDQ0OGQ1NGFiNzg5Y2NmMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmOWQzNmRiMmYyZTI2ZjhhNTBkYmIzN2Y4NGVlZjllNTMyOTQ1NjIwYTlkMDBmMjAyMDQ1MTI4OGIwNDk1YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OTExMzI2NTU0NGJiNzNlODI1Y2M0YTVjMTAxNTJiYmIwOWUxNzI3NDFmYWJlMmViZDg3OTIxYWEzOWZkZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c380810bb2ec47eabb3aa3fa01e163ec",
+      "statement": "三个分析提示词分别要求把条目整理成编号大纲（`梳理`）、压成一段要点（`总结`）、按模式/进展/阻塞/优先级给出结构化分析（`分析`），都要求只返回正文；导出提示词要求按年度/季度报告惯例产出分节 Markdown（已完成工作、关键成果、挑战与阻塞、下期优先级、可选指标）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L630-L644",
+          "version": "repo-lines-v1:sha256:24912695057f5089b8aa1b8fbba2fdc9f40c15fbf6c4a49c8b348f46264ffad0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0ZjAwYzY5MDc2MjFmM2YwYTAyOTEzZjEzMzc0ZDZkMGJjZTNkZWJkMzMxZDJjOGQ4MjQyM2UzNTg0ODYwMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTRlNTYyY2E4MTk4ZGI1YTNkNmY1MDY4MjhiNjA1MmUwMzBmZWIyMjdmYzEyZDQ0OGQ1NGFiNzg5Y2NmMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmOWQzNmRiMmYyZTI2ZjhhNTBkYmIzN2Y4NGVlZjllNTMyOTQ1NjIwYTlkMDBmMjAyMDQ1MTI4OGIwNDk1YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OTExMzI2NTU0NGJiNzNlODI1Y2M0YTVjMTAxNTJiYmIwOWUxNzI3NDFmYWJlMmViZDg3OTIxYWEzOWZkZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_373b392071a14fdaba734f30901b9fa9",
+      "statement": "`resolveRoute` 按「请求带的 `provider`/`model` → 本服务 `Config` → 部署的 `agentDefaultModel`」逐半解析路由；浏览器只在用户钉过模型时同时发送两个键，并在每次调用前用宿主最近上报的 `providers` 重新校验，记住的 provider 已消失就当场丢弃。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L908-L926",
+          "version": "repo-lines-v1:sha256:ef2d2d8f42b3fea4a597b3603420fb88545025bf3ff505bf273497f4e8c139cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4MmQ4YjY1NDZkODA3Zjc2YWU5ZTk1MDVjNWJlM2Q1Y2IyMmMwMzJlYTNkZjlkN2ViZTZmMTQxOTA0MzY5NzcifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1143-L1150",
+          "version": "repo-lines-v1:sha256:050b72eea9a2caec0e8551f8e6219a049ce5b75b026a8812796b28bca79e71d9:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIxNWNkNDZjM2UwNGNhZWQwYTIzZTg5NThmNWEwMWFhYjQzYzUzZWVmYzUyYTkxYTc4YmRkYjYwZTEzM2NhNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGU1MDYwMmY3NDZkZGZmZThlOWJiNDBiZTA5ODkwYzBjOTg2MWNlMzFhN2RhMzJhNTBmMzQ3ZmJhMDE5ZWRhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY0MjhiMTFkZTFkNjQyNDExNjBmNjg5NzRlMWFiNmJmN2NmNGZjYzFlZTAzODRlODAxM2YyMzFhOGM2NDhkOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f33bde706f7c4788aca87d5ed596156c",
+      "statement": "选择器里的模型目录来自 `MemoController.refresh()` 里的一次 `memo/listModels` 调用，打开菜单不会重新请求；宿主用 `llm.listProviders()` 列已注册路由并以 `Promise.all` 并发取每家的 `listModels`，单个 provider 抛错只落在自己那项的 `error` 上，整表读不出时仍返回 `ok: true` 加 `catalogError`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L340-L395",
+          "version": "repo-lines-v1:sha256:71a78d47f2a539fa1c95cda86e8665962fae58b0e7f4c416fb5bf775df757e03:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzM2JmYmI5Yjk4ODM3ZTkxZDQzZTY5YTM2ZmFkOWQ1MjEzZGVkZDUxMDZkZmZlYjgzMzUzM2EyNGYyNzBiNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkMDgyNDhhZTNkMDA2YjI1YTBkMjAwN2EzMTkyNWY4YWNhZGI3Y2VlMTdmMWZjYjQ3YzAyZjczY2I3ZDdhMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlZDAzNzRkMThiNDA1OTQ2MTVmMmJjYTFjOGVmNGNlZTAyZDNlZDJlYzE5ODYyOWFhZWJmMjE3MmI1NTljMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhM2JmZWIyNzdmMjc1NTZmODA1ZWMxNmE5NDc4MzdiMTg5YWJhMjMyMTFhYTZlNWRmYjE1YjgwM2RmOGYzMTkifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L434-L478",
+          "version": "repo-lines-v1:sha256:6ab9ce3758290f6d4a279f572edd2c8708c7c62fc0ee778a2021a0dd56a7644a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmNzM1MmYyMTYyZmE0YjE1MjAyMjk1MTcwZDdkNzM0NjlhY2RjYmE5YmVkNGQ5NTJkMWM3MTdhNGY3ZGFjODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiYzA5OGY2ZGYxYTYyN2I3NjdkMmE1NjNkYzk0YzRiMTJiOTA3Nzg2MTQ3NjI3YWY3ZTdjZDQ2ZjY3ZWU4ZDkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1200-L1237",
+          "version": "repo-lines-v1:sha256:2fde924adc8fd21e9378596293733093dd9ce98a8ce1f34480cc33f16903b283:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTRjNWU4ZTlhZjNmNGRiZjQ3OTliMTY4MTNhYzdlZmM2OWU2Y2ZhNjZlZTQ5MTQyMjAzMjM2MjAyMDYwZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0ZjA1OTAyODU2NmFmOWZiYzZlMzVmNjlhYzVjMzBjNjJmNzBkNmJiZmNkMjZhYWVmZGZmY2ZjMDJmNjFiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlMzljNjEzOTU4YmQ3NjY3MzNlZTAyYWM2OWEzZWU4ZDc0ZDI1OGY1MWRhY2M1Mzg4Y2FhOWU5NGJhODI0ODIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L508-L516",
+          "version": "repo-lines-v1:sha256:dab607974783c176af1fec1372db541adb14bf58dc4a38262f81219d106bb1cd:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTlhODc2NzcxZjU0Y2JjYTViMzA1YWFkNjFjOGEzNjM3YTgyOGIwNmQ4YjFlYjFiMmFiNjk3OGE3MTk0M2Q4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDk2ZWI4MTQ2M2ZlMGQ1Njc1MWExMTk1NDZjMTlkYjUwYjI2M2Y3OTRjMWJlM2QwNjQzNzNhMjc2MTk0MzVjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDhiYTlkNWU4MzcwNzk5NTRlNWI0MDM2YmM1OTk0NzFlNDBlZjRmYjE5MWM4NjIyMTBiNzc5ZjU1YTkyNzMwMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6eb644ce60ab499e8befeac1896bf2d5",
+      "statement": "浏览器不得自行决定路由（历史上硬编码 provider `custom` 导致每次调用以 `NO_ADAPTER` 失败并被误报为模型无产出）；不变式是「只发送宿主上报过的 provider」，由 `selectModel` 拒绝未上报的 provider、`usableChoice`/`modelOverride` 丢弃 provider 已消失的旧选择、菜单只渲染 `view.providers` 三道检查落地，而目录成员资格只是 advisory——钉过但当前目录未列的模型仍保留在菜单里。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L715-L744",
+          "version": "repo-lines-v1:sha256:020c4f17058d406428e944bba9adf50e9d6245128ca4ac4691fe82eeb5e51a1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1MjA5ODkwZjc3YzdkNmVlNmQyOTFlOTc3ZmI3ODkxM2VhOTMxYjI1MGFiMzczYTEwM2EyNzk4NDRlOWIwZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YmY5YTc5M2M1MTNlYjA2MDllMjY1NTU4Yzg0MDNkYzA1MzJiZjdmZmE2MDMzNzAyMjRlMDkzOTM1YTg3OWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjZTg1YTE2YjgyMTU3MmEzM2Y5MWFiYjQxZTlkOTc1OGE4YTI5YjkwZGU5NThiY2Y3NmZmOGRlMTlmYjQxODkifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L480-L532",
+          "version": "repo-lines-v1:sha256:a9a31d93074b3c6f3309ba86c082b5a2ee2e3ad77a4e14acdac1e000d56f58ca:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1NDAxZmQ5YjUzYzBjNTM4ZDgyNjViNzhiZDllYTZmY2UxYzQyZjZhOWI3YWRkOGY0NWIzZjAyYmIyMDBjMDMifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L461-L476",
+          "version": "repo-lines-v1:sha256:9d95782416120e9c584d1c0e27a8d12da6d02bd9d01658418ca78736fc6fa9e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMWYyNTMyMzZkYjUxNjgyYTMyNjllMDUwY2Q3MzRlMjY1NzhiMDVmODZkMmU3MTI3ZjdmYzYyZmJhMTdhMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZWMyZWRiZTI2ZDZhZDNmOTNkNGEzZGU0YjMyZWQ1MDQyNWM5NjUxYmYyOGQ4NjcxNmIzMjdjOWFhMzg0MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwM2Y0MWQyMWVmZGZiNmU3Nzc2Y2Q2NDNkNzMzZjkyZGZmMjc5NjQxODBlODA0YTc5YjY5M2ZhMmFjNGRjYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2MzYzYjkzODlkNGM2OTQ1NTU2YjdjMGU0Y2YxNjljN2ZhYjFlZGU5OTNlZmJlMTZlMjNiZGM5ZTExY2NhODYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e2ad8ee661f4a95a547058d87e8d4bd",
+      "statement": "选择器把「注册表读不出」（`catalogError` 有值：角标禁用并说明原因，记住的选择被保留并照常发送）与「一个 provider 都没注册」（`providers` 为空但无 `catalogError`：没有可选项）区分开，避免一次瞬时读失败改写用户的分析模型。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L644-L646",
+          "version": "repo-lines-v1:sha256:9a3f70e1b1d17989baded714a2cc770ff5597f3a2e89b37c11bcc7a8e7daad4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTI5ZDI4OWIxMDE1NjI5MjBhOTAwMWRlODcwNTA2ZjE1OTJjOGYyYzg3ZDMwZTc0ODIyNzNjM2M2MWY5ZTgyOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzdjNTdkNjRjODEyZmNhMjBiMWQ4MDhjNDA0MTdmODk1YmEyMDA2ODcwNmFiYzgyZTIyMmQ4ZDhjYTdjODIyMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmZiNzY4MGM5ZTczYjI3NGRjMmFkYzkxMWNmZThiMTc0Zjk2MTYwZDliMTgyMTI2ZGZlYWM3M2Q4ZWVjYzg1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzJhMTAzMWFkNzhhNzFhY2I0YmExOGNkMDdlMjc0ZGVmN2RlMjM2YWE0MzZiMWIxNzUyZWEzNjc4NDFjNDhlMSJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L480-L505",
+          "version": "repo-lines-v1:sha256:1dd4fbf23ae21015a8537d5cbfaa296feec350c6848fd72b1eec529f85eef517:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwN2Y5MDEzMWE2OWM4OWFkNjY0NzZiYmRlNTY4OGY4MTNlMDVkODUwM2Y0NjViNzNmOGQxOGFlYjQ4NmU4NzgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/tests/controller.spec.ts#L517-L568",
+          "version": "repo-lines-v1:sha256:7b1e5d34bf1db819d47d6d5a9ad257d297c95f552e522ff42e15f88890ab9629:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZTJhNTBjMGY3NDI4ZjQ1Y2Q4ZjkzZTI0NTc0OTkyYzQzZmFiYjJhZjc4YTEyMjU5MjJkZjFjNDgwYzg0ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkY2JhMGRhMDhhMTY1YTU3MDYwMmZmOTZiNTMxNGYwYWEyYTg4YWQxNzYzNjE1MmYyMjA5NTgzMTgzNmU2ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhZDhjMWYyMjVjYjg5NGFkMGJkNzhjOWQ4MTVlYjJkZDU1MDdjODlhZGNhNTExMmY5OGMzYzI2YTUzNGE5OWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3072a03cd352457987450a3c25bc7ab8",
+      "statement": "这条链路上唯一的抛出点是 `requireTable()`（存储域未初始化，浏览器侧表现为 `rpc-failure`）；模型侧的未挂 `llm`、路由半区为空、`finish` 终块失败、流内逃出的异常、以及正常结束但零字符五种结局都在 `streamLlmText` 内折成带 `failureCode` 的事实，再由 `llmFailure` 变成顶层带 `failureCode`/`provider`/`model`/`status` 的 `llm-failure` 业务失败，同时以 `memo:<action>` 锚点记一条 `trackError`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1161-L1177",
+          "version": "repo-lines-v1:sha256:8ce8b5535364238ee662ec223535472baebd78e39906e78077a422d97c8cef4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkODM4ODJjZDI2MGRiOTg2NzdmZGU2MTYyZDBhYTk0YjBjYjgyYWZjZjFlZTYyOTI2YTI1ZGVmMTE1ZGIzNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYmZhNjk1YWNiMzYzODcwZjRhZjA2NDljNDI3MjcxYjY0Y2NhOTgzODE4OTdmMWUzMGI0ZjBiOTRmMjFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNzFiNTRiOTAyMjk3MzUyMjg4Yzk1ZDc1YTE1ZTY3MWZmMzZjY2JiMGFhZGMwY2IxZmE2YTAzYTlkNTM1ZWYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1884-L1890",
+          "version": "repo-lines-v1:sha256:c408a48677ee5a594a04b94377f92c11144369952de45080b085253e04d3b714:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzgzYTUxZTE3NWExYjBlYjg1ZGYwMTcwYWUxNjU3ZDg2ZjIzZDFiMWNiNGUyNDQ2ZDlkMDBiMGM2MzI1NGY4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTA3MDg5ZTVkYTU5NWVmY2Q2NzM0NWFjNzQyN2Y5NDYyMTUyMGY4ZGRiNDgyYzE1NTNlOTM3NDhkMzk2OWVkZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODg2YTRjOTMzN2MyZDlhYTFhYWEzOWE2NmRjYzM3Y2FkMGEzODE4ZjIxZjJmZjkwZTY2MjI5N2Q0Y2VmMTM0MiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L67-L130",
+          "version": "repo-lines-v1:sha256:84340eeed33bf4106fce4f2d0e778e7aed4f5d55b6c5794b75be55aed020cc9d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkNDU4NWRhM2FjMTljNmEwZWRkMTJmODRmYzZjZWMxOTE1ZjYxYjJmOGIzZjYzOGEzOWMwZmRhNzJmMDJmMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0NjEyNGYyZTI2NzI1M2IyNzk4N2FiMGM0MjIyMDgxYzBlMjNkNDJhNjgzYThjNDUzZmViZWZiOGJkN2MyNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c8ac56d20be4a51a420bd04b93ba16f",
+      "statement": "`analyze` 成功时先记 `analyze` 成功遥测（`provider`、`model`、`period`、`periodLabel`、`analysisType`）再追加账本；账本读写都用吞掉异常的封装（`writeLedgerAt` 返回布尔值），所以账本写失败时已生成的分析仍返回给调用方。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1269-L1278",
+          "version": "repo-lines-v1:sha256:f9e64eed2e102c9fb1b3d75d90a91e49579029664130d444e62f2c98e54165ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ZjMxZWE0Yzg0YzY1OTY4YTBkOThiOWE2ZmQyMjliYWE0ZTYzZWE1ZDY0NjUxNjBmNjIxZWQxYjVhZTcwNzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZWEwZTRkNmNmZWQ0NzgzMGRhNTJkODE4NDhjY2VlOWQ4MWYzMDAwNWIyNjdkYzViYzM0OTllNWU1ODc2YjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhYzI2NmIxNmU2NGNkNzhlYTA2NWQ0OGYzOWU4NDlkOTI3NGJhNmQwZmY0YTZhMWQ1NTExNGNmYzlmZDU4ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L475-L502",
+          "version": "repo-lines-v1:sha256:12f6249a3844f79c06ac62480fb04592bb33e70a36af9923f2880b0dfa097f7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlOWMxYTEyZTZlOTQ3NTYwNzBmYmFkZjU1YTY4NTRmNDg1ZWQ3NDEwMjg2YTlmNmNhMmRiNzgxYzc2NDViMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkOTk2ZGNmMThlNjMxNmQ5ZjIwMzhmNjNlNTA3MWEzM2FjNjM3MjI4YmQxMzhmOTlkNWZmOGMzZjU0MjFjMWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb9e836be4584ee39a44c532be1ec7ff",
+      "statement": "账本位于 `$DSH_HOME/memo/ledger.json`，条目形状为 `{ id, period, periodLabel, analysisType, summary, generatedAt }`（不含 provider/model），头部插入并截到 500 条最旧先掉；`listMemory` 用同一文件读回，`limit` 默认 50，读失败返回 `ledger-error`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1791-L1806",
+          "version": "repo-lines-v1:sha256:ca75c7e703119b4d48f4f94ba74365245086783a068d93210f860f8afb7ab2bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzNWRhNmEzNTk2YWExZjg0MjU3ZTQ3MmY5NmU2ZTA3NGE4Y2YzZmUzZjhlZjRiNGIwNmRmZjc2MTFlYzYwYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2NjFjNDdiZjkyOTE4ZDk4NmUxMjU4YmNjZjZlNTQ5M2JlOWFiOTU5MmJiNWIxMzAzMjYyYTY4NWYwYjFiZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2YWZiNWM2MGUwMDg3ZWQxODg0YTQxMjMwYzE2ZjY2ODc3M2NhNjM0YTUxYWQzNzgyNDEzZTA0NTY0YWI0M2MifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L309-L313",
+          "version": "repo-lines-v1:sha256:6ca2fabb9b15a02b4aaab30ca8dee325d109e3d92170027c9c359bfc227a8f2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzllYmY2Mjc4ZjM5OGRjNTQ0Y2ZkODgwM2Q2NzExZDk2NjgxMzNjMWYzZjA4YzUwMDRhMjEwYzAwZjg4YTUzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI5ZTI5MTJhODdjYTRkNDA0MDk5YWI2MDdhM2ZkM2I1OGJhMzFhNTBjMDM5MzRiOTYxYjY1OTg5Y2U4ZmE0NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGE0NWZmM2NhZGQ3NDk2NmFhMmE1YzM2YTgzNmU1MThmZDE4NDhhOGVmYWJiZTE4YjVjZmU1ODk5YTk0ZDJmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmMyOTllYjk4MTEyYWQ2NDEzZTZjZTg1NGIzYjAxOGVlNjk5N2RhZDBhMDkzNTg2YzIzZTkyNzBjNThlOWE4NyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L394-L397",
+          "version": "repo-lines-v1:sha256:396d4a59011fff9909d1a00d5c2368cc25e06e256d8d424d3c81ddf6aa8f206f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzk4MTEzYjliYWU1YzhkNDZlNTQzYzk0ODExM2RhZWYxMjNiOGExZDQ0OGY4MGZjMjFkMjE1NjNmOTQ3MTk2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDc0NmM1MjJlOTk5NjlkMWQ1YmE4NTdmMjBjNjUzMjU1M2FkZDk2MjY4MTgwY2YwZjVkMzViNGE5ODBjMjVmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJlOWY2N2UzM2ViYjcxOGRmYmQ1ZmU1MTQwOTE4Y2M5YmJjZWQ3ZmQxZmI2OGU1ZjQ5OGU0ZDk4M2RiYWJkMSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L591-L599",
+          "version": "repo-lines-v1:sha256:c749843a77920cb9e74474f8d3f3bd59a4eb20dd78d4f617744cdfb68afb0eeb:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTFmYmVlZTQ1OTZhMjE2N2FjZjlhYzMyYzA3MGNkMzg5YjM3YjgyMDM2OTM4ZTE3OWNiMDU0MGY0OWM4ZWY2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcwY2RhNmY0MjczMWI2ZmMwYjQzMzlmOWU5NzM5YWEzMDA2NDY3YjRlMDI0MGJkNTJiOGE5MTYyNzk0Y2M1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTU1MjQ4ZjBlNDBmNWM2N2RlYzY4OWM0YzUyMzdjZTMzOTA0Y2U1NDgyOTZlMzQ4YjYwMTk1NmNhOTE3NWVmZSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L323-L345",
+          "version": "repo-lines-v1:sha256:7cb8444c1d9464efd22f4d62c2f86d5fc7559cffc5fcbee9e51b706e777a0c21:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZTBmMTk5YjhlOTdiOGY3NTMxZjUzNGE0MTkzMDYzOGY4NTM2MTc1YzU0Yjc5NzUyNmYzOTBhZmYyOWI3NGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3MTU4ZmUyM2EwZTI0ZGJkOTE5NjcwNjEwOGRkMWQwNTcwYmUxMzNmM2JiZjgzMGZhNjlhMWI1ZWVhOTk5NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzNDVkNDA1MTc4ZjlmOTI5ZWU5YTljYjUzMWFjOGM5YzBmNmY5MzkxYTQ1MWYyOGRiNDU1ZTA2NTA4ZjhlZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_01983ae1e8eb45db8b934ed525a4338d",
+      "statement": "`analyze` 不把分析结果写回周行、也不做任何 `put`；`MemoWeek.analysis` 只被 `snapshotWeek` 读取而从不被写入，所以历史分析只能通过账本（`listMemory`）回顾。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1246-L1279",
+          "version": "repo-lines-v1:sha256:2c035de0e1b1e6186dc041cd9b3abf78544aa34fcd0c9460446cdc11e10c59fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMmQ1MDQ0N2Q1ZDA2ODQ1NjExYmQ1NWExMTlhMGRmYjM2NjFiZGFhMzQ5NzdjY2JmYTYwNWIyYjNmOTM4NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5NjA5YjdkMjQ2Y2VlMzRlM2JjMDMxZjUxMDE0NWM4YTA1NTEwNjhjNjEzOGQ2NmQ2NjA0NTdkMmZjNTM2NjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwYTVmNzlhYjk2MGY4NDQwODk2NGMwYzNiYzAwMDVmZGVlNzAyNWJmNzRjYWI3ZTQ0MGYwYzg0NDMxOGVmOGEifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L2037-L2047",
+          "version": "repo-lines-v1:sha256:17ce13e34efe5515110f84bfdf24aefb6a5c5d440fe53d418f4501be3b7f27fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3Yzg1MThhMGYwMzQxOWE0YThmZDQ1NTUxNzkxYjI5MWI2ZGI5ZGJiNGZiNGE3YzE1ZmUyY2ExOWMwOTBmMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2ODE0ODVlZGMwMWU1NDU2ZGVhYjEwZGE4ODA4NTljMjk1YTMyMGZjMDc3YzNiMWZjMWFiNzZlMThiZDZkYjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhY2FkODQ1NWFlY2MwMGExOWIxMTk2OTVhMzQyNTgwNDQxNDgxY2MxZjY5ODBjY2VkNGI2MGE0MzU4ZTRmMzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae045d27e84c41ecaca337d6c34ade20",
+      "statement": "`exportReport` 走完同一链路后只记一条带路由的 `exportReport` 成功遥测并返回 Markdown 字符串（浏览器随即用 `downloadMarkdown` 落成 `memo-report-<标签>.md`），既不追加账本也不写周行；不对称的根源是账本条目必填的 `analysisType` 只有三个分析类型可取而导出请求不带类型，且报告产物本就是离开宿主的文件。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L1150-L1161",
+          "version": "repo-lines-v1:sha256:0e5011d588350ec61aafdec3f399cdabbb65da516aec85aea9e4423ca2d13261:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhODkxMzAwMjdlMmU3Y2Q5Yjg3MTM4OGY2OGVhZTllY2NmNzE4MTIwNmY4NDUyNmFjODk2MmJjZWFjZjU4ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwOTNlNmM4NGE3YmM1MTE3ZmRkMjE0ZjNhMTViMDlmYmZjZjI3YTBhYmViYzUxZGI2ODNlNTg4MGUxYjU5OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiN2Q0ZjgyMGYxMTlhYjZkMjg1YTcxNzJkMTIxNGFmZmI3NGMyZmI4Njc1MjQ5NDk5NGZkZjVmMWFhM2RhM2IifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L961-L981",
+          "version": "repo-lines-v1:sha256:bc3b5ae86f7b74274e6e282ebd934d9652696ef6e701e1be5cb0b6a42f6ce394:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlODRkNTc3NzI4MTEwZjhhNDZmMTAwOWEyYWFkZDA5ODI2Zjg4MDRkYTI0YmM5YWE1OWRjY2UwNWNiZTFhMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZWY5MDI3MThlNDQ3MmQ0NzE2MGVkM2Y0MzIyZGY3NGYyZjI4NDA3MDA5Mjc1NjljODBjMGIzNDEzNTNlNWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkY2E0ZGJkMjZkODY5NjI3YzQxYjQ3MTI2ODliMzg5YWE0MjEzMWI3NzU4MzBiYTE0ZTA2MzFmNTQ4NzMzMmIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1286-L1301",
+          "version": "repo-lines-v1:sha256:7f1f0af48797b50ebef4b8975b92ccd1b9ff29d799f94ab578061fe74295f1c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjQ3NjViNDQ4NmU5ZGU3MDZhMzRhMjhmOTllOTQxZDRiOGNhMzUwZmM5ZjgzNTY1ZDM2NDgyMGVjMzdlZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMGM4NmMyOWE3ZGIzZmMxNzdmMjM2NmMyM2Y5NDBiZGJmYWNlZTQxZTJiM2ZhNzcwMDg1Nzc3ZDBiZDg3ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNmVkOGNhMzFjOWRhMzc0NmM4YjVkMmNkODQwZWYyY2I3Y2VlMmQ3YTI5ZmYwOWFlYWQ3NmQ1Y2Q5NWM0ODcifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L176-L189",
+          "version": "repo-lines-v1:sha256:9dab03fec7d1bca026c52b03de66167f1203028a63670feaaffda9a4b8e6ec88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkMjRjN2FjNzgxNWZhNzZiZDM0YzYxNGJhNWViOTM5MDUzZDcwNTNmYmYyNDJiYWQ5NTRhYjI4NTcwOTM5MTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlN2E3NTljNGQxNmE3Y2FiYzkzMjM4NjkyODJiZDk5YzMwOGQyYjgzNjAwMjlmZjdhYTQ0NjMzZTc0ZGEwMjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyYzJjNmZiZDYyMTFjMjYzNWNkNDZhZjdlN2EyNGMyNDg3YjBjZGM0MDc2MzQ4MzVhM2Q2NmJiNWFjNGFiYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3NjZjYmRmMDY3NmUxYjVlM2NmMDUwY2YyMjZkOWZjNGUxNDFjY2ZlM2M2MjU1NTRjNGM1YmNkNjUxMGJjZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e74ddf83335649d085f04810d6afaaef",
+      "statement": "导出报告刻意与 AI 分析共用同一个已钉模型（两者都经控制器的 `modelOverride()` 取覆盖），以免同屏出现两个不同的生效模型；将来若要拆开，控制器里的 `modelOverride()` 就是扩展点。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-09-15-ui-memo-model-menu-design.md#L15-L15",
+          "version": "repo-lines-v1:sha256:0cebc5085a5f36c500debdc3639b1b448fd33c5b8f22ed883331c5feadb5d0bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGNlYmM1MDg1YTVmMzZjNTAwZGViZGMzNjM5YjFiNDQ4ZmQzM2M1YjhmMjJlZDg4MzMzMWM1ZmVhZGI1ZDBiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGNlYmM1MDg1YTVmMzZjNTAwZGViZGMzNjM5YjFiNDQ4ZmQzM2M1YjhmMjJlZDg4MzMzMWM1ZmVhZGI1ZDBiZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzNlNjQxZGNmNGNhMTkxOWJhZWY2MzAzYWNjNTkxOWJmN2M1NDBhNTUwMDJiMWQ1ODlmMDBjNjdhMGQwODM0ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjY4ZTVjY2JkNDRhOWQxYzhiYjE2OGYwODA4OTMxMTJjMDk0MjBlZmExZTBkZTlkODcyOGI1N2MzYzRlMzg2MSJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L908-L981",
+          "version": "repo-lines-v1:sha256:32c43053491beffc8623c7b718c268f20c0da7cb305b1947da38e59659f81263:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkY2E0ZGJkMjZkODY5NjI3YzQxYjQ3MTI2ODliMzg5YWE0MjEzMWI3NzU4MzBiYTE0ZTA2MzFmNTQ4NzMzMmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2226cd6d08ff4186971a0d085438ae97",
+      "statement": "`parseLedger` 只接受 `schemaVersion` 等于 `LEDGER_SCHEMA_VERSION`（当前 1）的文档，版本不匹配时整份账本读成空，因此升版本号而不写迁移会清空历史记忆；500 条上限由合并与追加共用，满额时迁移进来的旧条目可能进不去，这正是旧账本改名成 `.migrated` 收据而不是删除的原因。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L465-L473",
+          "version": "repo-lines-v1:sha256:c35187825e36332f325a7947736c09ba0b7714363e05ccd843eae0aa1623fa04:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTczZmVhNjkxNWUzZWQzZWI3NDQ1ZDFiZjBkNGJlYWVmYjM3YjhmZWRiZGQ3ZmJlZDFlMzRlNzg4YTk2MGY3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzc0ODFiMjJkMGFlNWRiZmE2YmE1NGZhNjBmZTJjZThiMGQxOGExN2FmNzQ0Njg2Njk1ZTQ1YTFlZmFlZTllNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjFmZjY2MTg1ZTFlMmI4ZGVjNmZkM2U5YmVkZTEzYzdiMjFmYjE3MWU2NWY1MDcyZDUzOTk0NGM5OTZjNjFkNSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L514-L523",
+          "version": "repo-lines-v1:sha256:826a1e53869d4cb80387975b6a2e4659f851d641f21cd68921c0e66ce1962733:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NjM5YTYyMWVjNzExZGQ4ZWIzNWRjZTU1MjVhYjVjNzBlOTk0ZTRmOWIxMWNiMjkzNmI3NWU1YWRhNDY5MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyNmIyOWZiMmRhY2Q5YzAzNWQxZTY1NTg4YzVmZjdiNmUxMDNkOWFkMDA0Mzg1Nzg1OTRiMWFkYzkzYWU4NGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiNjFjMzI3NDBjNTA4YzA3ZTI0OWFmNmZkYWE1ZTM0OWU5ZmVhNDQyNTRjMDFhMGYxODEyNjk3ZDhkMDdhYTIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/ledger-home.spec.ts#L236-L256",
+          "version": "repo-lines-v1:sha256:39e7d9b0cf390f8d63d158a242d84047a7054670e93da20b0abd011300a30e29:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NDc3YmQ4YmNiY2UxNWVhNjI2NjNiZmRjYjc1OTZkNmFhNTJiMWE5NjcxYmM0NDBjNGI0NTkzOTgwNmY1OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5MjY2NjEwMDlhNGViNDc2ZmZmMjYxZWU5OGY3ZDdlZGI3ZjAwMWZkNGZiMWM0NTFmNzIxMWU0Y2RlODM5OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwOTFiNzZlNGNiNThjZTliODRkNDAyNGM2MjQ1NzY5ZTM0OTVmODQ1YjcxZjM0OWQyZjMzNDhmMTcxZjA4YzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_40c072a6458342a09c7e72b9adf6a623",
+      "statement": "`analyze` 与 `exportReport` 既是遥测动作名，也是日志分析分组用的失败锚点 `memo:<action>`；成功事件同样带 `provider`/`model` 才能回答「改路由有没有修好」，因此改名会同时切断历史序列与分组前缀，而元数据键名必须保持 `provider`/`model`/`status` 才过得了遥测的路由白名单。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1161-L1177",
+          "version": "repo-lines-v1:sha256:8ce8b5535364238ee662ec223535472baebd78e39906e78077a422d97c8cef4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkODM4ODJjZDI2MGRiOTg2NzdmZGU2MTYyZDBhYTk0YjBjYjgyYWZjZjFlZTYyOTI2YTI1ZGVmMTE1ZGIzNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYmZhNjk1YWNiMzYzODcwZjRhZjA2NDljNDI3MjcxYjY0Y2NhOTgzODE4OTdmMWUzMGI0ZjBiOTRmMjFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNzFiNTRiOTAyMjk3MzUyMjg4Yzk1ZDc1YTE1ZTY3MWZmMzZjY2JiMGFhZGMwY2IxZmE2YTAzYTlkNTM1ZWYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1825-L1836",
+          "version": "repo-lines-v1:sha256:5b48ef99e340421737d984f1bd949a738aa7ea0a1bc9aeb1373f25bb0ef5f337:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzFmNWM2YmRhNDNlOWE1ODYzMGMxMjEzMzc5NDYyODJiNzcyM2E5ZWJmNWVjYmJjMmYxM2E4M2VmMmEyODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ZmVhYmNiMDAzZTAxNDBmNjRhMDY1MjJmYTA0MmFjN2IwZWQ5ZWYwOGQyMDc2YjQ2YThmNmFkOWZkY2EyNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiNWM3YWY2NTg3MjU5ZWYzOTExODVlODYwN2JmZTJmODFlMTA3MDI0ZjZlOTk3ZTQyMDZmOTI2ODdkNmJhODUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L968-L1017",
+          "version": "repo-lines-v1:sha256:97088b44f0973c0b0cd12fbe397921eaed305105eb7e5a1605bd55856fef50f5:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllN2JkMzg2NjFmYzk5N2Q4ODkxN2MyZDJlOWRkMmViZjdiZDI4M2NhYjhmMTJmNzU3MmQ2ZDFlNGMwOGZkMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0YjAzYzU2MjRiNjUxZTY5ZmFmNGNmZjg2YjYwNzZlZmE2ZGQyYjQwNDkwOWI1YjM5M2MzNDYzZjEyMTUzZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c651512d278243b78f812f110fc2f272",
+      "statement": "控制器把传输层抛出折成 `rpc-failure`、信封失败折成 `transport-failure`，业务失败只取 `error.message` 显示并把 `analysis` 置空；分析结果卡片额外展示响应里的 `modelProvider`/`modelName`，而导出结果卡片不展示模型。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L456-L480",
+          "version": "repo-lines-v1:sha256:826567cbe0f327b7aaa06eb152c344e4c688e263fa3639afa824e0842967924f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NDFlZGVjMTFlZDk2MGY3YWE2YWYxZGZiMzgzZDcxNzMyNGQzN2U1NWNjMWIzNTc2MzNiN2E2ZjZhM2YzZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3YjUwOGQ4ZmI0YjM3NzlkMzhmNTMyOGFjNTAyM2Q4ODI0NWQxYmJhYmQzZjg5YzMyMDg1ODFlOWIwZDUzYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkYWJkMjk1MjVkZGJhYTA2NWZiOWFkODE1YjYyMWFiMzg5MmI0OWQxZDA1Yzk4MDJmNmRmM2M2ZDU1MDJlZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NjZjM2Q3NjQ3NzRjYjVlZmJjZWRiNzFlYzcxZTFiNzE5MTA2NDFmOTczMmUwYTgwMjgwM2M4NTcwZDBmZWYifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L932-L955",
+          "version": "repo-lines-v1:sha256:101d3cca4465b5bca9bacbe8605861bbf4b7f8e01d100caa4b3adbe7a1958bba:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNzVhYTE1NzNjZWM3MjVkZmEwMmEzM2FiNjE5OGViOTM2YmFhZDc0OTNhOTY4ZTIxNDdiMzUyM2RiOTc3NDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlNzAyMWYxODgzYTI4MGU4YjI5YTVlMDA0MDc1ZWY2OTQyYTcwMTJjODA4Y2YyZDc1ZGI0NDI3ZjFlOTFlYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1OTkwOGFkYjIyNDE5NGE3NjFlYmI1MGNjN2Y5ZWVkM2Y3MWI0NGI4MDYxYzU5OWVhNDcwNjVkYmJiYWNjODgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L95-L110",
+          "version": "repo-lines-v1:sha256:1691ce730e3213938252725208805aec879fbb30466a6ed33ea5a633a5001ca3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiOWYyZmFkNTEyYWFkNjdjM2U3NTgwZmUzNTM5YTMwNzA1NTljMjRlMTQzMTViMDI0MTQ1ZDFlMzA3MDFkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNjY4YWY4MDNiMjk2MzM5YjQwYTgyMDcyNWU5MTZiMjc5Nzk4ZmFmYjBiOTIzNmFhZTkyNGFhMTJmODNmM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkMTZiY2Q3MTMwMmIzZjJiNThiYjk2MWViMjUzYzg3N2UwMTM3MjhlOWZlMmYwMzFhNTIyMTcxOTM0YjVkZTUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

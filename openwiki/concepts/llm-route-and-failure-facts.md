@@ -1,11 +1,39 @@
 ---
 type: concept
 title: 模型路由与失败事实保全
-description: 解释一次模型调用如何按「请求 → 服务 Config → agentDefaultModel」逐半解析路由、为什么路由解析失败与模型调用失败必须是两个不同的失败事实、streamLlmText 如何保留 DSH 的 code 与 status，以及 provider/model/status 元数据如何经遥测白名单进入 issue 报告。
+description: 解释一次模型调用如何按「请求 → 服务 Config → agentDefaultModel」逐半解析路由（以及这一级在两个宿主包里何时生效）、为什么路由解析失败与模型调用失败必须是两个不同的失败事实、streamLlmText 如何区分终块失败与真正的空响应并把 DSH 的 code/message/status 一路保留，以及 provider/model/status 元数据如何经遥测白名单进入 issue 报告。
 tags: [model-routing, llm-failure, model-catalog, dsh-llm, diagnostics]
 verified:
   - by: openwiki/0.7.2
     at: 2026-11-03T09:53:43.931Z
+sources:
+  - id: openwiki-source-a028fd3f0a07adb5259e637a
+    resource: repo://packages/client/ui-memo/src/client/controller.ts
+  - id: openwiki-source-3bca7b82ac0594a992cc19db
+    resource: repo://packages/client/ui-memo/tests/controller.spec.ts
+  - id: openwiki-source-e2b359735a8b78c5620256a1
+    resource: repo://packages/github-issue/dsh-github-issue/src/index.ts
+  - id: openwiki-source-6d173199b0b88502bd10af05
+    resource: repo://packages/github-issue/dsh-github-issue/src/llm-text.ts
+  - id: openwiki-source-fb3462a008e6745fb9961d9a
+    resource: repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts
+  - id: openwiki-source-c6503affb5065087aa8c04fc
+    resource: repo://packages/memo/dsh-memo/package.json
+  - id: openwiki-source-3a7480327133dfa38c0836e5
+    resource: repo://packages/memo/dsh-memo/src/index.ts
+  - id: openwiki-source-2fd933a4078ee59abfec2f15
+    resource: repo://packages/memo/dsh-memo/src/llm-text.ts
+  - id: openwiki-source-cdd2858186ec8ea8537cd0a6
+    resource: repo://packages/memo/dsh-memo/src/types.ts
+  - id: openwiki-source-1969d2ee62e0d578de0f4b3e
+    resource: repo://packages/memo/dsh-memo/tests/config-volatile.spec.ts
+  - id: openwiki-source-65b7018afba5ec2f8dacc87b
+    resource: repo://packages/memo/dsh-memo/tests/memo.spec.ts
+  - id: openwiki-source-ab1b1c67ce5f3096942f7ea4
+    resource: repo://packages/telemetry/dsh-telemetry/src/index.ts
+  - id: openwiki-source-16e3d1531c3db74d99ccbff8
+    resource: repo://packages/telemetry/dsh-telemetry/src/types.ts
+generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 ---
 
 # 模型路由与失败事实保全
@@ -22,10 +50,12 @@ verified:
 两个服务的 `resolveRoute` 是同一套顺序的两个实现：
 
 1. **调用请求里带的 `provider` / `model`**（一次调用的覆盖，备忘面板的模型切换器就靠它）。
-2. **本服务 `Config` 的 `provider` / `model`**（部署在 `cordis.yml` 里给这个服务单独钉一条路由）。
+2. **本服务 `Config` 的 `provider` / `model`**（给这个服务单独钉一条路由，而不动另一个服务；这一级的生效方式两包不同，见下段）。
 3. **部署的 `agentDefaultModel` 选择**（`ctx.get('agentDefaultModel')?.currentSelection()`，全仓唯一的「这个部署用哪个模型」真值来源）。
 
 任何一级都没有字面量路由，所以一个部署只改配置就能整体改指向；`agentDefaultModel` 未挂载时该级直接跳过。
+
+**「`Config` 里的这一级」在两个包里活法不同，而顺序相同。** `dsh-github-issue` 的 `Config.provider` / `model` 不是 `Volatile`：构造函数把它们复制进实例字段（`this.provider = config.provider`），所以这一级在挂载时就固定了，要改它就得改 `cordis.yml` 并重新挂载。`dsh-memo` 则把它们声明成 `Volatile`，`resolveRoute` 每次调用都经 getter 读 `this.config.provider.get()`，因此设置面板写入后下一次调用即生效、无需重挂（`config-volatile.spec.ts` 用同进程内改写 ref 的方式钉住了「绝不复制进字段」这条契约）。共用一套顺序不等于共用一套生效语义：排查「改了路由为什么还是旧的」时，问题往往不在顺序，而在这一级有没有被重新读到——详见[配置与热生效](configuration-and-live-settings.md)。另有一处小错位值得记住：memo 不 trim 解析结果，带前后空白的值会原样进入路由并以 `NO_ADAPTER` 现身；github-issue 的 `firstNonBlank` 会 trim。
 
 ```mermaid
 flowchart TD
@@ -49,7 +79,7 @@ flowchart TD
 
 解析失败后两个包给出的业务码也不一样，且这个不一样是刻意的：
 
-- **`dsh-github-issue` → `route-missing`**。「没有任何东西给出路由」被当成与 `llm-failure` 不同种的缺陷：它的责任方是调用方或部署，不是模型。同时它会以 DSH 的 `NO_MODEL_ROUTE` 码记一条 `trackError`，附带 `featureCodeRef: github-issue:<action>`，让日志分析能把两个包按同一个码归组。这条事件**不带** `provider`/`model` 元数据——没有路由可记，缺键在这里就是字面意思。另外 `optimizeIssue` 会先拒空描述再解析路由，所以一个空白输入拿到的是 `empty-input` 而不是 `route-missing`：输入校验与路由是两个独立判定，先说先失败的那个。
+- **`dsh-github-issue` → `route-missing`**。「没有任何东西给出路由」被当成与 `llm-failure` 不同种的缺陷：它的责任方是调用方或部署，不是模型。同时它会以 DSH 的 `NO_MODEL_ROUTE` 码记一条 `trackError`，附带 `featureCodeRef: github-issue:<action>`，让日志分析能把两个包按同一个码归组。这条事件传入的元数据是空对象 `{}`，即**不带** `provider`/`model`——没有路由可记，缺键在这里就是字面意思。另外 `optimizeIssue` 会先拒空描述再解析路由，所以一个空白输入拿到的是 `empty-input` 而不是 `route-missing`：输入校验与路由是两个独立判定，先说先失败的那个。
 - **`dsh-memo` → `llm-failure` 且 `failureCode: 'NO_MODEL_ROUTE'`**。它保留 DSH 码的形状，所以「没解析出路由」与「模型报错」在同一条业务码下用 `failureCode` 区分。
 
 ## 失败事实：`streamLlmText` 的契约
@@ -64,10 +94,12 @@ flowchart TD
 | `LLM_STREAM_THREW` | 异常逃出了 DSH 的归一化 | 传输层断裂，`message` 是原始异常文本 |
 | `EMPTY_RESPONSE` | 流正常结束但累计文本长度为 0 | 路由是通的，模型应答了、没有内容 |
 
-表外的两条细节值得记住：
+表外的四条细节值得记住：
 
 - **`EMPTY_RESPONSE` 不是本地发明的码**，它来自 `@deepseek-ai/dsh-llm` 导出的 `EMPTY_RESPONSE_CODE`，是 DSH 自己为该情形保留的码。正因为有它，「模型应答为空」才不必和「路由不通」共用一个说法。
 - **`finish` 的失败对象是必填的**，`error` 与 `aborted` 两种 reason 都带 `LlmFailure`。测试夹具里刻意保留了它，因为一个省略 `failure` 的 mock 会让服务悄悄丢掉 routing code 而没有任何测试察觉。
+- **终块（`finish`）的判定规则。** 循环只做两件事：把 `text-delta` 累加进缓冲区，检查 `finish` 的 `reason.kind`。`error` / `aborted` 立刻返回失败——此刻缓冲区里可能已有半截文本，但原因优先，半截文本被丢弃，因为一份被截断的报告比一条可归因的失败更能误导人。`reason.kind === 'stop'` 不是失败，循环照常结束，「是否失败」完全交给之后唯一那条判据：累计文本长度为 0。所以 `EMPTY_RESPONSE` 的语义很窄——**流正常结束、一个字符都没有**；适配器失败、未注册路由、逃逸的异常都在到达这一步之前就以各自的码返回，不会被这条文本判据重新解释成「空响应」。
+- **`status` 缺席就真的没有这个键**：失败对象以展开语法并入 `status`（`failure.status === undefined ? {} : { status }`），而下游 `routeFromMetadata` 对缺失 `status` 宽容、对缺失 `provider`/`model` 不宽容，两边正是靠这个写法才对得上。
 
 ```mermaid
 flowchart TD
@@ -94,7 +126,7 @@ flowchart TD
 两个包把同样的事实摆在不同的位置上，因为它们面向的读者不同：
 
 - **`dsh-github-issue`** 返回 `code: 'llm-failure'` 的业务失败，`message` 形如 `model call to provider "<p>" model "<m>" failed: <code>: <message>`，状态码进遥测 metadata。调用方（备忘面板的 issue 编辑器）只需要展示 `message`，它自己就把路由与码说全了。
-- **`dsh-memo`** 除同样的 `message` 前缀外，还把 `failureCode`、`provider`、`model`、`status` 提到失败对象**顶层**（`MemoMemoFailure` 的 `llm-failure` 变体），所以控制器与后续分析不必解析字符串就能分支。`summarizeSession` 更是把每次模型失败塞进它自己的 `outcomes` 条目，一次限流不会丢掉其他会话的摘要。
+- **`dsh-memo`** 除同样的 `message` 前缀外，还把 `failureCode`、`provider`、`model`、`status` 提到失败对象**顶层**（`MemoMemoFailure` 的 `llm-failure` 变体），所以控制器与后续分析不必解析字符串就能分支。`summarizeSession` 更是把每次模型失败塞进它自己的 `outcomes` 条目，一次限流不会丢掉其他会话的摘要；而这类 `llm-failure` 结局**不再二次记账**（`summaryFailure` 见到 `llm-failure` 就跳过 `trackError`），因为 `llmFailure` 已经带着路由记过一次，重复记录会让日志分析的失败计数虚高。
 
 **成功事件也带路由。** 两个包都在 `track` 的成功分支里并入 `provider` / `model`（`routeFacts`）。理由是可判读性：只在失败时记路由的遥测能说出「哪条路由坏了」，却永远说不清「改动路由有没有修好它」。同样的道理让备忘面板的 `listModels` 也把解析出的路由同时记进成功与失败事件。
 
@@ -176,10 +208,10 @@ flowchart TD
 
 这些不变式都有直接对应的测试，改动时先看它们：
 
-- **路由优先级与空白**：`github-issue.spec.ts` 覆盖「请求 → Config → 部署默认」三级、空白串不遮蔽下一级、以及解析失败返回 `route-missing` 且 `llm.requests` 为空；`memo.spec.ts` 覆盖 Config 解析、`NO_ADAPTER`、`MISSING_CREDENTIAL` + `status`、`EMPTY_RESPONSE`、显式请求覆盖配置。memo 的 `listModels` 测试还钉住了「Config 不钉路由时跟随 `agentDefaultModel`」。
+- **路由优先级与空白**：`github-issue.spec.ts` 覆盖「请求 → Config → 部署默认」三级、空白串不遮蔽下一级、以及解析失败返回 `route-missing` 且 `llm.requests` 为空；`memo.spec.ts` 覆盖 Config 解析、`NO_ADAPTER`、`MISSING_CREDENTIAL` + `status`、`EMPTY_RESPONSE`、显式请求覆盖配置。memo 的 `listModels` 测试还钉住了「Config 不钉路由时跟随 `agentDefaultModel`」。`config-volatile.spec.ts` 单独钉住「路由 ref 就地改写后下一次调用即生效」。
 - **目录**：`memo.spec.ts` 的 model catalog 组覆盖多 provider 顺序、单 provider 抛错不影响其余、`catalogError` 与「空目录 / 单个 provider 空目录」的区分、未挂 `llm` 的降级。
 - **浏览器侧规则**：`controller.spec.ts` 覆盖「注册表读不出时仍可用并说明原因」「空注册表与坏注册表不同」「拒绝钉住未上报的 provider」「注册表未知时保留已记住的选择」「清除选择后两个半区都不再发送」。
-- **遥测**：两个包都断言成功事件带路由、失败事件带保留码 + 路由 + `status`，`route-missing` 事件带 `NO_MODEL_ROUTE` 与 feature 锚点；`memo.spec.ts` 还断言「解析出的空路由写成空串而不是省略键」，以及没有遥测挂载时 github-issue 照常工作。
+- **遥测**：两个包都断言成功事件带路由、失败事件带保留码 + 路由 + `status`，`route-missing` 事件带 `NO_MODEL_ROUTE` 与 feature 锚点；`memo.spec.ts` 还断言「解析出的空路由写成空串而不是省略键」「无可用 provider 的降级事件也带路由」，以及没有遥测挂载时 github-issue 照常工作。`telemetry.spec.ts` 从另一端钉住白名单：元数据里混进 `apiKey` 之类字段时 `group.route` 的键仍只有 `provider`/`model`/`status`，而只写了 `provider` 的事件不产生 `route`。
 
 两个写得最薄的地方值得先补：`streamLlmText` 的 `LLM_UNAVAILABLE` 与 `NO_MODEL_ROUTE` 两支目前没有直接断言（github-issue 侧因为 `inject` 本就不可达，memo 侧只有 `listModels` 的 `llm-unavailable` 降级被覆盖），而「元数据键名是契约」这条链只在 `dsh-telemetry` 自己那边被测到。
 

@@ -1,0 +1,528 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3d29d83301827df66dc05aa58a2fd15a9437f5df1b2fde4b65e47af66b3da52c",
+  "claims": [
+    {
+      "id": "claim_1c884b31650c43f780d7664db98c2b38",
+      "statement": "该包用一个 Cordis 行同时交付宿主与浏览器两半：`lib/index.js` 是插件本体（`TypertRemoteService`），浏览器半边由同一 manifest 的 `dsh.client` 声明发现并从 `<package>/client` 提供 `lib/client.js`，因此 `cordis.patch.yml` 只插入一个 id 为 `openwiki-visualize` 的条目。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L1-L21",
+          "version": "repo-lines-v1:sha256:1df5031f8abffa8c3003f7b31367d632bd676a73afc683bf304a4d9d9229be8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3Y2QwMGJmOTE2ZGRjMGZmMmNiYjQ5MDhkZmE5MGRhYTVkYzFhNDVjNGFkMjlmZDcyMTMwMzhlMjhhOTlhZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYTQyZTBmY2Y4MDc2Yzg1MGYwYWFkZTlhMTYwYTk2NDliMDU0NzczNDJhNzE3MGQ2YmFmZjc3NjNmYTRhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyMDU4NDg4YjQ1OGY2ODRkYjQ2YmI5ZjlmMGI3ZmJlYTY1MTY2NWIzOWQ2YzUyNDFjYjllMDU1YzFiYTRjYTkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L58",
+          "version": "repo-lines-v1:sha256:7ce1697306b9711bbbaf62fe769583e982e9e52d094a94048d882ec102cdcc4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMzJjM2VjMjIyYzFmM2FkOTg1MjM2Y2M4NzA0YzQ5NGYwMzU5MTZhNTVjZmU3NGIzNzgwMzcyYzA3NjczYmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ec9787ff721489695236491a0c98e59",
+      "statement": "`src/environment.ts` 全部是参数的全函数，不含文件系统、子进程、网络、时钟或全局量；宿主服务 `src/index.ts` 集中持有 spawn、readdirSync、fetch、Date.now 等全部副作用，并把每个「怎么判断」委托给 `environment.ts`，从而让版本闸门、横幅解析与 wiki 识别能在没有安装 openwiki 的机器上被测试。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:9906dfa12c43f219932f04f539ee216f3d1074d76a68e6bc22c75a4638ead7ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3NzJmMzdhOWFjYWQzNjM1OGQwZDE3YTFhNWQwY2RkNTdmNWNmOTM4YzY3OWFjY2QxMjg4NjNkYWJlMDFlOGIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:2a57309b5413983cd07bc0207fb47e498ae1838759d43a3544d38e656843e3d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMTJlOTNmYjZkZTRjNzlkNjlhN2EzMWQxNzI0M2M1ZDNiMTBhMTNmMjVjYmNiYTQ2YjJmOGZlNjRjYWU4ZWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d1a4277c5c1f4a8ebe420743f6737ac5",
+      "statement": "宿主服务以服务键 `openwikiVisualize` 注册 `TypertRemoteService`，暴露 `environment`、`workspace`、`status`、`start`、`stop`、`version`、`checkUpdate`、`update` 八个 Remote 方法；每个方法返回 `OpenWikiResult<T>` 业务信封，与传输层信封分离，浏览器半边据 `/api` 信道上的 `openwikiVisualize/<method>` 寻址。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L36-L68",
+          "version": "repo-lines-v1:sha256:1876dfaebdb565a7278c41fbd1902dd11abcd640cb9fcb10ec25692fdd3a67d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMjU0Y2IzMGFhNWZhOWIyM2I0ZTMyOGIwYmQzOWE1MTA5NTZmZTczOWE5MmE5M2MyNDVhN2QwYWNkOWJiN2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNTM5NTg0YTcwZGM1YTcwMDBlMGFkNmQ2MTM4MzExYzdhNmU1NTYxZWIyZGI4NDhkZmQ1OWNkNzA2N2U0YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOGE1ZWYzMzc1ZjhkZmRjOWE0YTE4NTYxZDQ1M2I2M2JjMDNlZDEyNDJiZWEwNjM3ODUxOGRlNTU3MWZkYjIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L147-L165",
+          "version": "repo-lines-v1:sha256:5b66ab8304cffb08a3e385a2d0943a91042844605cd6c8dd2d71e6de8e79d145:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZjU0YTg2NzNlZWQyOGY2ODdkMTVjMzZjOTUxMmQ1MDZkMGI1ODA1ZTkxYjQ4YTNlYTUzODJlNjMzOWIxM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYzczNjUwNzE0ZWZlNjNlMjhiNTQ3NWFlOWY0NGNhOTQ1MWUwNGEwNTRhN2ZmNzRhYjIwMzFlYWQyNGQ0NTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZmExZThjNTQ3NGJiMTU2MDk0NzJjZDkzMzIxOTkzZDE4ZGE1YzRiOTdiZDE5M2M4OTgxYTBlZTRkNmMwZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1YTJlMzI3ZDY2OWY1OGU2NzY1YThmM2FiNmI5MzZkYzk1MmE1MjgwNjA3Yzg2ZjdjYTNmMjA4NjM0Y2JiZmQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L263-L312",
+          "version": "repo-lines-v1:sha256:45946f4e298888e4e223f6dedcc4b23d2a348df8a5b85abe338267e9602f2be8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYTNkZGQ4NzdhYmViODdiNTRmZTY1MjRiNzlmNGJjMDBjYTQxMDFhZjM5Y2M0ZjgyNGQ1ODdmZTk3NDQ5YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwMTJjYTJmOTNmZDNjMDQ4MWZkZDU0NWJiYjkyNTg0NDY4N2NhNzVlMWEzYTM2MjNkYmYyNzc5N2EzZDUwNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliMDQ5YTI3ODAwZDhhOWExZGUwMWYwZTgxMDk3YjA0ZTJhY2MxYmYxYjZkNGUxMWNhZTQ5ZTJjOGEyNGVmYTQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/types.ts#L21-L31",
+          "version": "repo-lines-v1:sha256:a53ffb955c5649b0abb8bfd317dbed163ba20c18bd4a62a441ca9644663bbb52:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4ZjAwYmNhM2VhMTI2ZjBhNzMzMGMxY2U2MzAwMWU1MGVhMzgwNTRlMzExNTVhM2ZkMTM5ZjEyNzI0MmM0N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlOTYzZDNiNzYyZGMxNTc5MWYyOWQ5YmU0NjY1N2Q3YzdiMDhhODQ4YzFiYWQ2NWE5MjUzZDdlZTE3ZWRhY2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1685e744f7c9447bba1d4103644805bd",
+      "statement": "构造函数登记两个 `ctx.effect`：其 disposer 调用 `reap()`，使子进程活不过一次插件 reload（否则重载会留下第二个占着端口的服务器）；另一处在 `updateCheckOnStart` 为真时 fire-and-forget 地跑一次 `checkUpdate()` 并吞掉异常，既不拖慢挂载也不安装任何东西。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L276-L292",
+          "version": "repo-lines-v1:sha256:3117903f82fac7cb005e52f8241ad93ead8f9a472be5a26ce086e4cdb023ba83:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkMDYxMDJlOTA1NzNmNzU4YjgxNzk1ODRmMTNhNzQ3ZjAzNzQ4NjQ2ZjViNmZkNTAyNDhiYzFmZjMxNTJlZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NWYyYThkY2E0MDc0OTlmYmY5MDc3ZGZkMjU2Y2M0NGUxNjM2OGEzN2Y2OTJmYmI1ZWU5MTY2YzRkMDFjOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZjVhOGRjZjBkZGM3MWMwMjcyOTNhZTVjMTZjOWVmMDY4NTJjMWQyOTU2MWZkZDhjODE1MjQ0NjhkNDExOTkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L528-L539",
+          "version": "repo-lines-v1:sha256:2cd0db0d9e15cc7aa4e63c491de2501ea72b0713063f7b72205837dc853fde0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliY2FkYzg2OTJmZjk2Y2U4ZmQ5MzFkOTg3ZDBmYzJkNWU5NTY1M2JmMjMzYjNjMTc3M2VjMjA0ZTJlZWIyNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZDNhNmY2ODNjMjc4ODI5NmExNDRjYTM4NTY1OWMwZDNkM2ZhZjZmYWY3MmFjNzg0MmZkMWE0Yzc4MTgyNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ODQxNTNmYTA1NzQwMWViMWM0M2U5MjU5ZTNjN2RjOTQ0YWVhYTY4MmJiODI2OGUzN2IxN2Q2MWE2MGFhZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_98eba5093f3c4b81a1218e49121fb8cb",
+      "statement": "`start()` 对同一个 wiki 路径幂等：只有已记录的 `serve.wikiPath` 与本次目标相同且被跟踪的子进程仍存活时才直接返回当前状态；否则在任何 spawn 之前无条件 `reap()`，因此任何时刻最多只有一个被跟踪的 visualizer 子进程。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L362-L392",
+          "version": "repo-lines-v1:sha256:96e12ee5a18d542331b60d060711e89471f86fc4ed2720140886f6b9b3d6b6e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjODc0NTNhNTI0ZjI3MjgzY2U0YWY0YTQ1MTZjYzkxMDU3YTk0NTQ0ZWM4MmU5MzZlZjE1NTY3NTI3MjRhYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1NTQ0YWRjYjIwOGJjMTEyODg2MTZlZGZhYjMzYTY4ZTBjY2JjMDAyOWRkM2I4M2ZmZWFiNGE1OGJjYTEyZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNDZmYzdlYWNjOTU0YTFhYjNiNjFkN2JjYThkZTJmMTJkZjViOTU5M2VhYjA5NGQ0NzdmZTAyNWYyMDdkOWEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L523-L539",
+          "version": "repo-lines-v1:sha256:5bbc83426ab9987b3bd0824b7c52a0ebc47ea05a3b6d3e2ac8165aaad22c5cc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMGU0MWZhNDZjYTg3MjlkNGFiN2ZhY2Q5YzNhNmZhZjc0MzJkNjk3ODdkNmVlNjU1OGQxMzM2MGZkOTc4NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ODQxNTNmYTA1NzQwMWViMWM0M2U5MjU5ZTNjN2RjOTQ0YWVhYTY4MmJiODI2OGUzN2IxN2Q2MWE2MGFhZmMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L332-L357",
+          "version": "repo-lines-v1:sha256:7cc7551de74837866ddf231be1f55eb8bf95d576cc20ddc1ee8ea7c36d69cdef:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0Y2IxZjYyYjdlODYxN2EwNjAxMjc3ZTNhZTBhZmZlOTZiNzQ5YjUyYTllOWJjZTFmODM5MDBkMGU5NDY5ZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNjdhNTc1ZGJhYjcwNThjZWQ3ZDhlZTE3Y2VmMDNlMDY1ZGQzYjUxNmU0Yjc2MWJkNGEyOWJlYzI4NDBlZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmNzAwNmQ1NjYwZjVjZmFlYTI4MzA5MGVmZTQ1Y2FhMWM5ZTk2OTRjZDMzOThhN2QzNmU5MzljN2FmZmMzYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_06464b44a1e348c39a672380a7f13ba1",
+      "statement": "`start()` 对工作区唯一的前置检查是 wiki 目录可读（`readdirSync`），失败即返回错误码 `wiki-missing` 并提示先运行 `openwiki --init`；它不调用 `classifyWikiDir`，wiki 分类与页面计数只属于 `workspace` 探针。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L321-L340",
+          "version": "repo-lines-v1:sha256:6027f92df7b37408015f7f33f2ef18400a6abceea900ea58b581e157f465fb03:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMzE1MmQ5OTM4NmFhNDlmNjcwNzZkYjk2MDc3YTNmZjg3ZTI5Yjg0MDA4ZGJlZDUxZTVlZjVkMmUyOTMxNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlMGIzZDk1MDhkZDUwMTdkMDA5YWU1ZDQ1ZDcwMjM5YjkyMTg1ZDFhZGVkNTMzNTBmY2EyMDczYTc0MTQxNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNjZkNmU1ZDExMDdhNmM2MmY1MWU5ZjFkMzM5ZjY1ZTlkYzhmYTAzNjZlNGNkZmZiYTE1YWRhYjA0MmE3OWYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L372-L380",
+          "version": "repo-lines-v1:sha256:04152b784c1a382e351d7a6f287740542e12c13d6bc6987af3d725ca83608383:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQzOTgwOWE2ODkyMDFiMzhkOTI2ZmI5NGU0NmJkMThkY2E4YzE4MzIzNTM3MWMwZTllNDRjMDVkN2IzODkyMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGEzZTAzYzNmYTY1YzZjY2RiYzQxNTRmYzhlNDE0MjQ0ZWM0YzYzYmVmZGYyMGM1OGViNTk4NDQ5NDQ3MTMxMiJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L323-L330",
+          "version": "repo-lines-v1:sha256:2ab849a5bf7ec1bfa5780a8ff1c915dda4d36ca5f9a31dcf0dedf6c6c711c5f2:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGQ0MzAwNDhmNzI1ZTRlNmE2YTE3MzQxYmQ2MTJjZDIwN2FjNTI5ZmI0NWM5YWFlYjFiMjYzNjhiMjg3Y2E3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE2N2E1NzVkYmFiNzA1OGNlZDdkOGVlMTdjZWYwM2UwNjVkZDNiNTE2ZTRiNzYxYmQ0YTI5YmVjMjg0MGVkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjNiZmU0NTQ3NTM3Y2RkMWY3NmViYTgwNWRkOWYzMjY5MDZhMjZlOWUyMmE1ZGE3NWU3YTAwZTYyMzI4ZmE2YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_dc34eec21e7e4fabaee72397d99afc54",
+      "statement": "插件报告的是 CLI 实际绑定的端口而非常被请求的端口：`awaitPort` 从子进程 stdout 中匹配 `http://127.0.0.1:<port>` 横幅（先剥离 ANSI SGR 色码，再用 1024–65535 区间校验），因此 CLI 在 `EADDRINUSE` 上递增后返回的 `url` 指向真实端口。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L186-L210",
+          "version": "repo-lines-v1:sha256:412d74d2bbebebc1d562c6a56ebb12ec9a3aa6fe943c10e862eff1ca3f48a164:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3YWNhYmQ2YzMxZTEwYWFjZmEwYTIzYjgxN2NmZTE3YThlMGQxY2IxM2FjMTBhYzQyOTJiNzdhNWQzMjY5Y2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhOGU4ZmM4ZWZkYmYwMzMzZDgzMjFmNTUxNTgxYmU2YTcyYTk0NDc5NTU5M2E5NzQxNTQyZDliNTc2ZDM2OTMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L646-L711",
+          "version": "repo-lines-v1:sha256:4d15b4731fe52d7c50b1aef34ab2df408f46dc7be24d55eb0600a912be5bbfc2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5YjFjMzY3NzdkZGVlYTUzY2E4NTBkMWZiMDYxYTRmYjk1NTJiNDZiMmMxNWVlOTI3NjhmOTQxZGE0ZDExYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwM2E4ZDg1MTcyNDVlZmVhMWYyMjA0NjFjOWUzYWE0ZmEyZjIxNTQwY2VlZDUyZmQ2ZWQ0YmRlYmVhOGNlN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmZmQ4ODk4NTM4MmM4ZjZkODcyYmRmM2NjOTA3ODdlMzMxNzQyN2UyMjRkNDA4MGM0OWRhMGIyYTM1OWMwZGEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L287-L321",
+          "version": "repo-lines-v1:sha256:e9d7a1f96bfe68d541e6c0418b37b86e5670086933e2ada5eacace9845f80136:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwYzFmYTFiYmNmZTNhOTE0MTcyZWI5ZThjOWI3YjhhOTVkZTE4M2EyYzBhMDdjYjQxMzQ4OWY5MzU4NjVkNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NWQzN2Q3ZWZmMTA5YzBiMzI1YmQ3ZmQwY2YxZjIwNDAwYmIxZTg5ZWI4OGFkMDYxMzQ5OGM3ZTY0ZmE2NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjZGU1NGU5N2FkOGM0ZTgxY2RjYmQ4ZjU0YmY1MGM2NTAxMjI4NWQ5ZmEyYzFkMTNjYmZlZDAwM2Q3MjNlOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e71658501b6c4dc08340298f839d2f49",
+      "statement": "启动参数恒为 `visualize <wikiPath> --port <port> --no-open`，`--no-open` 不可省：面板自己就是阅读器，让 CLI 同时启动系统浏览器会在每次启动时多开一个未请求的窗口。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L234-L247",
+          "version": "repo-lines-v1:sha256:cf0c8aeeff51865d6505ffdd975acaf164ccd9b8e2db23994bd33b06ab223e9e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzZDQwMmI1MDQyYmQ1OTg4OTZmY2MwMTNjY2VhYzUyNzZjNjcwYzVlNzI0N2MxYTMzMzcyOWViYmQ0OWUzMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyZDcwZTI3ZmFhN2ViMDhkY2E0M2VkZDViZjYxYjI1NWI4Y2Y1YjEzNWMzMGVkZGZiMWQ2MmI3NGQyYzI3NzUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/environment.spec.ts#L158-L163",
+          "version": "repo-lines-v1:sha256:a5cb2fd0946014982b05d58778d8739049434b0f5bbf66b54929339a27a35cc6:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVkN2RhNjY5ZDNhMWRhMjQyZDY0YmNhNWQxZTU2ZjFiYjhlMmUxY2UwNWFiODgxZGY1ZjJkYTkyZmYyZTMyNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBhOGY2MGZlM2M1MGIwY2Y1MzQ3MjIxMTNmZTkwZDczNDE0Mzg3Y2U5MmU1OTc4YzgyY2JkODAxY2MwNTAwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTllMjAyYzViMGRjYjgzNDRkYzU5MWQ5MDM1MDIyMDZmZDkxN2Y0ZmY3YjcyYjkzNjU1NGU1NzNiNTkzOGI4MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjIwZTZkNGVmOGVhYzcxOWU3YmM4YTM2ZDU1Y2RlMzVjMjhjY2Q5NzAxNTk0NDYyMWFhN2ZhOWQxNmIyOGY2NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e585701ecc994db6829e52fb4b919a97",
+      "statement": "横幅始终没出现时（子进程 exit、error 或 `spawnTimeoutMs` 默认 15 秒超时），`awaitPort` 退化为按 `portCandidates(defaultPort, portAttempts)` 逐个 `GET /api/graph` 的候选探测；该兜底区间的起点是配置的 `defaultPort` 而非本次请求的端口，因此调用方显式请求的端口若落在候选区间外且横幅缺失就找不到。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L212-L232",
+          "version": "repo-lines-v1:sha256:dd477817c89cda2318e709069f172ccc60f77c12df3429ee2a0611504d705fd9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNWU1MzAyMTQ4YjY5ZjBhNzg2OTEzOTEyODdiMzY3NGRhNjA4MzM3NDg3MjRlZDY4YWJlNmM0MTRhNWIwOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiZDU2NDU2N2M0YmQ1YjhlY2M3MGQ3ZTlhOGMwNmE3NjE3YjljYmFkNjg5YTc1NTk1ZDU5M2U4ODNlYjQ2NTEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L673-L723",
+          "version": "repo-lines-v1:sha256:0b28f8507097da644a7f139dc0139dff4b737de33decbb1183f2cf9b78e6f566:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YWU1OWI3YzE3MGU2MTg0NGQ5YmM1Yjk4OGJiYTAyYTFlMDUzYmM0ZGIxNDg0MjYwZmQwZjZkZmJjYjlhZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiMWQwMDE4OGZiMTgwOWY1Y2JkNDQ1YzRkNDczN2Q1ZWVlNTc4NDg4NGFmZDRhMGExNTY5NjRkOTM3ZDkyMTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8df3027e96814876acec139b2539c9eb",
+      "statement": "在报告 `running` 之前还有一道探活闸门：`confirmServing` 对刚宣布的端口 `GET /api/graph`（复用 `registryTimeoutMs` 作 fetch 超时），失败则等 250ms 重试一次，仍失败就抛错并使 `start` 返回 `start-failed`——「宣布端口后立刻死掉」的子进程不会被当作可嵌入的服务器。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L653-L671",
+          "version": "repo-lines-v1:sha256:e6df8920ab37c5d97b44873a7f6a6df19209fbd818eb41388a52728d2d87bc1f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTE4MTQzOWRlMzFlZjcyNWI2NjViOTU5YjBjMWQ0NzM2Mjg0Y2Y2YjJkNTE0YzJiNjk4MTc3ODM2ZmQ2NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNjRkMDZlODE0YWVlMGM1NTVmMWQ3MGUwNWYwNzM3MzNhODJhOWIwMDQ2NThlZGFkZDUyMDdlYWZjMTQ4OTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiMTRhOWEwZTJjMGRjNjA0NGNiMWI3ZDFmMWFlYTgxNzZmNGU4MWM4NDE4YmNiNTFlZDkzMDg0ZTk1YjgxNjIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L713-L731",
+          "version": "repo-lines-v1:sha256:a0fe0d1b682a2484f80dab8a64507a8a2a1317b55fac1240bc6bc0ac16b565a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOTQyMThlOWJlYTIyZWM5YmE5ZjdjODM2ZDVlYTNiMWNlNWYxNzRiMzFlY2YzMjhjZWQ1MDQ4NTY0OGY0YWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjNTEzN2FkZmY2MTAxOTRjNWVhOWZjZjVlYzdmNmUyMDUxMmVhZmJkODI4ZGUyZTFkYWE2ODNiZTQ0OGFiYmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f04b0a794354b2e9d5239db5bbd52e8",
+      "statement": "子进程自行退出不会向调用者抛错：`status()` 以 `serve !== undefined && isChildAlive()`（`exitCode === null && !killed`）判定，死掉后返回 `running: false`，仍带最后一次的 `wikiPath` 与 `lastFailure`，供面板解释「为什么没在跑」。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L348-L351",
+          "version": "repo-lines-v1:sha256:4940718ec7d1cf637b64f01df3ee696b181719c75b8304ab1604141a144b37c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2I1MTljNTEyY2M4ODhlYmQzOGE2YzYyZmEzYzFjNTc1YmYwYmY5YzhlZDA4YmFlYWU3NDVjMTkyZDJlNjQ2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWNmMjdmOWVjYTg3MjI3MjhjMzhlZTcwODdhMmEwMTBlYjMwY2RkNGYxYmM1MDMwZGIyZTNiZDE4NTExY2NiYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzJkYzQ4OWI2ZmMxNmJmYzNkY2MyYWEyNGUwNThjZmM1NmZiYWEyOTU1MDk2OTk3NTk3NGNmMjdiNmU0ZDlmZCJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L504-L526",
+          "version": "repo-lines-v1:sha256:ee01392842c508eef51496e03d44bfc778aa1a6d0045268ed1c8e274a9fb1a35:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkOTI2NzY3Y2Y3NTJlMmY1ODE0NTNkZWMzMDkyOGM4ODc2MWZkOGNmMDJhYjBhMDE2NGNhNzBhNTg4MDZiMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjOWNhYjM2OTI4MWIyNmUwNjE1MmY4ZjliOThhNjJkOTcyOWRhNGMzZDQzYmUxZjg5MmFlNGE2OGI0YzE2M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2MjYwMjExOGRkNzI3ZTViMTk3ZDQzOTAzZTQyMzk2ZDYzZGI2MjlmZjNjN2IwMGNlM2MyOTEyYTlhMWJjMmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_58fb71d9a261453491e19495f644bca8",
+      "statement": "若 spawn 之后端口始终没拿到，`start` 记为 `start-failed` 但 `this.child` 仍指向该子进程而 `serve` 为空：状态里看不到它，它会占着端口直到下一次 `start()`/`stop()` 或插件卸载时的 `reap()` 回收。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L381-L392",
+          "version": "repo-lines-v1:sha256:213996cfcb157f8e7ce89165e9cfeee5060baed1127f0c853e5b35ee418b554e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyZmJjYjdlMTRiMTk5ZjcxMWQ5ZDk5NjZmM2QyNjFhNDM5OTc5MzI5ZmU2NjNiNWY5NzcxNDA5MjI4MTE0NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiOWZiODg0NTViZWRlYzVhNjA2Y2VlMTYxYWUxZDk1N2I0NmE0YjQwNjE0MGUzNTBkOTE1MTM2NzIwYmY5ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNDZmYzdlYWNjOTU0YTFhYjNiNjFkN2JjYThkZTJmMTJkZjViOTU5M2VhYjA5NGQ0NzdmZTAyNWYyMDdkOWEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L528-L539",
+          "version": "repo-lines-v1:sha256:2cd0db0d9e15cc7aa4e63c491de2501ea72b0713063f7b72205837dc853fde0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliY2FkYzg2OTJmZjk2Y2U4ZmQ5MzFkOTg3ZDBmYzJkNWU5NTY1M2JmMjMzYjNjMTc3M2VjMjA0ZTJlZWIyNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZDNhNmY2ODNjMjc4ODI5NmExNDRjYTM4NTY1OWMwZDNkM2ZhZjZmYWY3MmFjNzg0MmZkMWE0Yzc4MTgyNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ODQxNTNmYTA1NzQwMWViMWM0M2U5MjU5ZTNjN2RjOTQ0YWVhYTY4MmJiODI2OGUzN2IxN2Q2MWE2MGFhZmMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L646-L660",
+          "version": "repo-lines-v1:sha256:b9f5c2dfa00df787875a961ac2e371b3e395f1ccbaf9ac2ac3961ede914250b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5YjFjMzY3NzdkZGVlYTUzY2E4NTBkMWZiMDYxYTRmYjk1NTJiNDZiMmMxNWVlOTI3NjhmOTQxZGE0ZDExYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNjZjYjJjZTQ0NWI1MDdhMDY2NDYyZjU3YmZjMjBhZTkwNjk1M2M5ZTdkNGI5YjZiZjYyYzBhNjk1YWMwODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwM2E4ZDg1MTcyNDVlZmVhMWYyMjA0NjFjOWUzYWE0ZmEyZjIxNTQwY2VlZDUyZmQ2ZWQ0YmRlYmVhOGNlN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5NzA4M2JmNmVkYzZkMmQ3ZjI0NDFhYTQxMDcyZDgwMjdmNjg3ZjI1NWNkMGExYTc3MjhjNGIxMTlmNDAwYTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e639671e5724f978569610ccae6f3d4",
+      "statement": "openwiki 探针跑 `openwiki --help` 并从横幅解析版本；`--help` 走 `tolerateFailure`，因为该命令在非 TTY 下打完横幅后会非零退出而那个退出码不是本次询问的失败。三种结局都写成数据：可解析版本、`version-unreadable`（答了但无版本）、spawn 失败（消息含 `ENOENT` 则为 `openwiki-not-installed`，否则 `openwiki-probe-failed`），且 `environment()` 信封始终成功。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L541-L579",
+          "version": "repo-lines-v1:sha256:b6603e9b9f7f81a9fcc0232971569203a4192fe0c0a1577f40426bebfa7c7262:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2YmY0ODk4ODEwYTg5ODAxNWYyZTI0NDQxYmYxNDMyNWEzN2RmYjQ4NzkyM2RhZmQ4OTg5ZmE5ZDBkNzJkNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhYjMzMTc3MzA2NGQyOGVhNjdkMTNiOGJmY2FiOTM0MTNlYWQwMzNmODRiMzczNWIyNjZhZDFhMDkzNjdmNmYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L762-L800",
+          "version": "repo-lines-v1:sha256:599d4828629da7750ddc73d75805e479ba2d9218b5f2483720d312340764c025:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmNDdhMGIzMTBhNjNjM2JhN2E5ODBiOGJhMTdhNGM4MGRlYzQwOGRhZWVlMGEzYWFjYTMzMjg0MzIzMzZlMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2MzYzYjkzODlkNGM2OTQ1NTU2YjdjMGU0Y2YxNjljN2ZhYjFlZGU5OTNlZmJlMTZlMjNiZGM5ZTExY2NhODYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L196-L243",
+          "version": "repo-lines-v1:sha256:a1e078eea3fcd48001be9bf9be7f9b81b53b9287428ee9d37a5df8c4bae867ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwNDVlNjU2NTAxNDlkYThhNGVmNWVmOTFmYzE0ZjIxMTljOTk1M2EzNzRkYjVlYzIyMjUxNWE0MmE4MmIyY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkZjViYzZhMGY5OWNlMmE0MzU1MWZjNjlhODE5ZTE0ZTJlMWYxZGM1MGM5MTMyZjMzMTZlNjY1MzIzOTI0ZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MThiYjI2N2IwNzhhYzc3OTdiMmMyOTc5MWQxODljM2EzNDkzMTYyMjM4Mjc3NTRhMGYzYzRkYzYzMjFlZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_942e2a122720481a8e7f9f405f947ceb",
+      "statement": "运行中 DSH 的版本按 `dshVersionPackages` 顺序用 `createRequire` 解析 `<pkg>/package.json` 取得，都解析不到才退回 `dsh --version` 的首个 token；彻底读不到时报告 `version: 'unknown'` 且 `meetsMinimum: false`，闸门 fail closed。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L122-L126",
+          "version": "repo-lines-v1:sha256:cb78752410f1d19241ce9ef6b4e8655c6620cc58af2f2acfc46950a7d990533a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTlkY2M4NzBmMzE3MzQ2Njk1ZjUxOGQwMzIyY2NmNWFmZGIwZTQyZGQ3NDliNTk1MmFjNjFjNmEyNzc4ZWRjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmM4YTAzOGE1YjVmYWE0M2ZhYjkwOTM1ZDA5YWMxZDg1YmE0N2FkODNmNmEwNzM4Mjc1NDdlZjFkYTJmYTA4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTQ1NjU5MDI0OWEzODExN2RiMTc3NDYxMzQ5NDZlNzkxYzFjYzFkMjdkMDUxYzY0Y2JmMmI5ODJmYTkyYjRlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2NiMDFiNjk5ZmMxOTdmYzNmMmJmZDk3MzU3NWVmMWI1YjJkNjQ2ZDlhMDQ0MTFiMmJhNzcwNDU4ZGZlYzE5ZSJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L581-L612",
+          "version": "repo-lines-v1:sha256:28ebca3d296dff5d4fa4f2b8ed4f5a03f6550a4be5e1e42beded6c4ca0203847:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWE1OTU0NWRhYjY0YzQzM2JjZmVhZTJhMGFhNmNlNDczMzY4NmI1ZjVjZjg2M2Q0N2FmZjQ0YTcyMjRmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczOTdhNjU3Yjk4ZjRmMWZhMjJhMmI3NzQxZGYwMmIzNmI3OTRiYmJmYzNjMTM2MjY1ZmU4YTg4MjliMzkzODQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8de80d129db4102a67d86397bcb9af2",
+      "statement": "版本比较按语义化版本规则：正式版高于同一版本的 prerelease（空列表胜出），prerelease 逐位比较且纯数字标识符按数值、数字低于字母；任一侧不可解析时 `compareVersions` 返回 `undefined` 而非猜顺序，`meetsMinimum` 因此为 `false`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L138-L175",
+          "version": "repo-lines-v1:sha256:3ed3c704ad19d832f2a32d55a2d016c525dd6d411f5ce7e9b013029904da148a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwNWNmY2RmM2IwZTQ3N2FhMmY5NjU1NGE2ZDhjMTA0ZDU0ZDRmOGEzOTE0YzQ3YmQ4ZGI3NmM3NTY1NjE5OWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxZTcwZmNmYjI1ZTkwZTA0ZjA5MzNhYTY0YWE1ZGViNTM1Nzc5YTcxZjYyNmU4NzdmNmVkNWE2M2FhMDQ2OTcifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L271-L305",
+          "version": "repo-lines-v1:sha256:50a934d53849261e9ab241cd707dacea6c0397ee101fd5bc6bd6734bf8eec565:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwNjZjM2EwMWI3YTk2ODBhOThjNjE5NWE4MmE4ZWM2Mjc2YjZmYmRmZWRjYmZkMjIxMTFhOTRiZmU5ZWQ1ZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3MjlmNmM1NmI2ZWQ4ODE0ODc2ZjExZDMyNDBhZWU3MmJkNmYyYmQ3OTc4Mzc1NzRhNWVhN2I5MTlkYTExYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/environment.spec.ts#L37-L85",
+          "version": "repo-lines-v1:sha256:41e64e5e434e74e3c570f999d4aaa3718860084505b04a3853a881e7cf4bbed8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNGNjOTNhODNiMTY3MjFjNzU3NjdjNDFhOWE3NWMyYTY3NmU2MGIxNGRhYzgzNjYwODkxN2VmMDc3NWFmMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3NGY2YzlkYWQ1YzAzNjg1ODdlYzdiNmVkZjE3NTEwZWE1YzgwMWVlZTFhYzAzMDEyMTE1MzAwM2E5Y2JlYzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_470edf40c8744cf1abb6c7625358daca",
+      "statement": "工作区探针把 `workspacePath/wikiDirName` 当 wiki 路径，读不到目录即返回 `hasWiki: false` 的成功结果；判定由 `classifyWikiDir` 完成，它要求至少有一个不含 `INSTRUCTIONS.md`/`log.md` 的 `.md` 内容页，并按 `.page-manifest.json` > `index.md` > 任意 markdown 取最强标记，因此只有脚手架文件的目录（被中断的 init）被判定为没有 wiki。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L249-L269",
+          "version": "repo-lines-v1:sha256:e5b5c3886b88a5b499092c1ad5b1e6df7d321dcee6d2872fb6af8cb4535c54db:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZGE1MGI5NTY2Yzg1NWYwMmU4ZTQ1NWU0YTU5NzUyMzA0NzY3NzhkMWRlZmYyMzI2YTEyMzQ4YTI0YWFhZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzYjc2YjY3YWIzODk3ZmI2OTViNmQxNmQ3ODZjOWFkZTI3YmZhMzZjZDcxOWNkYzllOTM5ODM3MzkwOTJhOTcifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L54-L70",
+          "version": "repo-lines-v1:sha256:54737ce3c2f3661aadef3a40d78d67b4b089a3ef3f0ce7600fcffcce6457107c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjM2YTc1ZmI1MGRjMzVlYjUzMjg3ZTM3NGU1YWI2ZmE1NWFhOTkzODllNzE4ZDE1ZThkNDQ5ZmFhNjFiZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkNmUwNzY1MDc3ZTU0MzllZmIzMDM3MDZiYTdhYTc3ODgzNmNlNGRmOTIzYmYyODQyN2U2MjY5ZDFiODUzNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MjZhMDEwMjQyYTgyMmRkNzliMjE3ZDUzY2RlNzkzMmU4NzJjNGFhMjI3ZjA5NzgxMjg3ZTE0MDI1OTRhYzIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L321-L340",
+          "version": "repo-lines-v1:sha256:6027f92df7b37408015f7f33f2ef18400a6abceea900ea58b581e157f465fb03:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMzE1MmQ5OTM4NmFhNDlmNjcwNzZkYjk2MDc3YTNmZjg3ZTI5Yjg0MDA4ZGJlZDUxZTVlZjVkMmUyOTMxNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlMGIzZDk1MDhkZDUwMTdkMDA5YWU1ZDQ1ZDcwMjM5YjkyMTg1ZDFhZGVkNTMzNTBmY2EyMDczYTc0MTQxNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNjZkNmU1ZDExMDdhNmM2MmY1MWU5ZjFkMzM5ZjY1ZTlkYzhmYTAzNjZlNGNkZmZiYTE1YWRhYjA0MmE3OWYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L246-L284",
+          "version": "repo-lines-v1:sha256:1a0aa2a2d06f72abfa093bbca9932c6acc49a8c07dd7564cf263955a70b30d65:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZjhiNDRhYTMyOGNlY2I2YzQxMjE3YWNkMjQyNWYxZmI5MTFmYTkzMGFjZjgzMTJlYTY5ZTJlYmZjNDkyNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0YWNkZWExMzE5MzJlNmQ1MTY3MjE3OGJjZmY3OGIwODcwZWI4ZWRkOTM5MWEzZjNlMjkxOWJhNDRhYjg5MWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_74dee0dbba6242b0abd380e0435271e5",
+      "statement": "`pageCount` 由 `countPages` 递归统计，深度预算 `MAX_PAGE_DEPTH = 12`，并按 basename 排除两个脚手架文件；递归是为了与 visualizer 自身的递归图遍历对齐，使面板报的页数不与 iframe 里的节点数矛盾，读目录失败按 0 计。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L161-L166",
+          "version": "repo-lines-v1:sha256:1e2a71ddd0342e734bce2027673ebf77c4a73947bde08a3e70ff31367c88bdb8:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJlZWIyNGYyYTYzMjM3YzcwY2RhN2RlMzM1ODc4M2VjMjM3Y2IyYmY5MmNiMDdhZWQyOWFjMGQ4NWNjOGMwNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDI0YjM2ODUzZTgxZTQxZDhkZDZiNGNmN2NkMDI1ODFkZDgzNDFmMjM1YTc4MzY2NjM1ZmYwMjdmYjVlMmNjNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGQ1MTgyNjY5ZTdmZDUyYzc1OTE5N2U5M2Q3NDgyNzgwZGQ4MjE5MzEzMjBmYWIxZDUzMWM1MzJlZDA2M2Q5YyJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L217-L246",
+          "version": "repo-lines-v1:sha256:b7e71f478aae7e2a680f8d4b1240ca30ba9f5b62566a5339cd900094e84271c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1YzUxOTU0NjNhNWY0NTUwYTI1NTcwNzNhNGY1MDVjNWI0YmRmNjBjYmRkZDhjNTQ4ZGE4NGU2ZWMxNmQ0OGEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L259-L275",
+          "version": "repo-lines-v1:sha256:1fd4130c2f4c4153755f1565a0effa5c61ef0c59251b268e98558ede18b9b70c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyOWUyZTBhY2RlZDBlY2FkOTc4YzQzMjY3MTVhMmFmZmRkMDQ1NDkxOWQ1OTk0ZWUwMWM2OGE1Y2RmY2NmZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNjdhNTc1ZGJhYjcwNThjZWQ3ZDhlZTE3Y2VmMDNlMDY1ZGQzYjUxNmU0Yjc2MWJkNGEyOWJlYzI4NDBlZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MWExNmRmZWY4OTc1MDRmNGI3MWY5ZTZiNGY5M2U1NWNiNDI0NWI3NTIzOWVjMzkwMTk0YzlmYzAzYjQ2OWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_edd16084b86a4b3190a9bb0941227db0",
+      "statement": "路径解析优先级为调用方给的 `path` > 配置的 `defaultWorkspacePath` > `process.cwd()`；端口解析只接受 CLI 会接受的整数端口，否则退回配置的 `defaultPort`，再不合法就退回字面量 `4321`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L490-L502",
+          "version": "repo-lines-v1:sha256:2c4e3ef6aa6443066e0a0ceb7bd9be82f0f6cbe67a44d50dbb6da4c457b84750:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4ODQzYmRiNTA5NGNkYzVjZDY3YTM5ZDkzYmRiYmU5NWQ1OTdjZDdlNGU3MzAzZmExM2ZmZDBhZTYzNDI1ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYjgyZDM2ZTM3M2Q1YjM3ODdmN2M0MWQ2ZTFhNjkwNTY3YzA1ZDhiYWRlMjEzZDdiYTJlMzkyYzA2ZTJmZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YzMwZmYwMWQyNjg4ZGUxZDc2Mzk4MTU1NDU2Yzg1OGE4NWNhNDM0MDkwZWFjMGU4YjNhMzU0MjMyMjY3NDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f7c923410954e6b955e0855d1bf03c5",
+      "statement": "自更新把检查与安装分成两个 Remote 方法：`checkUpdate` 只读自身 `../package.json` 版本并以 `%2F` 编码作用域名后请求注册表 `dist-tags.latest`（`registryTimeoutMs` 超时），只有严格更新的版本才算有更新，注册表不可达时写成 `registry-unreachable` 数据而非抛错，成功与失败的报告都进 `cachedVersion` 供 `version({ cached: true })` 复用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L404-L453",
+          "version": "repo-lines-v1:sha256:ec88d8a8338d31d9bb92c24479a7362875dd9f01efcde605156c75d2448108d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyNDAzNzdhNzUxOGQ2NmMwNGY2YTE3NDMwNjdhN2MxZGEwODk1YjBhN2UzMDViNjZjNGU5MDEwMTA0NDhjZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ODk3MzU3ZWZhNTAwNjNhMmFhNmY1ZDZmYTc0MDFmNTdmODc2N2YwZGJlODVjZjZjMTUwOGE4NmRiNzVlYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNzBmYzFmNmY5MzZiOGMxN2UyYTY0ZDVjZDQ1NzIyNWRlNTQzZjFjNGVlYzY2NGUzY2MwZTBhNDk2YjVlOTQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L614-L636",
+          "version": "repo-lines-v1:sha256:0751461423b7c1148bc863a3129f96763d91204349d2bcaa90aee36e5393e9bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmNzIwYjRhOWNjNTE1MTc2NGI3NTk5ZjI5MjU3NTlhMzc4ZTZjMWVhMjMzY2E4MmYyMGNiYjc4ZDc0M2Y1OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1MDI5NWRlM2M1YjdmNzUzZTE5YTFlNjczZjk5ZGVjNDQ1YTQyOGZhODIxY2ViMzhlY2M2YmU3NWU5MWU5ZDIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L360-L422",
+          "version": "repo-lines-v1:sha256:0bd95eaf2364597b64c1fc05cd6c92da781bc6e94f49f0c6c24f620e96f04fa0:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNmE5NDM1NmY4MDQ5MGNhNzQ5Yzc4ZjJiODM5ODJiZDVhNzJlMWFmODIyM2ViZWVjZWYyNGYxMGJlNTNmYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZTUyMzAyYTU0NDgzMDFkZjdiZTkxYmFkZDVkNmFiYmZmZGE1MDRlYzUxNDQ4NDYzOWYyMTlmZTkyYTYxY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b7251104cd3434d85caeada3ebde5c1",
+      "statement": "`update()` 只在显式调用时运行 `dsh plugin --profile <profileName> add <packageName>@latest`，回传实际执行的命令行以便手动重跑；它改写 profile 依赖，所以成功时 `reloadRequired: true`、失败时 `false`，且两种结局都是 `ok: true` 的业务结果（失败信息在 `updated: false` 与 `output` 里）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L455-L486",
+          "version": "repo-lines-v1:sha256:659dd86a838389e8e06aa42b1027b1fe3ba6082321136cb22dd86ae7f5d4fd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYjgyZDM2ZTM3M2Q1YjM3ODdmN2M0MWQ2ZTFhNjkwNTY3YzA1ZDhiYWRlMjEzZDdiYTJlMzkyYzA2ZTJmZmIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L424-L456",
+          "version": "repo-lines-v1:sha256:1f83e39642e8214c00cab69e991242146d5d3ab4a427c9ccb510f9a3d66e498a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1MDIwYmVmNjBlYWRjYjk5ODY4YzgxNjRiZjhkZjliODM1YTU2YzExYjAxOTQxMDAzYjkxZTYxMDRmOGM2NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNjdhNTc1ZGJhYjcwNThjZWQ3ZDhlZTE3Y2VmMDNlMDY1ZGQzYjUxNmU0Yjc2MWJkNGEyOWJlYzI4NDBlZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0403f663ca474c08ae17d5416023ac20",
+      "statement": "Windows 上 npm 安装的 CLI 是 `.cmd` 垫片，Node 不查 `PATHEXT`（裸名字 `ENOENT`）且 Node 18.20 起无 shell 的 `.cmd` 会 `EINVAL`，所以 `spawnCli` 把逐 token 引号化后的整行交给命令处理器（`shell: true`）；引号化会把空格、`&`、`|`、`>`、`^`、`%`、`!` 与空串包进双引号并把内嵌引号翻倍。其他平台直接 spawn、不经 shell。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L113-L136",
+          "version": "repo-lines-v1:sha256:35d17bcc87213efa55dc99e431e663b35cfa82fcf98721babb1b06e1dfc9d859:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MTFkOWMxMzdkZWJkOWNjMTc4NzgxOTdhYTM4M2VkYWQ2NmE4NzVlMjhiYjAwODY1NmQ1Zjk5MmEzODllM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3NTAwMDc4NDZjNmE1YzcyOGJkODQ2ZTE5NTk4NTQzZWFjODQzZTI4M2I3NzFlZDFlZjI5NjcwM2M1NWUyNzkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L733-L760",
+          "version": "repo-lines-v1:sha256:d785e2c9f67f23ee97f7e146566bb6b4bf2e008ba85e14b501136279abcb894d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OThmMDQ2MGZmMmYyNmNiY2M0ZGNjY2E2NWQ3ZDkxZGFlNjNkMjMzZTI3ZDU3ZTkzZGM2MzBkNzU4MjE4YmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyM2ZkYzg1OTcxYTFhMmVmY2MyZTczZmNlOTM0MmZmMjY4YjczZGM4MWZhM2U3MGJiNjliOWJmNzE1MjQ4NTAifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/environment.spec.ts#L188-L218",
+          "version": "repo-lines-v1:sha256:ab4bf2ab90acf84234fe4ed981f7636ca8ceb32aa3850ee0ed8bdd59e6122e2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMTc0ODkwNzEyZDRiZWVlNzNmMjM4ZDQyMTU4YWY2NDk5YzgxY2E1MDA4OGQ0Mjk2ODg2NGQ5ZWY3ZTdiZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc2e05dc2a17479285ad0e54291ff26a",
+      "statement": "浏览器半边必需注入只有 `slots`、`locale`、`connection`，并注册：一份挂到 `document.head` 的样式、`openwiki` 命名空间的中英词典、`sidebarRightTabs` 上的标签类型（`id` 为包名、`kind` 为 `openwiki`、`multiple: false`）、以标签 `id` 为 key 的 `sidebar.right.pane.tab` 面板体，以及在 `conversation.session.header.utilities` 上 `order` 为 `-20` 的入口（`open-in-app` 持 `-10`，故渲染在其左侧）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L164-L174",
+          "version": "repo-lines-v1:sha256:3890584ce6b44cb8f5e63d01f4713be8997a8546e9e55fd66b0153d185a3f923:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1MzNmNGI2M2FkMzU3MTZhOWM0NDQwMDc1ODViMmE1YTlmNWRiMzA1YzI5NmJhZTY1NjZkYzI3MTdiYTFkNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwM2JjMjMzYzVmMWMyYTUxMzczODhhMzAyM2U0MjBlYjk3MzYzY2VjOTRmMzUwMDllMGQ3OTBjNTA5MmYzMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L36-L59",
+          "version": "repo-lines-v1:sha256:2eb818a21a2b797b7b7d743e39a32f620575999eb6da085f6f1778c9c0a25314:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1ZWViOTM1MjgwNGU1MGI5Zjg0MmU1ZmQxYTQ3NWZiOTY1MTFjZTA3NDViNWVmODU4NTU3MTViOGMyZDcxZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5NmIxNTYzYWRjOTA3NGYxMmU3YTViMzExZDgzYjNlOTJjNDQzMWRiODY3ZDNhYmFlMDRkODQxZmMxMWFjM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNDUzNWQ1OWQ3NTk4YzAzOGRkY2M0NTJjMjA2NDM0NDFhY2I0MTIzYTcyOWU4Y2UxMzE3MTU1YjgwNmE0NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzMjk5NmNlNjNmYzA0NGFkZmQ5Y2JjNGQxOWZjOGU1MjkyMmJiY2Q4ZDU1NjU3ZDkyNzgwYzFjYmQ1MmU2M2QifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L94-L109",
+          "version": "repo-lines-v1:sha256:9800d1768c7fcecc1a72fe471007ddf97d403806b9d4fa62215e47015c4a9b2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MTE5YjUwYmRhMWEzZjVkMDVjYWUwYTMyZWE1ZDI1ZmQ5ZDFhNmIzNTQ5NGUxYWRjMTUxOWZhMzY1OWJmYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NGI0MGRmNzFiMjM2NTY2MTk4MDFjM2FlZmQyODlmYmE1OTc5NTU4ZWY3NWIwYjgxOGExMDYzN2I5ZGZlNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzMTM3MjRmNGIyMWRlYmZhMzZkMjhiY2NkZjlmYTE0NTE4ZWMwZWNjYmRkM2IxYjAzNmU2ZmJiMjJhNmY3ZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlYTE1Njk5ODY2ODYxNjFiZTI3YzIxNWEyZGE1MTFmMmZlZWE3YTM4NTA2MTNiMjJhZTRjOGEzNjdiMzA1YTYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L188-L225",
+          "version": "repo-lines-v1:sha256:f4cc142788be620537740417f6a8325e29980a3fdcf933f4f4284a351ee01a9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhODUyZGY5ZmIyMmI4ZDQzYTE4NTFkMmEwMGZkNjAxYWE5MzY3OWY4ODFmZmRmOTA5N2Q0ODcyYzdkNWMyZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMmI4Yjg0NjQ2NDdhNjAzMzY3NGI1OTNiNDdjNWU1Y2VjZmFjZjkyZGQ2OTk2ZDIwMGI5NjFkMDg2ODllOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNjQ4YzQ1ZjIzYmI5ZTg0NWY0ZTY4ZGFlMWRlYzIxNWFiODg0MzQxYjFkNDJmMTU4NDNhM2M1NjM3YTA2MmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b7d9b865f74745639879e0907849bf6f",
+      "statement": "标签类型通过 `ctx.inject(['sidebarRightTabs'])` 的 scoped 注入延迟注册，而不是在 `apply` 里读一次 context：右侧栏插件可能在本插件之后才实例化，一次性读会静默地什么都不注册。`sidebarRight` 则刻意不在注入列表里，缺失时只告警并放弃打开，面板体与标题栏入口仍然贡献。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L124-L140",
+          "version": "repo-lines-v1:sha256:caf14a9efafc62dddb79e6f8482ca5cdabdaac88b28b1d9410476314c74d88ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjYzEzN2U3YWMzNWRjNzM4NjViODBiMTAzODljMTQzY2NiZWU3MjAyOGNkNGU0N2U0NWEyYmI3YTQxYzkwM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmNjkxY2FjNjk0ZTIxMzIwMjJiNTAxMDM3M2IwOTE5MTlkNjc5NGUxZDFhMzQ4Yjc1YzY1YzNhZGMxYWFmMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1Y2E5MGRiNDUxN2I4ZDFiM2YwMzU1NTliOTRjY2NmODg3Y2JiNDc3MGUyN2E0MjMyNDU3MDhjZWYwNGIxMzgifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L86-L94",
+          "version": "repo-lines-v1:sha256:689529f5a4a2e8c757b11092dbd6506630651bf41bb973c39a1f2ed911e12233:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgxMTliNTBiZGExYTNmNWQwNWNhZTBhMzJlYTVkMjVmZDlkMWE2YjM1NDk0ZTFhZGMxNTE5ZmEzNjU5YmZiMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTg1YmU3YTAwOWE2YmRmMzA3YjJhMzJkNzU2M2E5YzE2OTZhYWY5MmE4OGFjOTRhNTJjMWM4NDQ0ZDNlODVjMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWMyZTAzYjQ1ZDdlNTExZjhjNmFmMzhiNjU5Njc5MWU0OGIwODRlNmU0MWI1ZDQ4MWY4ZjVmOGFiZjRiNzVlZiJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L347-L427",
+          "version": "repo-lines-v1:sha256:560eaa2390d98fdc5b633acdcb375aa83482788747922477fe7bb09bd41a4fae:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViMTg3MTIwODE0NWY3YmRmN2FkOWZkNzA0NDllMDBiN2Y2MjI4OWRjYWQ3OGVkNjNjZDM1MzFjZTE1NzIyMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5MmJhMjRkNjUzZTViMTkyZjg4ZWJlNGNjZGJhOWQ4ZjUxOWIxOGVmMDEzZDdhNzI1YTliMzY1M2MxYjBmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_499773f32bf14d038872f9d910954b72",
+      "statement": "入口按钮的打开流程是「先启动、再开标签」：`open()` 先 `await client.start()`，成功后以实际绑定的端口 `openTab('openwiki', { params: { port } })`，并且仅在列已折叠（`isExpanded?.() === false`）时才 `toggleExpanded?.()`，避免把用户已展开的列收起来；`start` 失败则什么都不打开。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L142-L162",
+          "version": "repo-lines-v1:sha256:5284b53d6742553eb9dcc346a2889cafcbb347b90e1611b2b6c485f80b30dd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYjE2YTU1ZGEwZjFlYTE2MzFiZjIzOTk0OWM1N2VjMTMxNzU1NWJmMDY0MWYwZTllOThlZjAyYTQyYzM1NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZGU5MjU3OWIwMDNlZTg1ZjcwNDczYzgwY2QxODg0NjllMTQ2NDk0ODk0M2JjYTdlNDM5OWVmYTM0NDI4MDkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L227-L261",
+          "version": "repo-lines-v1:sha256:934b17cf318a7e71855b4030f3d3229995048b55fe59a17b8212cdf94002af63:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkOGJhODJmZWZmZDYwMjZlYmViNzUzMWNlZmFhM2U5OWU2YjM5OGU4N2Y1NzA0MTYwNTlhMmY2Y2VlYWRiNzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5NzljZTQ3Y2YxZDlkZjg4NzRmMGI5Nzc0MTBhMzJmMmYxNWNjNGNjNGVhZDc1MmYxYWQyZDgzZWYyNTAyZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjOTkxNzQyYzNiNDI0NjdjNDFlMTUwMGVmNDg2ODcwNTUwMmNmNmNkYTZmNGFmNzBkMGRlOTVmZmZmYWNmOTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c893ff2aa9234fa19ccfa845767dd771",
+      "statement": "浏览器侧 `callRemote` 在 `/api` 信道以 `openwikiVisualize/<method>` 寻址、载荷固定为 `{ args: { request } }`，并把传输层失败（信封 `ok: false` 或 `rpc.call` 抛错）转换成 `transport-failure`/`rpc-failure` 的业务失败结果，使调用方只需对一种形状分支。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L24-L68",
+          "version": "repo-lines-v1:sha256:aee10a57b9c5b3617643051e886bbbd990ef1ae3f67ae99a914452200b4969ec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjYWRmNzc3ZDI1MGRmMzYwMThiMzYyNjkzMTE4ZjkyNTBjZTBjMzAzNTVkMGZkZjBiYThkOThiMTE2OTJhN2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkOTE1MmY5YTUyODhkZWY1MDU3MDQ5NTUwZmQ1NWE0MGMwYzBjODc0MzNjMTgxMjU1NzQzOTFiZDU3ZDc1ZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOGE1ZWYzMzc1ZjhkZmRjOWE0YTE4NTYxZDQ1M2I2M2JjMDNlZDEyNDJiZWEwNjM3ODUxOGRlNTU3MWZkYjIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/controller.spec.ts#L42-L70",
+          "version": "repo-lines-v1:sha256:0ace2c323989101b71f7a81ce95a68abd691db61e20ffad6782e21ce7501dc43:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZTI4OTYwMDg0MWE4Zjg0NWZkNDdkNzEwMmFiMzIxZjIyNGNmYjg1YzNhMzExYjUwMTgxZDU5YzE0YmJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkYjBlMWRlMmM3NjdkOTRlYTEzYTE4MzI4MmM0MmFlZWE3OWY4NWI2ODJjYWQ0NGY1YTEzNDczYjEzY2IwOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmMWJlYWJkYjZjYjdjMzAzNmFkNGU4MTJiYzMxYTRmYzEwODI1ODY2N2QyZmUxNzg4YzM5ZWRjZDhmY2IxMWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d286b7f52890448ebbdbfa32be8633cb",
+      "statement": "`OpenWikiClient` 让面板与标题栏入口订阅同一份不可变状态：`ensureLoaded()` 只在 `cold` 或 `error` 时加载，使两个同时挂载的组件只产生一轮宿主往返；`refresh()` 依次调用 `environment`、`workspace`、`status`，三者全成才算 `ready`，否则 `error` 并按 environment > workspace > status 的优先级记录第一个失败。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L99-L176",
+          "version": "repo-lines-v1:sha256:dcb9b0d0246510c8535e77c43a2862d9be972ba7b4943414e764478198bf25d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwZmI5NjIyNjMwN2MyMDdjNDViN2M3NDAyZmRlZGQ1Y2QwNzdkYWYyMGQxYzk1MzU2YjY0MDg5NzRiYzA0MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxOTZiYmU3MTM3ZDk4ZmZmZDE3NWEwMmE5NmZhZDA3M2ZjYzBjYzI4NDMzZmU5OGNhYjEyYWY4MTcyNTk2ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNDJhNDYzZjFiYTYxN2VjMTkzMDE0N2RkYzMyYWIzNmFmOGYzN2QwYmRhZWI5M2JmNGJiYjc0YjI0Y2JhMjUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/controller.spec.ts#L211-L222",
+          "version": "repo-lines-v1:sha256:aec814e7fa9574515140a8fdc4a1e107118642f75993dd870c322cbf1f497cff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwOWVlOTRhZmE5ZjRmYmU0MjhmN2VjMjJjMzFhOTliZGVmOGQ1Mjc4NmNmYzdiNjRhOTU0NDAzNmIzMDVkMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/controller.spec.ts#L72-L118",
+          "version": "repo-lines-v1:sha256:b4d815a51014f8eda94b911175cc60216bdc7878d276527f970673fed73f6b00:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMmQ2N2VmZDVmYzdmZTMxZjkxMzY0YTBhN2IzMzFhZjQ1MmJkOGM4ZjBiYmIwYjk4NjVkYTQ1NmFlMGZmYmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljOGY5NTBhNDA3MjY5MjU5YjQ0MDc2ZDQyOWI4NWUwODIzMmJlMjc3NDQyNzRlMDJhOTlkMTIyODAwMDg2NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_66a80139503545fe9ef1d03269ef72dc",
+      "statement": "`start()` 的客户端分支必须处理「信封成功但 `running: false`」（例如 `wiki-missing` 写在状态里）：此时把 `status` 置 `error` 并取 `serve.failure`，不能因传输成功就当成功。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L178-L200",
+          "version": "repo-lines-v1:sha256:390db81010dfc9adaa3f36473351322006bf3cbe60588b966e1704e8b7d339a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNjc1NGZlZTViZjU4OGViMTY4NzhlNjg0ZmU3MzI3NGQ5NzQ4OGQzNWM1NGRiMmNjNjUyMzNlMzQzYjkyMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlMGRiODIwN2ZhOTQ5NWIyNmJiMThjYmM5ZmEwYzQwMDJjMjlhZWI1YzNhNTdiNGQ2MDY4NzFlN2RhMWZhMTgifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/controller.spec.ts#L130-L151",
+          "version": "repo-lines-v1:sha256:68a53bb028cd1688a0c1e09ba961782594c23bf5505c4cef754532c7502f87ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1YmEyNTdlMGJmZTUzNjk1YzU0N2YwZTdmN2VkODljNDIyYTVkMWRlYjQzZGZlMmZiZmQxNjE1ZDZlYjBhYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5Y2JiYjQwYWE0ZjI2ZGZmMzU2ODIwNWU3NWNhODRjMmNiMjNmZWYyNzhhZjlmMzQ0NGI0ZTdjMjFkZWMwNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkNTJkYmVhZDZhMmZjNmRkNWYwZjdmNDgxY2E5MjY5YTA4ZDRjYjcxMTRlYzI3NmFlY2Y5NTRkYTUyMTg4YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d950e1af9cac46c1a9517d82ea91cef7",
+      "statement": "面板以裸回环 URL 直接 iframe 嵌入而不经 DSH 代理，因为 openwiki 服务既不发 `X-Frame-Options` 也无 `frame-ancestors` 指令，且其路由表精确匹配 `/`（任何路径或查询串都会 404）；iframe 带 `sandbox`（allow-scripts/same-origin/forms/popups/popups-to-escape-sandbox）、`referrerPolicy=\"no-referrer\"`，并以 `reloadToken` 作为 `key` 实现重新加载。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L1-L10",
+          "version": "repo-lines-v1:sha256:d9fae276629b7ba31acc9a951198fe0ce427db7a8adc9eebeeb573842064a8bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5MzUzMjU2NjcwZWE4NmIxMGE3MGYyMTQ1NTUzZGFkYjYzYjVlZTFkZTVlNjA3MGRkYTkyOGMzMjRjNzQ1YzEifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L149-L174",
+          "version": "repo-lines-v1:sha256:22539cb398249b13a4b21f51911e815190845d920c0ddaad1e2716ca04fec6d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhOWExNGVhYzBhODg0N2NhMzVkYWZmZDc2NDVmYTA2OWJmYmFmYmM2OTlhYWMyNGQ2OWQwY2I1MWFiODczZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMGQ0MGJiMDM2NTcyNzlhYzAwYjU0Y2I5ZGQwYmJiMDM4OGEwNTIzNzAyNjA4Y2M4NjMzMDViMmQwNWQyMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNTE0YjQ3M2U1ODJlYzJlNDY0NzUyNmFkMDBhZjUyYjkwMGY5YzYxZjAwYTVlZTFiZTk0MzQ5NDVhMjlhZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwMDg4N2ZhYWRkZjQ3ZjZiOWY2NzZhMzdiYTFlNmMzMGNlZTZiN2YyYTlhODAxOWYwM2UwMDZjZDQ1NzYwOWYifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L322-L345",
+          "version": "repo-lines-v1:sha256:f59357420e56ce28e3f8ed6a4d966244d37fde09c5fc70c54c2e3bf6b29ff864:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNTJjOTZlNjJkZjM3ZWQyMmE2MWE5NjAyMTM3ZjMxMjE3MjIxNjUwZDgxMGM0Y2NkZDkyN2NjZGVjNWU0MjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiMWYzODk1MjM3ZDc2ZjMzNzBkNDUzNzlmMzY1YzI3OWMwMTliYjJlYjE3ZDJmMGJhNjAyY2Q4YWFhZmQxZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNzY1ODQxYTVmZGJkNWM2YzljNjJlYzJhZDI4OTBmYTg2ZDVhM2M1YjkyM2NiZjkzNzg3YWVkY2NkZGQyNDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f25592c4d6c4a1398ee174bd93286a0",
+      "statement": "面板的空态由 `blockingReason` 决定，顺序即优先级：未装 openwiki（`empty.noTool`）→ 版本低于下限（`empty.belowMinimum`，带 `minimumVersion`）→ 工作区无 wiki（`empty.noWiki`）；只有不存在阻断理由时才给「重试」，并始终附带最后一次失败、更新后的重载提示与离线（CDN）提示。入口按钮把同一判据折叠成一个禁用态，理由写进 `title`/`aria-label`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/EntryButton.tsx#L30-L87",
+          "version": "repo-lines-v1:sha256:e97892b01f8b9fad5e67bf1d0380150ef493a2504446c0e52c4ff7abefd3d4b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NDhlOWE3MzU4ZmNjZGI5NWM4Y2RlY2U0ZWVkZTQzMzJiYjFhMzFiZTg4MzNiYjEyYjI5NzA0NDE5MTBiMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L105-L164",
+          "version": "repo-lines-v1:sha256:d1a78aad44328b07b98f8e8a017e95f5734c2fad48672190e937a432a0695599:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYmU4ZDhjNGE1MTZhZmE0NDAxNTc4YjA5ODQ2MDE0OWE3MDM0NjExOTFmNjI2NzY5MmZkODA2NmRhZTc1YmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMjBlMTA3OTcwZDZiZTM1OWVhM2QxYWU4MDAyNzY3MjU0YTcwZmM1N2U4NTI4MDdlOWFiNjNjY2Q5OTRlYTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNGYxNTM2MmYxOWJlMzhlN2Y4MzgyNzhjNTBkMzYyYzQwMWY5ODhiNzBjOTM0OGZlZGZlYjM2NDQzZmMyZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0MDRhMTFhMTBmNTk3NDI5OTBkNjhhMWNhMzQzYzNhOGI5ZTc1OTdkY2U3NGMzZmM1MDMwZTcwYWY3MGI2MjkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L25-L39",
+          "version": "repo-lines-v1:sha256:4d7a6aca4782bc4a0fd96996a31651baf11c0b576e94b8a2b08992087424a57d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NTY1YTNjMDdlM2E2M2QyMmI0Zjc1ZGVkZDgyZDI0YzcxMTk0MmE0MzFlNjllNDk2ZTIyMTAyMjlmNDQ0NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmOThmNjE4NWVhM2RhYTY5M2U3OTliMjkxMmMwYTNmNmI1NmI5Nzk1NjY2OThiNjIwNjIzMjBhMTIzMjA4MTMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L263-L320",
+          "version": "repo-lines-v1:sha256:b784198c0e6ceb4d0620c0fc4d5819ecc587b0a50657c2d45a2d0b6bbb674c3a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMzg5MzVjODg1NmMzNWNiODBjNjRjZmRkZmZmYzRkNGVjZmY3YWJmOTk5MGRlY2FhZmUwOWE4MGMzODVhMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViNGQ0NWQ2NzVkNTFiMGMyOTNhMzUwMTRjY2IzZmNjZjdhZTVlZGJmMGFhYTZhMGYyYjE5MWY3NTExNjI4N2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4YTlkODkwYTRhZmJhZGNlOGRlMzljM2YyZmZiYTE1MGIxYWFlZTk4ZTQ5Y2RiYWVjZTQxMWE4ZGRlMTMzZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8c11377287a45788c01657a219e1266",
+      "statement": "`Config` 的 15 个字段均可由部署覆盖并有 schema 默认值，而协议性常量刻意不做成配置：`GRAPH_PATH`（`/api/graph`）、`LOOPBACK_HOST`（`127.0.0.1`）、`SERVICE_KEY`（`openwikiVisualize`）、脚手架文件名、标记文件名、`1024`/`65535` 端口区间、`visualizeArgs` 的子命令与 `--no-open`，因为改动其中任何一个都会让插件不再与 CLI 通信。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L19-L38",
+          "version": "repo-lines-v1:sha256:a78dd7240f1293efc0ac13360ffad224391684a00dcc87769526d833ccd49370:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NmY2ODE0ZjBjODE2YTYxMzViMDgzNDNiMjhiYTUxNTQ4OWQ3YmYzZjFiMjYzZjczYWFkOTJiYWMxMjYwNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczZTEyNzRmNDJiODc2YTBhNWQ0ZDYxZmRiZTM2NDI0YTQ1ZDVkZTdkZWFmMTFmMDI2NTkwNTY2MjUwNjljNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/environment.ts#L54-L70",
+          "version": "repo-lines-v1:sha256:54737ce3c2f3661aadef3a40d78d67b4b089a3ef3f0ce7600fcffcce6457107c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjM2YTc1ZmI1MGRjMzVlYjUzMjg3ZTM3NGU1YWI2ZmE1NWFhOTkzODllNzE4ZDE1ZThkNDQ5ZmFhNjFiZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkNmUwNzY1MDc3ZTU0MzllZmIzMDM3MDZiYTdhYTc3ODgzNmNlNGRmOTIzYmYyODQyN2U2MjY5ZDFiODUzNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MjZhMDEwMjQyYTgyMmRkNzliMjE3ZDUzY2RlNzkzMmU4NzJjNGFhMjI3ZjA5NzgxMjg3ZTE0MDI1OTRhYzIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L153-L165",
+          "version": "repo-lines-v1:sha256:df0971a641beded8e89002e737ed4b4102391ea35fcda3a8bcddff15f86fda6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkNTM3Zjk1ODM0NjE2ZjVmOWZlNGRiYzdhNTk4ZjBhYjE4YjQ3NjU2OTc3OGUyYmEwOGRhYWNiNzVkMzA0NDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYzczNjUwNzE0ZWZlNjNlMjhiNTQ3NWFlOWY0NGNhOTQ1MWUwNGEwNTRhN2ZmNzRhYjIwMzFlYWQyNGQ0NTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1YTJlMzI3ZDY2OWY1OGU2NzY1YThmM2FiNmI5MzZkYzk1MmE1MjgwNjA3Yzg2ZjdjYTNmMjA4NjM0Y2JiZmQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L79-L145",
+          "version": "repo-lines-v1:sha256:d421445099999aefc66fe287e2938577a1d011b3d072581e3b437aff0757e272:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMTM2NmM0ZjQ1NTg5NWY5MmEyMDMyNzVkNTNlYTdjZWQyMmFkYzcxMmViMjg1NjE0MTk2ZWQwMGU1NGFmNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e20ddb212074fcc8629c071bc9e71d4",
+      "statement": "服务层用例用可驱动的子进程替身（按索引 emit stdout / exit / error）与 stub 的 `fetch` 同时应答图探测和注册表，钉住幂等、真实端口、`wiki-missing`、`stop`、环境发现、工作区计数、更新检查与安装 argv；浏览器层用例用假 client context 复现外壳装配顺序，只有接线用例能抓住座位/键/order 之类的注册错误。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/entry.spec.tsx#L87-L120",
+          "version": "repo-lines-v1:sha256:b77de1cc6c9d66137e64c7513b2d0e362f4c7b82cb33cb29b297256bcc1de8eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyMDZiMGUzZDU1MGQ1ZWY5YzA0ZDc3MTUxMTA1YWUxYzI0YTQ2ZjcyNzU3MDgzMzcyM2ZlNzBhOTlhMDc0N2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0MGRiYjc2OWM4MjA1OTA5NzQ2NTY2YWM1MjE0MjA0Nzg2MWE5YWVkNjgzNDU3MTJjMjk2OWIyMmZiN2Y1YTIifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts#L20-L123",
+          "version": "repo-lines-v1:sha256:475b551880d24d301cc008b6fffef618dbaf5dbe105c0da24de07a097a99f230:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MTdjNTJhNTg3ZDgwYjYxMjBkM2M4ZDFhMzdhZmNlYTliYTZjNDU3ZDFhN2JhMzk2ZDAzMDI0OWU4YTM2NzI0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzNGFhOTM1ZTAxM2U1ZjZmZjk5NThlZmVhOGMwMjhiODhiNDdiODk4NmY4MDQwNzliZTcwN2ViZGM2NGRlNTNiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1NTczMjIzOTQyMDEwYzY0OTcwODYyZDkzZGQ2ODBjZjhhMGVjM2E2MWViMzEwMzY0YzM3Y2E2YWNmZWEwZWEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjNTZjMzI2MGJjODBmMGQ4YTA4YjZhMDg4MjljMTRmNTM1YTEzY2Q4YTcyYmU4MjRjNzI1NmE3ZTZiMTQxYzRkIn0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

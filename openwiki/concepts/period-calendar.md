@@ -6,6 +6,28 @@ tags: [period-calendar, iso-8601, week-ownership, four-dimension, memo, host-cli
 verified:
   - by: openwiki/0.7.2
     at: 2026-11-03T09:53:43.931Z
+sources:
+  - id: openwiki-source-a028fd3f0a07adb5259e637a
+    resource: repo://packages/client/ui-memo/src/client/controller.ts
+  - id: openwiki-source-b73f210f2afbd3a409cac349
+    resource: repo://packages/client/ui-memo/src/client/logic.ts
+  - id: openwiki-source-3bca7b82ac0594a992cc19db
+    resource: repo://packages/client/ui-memo/tests/controller.spec.ts
+  - id: openwiki-source-6939853d7d89c014b7a33ac0
+    resource: repo://packages/memo/dsh-memo/README.md
+  - id: openwiki-source-3a7480327133dfa38c0836e5
+    resource: repo://packages/memo/dsh-memo/src/index.ts
+  - id: openwiki-source-82320714d33e0f599e583c24
+    resource: repo://packages/memo/dsh-memo/src/period.ts
+  - id: openwiki-source-8373e522d34589c6a70fb91d
+    resource: repo://packages/memo/dsh-memo/src/spec.ts
+  - id: openwiki-source-cdd2858186ec8ea8537cd0a6
+    resource: repo://packages/memo/dsh-memo/src/types.ts
+  - id: openwiki-source-65b7018afba5ec2f8dacc87b
+    resource: repo://packages/memo/dsh-memo/tests/memo.spec.ts
+  - id: openwiki-source-acc884bdd5c8c8c166d6c811
+    resource: repo://packages/memo/dsh-memo/tests/period.spec.ts
+generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 ---
 
 # 四维周期日历（period calendar）
@@ -24,6 +46,8 @@ verified:
 - **归属**（哪个周 id 落在哪个周期）只有宿主算。浏览器拿到的是已经解析好的 `weekIds` 数组，它只做 `Set` 成员判断。
 
 这就是宿主 `listPeriods` 返回 `MemoPeriodEntry` 时坚持把 `weekIds` 一起带回来的原因：面板与时间线共用一份日历，而不是两份可能漂移的日历。
+
+这条分工不只靠纪律维持，它写在依赖图里：`@zhangj1164/dsh-client-ui-memo` 只从 `@zhangj1164/dsh-memo/client` 导入**类型**（`MemoAnalysisPeriod`、`MemoPeriodEntry`、`MemoWeek` 等），从不导入 `@zhangj1164/dsh-memo/period`，所以浏览器包里根本没有那套日历数学可调；它唯一复制的是标签正则（见[浏览器侧](#浏览器侧只消费不重算)）。`controller.spec.ts` 的 `asks the host for the timeline instead of computing periods locally` 把这条边界也钉住了：刷新必须发出一次 `memo/listPeriods`，而不是本地凑出一个周期列表。
 
 ## 四个维度与固定标签
 
@@ -136,9 +160,10 @@ export function weekIdBelongsToPeriod(weekId: string, period: MemoAnalysisPeriod
 
 ## 宿主侧：时间线与归档都由宿主解析
 
-`listPeriods` 是四维导航的唯一事实来源。它从 `periodLabelFor(request.period, now)` 出发，用 `shiftPeriod(..., -offset)` 逐段回退，为每个周期填出 `id`、`label`、`start`、`end`、`current`、`weekCount` 与 `weekIds`。三个细节值得记住：
+`listPeriods` 是四维导航的唯一事实来源。它从 `periodLabelFor(request.period, now)` 出发，用 `shiftPeriod(..., -offset)` 逐段回退，为每个周期填出 `id`、`label`、`start`、`end`、`current`、`weekCount` 与 `weekIds`。四个细节值得记住：
 
 - `limit` 默认 26，被夹到 `[1, 400]`；`shiftPeriod` 返回 `undefined` 时循环直接结束。
+- **只向过去枚举**。`offset` 从 0 起、标签一律取 `shiftPeriod(..., -offset)`，所以时间线里永不出现未来周期：今天之后的时间段没有可点的入口。这只是导航契约，不是写入约束——`appendEntry` 只校验周 id 的形状（加归档守卫），一个未来的 `2027-W05` 照样能被写进表里，只是面板不会主动提供这条路。
 - **空周期也返回**。没有存过任何周的月份仍然是一条可导航的条目，否则时间线会跳过用户日历上看得见的月份，也失去了"在空周期里写第一张卡"的入口。
 - `weekCount` 是"这个周期里有几条周记录"，**不是"有几条备忘"**。`getOrCreateCurrentWeek` 会为零条目的当前周建一条空行，删除一张周里最后一张卡也只是把该行写成 `entries: []` 而不删行，所以 `weekCount > 0` 只说明周记录存在。浏览器因此改用卡片自身的 `weekId` 判断某个周期是否为空（`periodHasCards`）。
 
@@ -179,7 +204,7 @@ sequenceDiagram
 拿到 `weekIds` 之后，浏览器侧的每一步都只是集合运算或字符串前缀：
 
 - `cardsInPeriod(cards, weekIds)`：把 `weekIds` 建成 `Set`，过滤卡片。切换维度、切换标签、切换年份都复用它。
-- `targetWeekId(selection, weekIds, currentWeekId)`：新卡片优先落在选中周期内的某一周（当前周在内就用当前周，否则用列表最后一支），选中周期为空时退回当前周——因为宿主不会为一个空周期发明一个未来/过去周。
+- `targetWeekId(selection, weekIds, currentWeekId)`：新卡片优先落在选中周期内的某一周（当前周在内就用当前周，否则用列表最后一支），选中周期为空时退回当前周——因为宿主不会为一个空周期发明一个未来/过去周。（签名里的 `selection` 目前未被读取：判定只依赖 `weekIds` 与 `currentWeekId`。）
 - `archivedWeekIds`：把宿主在 `listArchivedQuarters` 里返回的每个季度的 `weekIds` 合并成一个 `Set`，`isArchived(card)` 只做 `has` 查询。归档读失败时宁可显示为可编辑并给出提示，也不隐藏卡片。
 - `yearOf(label)`：取标签前四位。四个维度的标签都以年份开头，这正是选择器可以纯客户端实现的原因。
 - `visiblePeriods` / `selectableYears`：前者保留"当前周期 + 至少一条卡片的周期"，按年份过滤后截到 10 条；后者只提供至少有一个标签的年份，并始终包含当前年。两者都不需要判断某周属于哪个周期。
@@ -206,6 +231,7 @@ sequenceDiagram
 - `mondayOfWeekId` 只校验"周号在 1..53"这个形状，不校验"该年真的有第 53 周"。不存在的 `2025-W53` 会被映射到 2025-12-29，而它规范化后的 id 是 `2026-W01`——归属只会落到 2026，永远不会被算进被错误命名的年份。方向是安全的：伪造的 id 拿不到额外的写权限。
 - 全部运算在**本地时间**里做：`setHours(0,0,0,0)` 定日起点，用 `setDate` 做日位移而不是固定毫秒数，周号差用 `Math.round(差值 / 7 天)` 吸收夏令时造成的一小时偏移。因此同一个部署里不同时区的浏览器会落到各自的本地周，而 `periodBounds` 的闭区间与宿主的 `weekStart`/`weekEnd` 保持同一坐标。
 - 维度值被当作字符串传入的地方（`weekMatchesPeriod`）先验证它属于四个已知维度之一，否则返回 `false`——未知维度不会意外匹配到所有周。
+- 对上层可见的后果：`analyze` / `exportReport` 不另行校验 `periodLabel`，畸形或跨维度标签（`2026-13`、`2026-Q9`、`2026-09` 配 `quarter`）不会得到"标签非法"这种错误码，而是因为成员判定为空集，最终以 `no-entries` 失败。这条路径上唯一的标签错误码来自归档（`invalid-quarter-label`），因为归档写入必须先校验自己的主键。
 
 ## 两个历史缺陷与今天的回归测试
 
@@ -214,7 +240,7 @@ sequenceDiagram
 1. **季度用了与月份共享的 `YYYY-` 前缀**。前缀判定下，`2026-Q1`、`2026-Q2`、`2026-Q3`、`2026-Q4` 与同年的 `2026-01`…`2026-12` 无法区分，结果每个季度都被报成 `Q1`。现在由 `gives each quarter only its own weeks` 覆盖：Q1 从 `2026-W01` 到 `2026-W13`，Q2 从 `2026-W14`，Q3 从 `2026-W27`，Q4 到 `2026-W53`，且 Q3 的每个周对另外三个季度都判定为 `false`。
 2. **周标签取了周一的日历年**。年边界的那一周因此差一年，卡片会在错误的一年里出现或消失。现在由 `labels a year-boundary week with the year owning its Thursday` 覆盖：`2025-12-29 → 2026-W01`，`2027-01-01 → 2026-W53`。
 
-代码里仍留有一处过时注释：`collectEntries` 的 docstring 还写着"month/quarter/year 按 weekId 前缀匹配"，实现早已改为 `weekIdBelongsToPeriod`。读代码时以实现为准；这也是"注释描述旧算法"值得顺手修掉的一个例子。
+代码里仍留有两处过时注释：`collectEntries` 的 docstring 还写着"month/quarter/year 按 weekId 前缀匹配"，`weekMatchesPeriod` 的 `@returns` 还写着"whether the week's Monday falls inside the period"；两处实现都早已改成星期四规则。读代码时以实现为准；这也是"注释描述旧算法"值得顺手修掉的一个例子。
 
 ## 扩展与维护
 
@@ -232,4 +258,4 @@ sequenceDiagram
 | `packages/memo/dsh-memo/tests/period.spec.ts` | 年边界周年、1 月 4 日起周号、星期日的归属；四维标签格式与拒绝交叉维度；周 id 往返；月/季/年归属、铺满不重叠、53 周、季度独立性；枚举与判定的一致性；`shiftPeriod` 跨年可逆；`periodBounds` 闭区间与畸形返回 |
 | `packages/memo/dsh-memo/tests/memo.spec.ts` | `listPeriods` 四维都含当前周且 `weekCount ≥ 1`；最新在前、标签不重复、空周期可用；归档解析出的 `weekIds` 等于时间线；只归档被命名的季度；归档后 add/update/delete 全部 `quarter-archived` 且在逐周检查中覆盖整个季度；回填周的边界必须由周 id 派生（零边界行被 schema 拒绝） |
 | `packages/client/ui-memo/tests/logic.spec.ts` | `yearOf` 读四维标签；`periodHasCards` 区分"有周记录"与"有备忘"；标签规则与年份切换器 |
-| `packages/client/ui-memo/tests/controller.spec.ts` | 只显示 `weekId` 属于所选周期的卡片；在选中的历史周期里新增会写进该周期的某一周 |
+| `packages/client/ui-memo/tests/controller.spec.ts` | 刷新时只向宿主索取时间线（`asks the host for the timeline instead of computing periods locally`）；只显示 `weekId` 属于所选周期的卡片；在选中的历史周期里新增会写进该周期的某一周；找不到时间线时退回同年的最新标签 |

@@ -1,0 +1,514 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:04e64ed640c9b44ae550e0cf87687978d925bd041fc103cabc1ac96d02c922aa",
+  "claims": [
+    {
+      "id": "claim_5fe927491c9840bc8b4012ddd4152517",
+      "statement": "`ci.yml` 是唯一的 CI 工作流：单个 job 在 PR（opened/synchronize/reopened）与 push 到 main 时用 node 22 执行 `pnpm install --frozen-lockfile` 后跑 `pnpm run gates`，权限仅 `contents: read`，因此 CI 只是本地门禁套件的复跑，不是另一套检查。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L1-L24",
+          "version": "repo-lines-v1:sha256:808e4369df0ce2d6b0104a139fe205271af4527ec8a75461563f78c1ca2cd6f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNWYzYTRlNGQ5NTExYzdjODVkNjY0MWRkZmJiZGMyMjg4YWM4ODgwNDljMTJhZjZjZGUxMDdjNjMxZDRhNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NWJhYjEzODY0M2FlMjNkYzc0NzBiZjEwMDgwMTA2OGQwMjQ3ZDVmZjc2ZmVlNDM5N2NmNWIwYmY0MGYxZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://package.json#L9-L22",
+          "version": "repo-lines-v1:sha256:4306c52a600b9b02267b9534b68bbbc5ace1d17936ba60d8af6cbfcb4fcaafe9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NDA2OTg0YmRlZmNhMzRkZDZiYzkwMDI3ZjFkMTFhYmNiMTcwMzRjNTI1YzlhNWNlZmExZDg0ZmNjZDgxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwZjAyYTM4MjQyZWMzYjUzM2RmMjNlMWYzYTIyMTg5MmMwMmFkYjNmNjVjOTQ4ZjE5Y2JkZjkyZjA3MjIwZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1NzIxYmQ0MDg2NzBiOTExYjhmMDgxMTFmZjhiM2JlMzY4YjNiM2FmZjcyZTM2NDAzOWEwNTIzZWM1MTNiMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NTNmMzAwMzgyM2QzMTQzZTM1YTlmZTVjYmU4NTdmZTlmMDcxYmU4MzAzMzFkZTY5ODZiNTgwNjUyNDQzMWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_290e7b611a744fdb920e8e1e3769e005",
+      "statement": "两个 issue 管理 workflow 把 checkout 固定到完整 commit SHA、`ref` 指向 `github.event.repository.default_branch` 并设 `persist-credentials: false`，所以门禁执行的是默认分支上的 `policy.mjs`：一个修改策略的 PR 无法用它自己那份策略验证这次修复，策略修复必须先经自己的 PR 落到 main 再重跑被挡住的 PR。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/issue-lifecycle.yml#L46-L50",
+          "version": "repo-lines-v1:sha256:44afdb1fbda8310c4717cb26a959f672623b9eead0dcc8e9e81f069af3ad2566:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWMzODMzZDU5OWE5MjkwYzNhY2RjYjQwZDg5ZWE1NDQ5NDI3YjNlOWZmOWNhNWQxYTAwNDZkMGFkNTZlNzE1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQzOGJmNDM4OTgwMTQ5OWI2NzdjNjBjNjUwYzY0NWU3M2IxMTBjZmZlYzMzMDRlZDM0ZjY2NGVmN2ZhNjg4MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDJlOGJjNTY2Mzc0MWRmMjEwYTk5ZjFkNzc3NjBkNDE4OGE0ZjRjMDdmODliNzg0ZGQ3OWJmMzViZjA1MmYwNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWY1NWFkNDc4MDBkNTkxZWIyN2JjNDEzMDdhODhiM2Y4N2NjMzU3ZGVkM2NkZjkwZDMzNDU3N2RmNmQxYzZjZSJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L21-L25",
+          "version": "repo-lines-v1:sha256:44afdb1fbda8310c4717cb26a959f672623b9eead0dcc8e9e81f069af3ad2566:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWMzODMzZDU5OWE5MjkwYzNhY2RjYjQwZDg5ZWE1NDQ5NDI3YjNlOWZmOWNhNWQxYTAwNDZkMGFkNTZlNzE1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQzOGJmNDM4OTgwMTQ5OWI2NzdjNjBjNjUwYzY0NWU3M2IxMTBjZmZlYzMzMDRlZDM0ZjY2NGVmN2ZhNjg4MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTI1ZmJlYmEwODhjYTdjMWZlNTBhZjdjYzY1MTEwNzMzMGRhMjI0MGExYjAzYzc3YmUzOTZiMDVkMDZhNzkwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTEwNDY3MWY1N2MwM2NmMjllZjVkMGI1M2ZhOWNkZjkwN2VhZmY0OWFjMWMzNWZlMTEwYTUwODJmNTNmNmFkNSJ9"
+        },
+        {
+          "resource": "repo://AGENTS.md#L85-L87",
+          "version": "repo-lines-v1:sha256:72f6154141df3b3e53c453c70adcc5cd9eb78739df61f0e189f52d6a39d9e150:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWJmOGNiNDkxNTBkMDcyYzg4MWQ5ZWE5MjhiNjk5MzM1NmM0YjFkNGVlYmJjNWYyMTNjM2ZmZDFiNjk3MGExMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg2Y2FkMmRhYzM0ZWRkYTFkMDU0OTM3M2E5NjNmYWZlY2NmMWVlM2U0NThkODc1OWI3MzNlYjFiZmM1NzBkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGQyMDdlNzcxYjBlZDM0ODFiNWQ4OTNkMDFkNzgxOWZkNmYwY2FmYTU4ZWQyOWU4YjNkMjlkYWQ2YWE2MWIxNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDY4YTFlNmRhMjk4NjhmZWZjOTc2Y2E1YWU5NjUwYzQyODQ4NjlhN2E5N2EyNWI0OGI3Mjg5MzczN2E2ZmNjZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cce52e60ab3543d7925eec8f80373b7b",
+      "statement": "运行时策略取 main 版本，但规则测试不是：`check-all` 的 `issue-policy` 门禁以 `node --test` 跑工作区里的 `.github/issue-management/policy.test.mjs`，而 `ci.yml` 的 checkout 是 PR 的合并引用，因此新规则的测试可以在引入它的 PR 上验证，只是线上判定依据仍是 main。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L17-L17",
+          "version": "repo-lines-v1:sha256:aed3828fd4adf1b51de585038cf129b95bd0d64aad1d752e906724535ed9f3d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVkMzgyOGZkNGFkZjFiNTFkZTU4NTAzOGNmMTI5Yjk1YmQwZDY0YWFkMWQ3NTJlOTA2NzI0NTM1ZWQ5ZjNkNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVkMzgyOGZkNGFkZjFiNTFkZTU4NTAzOGNmMTI5Yjk1YmQwZDY0YWFkMWQ3NTJlOTA2NzI0NTM1ZWQ5ZjNkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzdiYjFmNTA0ZDg5YzQ2MDViZDI3YjgwNzdkOTEwYTlhZGU1ZDc0MzIwNmE2ZTQ2MzM2MWRkNTc2NzRiNjhjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2YzOWUzMWMxZjJhZjc1Mjc1YmRmZmYzZTdkNGVmODE0ZWNlYzIyMDNiNmQwNjIwMTdlMDA5NTRlNjIwZTc1ZSJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L21-L25",
+          "version": "repo-lines-v1:sha256:44afdb1fbda8310c4717cb26a959f672623b9eead0dcc8e9e81f069af3ad2566:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWMzODMzZDU5OWE5MjkwYzNhY2RjYjQwZDg5ZWE1NDQ5NDI3YjNlOWZmOWNhNWQxYTAwNDZkMGFkNTZlNzE1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQzOGJmNDM4OTgwMTQ5OWI2NzdjNjBjNjUwYzY0NWU3M2IxMTBjZmZlYzMzMDRlZDM0ZjY2NGVmN2ZhNjg4MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTI1ZmJlYmEwODhjYTdjMWZlNTBhZjdjYzY1MTEwNzMzMGRhMjI0MGExYjAzYzc3YmUzOTZiMDVkMDZhNzkwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTEwNDY3MWY1N2MwM2NmMjllZjVkMGI1M2ZhOWNkZjkwN2VhZmY0OWFjMWMzNWZlMTEwYTUwODJmNTNmNmFkNSJ9"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L200-L202",
+          "version": "repo-lines-v1:sha256:7177ffcfa89980763330f20cb61cd2bc9a8f8ef592e802ecdb09a56f767cef83:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNhZmUyN2I2YTY5NmY1YmQ3MTMxOGVjM2U3ZGU2NmU3OTYzMTQ1NzBiMzE5NmE4NjJlNjU5MTk0YTI3NGY4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjg2MjhlM2MxMDMyZmM1NWE4ZGRiMTZkYzNmYWZhYTIzNjU2Y2VlZTc3YzllYWFmMjJhZGYzZmUyYjgxNzI1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNThjYjQ2MDVhYmRkYjIwYjUzZjE5MGIzMmE0ODZiODlkMjJhNGFlYWMzY2EyM2I3MmUwNjI3MzA1ZGQ3NzA2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDI2OTA2MjI3MDhmOTVhYzE4NzMxNjU5NDNmZTBjMzlhMDFiMzRhZDEzY2E0NDI3NzU4YzQwYTVmMTgzZWI4MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_45bb7facff5c42c089576f6f081deb85",
+      "statement": "`issue-policy.yml` 用两个互斥步骤分派同一个引擎：非 `issues` 事件（含 `pull_request_review`）跑 `policy.mjs pr` 并注入 `GITHUB_TOKEN`，`issues` 事件跑 `policy.mjs issue` 并注入 `GH_TOKEN`、`DSH_PROJECT_TOKEN`、`DSH_PROJECT_GATE`；工作流权限全为 read，违规以 `::error::` 输出并抛错使步骤失败。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L763-L766",
+          "version": "repo-lines-v1:sha256:b1a9eabc60255cf1362f14b97c2fa49ea813473ca3e3d65f88ed2d3d3b02f4ae:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGI4MTdjMjNiYmM1Zjg1YTBiZmM1YzcxYWFhMTM4ZTgzMDU2NjUxYzVmODU4NDI1MGExMzJiNTc1YzE5Zjc1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ3ZjIyMDNkZTNhY2E2NWE2NWE2MWZiNTcyZWY5NGQxMDljNDc5ZmI0NDMyNmQxOGFlYTM0ZTZiOGI1MzliNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDU0MmM0N2NiMzYyMjBiNzkxY2YwMzg5ZjU1OTYzZmM0Y2YyOGQ0OGYxMzVkOTI2ZTVmOWU0YmJmYTNkMGRjNyJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L11-L14",
+          "version": "repo-lines-v1:sha256:6d2cc9fbda257e445c6b1e52504fc042f2db7008ea15c78277f43cbf80aa9d26:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdiZDNhNmUxZWYwMDExNWIxYTkyYTFkZTJlNmM3NWMwOWRjYzcwMTA4ZDkyMzNhNjFiYjFhNWU4OTFkYzVlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Y4MmZjMTU2ZmJhOTIwMmI4Yjk3OWQ3OTc4YTdjNmNhMGM2ZmMxNzhmNzJmZmU2N2VkZWVkMjJhZmM3ZmIzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDQ5ZWE1ZGM1M2JmYzk2OTZhODA3NjBlYWI1YTNjYTJhODA1NWMyODhkNTJlMGUwYTE1N2FiZTU1NjE3ZjJiNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIyOThjODI2MGFlYjgxZTM1ZDYxMzdkMzI5YjFlYjI3OTBhMzIzN2VlMWYwZjQ3OGQ2Y2E4NjY1YTMzMDhjOCJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L26-L37",
+          "version": "repo-lines-v1:sha256:dec506031659ea4a55f711594dfa094757d14d33ff57fff674385ce19b3efe1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjZmY1YTViZjE5YjlmYmNjMmNlNzIyMzA2MWZhYWZlMWM3NzQ2YTVjYjU4ZmU0MWY3NGM5NjAwMTUyMDUwYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMWE4ZTY1NGI3NjQ1ZWVhZmQ1MGUwYjY2ZGI0Y2YyN2EwOWQ1MjFlZDU1MTdlNDg2OTFmM2UwMzQ3ODU5NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZjA3OWNhOTEwNGFlNWE3YTJhMTBjNmRkMWQzZjg4M2YxN2ZhMzljNWM3ZmUxZjU2MTgzNzAzNDlmZWU1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d47fbdfda5bc4fa28ded2612fe81698c",
+      "statement": "`policy.mjs` 既是 CLI 又是库：`main` 只接受 `pr|issue|lifecycle` 三个子命令，事件从 `GITHUB_EVENT_PATH` 读取，入口守卫比较 `import.meta.url` 与 `pathToFileURL(process.argv[1])`，因此被 `node --test` import 时不会执行 main，校验函数可被测试直接调用。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L855-L873",
+          "version": "repo-lines-v1:sha256:47c63103aeabd0b1bf205297ff6cb16deabc60864e086c378bedfe15897290ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ODY3OGI3YTdkNmE0ZTU4M2E3Njg0MjQwNDlhYmJlNTQ1ODFjYTZhMDZkN2Q2MzhmODA2YzExODE4MzcwZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMGIzNmFhNzRhNTliY2Y0YTg4MTg1ODM3ZjY1OGFmYWYzNjQ2ZWZmMmJiMTZjMzkyOGQwZTkzMzVlOTQ1ZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab9e99e235f94037a3d340613432fdad",
+      "statement": "issue 正文必须至少包含一个默认收起的 `<details>` 区域（标签成对、开标签不得带 `open` 属性），且多个 assignee 时首个非空行必须是属于 assignees 的 `Owner: @login`；0 或 1 个 assignee 时不得写 Owner 行，唯一例外是 0 assignee 且 `config.allowUnassignedOwner` 为 true。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/config.json#L8-L8",
+          "version": "repo-lines-v1:sha256:8f278d3f17fcf08e54f93411848306eb5899de0d0546cd188418001667d44822:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGYyNzhkM2YxN2ZjZjA4ZTU0ZjkzNDExODQ4MzA2ZWI1ODk5ZGUwZDA1NDZjZDE4ODQxODAwMTY2N2Q0NDgyMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGYyNzhkM2YxN2ZjZjA4ZTU0ZjkzNDExODQ4MzA2ZWI1ODk5ZGUwZDA1NDZjZDE4ODQxODAwMTY2N2Q0NDgyMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTc4ZDY0ZTJkM2E2NDI0NmNiZmQ3NzUyMDQ2MTk3MmIzM2E5NTYxMjQ4YzFiNjJkYTRkMTkzNzhiODNiZDliNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmRjMjE1YzVjZmVmYzI2ODgyODJiYWU4Y2UyZmY0MGYyZWE4YmFhNjk2ZTMyZmY4NWQ0MWNiM2NjYWE5NGIwNCJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L59-L158",
+          "version": "repo-lines-v1:sha256:9eec2f84a7fb5484f3be2f2fb64f12e0ea2393e57f450a0aee9600fb2e9e1253:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NWQ1YWJhY2EyMjY4MGFlOTUzMzY3MDBkZjc2NjM2MTk3YTdjYjZjMDA0ZjRjZDc5YWMxYjFmZDJmMGFjNGE1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjJmYWE1MzViZDJlYTNkNTJlNzQxZWQ0NTQ0MzViN2ZlNDllODM1ODZlOTQzZDk4ZDgyYmJmYjI0ZDFmNWM1IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzNWQ2OWRjODJlNDAzMDNlMzFiZGVkZjYyMDVmOWU5MjVhNDEyODg3ODgzNzM2ZGY5YzQ2OTZjOWIwZDhlZGJlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMDcxMzFhYmRmMGM4NjllNjQxYjBjMjhjZTI0ZGY2Mzc3Mzc2OWMyZjdhMzM5ZGVkOGY4MzFhYjYyZWRiNTc3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_03f14001e7634425b0b03f4c32bab028",
+      "statement": "外露正文上限是 50 个「单位」：先删 HTML 注释，只取 `<details>` 之外的部分，把图片与链接换成文本、其余标签与实体换成空格、清掉标点标记，再统计 Han 字符数与连续 Latin/数字/代码 token 段数之和，因此折叠区里的内容不占预算。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L10-L10",
+          "version": "repo-lines-v1:sha256:71e6255f44abb298d3fd2bfe0721a44e07cdf55983d7e0105a8c8b87478ee69a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzFlNjI1NWY0NGFiYjI5OGQzZmQyYmZlMDcyMWE0NGUwN2NkZjU1OTgzZDdlMDEwNWE4YzhiODc0NzhlZTY5YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzFlNjI1NWY0NGFiYjI5OGQzZmQyYmZlMDcyMWE0NGUwN2NkZjU1OTgzZDdlMDEwNWE4YzhiODc0NzhlZTY5YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjk4MzA0ZjFjMjE0OTI4YWNkZTE4OWE3ZDAzOGZhZTIwMWFiOGYyNGQzZjhmYWIxYmYxNTMzODA0NTU1MjMwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2FiNTI0MWQ1MTkzNWQ4ZGY0ZjcxOWMzNmFmNzNjMjQ2ODZmNTEzM2FiMDZkN2Y1MTkzMjEzNDQxNDgxMzFkZSJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L64-L116",
+          "version": "repo-lines-v1:sha256:cee75fd769d64e73af022917db16771e4511ab7ac377bee5439f3ef93a5fe296:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzM2MzYTBiNWE5NjE2MmJjYWI5YjA4Y2QxYWFhNDViNzFhYWVlMTcwN2VmNmViMTg2MTYzYWYyMzZmZDZmNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiNjdmNDZlNDRlYTVjOGU0YjQxNWYwNzVhM2NkNTY3YjUyYzkzNDNjNDZhNTAxZmUxZGEyNjMyYzdhM2ExYWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3ZDI3NjJkMmE3MTgxMmY3NGI2NGUxMzY0Y2I5OWViMzg3YmRiYTZmOWE2ZjgxZmRiZjkwM2NkYjVkZWFhMDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_556e70d07a2f4463b2e7b7bc91038d74",
+      "statement": "`validateIssue` 对 `state === 'closed'` 在第一行返回空错误列表，于是事件门禁与生命周期审计都不会改写历史工单的标签或正文；代价是关闭后不再审计 Status 与关闭原因的一致性。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L286-L296",
+          "version": "repo-lines-v1:sha256:cd80b73e8383cd636eb04500deb496c0a4d8bfd7ee5a3ac727d41a6cbb80f5fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5NTI4NjczMDQ3MzBhZDZkYzE1ZmM0NjlhODE4MmE4MGMzNzNhOTUxNTNiYjk1N2JmZjEyOGFhMTg1ZjBiNWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYTU0Y2VhODE1NzVmZWFjNWY5MzUwOGFjN2JmMzIwODhlODAzZDk2NzIwNjYwOGZjMWI4Zjc0OTBlYzExYTkifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.test.mjs#L304-L337",
+          "version": "repo-lines-v1:sha256:d6d2750f6f4c75082db4cad7300ab7b7e09245fdae2ad5f8fae3c98db8320056:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwZjdlY2MxNGRmOWJhNGZjOGI0ZjFjNDY3NzNjMDhkMWI5OWNhNGU5MTEyODQxYTdkNmU5OWMwM2E3MmIwY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlYjlmOGI1ZDA3MDE3NDQ4ZTc4MjMwNjQ2YmZjYmNkMGM1NDBiMGJiMDg4NmQ3OGM5ODUxYTA0MzRmYmU2M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjNTM2MDBlN2FjZTUwNWI3YTNiNDM4OGI5YTQwYTE0MjFjNWQ2OWIzZGNkOTFkNTE0NGNhZjkxZmY3NzBiYTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_973f94847e2d4b1586e41bfe7016246b",
+      "statement": "issue 上必须恰好有一个分类标签（`bug` 或 `enhancement`），任何 `kind/*` 与 `LEGACY_LABELS` 里的旧标签都被拒绝；`source/*` 反过来只允许出现在 issue 侧。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L13-L40",
+          "version": "repo-lines-v1:sha256:725e7ab02b1efdb7196f91fca6148d61fcde73e9021b95482f382c39c7e6ac7a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4NWE4OTcxMmFiYmJjOGVjNjkzOTZiOTc5NDQ5MzZlNTY5Zjg4NTFmNzMxZmE5M2Y3NWUyZmRkOGJhNGY4MDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjOGEwMzhhNWI1ZmFhNDNmYWI5MDkzNWQwOWFjMWQ4NWJhNDdhZDgzZjZhMDczODI3NTQ3ZWYxZGEyZmEwODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0YTE5MWVmZGYwOWYwZDc4NGM1MjVlYjRiY2JmZmFjMzQzMjg1MDhhMzdiZTU3NWMzOTA0OGEzYTJjZWE4M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwYjAwNzhlN2UyNmUwNDhjMjkwZGVkNWZjMzM3MWNkZWI4NjNjMTU3MmY4NjRkMzczZmM1OTRkZjJiZjliOWEifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L300-L311",
+          "version": "repo-lines-v1:sha256:0619be828cf88aff028bfae915384277a42c5b1b211131797cb3569e119fc3aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyNTY2NjBkY2M0NTNlZTRhODNmYzI3OTkxNzk3YWZjODZjZGNhMDAzZmY0MGRiNGEwODAxYmUwMjYxNDcxZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzYTU0Y2VhODE1NzVmZWFjNWY5MzUwOGFjN2JmMzIwODhlODAzZDk2NzIwNjYwOGZjMWI4Zjc0OTBlYzExYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMGIwYTUzZDY2Yjg5Nzg0MDE5NmJhMjgxZjU0OGVlM2Q0YWRmMDVhODU4MDg4ZjAyNjNhZGUzNzQzNWYxMTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc84eca4fa4d4ce79065b64e06cdcaa8",
+      "statement": "issue 标题必须包含至少一个 Han 字符，且不得以 Type、Priority、Status、`area/*` 或 Owner 前缀开头——`[Bug] …`、`P1: …`、`area/web: …` 这类把元数据塞进标题的写法被一条正则统一拒绝。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L304-L318",
+          "version": "repo-lines-v1:sha256:ef38f41e0760136acea72ccfa6ddc6cfcd3378421f7fa9082d06daf57c971658:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0MmYxZjVlYzcxYzFjNDZiNDFlMWQ1N2FjYzg4YmExZTAyNDdmMjc4NDdmMWE4YTIyNjgyMzMzYWIxMDhjOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiZDkyYWIyZmE2NTgwZDY0NzIxZjdjMjBkMjFiN2Y1MzYxZDgwMGIzMjM1MDg4Njk2MDhmNDg0OTE2NzQxY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkZTViN2Q0NjVhZGY5NWYyYjRmZTk0YzhmYjkxYjM4Nzc1MjlkOWIzM2JmMWNjYmJhMjI0NmYxYTk5NDY0NmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_79fb4505c2e548dda196fae110804774",
+      "statement": "Status 必须取自 `config.statuses`：`Done` 要求已关闭且关闭原因是 `completed`，`No action` 要求已关闭且为 `not_planned`，其余状态要求 issue 仍开放；Priority 只能为空或 P0–P3（大小写不敏感），且 issue 的 Priority 来自 `issue-field-values` 的 `Priority` 单选字段而非标签，该端点 404 时降级为 null。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/config.json#L9-L17",
+          "version": "repo-lines-v1:sha256:d06e155da9dab153d02c079da72f598838311edf15877346f39ba198581887a8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJiYjBlMTQyYTRhY2Q5OThjMWMyMzYwMDYzZjRjNmI3OGEyMGEyMjhlNjdhNWNjMGRlOWI1ZjE2MmI0NzgzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzA2NDhmNzdmZDVhOWM2M2IzY2RkMGFmNDlkYWExMjk5MjIwYjc1NDFlODhjYTE3ZWZlMWE2YTExNGI5ZmYyYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTFiNDQwNjEyMjZiNmNiNDJkYWJiNmNjODg4MTkyMThkOGJiYjY1M2Y0YTVjY2E4OTdiNTM5NzhhZDQxNGNmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L330-L354",
+          "version": "repo-lines-v1:sha256:7eb2af2baa309d926461f0dacc293d2240e49fea4b38fa214f13962c3012d1b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYzM2OGE5ODk0ZjA1YWVhOGIwNDMwYjlhNTMzMGNhMzQwMjAwYzY0Y2JhMzUwMjQ4YzYzYjc3NDhmMTM1NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyNDE4NmUxODA4MWY3ODYyMjI1N2NhNmM5NTNhYzJhYzJhNzg1YTU4M2Y4YWYxMTI1YzI5ZTExZjE3ZTI0MmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYzcyZDU4NzA4ODI1MzJhZWE5YTRkNmFmMzhkNTA4ZjlkNWQzY2JmODI0NGM4NjEyOTFkNWVlYjA3ZmEwYzIifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L501-L526",
+          "version": "repo-lines-v1:sha256:a9144ca81028563ee4697eb99fe783e1313774dad7d9c3aa9ab7138cbfcc30a9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNzUyNjVhYWQzYzVmNTAyZGY1ZTBlZmE3ZjlkMWZmYTE4MTgwOGJkMGE1NTAwZGZjZDA1ZTE4YWM2YjBiNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhOGNiMmExYTcyYTUzZDBkYzkwNTY5ZmQ0OGY2YTJhZWFhZWRmNTEyZTE0NTBlMjA1NDVlNDQxYzNhZWFkMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmZjEyYjlmOWY1MTZjMWQ1ZjkxODJkNTZlMTlhODRiMGRiN2MyODQ5OTE1ZjdlYzk1YzJhOTI1ZDNkMzFkNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7361c62618704a24853473752288d051",
+      "statement": "原生 Issue Type 刻意不校验：Issue Types 是组织级特性，用户仓库对任何 issue 都报不出 type，要求它等于让门禁永远无法通过；分类角色由「恰好一个分类标签」承担，Type 检查等仓库迁入组织且模板 `type` 开始产出值后再恢复。",
+      "evidence": [
+        {
+          "resource": "repo://.github/ISSUE_TEMPLATE/feature.md#L1-L8",
+          "version": "repo-lines-v1:sha256:988665eb8aff91eb97f0c717f646d350e60d7e9fe3639cee2875fc53f0083230:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzljNzg0NzhjOTcxODdiZWZkZjBmM2FkYjdiYWRjNTAxODNjZDAyOWJjZWEzNTliZTc2NmRkY2EwZDUwODBmZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzljNzg0NzhjOTcxODdiZWZkZjBmM2FkYjdiYWRjNTAxODNjZDAyOWJjZWEzNTliZTc2NmRkY2EwZDUwODBmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDAyZTRmZTZhMjc2MTEzMTExYTdjYjM1ZDAzMTBjYmU1ZDQyNDEzMWYxNzM5MjE3YTE3ZWY4ZWE2OWNiYmI5YyJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L13-L16",
+          "version": "repo-lines-v1:sha256:12e54e64eb1b6f360986882df48e9a9026941ddfcac5b0f6b4b7083b7294bc46:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODg1YTg5NzEyYWJiYmM4ZWM2OTM5NmI5Nzk0NDkzNmU1NjlmODg1MWY3MzFmYTkzZjc1ZTJmZGQ4YmE0ZjgwNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzU0ODA0ODZmOGRhNzlhMzdhZDI2OWI2M2E3MTQ2ZmM1ZGEyNGRiYmY3M2Y0MjZiOGY0YmJjOWI5OTcyOWQxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODRhMTkxZWZkZjA5ZjBkNzg0YzUyNWViNGJjYmZmYWMzNDMyODUwOGEzN2JlNTc1YzM5MDQ4YTNhMmNlYTgzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDRkYmRiZGUxN2JmZWU3MmJmYjE5NmE2NmM4MWQ3NTgwZjAzOGQzY2RkODdjNTdmNWFhZjFkNmIzMDZkMzhhMyJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L319-L322",
+          "version": "repo-lines-v1:sha256:08d431f759b3d43929ccec8b24d077de18218cacca86fd6deb34c6017ef44bc5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ0N2UxMjhhYTNmYmRhZThjNjJkZGVlMWFiNzZjMmE3NDRmYjI3MGQxZTJmYjJlMzYxMGU3ZWNjY2EwYjkyYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmI4NTIwZGNjZWU0ODM0ZTkxNzVjZmMzMDJkNWIxMDVlMDgzY2U3MjgzMWIyOTQyZDQyN2FiMWE0YmU1YjcwMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTFjOTNmMWZlNzRlNDI4YjlkZGY2NzlkMzYyMjIzNzI0N2RkNjI0OTlkNzQ0YjYyNTc3YmJiNzE0YjViMDY0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDJkY2QzNjljNTJhZjE4MWExYTA1ZTJiYTVlMzgxODMxNjk3NDdmZjNmMDVhODc0MDY2NmNiNTJjOGIyZmJiNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d1eae5525887495e9d2503b645b39504",
+      "statement": "`validateIssue` 只在 `projectChecked === true`（调用方真的读过 Project）时要求 issue 有合法 Status，未读看板时缺失 Status 读作「未检查」；这一点由 `issueSnapshot` 的第二个参数决定——传 `undefined` 会读 Project 并标记已检查，传显式 `null` 表示不查。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L286-L332",
+          "version": "repo-lines-v1:sha256:c4f8dcd7974f4af8adabf2d055ce65e1ca78f1dbaa7f40724798c6b8dd93d7ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZGU3NTFiYzZmMDE1OGJmZjBmYTY3YmRjZjFjNjg5M2IxOGZlZjFkOGE0YWYzMGY1NjYyMDk3YTIwMTM4OGEifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L495-L526",
+          "version": "repo-lines-v1:sha256:c7ea96d7bcaf7c5940b79bd7e1170dfe10162e1809ea0b6b13a9476f899ddcb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzNTNlMzgyNWUwMDNkMzllYjVlNmVmYzdjODAzN2Y5YzNhYTY3OWM0MDE4OTAzZTI3NzNjYTY0MzgzNGRjYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmZjEyYjlmOWY1MTZjMWQ1ZjkxODJkNTZlMTlhODRiMGRiN2MyODQ5OTE1ZjdlYzk1YzJhOTI1ZDNkMzFkNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b2e538c2bfe4fffa06b07059131eca9",
+      "statement": "PR 规则只在非 Draft、作者类型不是 Bot/App、且已有 review request 或至少一条 review 时强制；其余情况 `validatePullRequest` 直接返回空并打印「PR 尚未进入 Issue policy 强制范围」，而不是伪造一条通过。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L160-L173",
+          "version": "repo-lines-v1:sha256:96a1fb4a01f0612f3008e5cca39c7370cbaa69961111069b7046b913dd3068ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYzcyZDU4NzA4ODI1MzJhZWE5YTRkNmFmMzhkNTA4ZjlkNWQzY2JmODI0NGM4NjEyOTFkNWVlYjA3ZmEwYzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2NmRmZGVhM2ExMjhiYWJiYTc4MzMxNTk1MGRjYmZkYTFjZWRmZjdmZjdmMjcxZDZjYWMzMmYzYTNjMTk4NzIifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L386-L387",
+          "version": "repo-lines-v1:sha256:a771de38bfb246b397385948c25c997147da5c40dc7a32065b581c8900a9a7bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA2NTc2OTEwYTdhZGZlYmYzZjI0ZGQzZTZkZDhkMDg4YzE2NDdmMTgxZjFhNWE3MGE2OTEzY2MwZjJjMjcyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWQ1MTc1NjNlNDJmZDY4MGExNWJmZGViMDAyMTc0M2FiZGUwMGFkZjU5ZjAzYTdkNmJhYWQzNzQyMjFjZjYzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDJjZDFjOWYzYzJjMjc3NDQwYzdkYmVmMGY2NWY1NDk4ZDg2NzQzZGQ1NGUxZjcyODc1N2ExN2JlNjQ0MTI3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM0OTBlMmQxMzc0ZjJlYjgyOTZiYmQwNTM0ODAzZWE5YzAyZGQzYmZjZDE5MTI0ODQyNjQzYTgwOGY5MjFkZCJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L768-L774",
+          "version": "repo-lines-v1:sha256:82c3cf6b50bb535e2a2a5d48c1e9f3331d5416fe596a27ea1c24c093e424b411:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWI0MDlhYmQ4ZjljNzBlYjNiM2I5ZDljYWZmMTFiNGZlMDVmNzU2NWMxNjkwMzZjNDZjNzFmYjNmYzQ0ZjJkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWNmZjA2YTcyN2ZjNDBlYmJlNzFjNzZlZTdhZTk4ZjUyNTExNTcwYzk5ZWEwM2EzOWMzYmFjMGNkNjkxZTIzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWVlZjkzMTE3ZDMzYjI2NTVhOGVjM2M5MzdkNjAwMTQ4NGJjYTk4YWVjOTk5MjdiODE1YTI1ZTAxYjAzNmNmNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f8210c67da14350bd70486c5c7ec359",
+      "statement": "范围内的 PR 必须引用至少一个同仓库 Issue、恰好一个允许的 `kind/*`（六个之一）、至少一个 `area/*`，最多一个 `p0`–`p3`，且不得含未知 `kind/*`、旧标签或 `source/*`；被引用的编号必须真的解析成 Issue，指向 PR 的编号报「不是同仓库 Issue」。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L272-L284",
+          "version": "repo-lines-v1:sha256:eb8f1a2a33dc48b63c8b5dd5820bb59ad2786badab9992295c2f659045626781:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0NTE0YmExYzQ3MjBkOWM0NGViM2JlYjc3NWQ2MWE3ZjZhZGI0NDQ1MDUxYTg0ZTRmYTZkZTA0MWE4OWQwOTQifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L386-L411",
+          "version": "repo-lines-v1:sha256:6159e8d5914e6868d7ae83db182593b3151da0428cc3fa33968adb002391e5fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNjU3NjkxMGE3YWRmZWJmM2YyNGRkM2U2ZGQ4ZDA4OGMxNjQ3ZjE4MWYxYTVhNzBhNjkxM2NjMGYyYzI3MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyY2QxYzlmM2MyYzI3NzQ0MGM3ZGJlZjBmNjVmNTQ5OGQ4Njc0M2RkNTRlMWY3Mjg3NTdhMTdiZTY0NDEyNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyNzYwMDQ5YjI5MDI4M2E2NDJmNjI4NDBkMzUzMzAxZTYzMTcxZjQ2ZGViNWY3N2MyNGY4YWUyNDJiNDBiYWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ab607809d74474d850e037587205d6a",
+      "statement": "`parseReferences` 先剥掉 HTML 注释、代码围栏与行内代码，再匹配 `#N`、`owner/repo#N` 与 issue URL，只保留本仓库或未写仓库的引用；`Fixes`/`Closes`/`Resolves` 词形紧跟的引用记为解决型，其余记为关联型，`retainIssueReferences` 再按真实 Issue 过滤一次。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L221-L284",
+          "version": "repo-lines-v1:sha256:b2dcaca1a266f89ff829cdbac5ce57bc448992e042140d509b21d6eee003818d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4OTc3OWRmMmQ0NjVlNzIyNjcwNTVkZjVlZTU4MTdkODQxZTYzNmVjOTQxMTk1OTQyYTRiNzRmYzFlMTE4YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMmFkYzFiZGNkNWZiNjVhM2NiMGMwYTk3YmMwNTdlYzIzMTUwNjgzOTY0NTA2YjdiNzBjZjE3OGQ3OTY3MWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0NTE0YmExYzQ3MjBkOWM0NGViM2JlYjc3NWQ2MWE3ZjZhZGI0NDQ1MDUxYTg0ZTRmYTZkZTA0MWE4OWQwOTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2f6f3f7aa61945f69da547f982e04b01",
+      "statement": "解决型引用触发 Priority 同步：PR 至多一个 `p0`–`p3` 标签，其值必须等于所有被解决 Issue 的 Priority 里最高的那个（p0 最高）；没有 PR 标签而被解决 Issue 有 Priority、或 PR 有标签但有被解决 Issue 未设 Priority，都会报错；纯关联型引用不触发这层约束。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L413-L433",
+          "version": "repo-lines-v1:sha256:204c3aa405c160eb665e8e9920abe6d49f3236f2a5deb4836d22c32b7193ee3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxOGVmYTg0NmE4NTI3NDIyMjkyZWJkMjRkNTQzNDcxZThkYmZiM2NjYTI3ZjljYWM0NTJkZDZhYzBmMjRiNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyM2NlM2Q5MzA3NGJmYjgxZWZhY2JlOWYzYjJmNDAwZmFjZTI1MzYyZDY3ZmE2M2Q0NTVmYzJkM2M5ZmMyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYzcyZDU4NzA4ODI1MzJhZWE5YTRkNmFmMzhkNTA4ZjlkNWQzY2JmODI0NGM4NjEyOTFkNWVlYjA3ZmEwYzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5852d6fb61e4616a71427a1d7e7ffcc",
+      "statement": "看板写入默认关闭：`issue-lifecycle.yml` 的 job 级 `if` 依赖仓库变量 `DSH_MEGA_PLUGINS_PROJECT_GATE == 'true'`（secret 不能出现在 job 条件里，所以必须有非敏感变量当开关），Project 调用必须用带 `project` scope 的 classic PAT（secret `DSH_MEGA_PLUGINS_ISSUE_TOKEN`），因为 App token 与 fine-grained PAT 都够不到用户拥有的 Projects v2。",
+      "evidence": [
+        {
+          "resource": "repo://.github/AGENTS.md#L1-L1",
+          "version": "repo-lines-v1:sha256:7a53d696227608a559c7ea9b7891af5ceed00909d64a212baa9294a98382044d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2E1M2Q2OTYyMjc2MDhhNTU5YzdlYTliNzg5MWFmNWNlZWQwMDkwOWQ2NGEyMTJiYWE5Mjk0YTk4MzgyMDQ0ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2E1M2Q2OTYyMjc2MDhhNTU5YzdlYTliNzg5MWFmNWNlZWQwMDkwOWQ2NGEyMTJiYWE5Mjk0YTk4MzgyMDQ0ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjNmNTRhMDA2MzRhZTRmZDhmMDFlZjQ1NTFkNjdjYzBhMzQzOWU4YzU5OTQyZmE5ZDhmZWM2M2MyMzM1ZGUwNyJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L443-L461",
+          "version": "repo-lines-v1:sha256:0be9b2f36baf438247c049f05ee29d5360a0fd6c2a6d72c5242a6464e6003d2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYWI0ZTAzMjIyOTBhNTlmMDllYjIxMTY2MTM4ZmI1OTk2ZmE2NTJmMDQyNDgxNzA5MmUxNWNhYWQ4MzNmZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiYWM2Mzc5NDNkYWZiY2I1NjE3MDI1MjhmYjc4NTgwZGZhZDQ0ZWFjZmJjZThjMjk1M2RkOThhMWRkOTc2MjQifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-lifecycle.yml#L37-L57",
+          "version": "repo-lines-v1:sha256:bc6c86e9fbd5d53174687b042143105a3377a8c369e91402b33aea2f1adb55b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1MGE2MDZkZWQyMDhhNzcwMWFmZTU5ZTg2MjQzYWQ4M2EyMjg0MjlmNTMzMjk4MDNlZGU1MDBlOGY2Y2M5ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwN2JkNWU4N2IwZWY0ZjRiMTNjZTQyMDNkYWM1YTEwM2UwYmZhZmE0OWQ4OWFlMmQzZTNlZjY0NmE2OWQ2YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjOTQ2NGMyZjEwYjhkZjljNjViZTdlOTQwNzM5ZjA1NjYxNGVjMmVmNmI3YjUxOTFhOGM4MGU5ZTU2MTVmMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_12a1804f805b4c7c875aedd2d2ef39a8",
+      "statement": "gate 开启而 `DSH_PROJECT_TOKEN` 缺失时 `projectToken()` 直接抛错而不回退到 `github.token`，避免把漏配 secret 伪装成权限错误；project token 只用于 GraphQL 看板调用，其余仓库请求仍用 workflow 自己的 `github.token`。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L443-L493",
+          "version": "repo-lines-v1:sha256:276a5694cb387e96884af823cbedb4f266d6d2629ce6f3c01f5826aedd9d6f0e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYWI0ZTAzMjIyOTBhNTlmMDllYjIxMTY2MTM4ZmI1OTk2ZmE2NTJmMDQyNDgxNzA5MmUxNWNhYWQ4MzNmZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNGQyZWQ5MTY4MGNjN2Y0ODc2OWRmZjQzM2E4ZGYwZjI1ZjBhODg3MTc0ZWZjNjc4NmQxOGIyMmNiYmRiYTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_86862a137ca149de88399ed0d998d9ba",
+      "statement": "看板查询从 `repository.owner.projectV2` 进入（`organization(login:)` 对用户拥有的仓库会 NOT_FOUND，走 owner 让 User 与 Organization 共用一段查询），并要求项目标题等于 `config.projectTitle`、项目存在 `Status` 字段，否则抛错而不是静默写不进去。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/config.json#L5-L5",
+          "version": "repo-lines-v1:sha256:15244d95d634753d1241eff123d4880caac15522492745e4a2b892bf87b08985:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUyNDRkOTVkNjM0NzUzZDEyNDFlZmYxMjNkNDg4MGNhYWMxNTUyMjQ5Mjc0NWU0YTJiODkyYmY4N2IwODk4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUyNDRkOTVkNjM0NzUzZDEyNDFlZmYxMjNkNDg4MGNhYWMxNTUyMjQ5Mjc0NWU0YTJiODkyYmY4N2IwODk4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTkyNGE3ODFkMGNiZTg3OTgzMGNmZWM5Yzk4M2IzNWQyNjQ2YTAxMmU5ZWZkMmUzN2NiZGE5MDIzM2MyODYwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTFiNDQwNjEyMjZiNmNiNDJkYWJiNmNjODg4MTkyMThkOGJiYjY1M2Y0YTVjY2E4OTdiNTM5NzhhZDQxNGNmNiJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L544-L620",
+          "version": "repo-lines-v1:sha256:1995a8782d82ab2dbf138c3595b66960e76c2d9bfa4238a12b43b03808b04f7c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwYzA2MjQ0MjZhMjNmMjMyNWVkMTdiZDE4ZWVjODczNTVhZjNiZWQ2NTQ0NmFlM2UyNzc0YTA5OGJiOTdiZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1YzQ5ZTY2OWQyMmVkYTU5M2MxMWQ2NzYyOWIyNzNhY2YyMTY1NzYxNjdkMWNkOTY2MjgzY2EyMDllN2I5NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyNWM3NzI5NWFkNjA0NDkyZDQ1M2ZmZmJlNWU5YmYyMWM3Y2NmNDVhMWExOGQ3MTkyYmMyNTM4ZDE0ZWRhNWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_149e0d32e3c34af6b5c45361cbe887d6",
+      "statement": "`issues` 事件的生命周期处理写三个状态：`opened` → `Inbox`、`closed` → 按 `state_reason` 写 `Done` 或 `No action`、`reopened` → 回到 `Inbox`；每种事件最后都执行 `ensureProjectItem` 与 `auditIssue`，因此 `field_added`/`field_removed` 之类只触发一次重新审计。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L831-L845",
+          "version": "repo-lines-v1:sha256:db7c753e14a1dc009500e09b7297d70292567a84b59a760e0fb28a19729db323:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyOTc0MTkwNTBlMjM0NzcwZWRiYjc5ODE5MzNhOGE5NDg2ZjAzOTg2MzBmZWU4NzMyNmI5MGZlNmY4ZTMxMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5N2IyMzk2ZGRmYTZmZjcxNmEzZGFmZmNhNmMxNGMxMjY3NmZhOTAwN2NiMTYzNzVjNWY0NzFkZmQ0NTk5Y2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlY2Y3N2M3M2FmYTE0YTcwODdhY2QxM2YwZDNiMTk5MWM1N2JjMjllMjlhMzUzN2UzMWMyZDYyMTE4OGU1MDQifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-lifecycle.yml#L4-L15",
+          "version": "repo-lines-v1:sha256:4e989ab9d41a9735e52d27c16179640e368cfa2134ff946c5e99764c330ad16e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMDhkZDljOWUwYTc5OGRkOTY3M2E1MTM0OWJkOWQ2MzVkMGQ3NTA1MzY5ZjA0NmRmYmIzYjg5ZTc4NzQ2MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlOTU5YjhiZmM4MGI3NjdmYjk1MDM3MWJlMDliMzJjMGVmMzJmMDkxNjdhNTUyMmI5NzZhZjYxYzI5NGYyNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwMWJjYjFkYWJmZGNmZTEzMDQxMTE0MTE1ZDk0ZmQwMDY1NmIxOGM5NTIxMmU2Mjc3YWE0ZjVlYzU3NzAzMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzMmYxMDdhZGFjNDM5YzdiMGE5MmYwNjk0Njk0YWI1MGIyMDQ4ODFkMTFlMjFmNTdmNmUxMmUxNTE0YWUzMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba054cdea9f74223a3a19cb9881a3703",
+      "statement": "PR 侧只做前进式投影：`ACTIVE_STATUS_ORDER` 里目标状态必须严格靠后才会被写入，唯一的回退是 `changes-requested` 把 `In review` 退回 `In progress`，且仅当当前 Status 的最后写入者是 `config.lifecycleActor`（`zhangj1164-issue-bot`）时才允许。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/config.json#L6-L6",
+          "version": "repo-lines-v1:sha256:cddfbcc400dc78253f2eee3e6dcb3b5ce1908fb8703b2f75976e7bca24341216:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RkZmJjYzQwMGRjNzgyNTNmMmVlZTNlNmRjYjNiNWNlMTkwOGZiODcwM2IyZjc1OTc2ZTdiY2EyNDM0MTIxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RkZmJjYzQwMGRjNzgyNTNmMmVlZTNlNmRjYjNiNWNlMTkwOGZiODcwM2IyZjc1OTc2ZTdiY2EyNDM0MTIxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDhhM2MxZjFkZGY5NDgzMzVhYjE1OWVhOTdiYWIzNTEwOWYzODRlYTQzZmQ2OWJhOGViYzRkYjEzOTE1NzlkMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmY0MDgzZDY4MWUwMGY5ODkxYWU4NDRkNTA5YWMwNWVhYzAzNDc3NGU2MWExZDY0NDIwNzQ4ZDJjNTk0Yzc3OCJ9"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L203-L219",
+          "version": "repo-lines-v1:sha256:1ace37c3501f049141fb7bde0883fc878bd194b1c8b9e6f8b04d468bde3b0716:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjYmZlODVkYzJiNzkzMGIyYmU5MGUzYTU5ZGM2YzI3Njk4NDIzMzFiNTNkNWE3ZGU0NzcyYmY1YTRjNjFhNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNGJkMzRkOGNjMWQ1ODkxNDIwN2IxMTk2NTJmNjAyNDZlNTk3NjMzMTExZTczMjU1Y2Q4MmQ4OWM1ZDcyMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5YzVjODhiOWU5NDdjNDAyZmQyYzU0M2VlODA0ZjlkYWRmYjQwOTNjZGRhOWI2ODk4MGQyYmIxNzA1YjUxZmYifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L41-L50",
+          "version": "repo-lines-v1:sha256:0877e7dc2d3f044348f5d59f6047490ceb0ce74acd28a87125f28993e29e7e77:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNzQyNzcwNmRmZWIxYmE2ZjBkNWE1MDRhN2QzMjdkYzIwYWE3Y2M5ZGVkMDEzNmNiOTFhNGMzZjM2MzY4OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjOGEwMzhhNWI1ZmFhNDNmYWI5MDkzNWQwOWFjMWQ4NWJhNDdhZDgzZjZhMDczODI3NTQ3ZWYxZGEyZmEwODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzOWU1ZmI2ZmYyNjQyM2I3MDc3OTQ2ZjMyMTNlYTEwNTcxOThhYTI3ZjY5YWI0MjliMzk1Yzk0Y2JlMDQxNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyZTljZDIwNjQ0MDNlYzQ3OTMzOTM2OWI4OTA5MmI2Njc0YmIzYmJiOGI3MDc4MWE3ZmVjZDMzMzE3NWJkODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_09671ef7bfd24f81b853e44de2e54aac",
+      "statement": "`statusActorOf` 在没有 item、没有状态变更时间线、或最后一条事件与当前 Status 不符时一律返回 null（未知演员），避免把两个缺失值比成相等后再解引用不存在的 actor。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L528-L542",
+          "version": "repo-lines-v1:sha256:f4ac1c0ea3391f0be7d57f01a29c923d8e87bc06c83a191c96d329f6d19274f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NGY0NjExYTg5NjQ0MDQwMGE5Zjc1M2Y5MDI5YzE2NTE3YjQ1OGYxY2NkZjc2NjVjZjJjYmExNjI4YmE0ODcifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.test.mjs#L471-L491",
+          "version": "repo-lines-v1:sha256:84154e9606883052f6c121fe78186c942550fc94b0583b741bc5f54f7b64c416:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMGE2MzBmMDVhMDhlNDI0N2YxMDRiMDUzOTRlZTI4NGE0ZmE0NGQzODRiZGExMzlkNThjZGI4MTdkZWRmNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzOTFiNWVmNmRhOWNmN2RlZjkxZTVhMTUxNTcxMjk0ZjBjYTg3Y2E5NzhlMTk2ZTA3ZmIxMTcxNmJlMzY3NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNDlhZjU2M2MxNjgxNzhiOTRjOGY4NmE3ODQxN2IwM2Y1NGJlMGJiNGViMTQzNTFlNWJmY2UzYTFlNDRlMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_417c0b7d2c4641e38fc25664d8dbbb2d",
+      "statement": "`resolvingIssueStatusCommand` 把 `pull_request` 的 opened/edited/synchronize/reopened/labeled/unlabeled 映射为 `implementation`、`review_requested` 映射为 `review-requested`、review 状态为 `changes_requested` 的提交映射为 `changes-requested`；`review_request_removed`、`approved`、`commented`、`dismissed` 都不构成状态信号。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L175-L194",
+          "version": "repo-lines-v1:sha256:2029c984a2aa96a870bcd83272543b0d7f8fe6ce6dc7b7c2019dbb4250431d86:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMTM5Zjg4NDMzNzYwOWJhODMyNmMzZWMxYzgxNzlkZWI0YzhiYWI0MzM4YTI4NmY4NzJiODViMzIxMzJmZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1YzU5YmQxMTM5NjZjZjM0NjNjZmExZjZjYjE4NTRlNjk4Mzk4ZmY4OTUwMzg3YzI4NGVhMzI5NjEzZDE4N2YifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L43-L50",
+          "version": "repo-lines-v1:sha256:1b78a5182b82cd896b44b904c2269fa7fa1b1cee5c96e218cabae8c9b1d00472:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODAwOWUwNTMxZDc4YWI0ZjY3ODU3ZDk3MGFmYzlkYjRjZDU3ODEzZDY5YjE3OGFmZmJjNzUwMjQxMTI0Y2UzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmM4YTAzOGE1YjVmYWE0M2ZhYjkwOTM1ZDA5YWMxZDg1YmE0N2FkODNmNmEwNzM4Mjc1NDdlZjFkYTJmYTA4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzVlZTEzM2RlNGJlY2FkMWFjNWM1NmIzNTZkY2NmN2RkM2EyNTlkNzJjOTc4ZWFiNzA0NDI0YTkxZWY0ZWMzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTJlOWNkMjA2NDQwM2VjNDc5MzM5MzY5Yjg5MDkyYjY2NzRiYjNiYmI4YjcwNzgxYTdmZWNkMzMzMTc1YmQ4MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_50c9333d6aa64dff8cebc64a20e6ae65",
+      "statement": "`auditIssue` 把违规写成一条带 `AUDIT_MARKER` 的机器人评论并做三态 upsert（无错删除、内容相同跳过、内容变化 PATCH 或 POST），只认作者类型为 Bot 的评论，所以人工贴同样 marker 的评论不会被改写；写评论用 job 自带的 `github.token`，因此只有 `issue-lifecycle.yml` 需要 `issues: write`。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L670-L708",
+          "version": "repo-lines-v1:sha256:edeef56e1604733af4c9a97a9c5d1a0a12e1271278cb8aa34d63217c2e1173a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3ZmU5Y2Y0ZDY4ODU2NTQzZGZmOTUwZTVkNjRmOThkZGQ4OGM5MmYyZGE3NDRiNjllZGM1YjNmY2M0MDc1MDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NGY4N2M1NTIyYmRhYmFhODZmZGZmMGM3ODRjYTg4YzYyOGRlYTZjNDhjMDUxNGVhMjYyNDQ4YmMxMTNkNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNTRjMzAyZDc2MGNjOTA2YThiYTEwMjhjZjNkNThhNWVkOGY3ODU0OTUxYTNmNWUwZTk2NjNiYjNlN2IzNjIifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-lifecycle.yml#L29-L31",
+          "version": "repo-lines-v1:sha256:ac0fc98347571cd07a864fcdab468c8d4e2b7d52e9c0b5dee3bbbd5ff57599db:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdiZDNhNmUxZWYwMDExNWIxYTkyYTFkZTJlNmM3NWMwOWRjYzcwMTA4ZDkyMzNhNjFiYjFhNWU4OTFkYzVlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjA4NmY3NjI2ODE2NDkxOTU5NDNkM2UzZTg2NmFjZDkzMTQ1MDNiMzdmMTZhYjc4ZjFmM2I0ODI4NTcwYmVlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzEyZjExMDgyNDU1OWI5ZTgzZThkZWNkM2VmNmUxZGQwNTlmNjI2Nzg1NjVmMzdkM2Y4YmZmMmVmMTJjOTQ3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjA0Nzg1ZmMwOTdlODUyMWY1ZjZjMDMyNWFjOGMwNjcwMDRiNmViNmUxMzJkMDVhNDcyZWE0OWZhOWViOTM3MSJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L11-L14",
+          "version": "repo-lines-v1:sha256:6d2cc9fbda257e445c6b1e52504fc042f2db7008ea15c78277f43cbf80aa9d26:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdiZDNhNmUxZWYwMDExNWIxYTkyYTFkZTJlNmM3NWMwOWRjYzcwMTA4ZDkyMzNhNjFiYjFhNWU4OTFkYzVlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Y4MmZjMTU2ZmJhOTIwMmI4Yjk3OWQ3OTc4YTdjNmNhMGM2ZmMxNzhmNzJmZmU2N2VkZWVkMjJhZmM3ZmIzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDQ5ZWE1ZGM1M2JmYzk2OTZhODA3NjBlYWI1YTNjYTJhODA1NWMyODhkNTJlMGUwYTE1N2FiZTU1NjE3ZjJiNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIyOThjODI2MGFlYjgxZTM1ZDYxMzdkMzI5YjFlYjI3OTBhMzIzN2VlMWYwZjQ3OGQ2Y2E4NjY1YTMzMDhjOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_83b294e8735f44a78faa24c5ad4d0c3e",
+      "statement": "两个 issue 工作流从同一事件启动、彼此没有顺序保证，而 Project item 由 lifecycle 创建，于是 `opened` 事件不读 Project（只从 REST 快照判定，Status 记为未检查）、其余事件用 `awaitProjectStatus` 的有界重试（默认 5 次、间隔 4 秒，可注入参数）等待 Status 落地；`issue-lifecycle.yml` 另以 issue/PR 编号为 `concurrency.group` 且 `cancel-in-progress: false`，把同一对象的并发写入排队。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L776-L829",
+          "version": "repo-lines-v1:sha256:5e2fbdbf349625f3c28427c998aa1d6ef77b142e12786a9aeea94b3d7cdef0ca:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4ZGZmYTFmNTkyYWZlM2NkNDg0MWQwNzg5MTBhODIyNjc4YThiNDRjZThlYTc3ZjE5NjY2ODVmYzc2MWZkNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlNDUxYzVkMWY5Y2Q1OTBkYzRjMWQ2OGI4MjAyMWJiYjZkMmQxYzczM2Q1MjVmYTMwNWE5YjJhMDQ5ZjlmYzMifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/issue-lifecycle.yml#L33-L35",
+          "version": "repo-lines-v1:sha256:46ef6e5ae1a83b5a99279dc84a0d6aba40ba7d07d458dddd66b854f95376bf98:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2FmZjIyMDI0OGE1ZGQ0ZGYyZmM4MmFkNWRmODc0Y2IyM2UyOGJiODI3MDJjNjI1ZWZmODcyYjBlM2FlMDEyOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWMyOGNjYzZkNmEyNzhlMWIyYThkNDIxNmE5YjBiMTMzNjMxNDMzODk3NGYzYTViNGY3MWNkZTI5MmRlNTM3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDIzNGE0YTg4MjkwNTE1NjE1YjcyZmYxOTRkMWI5YTZlMWZiZDljOGEwN2NiZjZmOWUxYzk5ZjJiYTVhOWMzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjE4NDIwNGI0Mzg5M2NkNjk2YTczN2Q5Y2FhNzE3OGU2ODAyMmQ1NTQzNTliMDY4YjdiYTU3YjRiNTI1NDc0YSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c14f82cf5c3a4f6e902dc1b2355e5c16",
+      "statement": "五个 issue 模板（Bug/Feature/Idea/Research/Task）在 frontmatter 里预填恰好一个分类标签（Bug 用 `bug`，其余用 `enhancement`），`config.yml` 关闭空白 issue，正文是「一句中文 + 一个折叠区」，因此新开的 issue 一开始就满足分类标签与正文规则；测试直接读模板 frontmatter 钉住这条。",
+      "evidence": [
+        {
+          "resource": "repo://.github/ISSUE_TEMPLATE/bug.md#L1-L22",
+          "version": "repo-lines-v1:sha256:3a9c9dd446b8c131a5a270596e4e7a12eb8d04986560879f2a871f9183a9f127:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5Yzc4NDc4Yzk3MTg3YmVmZGYwZjNhZGI3YmFkYzUwMTgzY2QwMjliY2VhMzU5YmU3NjZkZGNhMGQ1MDgwZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YmU5ZWZiMDY0NWFiNjdlNjA4ZWJmODRhMzMxNmZlOTQ3NDQ4ZGU3YzJiYTE3MWFjMWY5MjhkZmMwMWNkNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/ISSUE_TEMPLATE/config.yml#L1-L2",
+          "version": "repo-lines-v1:sha256:8b09e7df09fc7534371988062769ee427af2954a02c04c763e8a8005be0f2be4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWYxMDNjNmE5ZGQwN2NkMTNhOWE2ZjE3YWNlNmI4MTNmNDc3NDdlYjljYjdlMDA0ODhjYjIwNzNjYWFmOTFiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFkODc4MmJjZjgyZjBjYmZhMTRjZWRlZGUwYTI5YWIxZDNmOTZhMWJmNDYzNGU5MDRkMTNmODRlN2FlOTQ5MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://.github/ISSUE_TEMPLATE/feature.md#L1-L20",
+          "version": "repo-lines-v1:sha256:d8b7ba267c2d60d34f59029f5eb45535980ad8dddd856ac3c588bc68c2a328ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5Yzc4NDc4Yzk3MTg3YmVmZGYwZjNhZGI3YmFkYzUwMTgzY2QwMjliY2VhMzU5YmU3NjZkZGNhMGQ1MDgwZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YmU5ZWZiMDY0NWFiNjdlNjA4ZWJmODRhMzMxNmZlOTQ3NDQ4ZGU3YzJiYTE3MWFjMWY5MjhkZmMwMWNkNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.test.mjs#L245-L263",
+          "version": "repo-lines-v1:sha256:77150d8d4a732d80a2b24cb26820efef826e56f24ef90c0d423027774fc934f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMzYzMzFlNzFkYjM2MTNiYjZkYWZjNjMyZDkwMDI2YWEzYTExZjFjZDVmODhhZWRiOGMzMjA3NjJmMTk2YzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZDA1OWU2N2NmYTNkMjc1ZTYwNWRhZTM4OTI2MWU2OWMzOTZlYjQzNjg2YmI5ODRiNWNlZTQwMjVlZDIzY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMDVlYjY0NWU0MzA4Y2U5NzZhZDhhNjUzZjNiYzQyZTUwMzZmNGI2MDgxZjBjZjg3YmY4YTI3NjJkYjliMTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_206e513eeecd414eb0ca9592f834adc5",
+      "statement": "Dependabot 以 `0 4 * * *`（Asia/Shanghai）和 30 天 cooldown 为 npm 与 github-actions 两个生态开 PR，并打 `kind/dependency` + `area/infra`，正好满足 PR 的 kind/area 不变量；其 `authorType` 是 Bot，本来就落在 PR 策略豁免面内，所以依赖升级 PR 无需引用 issue。",
+      "evidence": [
+        {
+          "resource": "repo://.github/dependabot.yml#L1-L26",
+          "version": "repo-lines-v1:sha256:42cf8576909e4f9aead5b891674b71dc48a5bf1d2538a11fab621a7c0ed66573:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZTBkMWFmZDZlOTYwMzZiNzc2YWIyMDY4NGRhMzVmMDc1YzUwZDZmM2MwZmQ1OTlkZGM4MjE4ZWJiZGZiNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3ZjM5N2Q0Zjc1ZjcyMjBjYjI3MzJlODRmZDQyMDRmYWJiMjJhNTdjMzdlY2YyOTMyMWE2MzFmMjBkMWEzZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L160-L173",
+          "version": "repo-lines-v1:sha256:96a1fb4a01f0612f3008e5cca39c7370cbaa69961111069b7046b913dd3068ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYzcyZDU4NzA4ODI1MzJhZWE5YTRkNmFmMzhkNTA4ZjlkNWQzY2JmODI0NGM4NjEyOTFkNWVlYjA3ZmEwYzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2NmRmZGVhM2ExMjhiYWJiYTc4MzMxNTk1MGRjYmZkYTFjZWRmZjdmZjdmMjcxZDZjYWMzMmYzYTNjMTk4NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d09b406d0c843ebbac63460f0d135ec",
+      "statement": "`verify-translation-pairing.yml` 只在根与 `packages/**` 的 README 中英两侧路径变化时触发，执行的 `pnpm run verify-translation-pairing` 与 `check-all` 里的 `translation-pairing` 门禁是同一条命令，只是更快的反馈通道。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/verify-translation-pairing.yml#L1-L34",
+          "version": "repo-lines-v1:sha256:c980cdfd0b4ebbb38f764eb023df51aa77129bd931899cd27a1428781fb8008e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3Y2ZmZGFlMDViOTcwOGUxNjQ0ZDI0NmFkNzVkZGVhMGI3YWFmNWVkNGJlZDRhYzJiNTg3ZDA4NTM3ZGEyYTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxYTkzZWE4ODYyZjExYjNiNDUxOGM0OGRhNTIyMDQ2YWVhYWJhYTFiMjNmYmNhYTk1OTQ0ODM3MjE2MGUwZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://package.json#L12-L12",
+          "version": "repo-lines-v1:sha256:3af6b9d79808919b2fd28c124dd5895e1ab27b88961f01a6691ea811a4203d52:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2FmNmI5ZDc5ODA4OTE5YjJmZDI4YzEyNGRkNTg5NWUxYWIyN2I4ODk2MWYwMWE2NjkxZWE4MTFhNDIwM2Q1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2FmNmI5ZDc5ODA4OTE5YjJmZDI4YzEyNGRkNTg5NWUxYWIyN2I4ODk2MWYwMWE2NjkxZWE4MTFhNDIwM2Q1MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmY1ZDQyNmFlZWY5MTM0YzhlN2MyZjYwNGRlYzlmZWM4OTBkNTBjMWM4MmM5MzE0NDBhNDAzNmZkZjI2MmI2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzJhMGY5MzY4MjUyODJjMjhhMDlkZmY1NDQwYTY5YmNkMjIyNWQ5Y2Q5Njg4MmE5ZWQwNGIzMDVkYzFiYWZmZSJ9"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L217-L223",
+          "version": "repo-lines-v1:sha256:d0357e8d33cba6a1ce89a9a58cf4a3801a5159fb4b1a3eeb4303d29d99b4bf5e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTVkMDg2NjIwNTQ1ODZlMmMyZTBjMTY3YzI5NjNjZTA2MzZhYWI1Y2UwMmViNzEyZTZmODI0YWVmOWFlOTg5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODVkMmY5M2I3NDVjYzAxZTg4ZGJkZDk3MTBiOWNhMjg5N2Y0NmIzMTIwYmNlM2MxNDc0YzAxYTQyMzU4MDI3YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNjZmNlOTEzNDhjYjNiMWUzNDZiMmViYmVjMGEzYTQ1ZTllY2Y5ZjBiY2Y3OGRiODM2Y2IyNTZhYjg5ZDFjYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e921d325ac4048f28258e2076cdfcb69",
+      "statement": "`openwiki-update.yml` 每天 `0 8 * * *` 定时（另有 workflow_dispatch）跑 `openwiki code --update --print`，用 `fetch-depth: 0` 保证能和上次文档化到的 commit 做 diff，删除 `openwiki/.run.json`，再用 `peter-evans/create-pull-request` 在 `openwiki/update` 分支提交 `openwiki`、`AGENTS.md`、该 workflow 文件以及存在时的 `CLAUDE.md`。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L1-L72",
+          "version": "repo-lines-v1:sha256:dda104e920e631c2aab0639858f357ccd3011bf736ff2e731e8fc366803b6c9d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDI3ODdhZjZkY2MwODM0ZGUxMjFjYmIxY2I5NWY5NDU5YjcyMWVhYjAzNDlmMTA1MDFiOTk2YzFjNzdmZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNjNiMWQ4NzlhMTQ5YTE4MTA2MjM5ODJlZWRiOWYxODdjZmFkZDJjMGRlNjEyMDE3YjUxZGEzZDA2YzE3MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2MzZmMzlkMzA3YTkwMTA1NzIzODIyMGQ3NjJhODk0NDE5OTExMWQyZDgyN2Y2MmY4ZTJmYmNlZjU4MmU3NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1fa08935136d4a2b8d5e168f3e087a54",
+      "statement": "OpenWiki 步骤设 `continue-on-error: true`，因此失败时 PR 仍会被创建、只保留失败前完成的页面作为下一次运行的基线，最后由单独一步 `exit 1` 让 workflow 变红，把「进度已保存」与「本次更新不完整」同时留在记录里。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L33-L36",
+          "version": "repo-lines-v1:sha256:d58ef5f498c02b45776d67452c92ddb307313815a56beddaf62b0c62e897fa58:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzBlOGY5ZmE0MGU3YmQwNDk5ZDFjMGQ4M2ZkNzU4YWE4NWIzMDg0MmRiZDYxZjBlYTZiN2FlMTBlZmVjNzZkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTQxYzYwZDgzNTk3Yzc2Y2NhNjk2YWFjNzRkZmI3YWM1ZGMzMzYyZmU2NTFmOGNhYjVhMzA0OTk2MzAxN2Q0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTkzODgwMjU2Yjg0YjQ3ZmUzNTFhODY4ZTYzZTBjZTAyY2RmZmNlNDNhZDJmYzhmODQxMjBkMzE5ZDU3ZTU2ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmY3ZTQ2ODM3NDgxNGViZTgxZmFjOTBlMDY2NWNhOTBkMzg3MTliNTE0ZmMyZjFlYTEzOWM2MjkwZjA1N2M4NCJ9"
+        },
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L66-L90",
+          "version": "repo-lines-v1:sha256:415f687a286df9440c7cc95580eed202fee332c77e23458ae32fe3c88373a016:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxY2ZmNGFkMzNiYTkxYjE0OGUxYjFiODI5MGI4ZmZmMjdiMjAzZmFiZmVlNTg3MDI4MmRlMzY3MzgzYjFiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NzE4ZjA2N2I1ZTVjMWYwOTkxYTZlNzQ3MjZmZTJhMjNkMjY0MzQ1ZTA4ZTRlYWQwNGZhZjczYzI3ZWQ0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZTFhZGFkYTE3YWUyZjRmM2Q4ZDQ3OTdkYjM2ZDUyNjc1OGJmNDlhOGM0YTc0OTg5ODY0YTQzY2NiMThlMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2fe076e88e264785ac84f7e2aabd0f01",
+      "statement": "生成的 OpenWiki 页面不手工编辑：`AGENTS.md` 要求改源码或文档、让定时 workflow 重新生成，而不是直接编辑 `openwiki/` 下的页面。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L115-L130",
+          "version": "repo-lines-v1:sha256:8926524de63a1266e7592d9f1256ec367b67e9fa0583f343808e3e51f19d4990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViNzkxY2Q2MzNhY2MwZDZlOGQzZGE3OTI0MzRkY2I3MjFiZGZkNmRjMTg1MjM3YTk1MDZlNzgxMTM5NzU2OTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ef84605988b4817a2da033524a746b0",
+      "statement": "`policy.test.mjs` 用 `node:test` 由 `check-all` 的 `issue-policy` 门禁以 `node --test` 运行，不落在 root vitest 的两个 include 模式内；测试把旧标签清单独立抄一份、并用注入 read 与零延迟来钉规则而不是实现。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/policy.test.mjs#L38-L71",
+          "version": "repo-lines-v1:sha256:7b4bcad30947fa155a9e7f74bee82acde24924238f88343d121c8c4e477cbcf8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYWE4MGYwMGI1OGMzZThlMmQwMzdlYTdmODM2ZWVjYzU4ZTc4MDgwNDZkNDdlY2U2MTIzNjUxNjhiNjM2MDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4MzUxYzdmNzI0ZDUxMTIwMGZmY2ZlMzAwMzJkNWJkZDk3YTI5NTk1NjAwNzEwY2YwNzhhNmUzMDA1ZTU5NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMWNhZWE0NTMzMWFhYWYwOTlkMTBkNzI4YTg4YjNhMWU1YzZiMGRmNGYwODU0YzkyNjE0MDMzNWNmNWQxZDgifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.test.mjs#L422-L445",
+          "version": "repo-lines-v1:sha256:8c6ee6b32817ca72ee01b28129b364d5a351eb9114ee579dbd1baafffa399ec2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3NDAzMmUyMDU0MGUxODAwZTZhN2UzZmNhNTViZmRhZmNjYTgxMzdmYWYxYTBlOTg5MWY2Zjk5ZmJjN2ZkNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZDA1OWU2N2NmYTNkMjc1ZTYwNWRhZTM4OTI2MWU2OWMzOTZlYjQzNjg2YmI5ODRiNWNlZTQwMjVlZDIzY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkNjk4ZWJlYWIwYjAxZTYyNzg0MjU1NWI2NmY2ODE1ZTVkNjk0ODhkMDNiNmNiMTliYmE2MzQ2MWEzZGY3MDQifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L200-L202",
+          "version": "repo-lines-v1:sha256:7177ffcfa89980763330f20cb61cd2bc9a8f8ef592e802ecdb09a56f767cef83:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNhZmUyN2I2YTY5NmY1YmQ3MTMxOGVjM2U3ZGU2NmU3OTYzMTQ1NzBiMzE5NmE4NjJlNjU5MTk0YTI3NGY4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjg2MjhlM2MxMDMyZmM1NWE4ZGRiMTZkYzNmYWZhYTIzNjU2Y2VlZTc3YzllYWFmMjJhZGYzZmUyYjgxNzI1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNThjYjQ2MDVhYmRkYjIwYjUzZjE5MGIzMmE0ODZiODlkMjJhNGFlYWMzY2EyM2I3MmUwNjI3MzA1ZGQ3NzA2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDI2OTA2MjI3MDhmOTVhYzE4NzMxNjU5NDNmZTBjMzlhMDFiMzRhZDEzY2E0NDI3NzU4YzQwYTVmMTgzZWI4MyJ9"
+        },
+        {
+          "resource": "repo://vitest.config.ts#L53-L60",
+          "version": "repo-lines-v1:sha256:4b890910476b00bc55d650aee1f9da57d9fd83bd4c7a539049740c1611641483:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzU1M2YwMTc3NGEyYjVhMjc1YzBjZTk4NjY5YjZmZTg4MGViNTIyYTQyNTNhOTdkODFkMTJhOGJkZTU4YjNjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOTQ5ODU1MjZjMWM1N2VmMDBjMDBkM2Y0ZGM5MDYxNTY3N2EwYTM2YThiNzk1ZGZmOWFmZmQ1MGZlOWY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM4YWRkZmUwNjc1MzBlNjkzYTE2OTUzMTllOTg3N2Q5YjQxNDQ4YWVmMGQ3ZWZlYTM3Njc3OTcyNDYyYTc1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTBhOGY2MGZlM2M1MGIwY2Y1MzQ3MjIxMTNmZTkwZDczNDE0Mzg3Y2U5MmU1OTc4YzgyY2JkODAxY2MwNTAwZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4cd0c2e53274415a83c15c47d1d0744",
+      "statement": "`config.json` 在模块加载阶段就被校验：`statuses` 必须同时包含 `In progress` 与 `In review`，`lifecycleActor` 必须非空，否则 import 即抛错，门禁在任何网络调用之前失败。",
+      "evidence": [
+        {
+          "resource": "repo://.github/issue-management/config.json#L1-L18",
+          "version": "repo-lines-v1:sha256:794a9d8f8a574b7258f81c96378e7f8efd20d4e117eb5e15de0c3f43baf72e1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/issue-management/policy.mjs#L52-L57",
+          "version": "repo-lines-v1:sha256:5c3b2dde7ab41ba409583cf4a0354ee60d91d40f4299fb7e1da9b98b3dbe6ad1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGEyZTc4NjYzNDY4NGJiOTFjMDA3YzgxZDZiYzc5OGIyOGI4OTYyOWI3YTJmY2MwODI2ZDBmNjBlYjFlOWFjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2VmZjMxM2E1ZTFmN2ViYTQxMjFhYzBiMjhjN2UzMDUxYjU4ZDBiMWZlM2I1YTM2ZDU1YjlhZDQwODY4ZWJkMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmQzNTk4OTcxYjk2NjY4N2NmYmRhOWZjZjYwYmI4NzBkY2M1NDRiMWZjMDA4YjU0ODljOTBkZGFjMjBmYjY0NyJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

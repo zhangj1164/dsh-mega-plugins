@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:b70b3af5f90945bfae90b14f88e5354a5f6486c713e948ad02335e3fac66a182",
+  "pageVersion": "sha256:c711d42b81076e5cee7164882695a6194a656358b7a07bacc9eeb16ac9450eea",
   "claims": [
     {
       "id": "claim_2107a13a2420475aa0c8d30c9dd3a660",
@@ -371,6 +371,50 @@
         {
           "resource": "repo://scripts/verify-bundle-entries.ts#L242-L259",
           "version": "repo-lines-v1:sha256:d40bcc23a6ed388d3c30c7443690bec16937ac55239af6111633e2bec7af9b5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyZGJkNTA3YjY5ODZhM2U2OGJmZmEwODhjNmQ0MTc4MzQwNTA4ZjQ5NzM5NTM4ZmQyNGE5NDE1MDE5NzY0OWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwODM2ZTMzYTNiMWE3NWE2MjU3NTU5YjM4ZjZlNTE0Y2ZhOWQ5NTYyYWUyNmMyNWZkNjNiYjQ2YzUyODFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYzBjNTZlYWFiNWI1YzMwZTE3MGU4ZjQ4MTQzZWY1NmJmM2RhMTJjODAxZmY3YWNhYmYwNTc3MzU3NGE5OTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_40b91aa81ba646e9ba6414801915092e",
+      "statement": "Every patch in this repository only performs `insert`, and each inserted row is an entry id plus the package name plus that row's `config`; the package name is the host plugin entry imported at boot, and no patch writes `dsh.profile.bundles` itself, so which layers are enabled is decided only by the deployment profile.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L108",
+          "version": "repo-lines-v1:sha256:eb8635a7df478fed91525d23de4fbb8bf5710b360d59b052f749db87c9d353ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTAyZjI3MzVkYWEwNTljYWIyYzllMDExNzljOGZlY2VjMTVlMjkwM2E2MDBhYmQ5ZDk3OWJkZTlkZDAwMzkwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMwZjYwMzUwOTI0MWZiMDg0MTA5MTQyNmE5YmIzYzY1NzFjNWQxOTIyNTczYjA4NjBmZGQxNzU2OGRmMWQ1ZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L16-L27",
+          "version": "repo-lines-v1:sha256:62763dc606223d171630a3ad65c96f72cb95392022beb0bb02a69a3cf9180b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMGU0MmQ2ZjliNDYxOTc1M2RkNzI5NWUwNmZhODczOTRkYzY3NjA5NTc4MTY5NGZkYjJjZTBiZDczN2NkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NDI3YjM0MWVlMDg5YmY4ZDhkNTUwZDdlNjIxY2ZmODkwMjE5ODg5MDgyOWUxZGQ0ZDVkZDhhNjMyOTNmNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L19-L38",
+          "version": "repo-lines-v1:sha256:a78dd7240f1293efc0ac13360ffad224391684a00dcc87769526d833ccd49370:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NmY2ODE0ZjBjODE2YTYxMzViMDgzNDNiMjhiYTUxNTQ4OWQ3YmYzZjFiMjYzZjczYWFkOTJiYWMxMjYwNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczZTEyNzRmNDJiODc2YTBhNWQ0ZDYxZmRiZTM2NDI0YTQ1ZDVkZTdkZWFmMTFmMDI2NTkwNTY2MjUwNjljNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L4-L15",
+          "version": "repo-lines-v1:sha256:20dcc25ba4d082fbddb2dd1d70c8ae79c5e84ebf9b6a0aa4b11162a14e6ec17c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZDQyY2E5MjA0YTNkY2E1NDhkODljMmYxNTJlZWZkYmRmZGY3YThlYzg3OWM1NzBjNGE1YTQwODFlN2JhOWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMjQ4YmYxZTNlODY2ZDFlYWMxMGUwYTBjNDIyNDhhNjgwNDg5N2U5N2M3YmNkMzliMzI3NTAwNDExMWYwNjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0MmQ5MGM1ZWJiMzAzYWY3NzcwYTM1NWE2M2VkZmVmNjllMmVlOTExMGYwMzI4ODk1YTQxMjVhYjVjYmY4ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4Y2NkZDdhYTAwY2QwMWMzYWVjMWZkYmUyY2U4NTBiOTRkZGQzMGFiM2Q4NDAxNWNhMzZlMzc5Y2EyZjNkZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e58cd3c0b5da4a7da818588a011de35b",
+      "statement": "The prose enumerations lag the manifests: `README.md`'s install section and `AGENTS.md`'s Bundle layers section name only the four bundles telemetry, github-issue, memo and ui-memo-settings, while a fifth package, `@zhangj1164/dsh-openwiki-visualize`, also declares `dsh.bundle` and appears only in `README.md`'s workspace-structure listing — so entry-id ownership has to be read from each manifest's `dsh.bundle.patch` and that patch.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L108",
+          "version": "repo-lines-v1:sha256:eb8635a7df478fed91525d23de4fbb8bf5710b360d59b052f749db87c9d353ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTAyZjI3MzVkYWEwNTljYWIyYzllMDExNzljOGZlY2VjMTVlMjkwM2E2MDBhYmQ5ZDk3OWJkZTlkZDAwMzkwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMwZjYwMzUwOTI0MWZiMDg0MTA5MTQyNmE5YmIzYzY1NzFjNWQxOTIyNTczYjA4NjBmZGQxNzU2OGRmMWQ1ZCJ9"
+        },
+        {
+          "resource": "repo://README.md#L28-L28",
+          "version": "repo-lines-v1:sha256:45249c11b669ca5ef9ba5b38213d17bf241d2013a1970bee5faec6c8254a3b3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUyNDljMTFiNjY5Y2E1ZWY5YmE1YjM4MjEzZDE3YmYyNDFkMjAxM2ExOTcwYmVlNWZhZWM2YzgyNTRhM2IzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUyNDljMTFiNjY5Y2E1ZWY5YmE1YjM4MjEzZDE3YmYyNDFkMjAxM2ExOTcwYmVlNWZhZWM2YzgyNTRhM2IzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjE3MjZkMDIwZjVjOWQxY2MxYWE3ZDA5ZGMzODc5Mjk0ZGEwYzYxZjNjMWQ5OThkZDc4NThiODFkN2NlMGVmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFiZDFlNWM1MzYxZjMzODBkYjE3MWVlZjBiOGIxNjM2OTJjZWFiNjg4MTk0Yjg1OTdkYzY2M2FhODJhMjZiNiJ9"
+        },
+        {
+          "resource": "repo://README.md#L72-L82",
+          "version": "repo-lines-v1:sha256:f1593f145b7c22b9043bfdec4a0ccb0256c4adfd8f64ddb42b4b930c30602225:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0Mjg0YjIzZDAxNzI5ODA0ZTE2ZjEwNGMyZGNlYTgxYjM5Y2FhZGI1YTRhNDE4N2ZlMTMxMWNlY2Y1ZWJkMGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYzU2OGVhZGRjYzQ4NDAyNmYxZTMyYWYyMmM3NWYzODUzNjJjZjJjNWMxZGQ5NjhjMDU5MmY1NzE5NTgzMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhZTVhZWI2ZDU5MDU4YThmNTEyZmFkZTE5OTY2OWFiZDlhYzE3MzU2Mzg0YWM2MDZmMWRhZjVmYTQyN2YyYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwODMxZGNjOTM4MmE3NGIyZGI0OWE3ZTkwZGMxZjJkMWQ4YjRjZWY4ZmU5MjA1MDhjYzRmNzUwNjg2ZGNlZGUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L58",
+          "version": "repo-lines-v1:sha256:7ce1697306b9711bbbaf62fe769583e982e9e52d094a94048d882ec102cdcc4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMzJjM2VjMjIyYzFmM2FkOTg1MjM2Y2M4NzA0YzQ5NGYwMzU5MTZhNTVjZmU3NGIzNzgwMzcyYzA3NjczYmQifQ"
         }
       ]
     }

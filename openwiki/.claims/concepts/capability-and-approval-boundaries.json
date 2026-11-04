@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:048ef21c606e87c7ee31dd85c905ccbcf336685805d7d8d0f5712bd47ea81459",
+  "pageVersion": "sha256:053772704301a4ab24325eae7c16f620a8a2ae634939108eb17a12939c8167a8",
   "claims": [
     {
       "id": "claim_40e0c6a713694fd89a3b694b8fdbd78c",
@@ -249,6 +249,126 @@
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/README.md#L80-L80",
           "version": "repo-lines-v1:sha256:47c47829835622d50647567dc7109eff28dd8c781b6c2a8bd516a8d4de5aac8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjNDc4Mjk4MzU2MjJkNTA2NDc1NjdkYzcxMDllZmYyOGRkOGM3ODFiNmMyYThiZDUxNmE4ZDRkZTVhYWM4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjNDc4Mjk4MzU2MjJkNTA2NDc1NjdkYzcxMDllZmYyOGRkOGM3ODFiNmMyYThiZDUxNmE4ZDRkZTVhYWM4ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDliYWU2NWQ3ZDVhNmI5Yzg2NTcyNjRmZTA2ZjVmMzAyZjc2NjkyMWYzZjVjYWU1YjdhYWQ0NDA3MGQzNjYwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWQ3YTM2MmUwZjdmZmI3MGY4ZTJlNmE4N2VmMDU2NTk1NTRlMGY0NGRhOTZjMjU3NDA2MmM1MDdmZTRlOTllZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab8960b051354d10bb94ee4769699370",
+      "statement": "本仓库在 turn 之外可触发的宿主机副作用集中在三处：openwikiVisualize/update 改写 profile 依赖、openwikiVisualize/start 与 stop 起停本地子进程、githubIssue/createIssue 用部署凭据对外建单；其余 Remote 方法或只读、或只花一次模型调用、或改的是宿主自己的备忘数据、或（dispatchIssue/runIntake）只做会话交接。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L568-L588",
+          "version": "repo-lines-v1:sha256:09f707b42ea408a3e9497e9a3c6d6b3b8aa5c3b90046ce285a1125aab2889e83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NDFiY2RmZDU1NDBhMWIzOGMzMzA2YWI5MDBiYzM3NzQ3MjhiNDllZTFjYTAxZjk4NGJlODc3MzA3MTU0YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlNDk2YTkxZDA5Zjg0YjlkMzQyMjI2OTUxZDJiMTFiYzI2NmI1OTgzOWVhYjZlZWQ2NjQ1ZDkzNGY5YzQ2OTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViMWZhOGUxYTc5MDg3MDM0NjBhNmIxOGVhNmE4ZDc3YzZlZGRmYTcwNjRhODNlYWUyNTMwZDFjOWJmNTE5MWQifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L994-L1019",
+          "version": "repo-lines-v1:sha256:19c5f605a18d58ef67ef8798fe1a8fbe8fd5c6d091b9108b8af910ab36bf2fbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjk0OWNlNzRjMTU0ZTZhNzMwNTBjZDhlN2ZiM2ExZTRhOTY5NTVjZDIzMTMxMmEzMGI5YzE2ZTY1MDIzZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3ODI2YjA3YTE4M2NmNWY2NDczMmMyMTlhOWJhYzUxYTgxMTI1YzQ2MWNkYjk5MWFmOTUwNGI4YTAyMmRiOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMmI4OTQ5YTc5M2NmM2I0NzZlY2M2ZTgxNjAyNzNiMDdiMmFlOGU0ZGE2ZmM3MjRiNTUyYjUxNWJiMmZjNzMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L362-L402",
+          "version": "repo-lines-v1:sha256:851daea9d42e347295085bcc9da77b8f7c8b68ce79a1e56e70d4166d9a106af5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjODc0NTNhNTI0ZjI3MjgzY2U0YWY0YTQ1MTZjYzkxMDU3YTk0NTQ0ZWM4MmU5MzZlZjE1NTY3NTI3MjRhYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1NTQ0YWRjYjIwOGJjMTEyODg2MTZlZGZhYjMzYTY4ZTBjY2JjMDAyOWRkM2I4M2ZmZWFiNGE1OGJjYTEyZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyY2FkZGQ0OTQ0NDZmYWY2YTA4ZTMwMGE1YTFiZjIwNGIyMWZhZTk5MjE3ZjQ4ZmEyYzE1ZWU2YWQ2YzY0ZGUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L455-L486",
+          "version": "repo-lines-v1:sha256:659dd86a838389e8e06aa42b1027b1fe3ba6082321136cb22dd86ae7f5d4fd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYjgyZDM2ZTM3M2Q1YjM3ODdmN2M0MWQ2ZTFhNjkwNTY3YzA1ZDhiYWRlMjEzZDdiYTJlMzkyYzA2ZTJmZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_62bb986f0ffb450b9706990ec8aacbde",
+      "statement": "openwiki-visualize 的 @Remote('start') 校验工作区里存在 wiki（否则返回 wiki-missing）、解析端口并拉起 openwiki visualize 子进程，同时把子进程登记进 ctx.effect 以便插件卸载与 DSH 关停时 reap，对同一 wiki 的重复调用是幂等的；@Remote('stop') 同样走 reap()。点击会话头部入口按钮时 open() 先 client.start() 再打开预览标签，因此启动是由一次 turn 之外的点击触发的，没有确认步骤。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L144-L159",
+          "version": "repo-lines-v1:sha256:bbf37e43013842660bc0dffe24f7f5dad149ef8230d9f01041affa2e08c3af6a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjFhNGU0ZWEwNmRkY2VlMDllZWZhOGFiMGY5MWIyMDVlZWY1YmNiODk2MmUxMDMyOTI1MTU0ZjgzM2E2OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMWQ1YzhkODM2Yjg1NjRmNDEyM2IwZDVhM2JiYjhkOWQ1MjRjZDhkYTE2YTNmN2E5NGE0N2I4MjFkMjM5ZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MDg1OGE1NTZhYmQ5NzYzZjI5MTdkOWQ4ODUyZWM2NWZhM2Q5MzE1YzIzNTQ4NDBkMTUzN2ZiMWUwNmY5YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkZmRjMzc3Y2JiOTY4NTllZTM3YmIyNjFjZTllMTM5YTI5ZDQ3Y2M3YjhhOTUxMTcyMmQwMTVjMzg3MTZlMWQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L142-L162",
+          "version": "repo-lines-v1:sha256:5284b53d6742553eb9dcc346a2889cafcbb347b90e1611b2b6c485f80b30dd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYjE2YTU1ZGEwZjFlYTE2MzFiZjIzOTk0OWM1N2VjMTMxNzU1NWJmMDY0MWYwZTllOThlZjAyYTQyYzM1NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZGU5MjU3OWIwMDNlZTg1ZjcwNDczYzgwY2QxODg0NjllMTQ2NDk0ODk0M2JjYTdlNDM5OWVmYTM0NDI4MDkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L276-L292",
+          "version": "repo-lines-v1:sha256:3117903f82fac7cb005e52f8241ad93ead8f9a472be5a26ce086e4cdb023ba83:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkMDYxMDJlOTA1NzNmNzU4YjgxNzk1ODRmMTNhNzQ3ZjAzNzQ4NjQ2ZjViNmZkNTAyNDhiYzFmZjMxNTJlZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NWYyYThkY2E0MDc0OTlmYmY5MDc3ZGZkMjU2Y2M0NGUxNjM2OGEzN2Y2OTJmYmI1ZWU5MTY2YzRkMDFjOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZjVhOGRjZjBkZGM3MWMwMjcyOTNhZTVjMTZjOWVmMDY4NTJjMWQyOTU2MWZkZDhjODE1MjQ0NjhkNDExOTkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L353-L402",
+          "version": "repo-lines-v1:sha256:cf1efd387eaef313ebcdfcd31c4102d4059cd5fd7e9088cfdb23d9a0d59a8331:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ODk3MzU3ZWZhNTAwNjNhMmFhNmY1ZDZmYTc0MDFmNTdmODc2N2YwZGJlODVjZjZjMTUwOGE4NmRiNzVlYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyY2FkZGQ0OTQ0NDZmYWY2YTA4ZTMwMGE1YTFiZjIwNGIyMWZhZTk5MjE3ZjQ4ZmEyYzE1ZWU2YWQ2YzY0ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6dc31209a57540089e50eea2d4e70e8f",
+      "statement": "updateEntry 与 deleteEntry 对非当前周要求请求体里的 force: true，否则返回 past-week-requires-force；但 force 是调用方声明而非宿主按规则判定：ui-memo 的控制器总是带 force: true 发出，编辑对话框里的跨周提示是无条件文案，因此这道门挡不住任何自己构造请求的客户端，与 quarter-archived 那种宿主自行判定的守卫性质不同。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L893-L923",
+          "version": "repo-lines-v1:sha256:e81f3513d2f66c639a78853c5b2e411a3ce524bdd2207f533830767396b38047:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmODRjNGQ4ZDM5MzcxMzc3YmMxMTRkNDY5YjdmZTgyNDE5MDliOGJlYWI0MjNiYzUzNGQxYjQ0NjI1YzM3NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5Nzc2MzIyYzRmZDJhNTVmZDgwMzRjNDViOGFiZjhhMWVhZjZjMzdiNTMyZjMyOTdlMWI1MmVjNTE5NGY4OWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZTMzMjkyMWU2NjJmM2U3ZDA5OWNhYTc4NmJjN2U3OWZhNGJiZTcyNzk0Yzg0MzNjNWY2NmIwZGFjMDIxOWUifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L840-L905",
+          "version": "repo-lines-v1:sha256:6460cc887ead3da83fb599223f14260c8d76ac9e54927701e329fb2dbbb01768:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlY2RhYWFjNzhjMDY2NmVkZDQyOWIwMjRjYmIwYTc3Y2I5YWJmNDFlMmZiMWE0NTNhZmNkNWY4ODU4OGE3MDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2OTUyOTQ1ZTc4ODk1MjY4ODRlYWZlMWUxZWMyNTM1NTIwNDAxNjZmOWRkOGE4ZDJmMDA4YTM0YThjNmFkYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1061-L1077",
+          "version": "repo-lines-v1:sha256:c70356d94e5a1e2c42267c11b8b628c2b5cd125bf9329372b328dd65587df28e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZDc1MjU2OWU5MWMzMTZlOTAwYjE3YjIzNjI5ODg5MmMyYjBjMTI0MmVmZmI5MjZmNzkzZjZhZmU1M2VmOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlYTZhNjRmY2Y5NjEzMWMzNDFkNWJmNDBlYWRjM2EyMzEwNzY5ZTA3ZDFlMDcwMTQ3ZjU4YTMxYmRiMTNkYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkODk3NjE5MGQ4YTgyZDViNjg2ZTQ5N2QxOGQwYzY2MjdmNjRlYzcwYjE1M2U2ZDE2MjZiMmM2OGU4ZDlhODcifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1107-L1123",
+          "version": "repo-lines-v1:sha256:93cc41789561595d179d316fe7a3f979b1513d150406fd5c05b5f0430ec57a92:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NDgyYjQ2NDUxMDYyYjM1MWRmZmJmZTVkYmMyZjYxMmNlMGZiNjFiMWNiMWI5MWEwZTdhNGQ4YWMyNjliZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4N2IwOTcyMTU2N2UzN2FlZjdjYWY3ZGEzZGZlY2Q5NjRkMTY2NzkxYWVlOTcwMjY5YjdlNjM3MGVlZjU2ZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyM2RiYzA0ZTYzMmZlZDMyZjVlYTJjMjRhOTQwMDgyMDVhODFiNTMxNDc0YWZlYThkOGFmYTE3MGVkYzY1ODkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2938d7185bec483e843537f555d0dc1f",
+      "statement": "备忘面板的归档只读判断来自宿主数据而不是自己重新推导：listArchivedQuarters 返回每个季度按宿主日历解析出的 weekIds，控制器用它们构造 archivedWeekIds，isArchived(card) 只查这个集合，卡片据此把编辑按钮换成「取消归档」；真正的拒绝仍发生在宿主的方法体内。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L880-L890",
+          "version": "repo-lines-v1:sha256:e4cf9521a6fda04f7c3423a189ce39b7fbf40e523ac668a415926c44b310d416:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyN2IyNTcwZmViMTNjMzBiZTIwNTYzNGM5ZjFjNWFmMGMzZjA4YmEwNzU4ZjcwNWQxMGFjODM0Y2NlOTI1Y2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxMjU1MTdkMWNiYjNlMWQyNDUwMDEyYWYzZjlmYTE1ZjJjNzVjZmEwMDM4NjQyYTFkNGUxNWIwYWYxMDc5ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNzA2MGE3ODhkZmQ1MzkyMWMzMGIwMjMwNmI1OTllMjgzOTg3ZjJiNWU3ZjUyZmY0ZTQ3Mzg3OWRmZmM0OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjMTI1OGMxMjI2MmFmZGEyNTlkNmFlZDU1MDhiNWZjZTBiOTQ3MTFlYmNlMjI3ODRmZjQ5OTdiYWM0ZWI4MDgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L682-L699",
+          "version": "repo-lines-v1:sha256:4db8210e649244886fd8188e72845a0c5f184afae4ede3238ed6d90c8c1822f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiNDA5NjQ0M2Y3NDIyZGM0ZjVlNGRmN2ExYzI0ZDkzNjIwYjBmYWVhNjk0NjY0ZTM5NGNiMmUxZThkMThkYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYmEzNjFlYmZlODlmNTIxN2UyNzA0NzQxODYyOTkyMTlkOWY2YzM5YTQ1N2E0ZWVjNjVmNDVmZDhkODM4MzkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L804-L835",
+          "version": "repo-lines-v1:sha256:3fedd097902c53ef18deaae985ae7f5f0c28cb220bb4c44a0d02775007fd96f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3YWQ5YmY5Y2I0NTM1Y2QyODQ0ZTNmNGZiNzIxYWVkMDgzNjM0YTRmZmFjNmVlZTc0YjJkMjk0ZTIxMmYyNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlOGM0MmJjMzg4ZTk4YWI4NWZmYzA2MDRkMmMxMGQ5MDYwN2UyYmJhMTgyYjU2YTZlZGYzNmViYjc0ZmU3Y2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d61ec0cf44e9447b8b84b0021ba5f052",
+      "statement": "归档季度的写保护也覆盖 summarizeSession：它在写入前用同一个 archivedWeekFailure 拒绝目标周，因此把会话总结写进归档季度同样返回 quarter-archived，与 addEntry、updateEntry、deleteEntry 的守卫一致。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L128-L128",
+          "version": "repo-lines-v1:sha256:10021bcad5719d7fbef5680d94a687f629119868f09742917e2a298c31a7428e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwMjFiY2FkNTcxOWQ3ZmJlZjU2ODBkOTRhNjg3ZjYyOTExOTg2OGYwOTc0MjkxN2UyYTI5OGMzMWE3NDI4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwMjFiY2FkNTcxOWQ3ZmJlZjU2ODBkOTRhNjg3ZjYyOTExOTg2OGYwOTc0MjkxN2UyYTI5OGMzMWE3NDI4ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDYxODI4MGM1YTg3NjZkNzFiNDBkZmQxMzZjZjU4MjA5YjM0MDVlOTQ4MTA0ZmU3ZWM2N2EyOWJkYWYxY2QxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDQ4NjQ5NmY5NTFmZTJhMTZlZmMzMTYwODg1MjJiZjViNGRmMzg4OTk2OTk3YzE1YmFhYTQ5ZGVhMzQzYmJkZSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1358-L1367",
+          "version": "repo-lines-v1:sha256:1667c386c20d8f2a2e52f63a7b7bfc527531aa0706084c38bcccd8ccdafc754c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZWMxMDNiMjNkODgzMWFmY2M5MGMyMjhhNzM0MDE0MjhiNGIyMWVkMDA2MjZiMGJhYzdhNTE1MDJjN2RlZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5NDUzOTE1YTdmMjczODYxNzY3NzcwM2EwMmIxY2ExNTc4NjA3NTdlM2ZmNmUwM2ZlZGFhNDllY2JlMWQ0YmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0ZTc1N2YzMzhkYTQwZTUyOGQxNTBmZmFjOThlNTA5ZWU3Mjk2NmRiZmM5OGY0MjQ3Y2MzZTVlMmM3ZTIwMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZGMyOTA0MjQwN2MzZWM0M2VjODM4ZDIyYjM2YzA0MWZiOWRlMjAwNjM1NTU2ZWFhY2EwZmIwMzk3MDk5NmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8660b631488e495387ec3f0b2cbd0852",
+      "statement": "全仓库没有一处 ctx.approval.request() 调用，也没有注册 turn 内 tool 的 ctx.tools 调用点，所以规则里描述的形态二在实现上表现为「把工作搬进 turn」（dispatchIssue/runIntake 建会话并排队提示词），而不是在 Remote 方法里询问审批。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L99-L99",
+          "version": "repo-lines-v1:sha256:6b3c7eccd2fdb232f9936a18d35a3535b5881dae209862daa2b5f71ffbd67146:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ5ODI0ODYxYTkwZGQ1MjBhYzkzYjZhMDcxNTA4ZjVjOWE4NmE3MzBjYjAzMjBhNjFlNzNiYTNjMWMyNTEzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L611-L730",
+          "version": "repo-lines-v1:sha256:8625c8ce0aa1809032bad5359b625ecc33e26e07bc6a7fedf1565b7de4942277:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZjM1ZDk4NjYxNjc2MzNmZWI4YTVhMGFkYjRlMmY4ZWU0OGE5NWY4MmJlZGY3MjA4NWRjODM5N2Y3MjQ2NTBiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MTM0NTE4MDEwNWIwYzY2YTc3ZGFkNTFiYjM3OTAxYTM3MzJjOTY1NGJhNGRlMzk4MWY4MWUxODE3NTI0OGJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyOTk2OTRiNjlkNjdlNjA3NjEyNWQ3YTAzY2NkOTA2OTg5NDYyNTk4NzRhZDIxNDcwNjVhYTQwMjE4NzBhM2M0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5ZWQwODBlODZmZWE3ODlhZmFlNjQyMmNlMWZlNWE0YjMxMWNiMTQyYjY0ODY4N2NmNWMwMWFhYjU2NmU3MWNmIn0"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L88-L92",
+          "version": "repo-lines-v1:sha256:4f0eb286077887bc603b190ac8d9c2d003410589eff788be1cbd133da2a2ed53:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzFmZTU4ZDRlYjFiMjk5NzVkNjIzZGQzZDgzMDliMjE1MjdmMmUxYzQxNGM5Mzk1ZDUwYmU4NjQ0YzEzMThmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU1ODY1ODIyNjE3OGQ4ZWU2MWM1OGM0ZGM5Y2VjOWMxYWJjNGQ1YzgyZjVmNWQzMmM3OGM4YzBkZWE3ODFiOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY0Nzc2NThkMjVmYTI3YTQwYmRjZjExYTc4MDdmYjYxYmEzZDdiM2U5N2RmNWJiYjIyZTgwMTA1ZDUwYTJiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2ExYmNjYjYxODMwNjVkOGFlMjEyOTZmNWQ3NDcwZmM2ZTM3NjdiYTZkZDE4NWY4ZDMxYjUxMDhlOTc2NzViMSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1591-L1604",
+          "version": "repo-lines-v1:sha256:d1fed31a37cb8603794aab9c7d2e739b12f0d3ca40471ae66a386b7aac33e58c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxNmZmZjU3OWFhMjEwYTJmODA0ZTRiODUzZjdiNDg2NjAwNTQ0OGI4ZGIzOWE1OWEzMmMyZWNhYTYyNTYyOGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1YTkyNDNhMzA3MDRiZjAzOWZlMDI1YzM4ODQyY2EwMzk4YmEzMWUzNGU2ZTA2ZTdlMmJmNjZhMTkwZmI1YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNWEyNmZmNGYyMzVmMDIxNjc2OWJmNjExODI1OTA3MWU1ZTkxYzU0MTA5MjdlZGJkZDE2MDczMTA1YWM1NzgifQ"
         }
       ]
     }

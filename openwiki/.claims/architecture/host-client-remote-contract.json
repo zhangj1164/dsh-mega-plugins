@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bf9e29a5dcbf02a111f872a6d5eb82f80ee09855ee677c1d8000d3f771463bfa",
+  "pageVersion": "sha256:9aa601648ece2fb03b0f14c08fddc31aa3b74643f29d8145f6ca7fdceb927583",
   "claims": [
     {
       "id": "claim_7e0775fa0bfa41e9b8647546172cc5b2",
@@ -411,6 +411,126 @@
         {
           "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L805-L832",
           "version": "repo-lines-v1:sha256:8b0e3fe131c55d727b88e617a350a57276c31101e370861e3a14a1a5e10002df:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyOTk3NmYyYzViNDYyZTg5MTg2MmE2NTYzYTgzYWIyNTIyYjk5N2E2YWE1MWZhNzc5MGEzYTcyMjA2YzZkMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlM2RiNTQwNTBlNTFjNmIwMWQ4MTczZTA2ZmM1ZjZmYWZkZGU5MDQ3N2FlOTAwMTVkOWQwNTFjMGZhOWNjM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4MGQxNjMxMWUyNWQ0ODAyNzM4MmIxMTYwNWE2YzNiNmFmN2EyNTFiZTNlY2YwZmNjMjZkYTZiZmUyZTZhZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_21aeccad6dd9415b9ed3aa7e95ef2adf",
+      "statement": "The browser side of the contract shares no client runtime: each package declares its own structural RpcCaller ( `{ call(channel, endpoint, payload, signal?) }` ) and its own callRemote wrapper — memo's takes the service name and derives callMemo/callGithubIssue, openwiki's closes over SERVICE_KEY — while the controller is only an immutable view state plus actions whose lifecycle is released through ctx.effect and whose data is reloaded on the connection/reset event.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L62-L141",
+          "version": "repo-lines-v1:sha256:f2c56e17efa0269e7431791aef981210f66f028a9f5c52bcd38827cab2585488:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNzNiMTZiNjVlMTFkZTVjYjAwYTU4M2JhYmZlYzYxZWUzZTQyZWM4MDUyYzRiNTRiMzU3YmQ1ODA3Zjk4ZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5OGM1ODQ4OWFlOTVkZTFjMmE3NDUwNjgyMWQ2ZGY1NzFjZTM2NjNhMjc3N2FmODE1NTFlMjJjNzA4ZDBkMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlM2NkZDRmM2QyMTFkOTQyZWFlNzZhNGVjZTZmOWE2YzViOWU3NmI4NjMzZTM0ODkyYTdmYWViOTQ4NTkwZTEifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L115-L130",
+          "version": "repo-lines-v1:sha256:0a523351062a06600135f45d6a9675d5a428400f45985f29c7b206579a95b991:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NmM5MzJkNjVhNDUyYWE0YTUxNGJlMGRiMjhmODMyODVjY2UwZGIzMWU5YTVmNzNkYmRkOWMxMDljNmQ3YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YmY0ZTQ1YzNjZTI2NWQ2NDIyNWIwN2M5N2JiMzIyMWExY2Y3OGU5Nzk3YmU2NDAwM2IwMWJhOWNkNTg0ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhMDJmNzVmYWU0MDJiNjYwOGMyMDg4NTgzNTQwNzQ4YmJlZGFkYzczNzJhYzg0MzE2ZTU0YWUyYmU0MGY2MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MjgzNWJiODYyOGNhNjczYWI0ZDNkNTRjYzcxZWU3OWYwMWM5ODRiNzI2MTY3YmJiNTQ4M2QyOTAwOGZlMzMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L24-L68",
+          "version": "repo-lines-v1:sha256:aee10a57b9c5b3617643051e886bbbd990ef1ae3f67ae99a914452200b4969ec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjYWRmNzc3ZDI1MGRmMzYwMThiMzYyNjkzMTE4ZjkyNTBjZTBjMzAzNTVkMGZkZjBiYThkOThiMTE2OTJhN2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkOTE1MmY5YTUyODhkZWY1MDU3MDQ5NTUwZmQ1NWE0MGMwYzBjODc0MzNjMTgxMjU1NzQzOTFiZDU3ZDc1ZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOGE1ZWYzMzc1ZjhkZmRjOWE0YTE4NTYxZDQ1M2I2M2JjMDNlZDEyNDJiZWEwNjM3ODUxOGRlNTU3MWZkYjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_538eba44a8ac4f209aca7c4b044a9f2b",
+      "statement": "The memo board controller deliberately leaves two decisions to the host: requests carry no provider/model because only the host knows which adapters the deployment registered, and the browser never derives which weeks a period contains because listPeriods returns each period's weekIds (archived state is then a Set membership test), so no second, drift-prone source of truth exists on the client.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L340-L344",
+          "version": "repo-lines-v1:sha256:e619a70c4f6dbc52bb7f6b05895bde8e0e57bc65292b7ad6b94dbd90dbf87b1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTMzYmZiYjliOTg4MzdlOTFkNDNlNjlhMzZmYWQ5ZDUyMTNkZWRkNTEwNmRmZmViODMzNTMzYTI0ZjI3MGI2YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTQ1NDNkMDZjYzBjYzg2ZWMyNmVmMDQ4OGE3YjNjNjAxNjNlNzM0MmVjNjhhYWU0MmY5OTc0MDhhMWU4MDhjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWVkMDM3NGQxOGI0MDU5NDYxNWYyYmNhMWM4ZWY0Y2VlMDJkM2VkMmVjMTk4NjI5YWFlYmYyMTcyYjU1OWMwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODEyNzRjODQyZDQxZDgzYjk0MmJiYjYxMTg5NGQ4MmZkNGQwZWRkMDNhMTFhNDA4NTMxMmFiYmNkMGVlODg2MCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L415-L432",
+          "version": "repo-lines-v1:sha256:d3e86cd0637f2cfc1c3e986be72d2ed3adee115866fe685d1afaadc375d206d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiYTdjYzliZGRhMjU2MDJkMGE1OTE4ODE2YjJhODcyNDE4ZWE0NDhmZDI4MDZmYjVmODY2MDFlMTg1ZjI2N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4Zjg2OThlMDMzNzEyN2YyMjNlMjU4ZDRiZjExZGY4MDBmMTRlMjc0OTk5OTRjNjdiZmY5MjEwZmI1MTJjNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2Y2UxNmRjZGU2ODBkMDk3ZTg2OGVmOTUwYWI0MDhiZTM2MDFiOGQ5ZWNkOTBjYzlhM2IzNGJkNThiMjljNmMifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L6-L27",
+          "version": "repo-lines-v1:sha256:155da297066adbe8f91a39b67bae6c17007311d1b65912d71d7c177a09331457:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4NmQxNzM2MjJmM2E0NzlkMTk0YWY3MWJjZGZmNjI1NjU4NjM5NzMyNTYyMmNjN2E0OTdjYjJjYjY2NDU5OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyMGJlYTgzY2I1YTdlYmQ4MDYzMmYzYTBkYjE0MTIxNDNkYzgwZjllMTcyMDFlNmE2ODNlM2Y4NTg4NjFlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmMWJjNTFkMTk4NWQ3ODZlYzIyNjRhODg2OGYyM2M1N2MwZTlkYTAxNWRhM2NiZjNhNzJkMTU1ZjkwMDk1ZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZThiYTM1M2JjODQzMWIyNWY1NDFmZWI0OTNiNzRlZjFlMDlkOTlkZTEzYjM4MmYyN2FmMTk5MzI0Y2RmY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_55c2298a4e9e40b289f5c328d163e800",
+      "statement": "`inject` carries two unrelated meanings in this repository: package.json's `dsh.client.inject` lists package rows (boot ordering plus the module-table words the bundle may require), while the browser entry's `export const inject` lists cordis service keys (slots/layout/locale/theme/connection for ui-memo, slots/locale/configForms for ui-memo-settings); satisfying one never satisfies the other.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L27-L38",
+          "version": "repo-lines-v1:sha256:256320087bd7549b8e676a1a4c9b26f062672ef01d2bdf8fd63e0f197e1fe85f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L108-L109",
+          "version": "repo-lines-v1:sha256:a11434bb18522c66ea7d8bd1e8aeaec322cf03b6f438bd12533cfc62e56d78a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUxOTg5ZThiOTVlNmZjYTM0YmJmNDg1YzdhOTNkZDJkNWI3OTViYWUzZTRmN2YwM2VmNDIxZTMyNGQxYTJmZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzRlZDIzMjFkZTQ0MDM2ZjJkZmQ3MmI4OWU2ZmMxZTRjMTJmNzBkODg3MmNlMWFmMzNjNDkwZjIxZWY3ZjY3OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODU1NGI1YjhmOWYyM2YzNDBhZDU5ODhmYzk3ZmIzMjdiYzRjYTIxNjI2YzY1N2E3YjI5YWM5NDA3ZGEwZmViNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTk1YWVjMzAxY2Y1Y2M2MDJmOTY1M2U0MjQ1NWI2NjQyOGM2OTJlMmU3ZGVlY2U4ZmNjMDVhODVjMWY0MzI4MCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L42",
+          "version": "repo-lines-v1:sha256:6af79d64d6f65006b5244d2ed652b92df1baaf6e96629aad8ae5d333adfe44d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L63-L67",
+          "version": "repo-lines-v1:sha256:f691d263d9a7c1dcbecf700eef15ab5150f6162bab74bd67a1eaacf1b3f35963:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE4NGVmNDFmODU1NWQ3OTA3OTkwOWYzMDc3Yjk4NmQ1YjQzYjkyY2YxNzZhOWQ0ZjM2MzRkODdmOWY1MDVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ2ZTE1ZmRjNjIxZjc5YjkzYzhiYzZhYjUzMGY5NGNjZDEzMTAzODg0MDg3ODU4ZDNiY2Q4NTc5MTYyNjcwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTg2ZTNiNGRhMzhjNGRhYWFkNjAyZmZjOTQwNWIzYjdiMTZiNWUwMmQyMDU5MTZkYzExYjQ1OWRmN2ZiNjBkZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7a6e0b4216a46eb884ce8ff0f507302",
+      "statement": "A declared inject row does not imply a require in the artifact: ui-memo-settings declares @deepseek-ai/dsh-client-ui-settings and the locale package while importing both only as types, and openwiki declares connection/locale/ui-renderer/ui-theme, yet both emitted lib/client.js files require only react and react/jsx-runtime — inject governs assembly order and answerability, requires are whatever the bundler kept.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/lib/client.js#L8-L9",
+          "version": "repo-lines-v1:sha256:02d0ed2c9d8a8e98238b02cb5a149752772ba864b3b17729c826a0c51c3586ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTQ2MzAxODYwMzcyNzIyNWMwZGQyNGM5OTBlOTJiZTgwMTg5NGE5Mjk4ZjAwMmRkOWNiZTZhNjA5OGRjODRhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTY2MjVhY2EyYzg0OGJjOGE4OTk1MTkwODlmNjFmODAwOWVhZmM5ZjA2MTk0OWNiN2MyYmZkMjYzYWRlNTU0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTg5M2NhNDI1NTI0M2YyMWYyZGJlMzZiZWNjODAxNGE0MzIxNmM3MDEyZTU5ZDUyMDJiMjI4MzBhYjYyNGMxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWUxZjYwOGVkMmNhZDlmMjYwZGUzZDZiYTA2MTRhZDU2NDI3MGY4MTEzZTg5MDYxMDExMzg4ZGQ2ZDI3YmE2MCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L27-L38",
+          "version": "repo-lines-v1:sha256:256320087bd7549b8e676a1a4c9b26f062672ef01d2bdf8fd63e0f197e1fe85f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/lib/client.js#L29-L31",
+          "version": "repo-lines-v1:sha256:092a89969020382374f13b8c218bf408a54d62af4f09b24a4b474df80a939707:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTg1Nzc3OWY2ZWVkNTg5ZjQ2YzkyNmUxY2YyYmEwYmE5MGZmYTVhZGM5NjM3OWZiNGJkYjJmN2IzYjAyZDYzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTY2MjVhY2EyYzg0OGJjOGE4OTk1MTkwODlmNjFmODAwOWVhZmM5ZjA2MTk0OWNiN2MyYmZkMjYzYWRlNTU0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE4MjUwYjIzNDg5ZWM3NzRjMTBhMmQ1YzQ2NmFkOTZhOWM2OWY0NzZlNWE5NDgwNDlkZjM0MWRmMmQxODliZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTE1OTljOGU0NGNmMjI1MTViZDJmY2MxMTFkYzQyNDExZmIxMTU5ODI4ZGQwYzA4OWJjNzhhMmU5M2RkOGJiMiJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L58",
+          "version": "repo-lines-v1:sha256:7ce1697306b9711bbbaf62fe769583e982e9e52d094a94048d882ec102cdcc4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMzJjM2VjMjIyYzFmM2FkOTg1MjM2Y2M4NzA0YzQ5NGYwMzU5MTZhNTVjZmU3NGIzNzgwMzcyYzA3NjczYmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_71f88fb2479a4bd4b280230f50e9af2b",
+      "statement": "The shared preset hardcodes the browser face's entry at src/client/index.ts and its output name at client.js but never edits a manifest, so the entry path, the artifact name and `exports['./client'].default` (which the gate resolves to find the bundle it checks) are three separate places that must change together.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L25-L42",
+          "version": "repo-lines-v1:sha256:cabe6bd977d6d10266c87c7152307744b1e44d20557ca5f25cd6e27620c78bf7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5YTQzNzI4ODU4NTE5YWRmZWYzYTEzYThiZWMyOWUyZmU2MWRmMzVmZTMyNzExOTNmNWU4NDg1MjczYjNlZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliNjFkZWNlOGNkOTAzNWY5OWE4MWRkYTkzNWIyZmUwMmRmZmYyMDNlMTJkYTNlZmJmMzdiNTYyYWMwZDhmMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L111-L115",
+          "version": "repo-lines-v1:sha256:be96fdc122707b8f3aa82c70a9000b32464577c6771239913eb1235088a71f47:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTEyYzMyZmFiNmZkNWIyMTNkODQyMDk0MzEwM2YwMTNkMzE0NWQwMGNlYWViYzE4YTJlOTM2ODM0NDFlMTRlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQzYTQxYTU3MGIzZGFhZWJkMWRhN2M4NDdiMzE2MThmMThhYTk3YjFiNjk1ZmZiMGQ1ZTg1YzQxNTI5ZjE2NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTc1MTUxZGYwYzI1MmEzNmVlMmI1ODRiYTEzZDM1NDA0OWI1OGEwMWViNjRhYzBiNGM4ZDE4MDBkNzRiYjQ5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODY3YzZkMWM0MzY1NmE3YzUyZjliYzk4ODFjMzljZGRmZjEzM2JlNGNjOTMxMTZmZDViNTE5MzE2OTdmYjM0ZiJ9"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L169-L211",
+          "version": "repo-lines-v1:sha256:daacc87d3d659bb01e28666fd8e53602f49298074221548b69733fc0788406fc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiZGNlYTMxODhhNzBhYjUyYzk2ZjcyNDAyNDNlODlhZDFiN2YzZTBjYTBkNjY1NTUwZGIzYzViODQ1NGU4ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlNzU0M2YyZWFlZDFhYTg3MGZkZjY2NWQ5OTE4MjkwZWM4MmJkM2RjMTQwOTFjNDAwOTg1NWEwYzY3MmUwNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlNTRlNzEzODUwOGNiZDRhNDZiNzczNmRkOTUyOGFhOGM2NjkyZjU4ZjljM2NkMWJmNDE3NzM1ODJjODI5Y2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f439751440f4f40bafe2c93eec3c8d5",
+      "statement": "Declaring `dsh.client` does not by itself insert a composition row: the entry ids are inserted by some bundle's cordis.patch.yml — @zhangj1164/dsh-client-ui-memo has no dsh.bundle and its `ui-memo` row is inserted by @zhangj1164/dsh-memo's patch — and the composition entry id is a short name in a different namespace from the package name the emitted bundle must register under.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L108",
+          "version": "repo-lines-v1:sha256:eb8635a7df478fed91525d23de4fbb8bf5710b360d59b052f749db87c9d353ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTAyZjI3MzVkYWEwNTljYWIyYzllMDExNzljOGZlY2VjMTVlMjkwM2E2MDBhYmQ5ZDk3OWJkZTlkZDAwMzkwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMwZjYwMzUwOTI0MWZiMDg0MTA5MTQyNmE5YmIzYzY1NzFjNWQxOTIyNTczYjA4NjBmZGQxNzU2OGRmMWQ1ZCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/cordis.patch.yml#L18-L20",
+          "version": "repo-lines-v1:sha256:15dcde3a240d58afd50b81c3999db9d782ee89e085dfecb4319d042e6f463b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzIxNjY5NzJiMjNhM2U3NjhlY2QwMzQwOTNkYzAxY2Q4NzljYjMxYWE2ZTZhODA2MGM0YmJiODIzN2RmYzQ1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk4NjQxY2IxYjBmZjUxYjc3M2ExOWRlN2ZkYzUxZjZmZTllNWFkMDE3MjRkNmY0NzgxYmYxZmRlOTliZWYxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L42",
+          "version": "repo-lines-v1:sha256:6af79d64d6f65006b5244d2ed652b92df1baaf6e96629aad8ae5d333adfe44d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L16-L27",
+          "version": "repo-lines-v1:sha256:62763dc606223d171630a3ad65c96f72cb95392022beb0bb02a69a3cf9180b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMGU0MmQ2ZjliNDYxOTc1M2RkNzI5NWUwNmZhODczOTRkYzY3NjA5NTc4MTY5NGZkYjJjZTBiZDczN2NkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NDI3YjM0MWVlMDg5YmY4ZDhkNTUwZDdlNjIxY2ZmODkwMjE5ODg5MDgyOWUxZGQ0ZDVkZDhhNjMyOTNmNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     }

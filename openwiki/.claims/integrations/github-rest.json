@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e287de89c32602ef831fd7383637ff31996948f8693e50838362b1af897d518d",
+  "claims": [
+    {
+      "id": "claim_bb16319b6d5b47b192cf468ddb03fb42",
+      "statement": "`GithubIssueClient` 只暴露两个操作（`createIssue` 与 `listClaimable`），并把每次失败都表示成 `GithubIssueFailureCode` 中的一个稳定码，使上层的 GitHub issue 服务不需要自行解释原始 `fetch` 错误或 HTTP 状态。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L1-L10",
+          "version": "repo-lines-v1:sha256:a30ccb2ab5abbe8ad3addd41e25bf1847edff56ba82a0440916bc2540e80308b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1ZGY3NzQzNDkzOTlkZDFhNDEwYTVmY2E1ZjlmZWRkMTUwZTUyZDNiNTA4MWE0MjM4MzFlMjY3ZjljY2E0NmUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L115-L173",
+          "version": "repo-lines-v1:sha256:07ab926df9f5ac26081b4152ddcf15f922c85f12f34ff7dcd498203918460522:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4Y2U5MDA4YjBjMzEzYTU0ZTFmNDI5ZjYxZDBiMzg0YWI1ODAwM2I0YmMyOTk2OTJlMzZiYmJmMTAzNjZmZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhMzUxNjM4ZWI1ZDE2OTk2YzkwMzMyZjJiOTViZjg2ZTFiZjAwYmRkOTdiYTc2ZmM4MDNhNzFhODhmMzczM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ZDJmNGQ3ZDdkZTdmMDI1MWY2ODExMTI2YzUxMmFhMjNjNzJhZWJjNTViYjJiY2RiOWVhYmI0Zjc4NDgwODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_903bb465a0314832bb5439566813d5e8",
+      "statement": "`GithubIssueClient` 是包内私有的传输层：`index.ts` 只再导出 `types.ts` 的纯类型，客户端与 `parseRepository` 都不在包入口的导出面上；服务在每个远程调用里经 `createClient` 新建一个实例，注入已解析的 token、`apiBaseUrl` 与 `requestTimeoutMs`，因此客户端自身无状态、不缓存凭据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L81-L106",
+          "version": "repo-lines-v1:sha256:b42c1d87e6119d35cf5985119547fcb75ecad6925f83b37d1d942297a8c0b021:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxYzgxNzliOTU2NmFhZDEzNmZjYmQ2NTliYjllODgzMmE0MjgxMzllN2VhMzRkYmMyZjBiMDFkYTc0MTcwODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzOTU0MzdkNjNlZTQxN2UzMDY3ZDk2OGRkYzVjYzMyNTYyZDVhZjgwOTc0YzU4MTI5OWI0MWNlOWMxMDMxZDIifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L44-L45",
+          "version": "repo-lines-v1:sha256:9b092869241782b50aa0cceef81b87563ff40571b31da81f554e679ccc2ed65d:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjM5OGU4MmJmMmE1MDFmMTIxZTI0ODAxM2ExNGRiZmI5MzFjZTAwNDM4ZDYyN2UwNWM1M2JmMDdiYmU1NDU4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE5MmViYTc4N2Q3NmRjZWU4YWI5M2ZhYzczM2RjZDFlZjJmMTJjZjNmZGEzNWNmMThmYTcwNTAyM2M5ZDQ2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTRkNDAxZDcyZDM2MGViZGFiZDdlMGI3YzY2Mzg4Njc3MTg3M2Q2NzQwMTI3NTliY2Y0M2ZjMjA5YzU0YTk2ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk0NjVlM2Y4NTM0ZGUyZDY0OWYzZDg2NmRiYTQ1ZmMwODZmNzFiMTYzN2RhMWIxYmI3YWY0YzA2YzU4YzRmOCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L827-L834",
+          "version": "repo-lines-v1:sha256:48719557f1f189c61f2e3718c3dc792911b57211982b87aa9918037f073d3380:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDkwNDQ4MjM5YmUwOThlYzIxZWVjMWQzZjgwNWRkYzE0OGI3YzEzMGQ1MjNmOGY1MGVhYTM4Mzc3MGU0MzJjMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDZlZWM2Mzc3NzAzOGRmNDMyZjI0NDJiMDIxNTI1OTkwNDcyNDQ1ZTY3YzY1Mjg2ZjY2MmU1YmQ1YzVkMWYxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjc3Nzc2MzhkNDQ0OTc3Y2RmZGNiNzA3OGNkM2E4N2RiNjk4ZTVhMzI1MGVmMzgxZWQ4ZDQ4MjNjNDIzODk5ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6052cc383ea741f6ba58608faef0374c",
+      "statement": "`parseRepository` 只接受 `http(s)://host/owner/repo` 这种路径恰好两段（允许一个尾斜杠、段内无空白）的 URL，其余输入返回 `undefined` 并让两个操作以 `invalid-repo` 结束且不发出任何请求；host 不被校验，也不参与请求地址——请求发往 `apiBaseUrl`——`.git` 后缀不会被剥离。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L115-L118",
+          "version": "repo-lines-v1:sha256:89674aa2a36aa483298d2d67ba4eedbdde549ffb003ef3844007a9268ffcd6d7:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYThjZTkwMDhiMGMzMTNhNTRlMWY0MjlmNjFkMGIzODRhYjU4MDAzYjRiYzI5OTY5MmUzNmJiYmYxMDM2NmZlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I1YTBkZTYyNmUxYTlhMjllNDZhZTY0NWViZWZiZWI3ZTFkNTQyYzkxYmE0OTEwMmFhNTllMjY4YzVhZGYzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGEzNTE2MzhlYjVkMTY5OTZjOTAzMzJmMmI5NWJmODZlMWJmMDBiZGQ5N2JhNzZmYzgwM2E3MWE4OGYzNzMzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTEzZDY0YzFjY2U2ZDc0YzhiOWE0MGVlMDZjNTQ2NjFlYWYyNDkyNDVlOTNlM2RiM2M3ZDVkMGNiODEwNDEzMiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L67-L79",
+          "version": "repo-lines-v1:sha256:95715b87c75b915ff2fafa14df3b4d219b93c59da708c3f01dafa3b3fb5a1e3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlY2VlMTg0NzYyNGYzOTIxMGI5NDM4YzRkODRiMTdiOWFhNzBhOGI2YjVjODkyOTFkNWU0MmRkMDFlZGZhMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlMTcwZGQxMjkyMWM2YmEzYjllNDJiNWJhZGE4OWNhMWY3MDg0MmI2N2M3NDNlNzA0OTk4ZjFmZmJjOTQ3YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjOTAwNjdjMWEzZjUxYjg1YjgyY2U2NWM3ZmUzNmNlZjc3ZDc3NzNmMTlmY2ZiZWIwOGNmOGFhMGI1NTJiOGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L14-L24",
+          "version": "repo-lines-v1:sha256:fc9310b1490682dd357de15799d4da633956db8be8dbe91841f32f4471fc0647:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYTgxNDUzMzZjY2E0ZGUyYTM2NmIxMDFkOTEzMmJmYTY4ODM4MzgwMDliNDhkZmFiMGZmNzhmNDVlOGNhNjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlNjcxZjE5MTg3NDdiZmQ0YmQ5NDEwNDU4NjNlMzBhZTE3MjgyNzA4YTExN2QxZjc1YzliNTdiZTJhMGI0NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1ZDAxZmZmYWRhNThmNjg3N2E1MzkxNzE1YWIyMzY2YTlkOWU4MzljZmI3NzJlNTg5MmE0YTFlYzcyODIzNDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d5494f6097e2464fbe31b376c4be4bab",
+      "statement": "`createIssue` 以 `POST /repos/{owner}/{repo}/issues` 发出 `{ title, body, labels }`；标题 trim 后为空时本地返回 `invalid-request` 而不发请求；响应缺少 `number` 或 `html_url` 时即使状态码成功也返回 `http-failure`，成功时返回冻结的 `{ number, url }`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L108-L140",
+          "version": "repo-lines-v1:sha256:d76223f7ee5d6c2c2779ae8861c75218d70498fff027e4e09e14045592695a3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzMmVhODY1ODZiN2MxNTAzZGI4YjY0NTUzZWM0ZWVmMjI4MjhjYzhmNWI0NjNiYTlhZDkxYmQ0NmE3ZDIzMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMmYxNjQyOGU1MjQ1ZDM1ZmRlZGVkODgxMzE2MzU1YjEwOTIwZjYwOGFiZTM5M2ExZDQ3Mjg0NjIzYzYxOGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_48e0ce057bd2499b9263dc0cb3092ec4",
+      "statement": "`listClaimable` 以 `GET /repos/{owner}/{repo}/issues?state=open&labels=<label>&per_page=<max>` 查询（用 `URLSearchParams` 编码）；响应不是数组时整体返回 `http-failure`，而数组内畸形的行、带 `pull_request` 的行、缺 `number`/`title`/`html_url` 的行、以及标签中不含传入 label（大小写不敏感比较）的行都只被单行跳过，`body` 缺省为空串；`max` 直通 `per_page`，1..100 的收敛发生在服务层 `clampCount`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L152-L173",
+          "version": "repo-lines-v1:sha256:c8fcf018f30621351382cebf8eed5530c3ec04d6a1a0069cd9d37368abaf05b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YTYzN2VjM2U1ZGU2MjMzYzg3MzFlNDg4YmY4MzJhNjJkYzM5MjNlZTFhYjc1ZGFlN2VhY2JjMmVkMjdkOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MDQ1OGQ2YjNmZThkNWVhMGQ5YmVmYjQ1OGUxYWUzMmFhMzVkYTk4NmVlYWQzNGI1ZjY1NDVhOTNkNWQyNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ZDJmNGQ3ZDdkZTdmMDI1MWY2ODExMTI2YzUxMmFhMjNjNzJhZWJjNTViYjJiY2RiOWVhYmI0Zjc4NDgwODAifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L274-L310",
+          "version": "repo-lines-v1:sha256:f7a24328488aa5ee0776c78be7da70d25474c38325382f417a53904e39a553f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiYWM1YjBiN2I3OGQ0OTI3ZTZhM2ZkYjY4ZDAwZTVjNWU2YTMzODc4ZDdkOTZkNGM3N2NhNDY2YjNmYjRlYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkNzZiOGE0YjI1OGFiYzk5M2Q1ZjgwNTNmZTM3ZWQ0NzExN2M0ODNjY2MwOTgyMjQxODUyNzVlYmM5MWI4YWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1121-L1124",
+          "version": "repo-lines-v1:sha256:748494f15ad810f3180c4791dae86ac6e9f53d5ec6a6c508c47f9fd8018645dc:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjIzMzk4YjVlOTU0Y2IyZGJiNDM0ODc1YTkyZTUyNGVhM2ZjNTk2NDQ2NWQ3MjlkNDFlNWM2OWIxMWMzMDQyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzIwZDJiNzczNjUwYzAzY2RmMWZmOWI1YTQzYzJiNzNiZDUyN2E3ZmE0ODMyMWNkZWU2YTQwYzJiYzVlYzFmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRlZTM2ODU1ZWNlOWI3NjNjOWFhOGQwMGQzOGZmMzVkYWYwNjEwYzkzYjBhNTQxNDkwMWZhZWU2MWI5YjIwOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_62a1cf5afba4446a9de5f5336fc478ed",
+      "statement": "请求构造固定了 `accept: application/vnd.github+json` 与 `content-type: application/json`，仅在 token 存在时加 `authorization: Bearer`，并在构造时剥掉 `apiBaseUrl` 的尾斜杠后与 `/repos/...` 路径拼接；响应体按文本读取，空体解码成 `{}`，`JSON.parse` 失败归为 `http-failure`，`fetchImpl` 可注入（测试的假 transport 与替换传输实现的入口）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L175-L199",
+          "version": "repo-lines-v1:sha256:f8e89f303d80182fd1db2a488c9ec81a00b52210d03977f36b2cc77ea9a32b81:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxNzA2MTI0NmQxNWExNDcxZGUyZmMzZjQyY2M3OTJhMDgwMDgzOTQxNDYzNTA5NjExMzllNzhjYzY2YWQ5ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwNzgxMWNiMDE3MTUwM2U2NTllNzJhM2JlNDk0ZWZjMThmZDQ0OWUwNWVmNWUzMGYyN2Q0MTgxMTEyM2QxYzcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L224-L237",
+          "version": "repo-lines-v1:sha256:d12971df135ae7a886009d1f1eb8299707fb82ec6fcfd2b53487775c98e9cf7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1NTg5YzVmOGM3YjdkYTVhOWFmNGM0NDA0ODkzZTNlY2VlOTNlOTFmZjljYWZlNTQ0MTQwNWViNTEzMDYxYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4MDJjNzc2MmYyOTdhNWUzMTlhY2ZiZTFmZWUyNTgxM2ZmMWY2MWUwYjk1OWJkMWY1MjEzMmEyNDM5ZTJmMGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L99-L106",
+          "version": "repo-lines-v1:sha256:0c75592dd42ff0ff28891706fefeb9d917a38fe221eeb2f24cd89fcbd047d356:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWE2ODI5OTZjZjBjYmY1ZDRlMzM4M2IzNGRmMGIxYjhlNGEzZmE1MzQ3MTdiNGFkZGM2MjQ3YmJjMGU5M2YxZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjA3YzZlMDA0Mjk0MDIxYTBmNmFjN2FhNzdhZWJjZGYzOTJlNzU2NzJlODM5MGI3NTQ1M2Y2NmE5NjgwMDczYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDM5NTQzN2Q2M2VlNDE3ZTMwNjdkOTY4ZGRjNWNjMzI1NjJkNWFmODA5NzRjNTgxMjk5YjQxY2U5YzEwMzFkMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5c623fd0b09743f0b612807b903acc21",
+      "statement": "`apiBaseUrl` 是与 `repoUrl` 解耦的可配置 REST 源（默认 `https://api.github.com`，GitHub Enterprise 配 `https://host/api/v3`）：`repoUrl` 只贡献 owner/repo，因此一个 github.com 的仓库 URL 可以搭配一个 Enterprise 的 API 源。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L42-L53",
+          "version": "repo-lines-v1:sha256:a6aa78f95df235ca4606e0fe28c4951bd346b096dcc1f5fe9e216eafbd72e71e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZTU3MmMzNTAyMDcwY2M0MDY1OTVmMWE2YjA1N2MxNTQzOTMxMGE2YzU1MDcxYzEwNDYwZGY0ZGMzZjZhNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5YTEwYTUxMjE4YzE1NDU1NDI0NGJmNmFlNTc5OGY1NzdkYzhhODUwNTJkYWZkOWRlMTZmZThlYzEzNDQ5NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYzdjYWMwOGY3OGMwZmYyNDJlZTRlYzFiY2IxNmI5ZDZmYWFiMGNkOTZjMTc3ZTU2NGNhZjZmYzlmZjhlNTYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L110-L116",
+          "version": "repo-lines-v1:sha256:4f081b28991588c298c91daf16b6c12467c699aa26ef1e6d4b724a9f5cbad229:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzNWQ5ODY2MTY3NjMzZmViOGE1YTBhZGI0ZTJmOGVlNDhhOTVmODJiZWRmNzIwODVkYzgzOTdmNzI0NjUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWY1ODdjOWRjNmI4Yjc2NjQ5N2ZjOGQ4NzI4MzJkZmM2ZWY4MTNkYWU1MDgzMGJiN2E4NDQ0MDYzNTI5NTA3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFmOWQ0MjlmZGVlZjAzNDlkZjJiZDA0NzJmYTljYzAyMjdmZjY5Y2IxODAwN2YwYWExODhiZDAyOWJiY2RmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDRjNDExMWIzZjExYTQ5NDZkMGNhOWI1ZGZkYjhkYWRiM2MyYzRmZGZlN2U4ZGRiNjUyMzVmYWEyOTEwOTQxMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_88b6991dc1334f9dbeb49b2f1c173229",
+      "statement": "API 版本与 `user-agent` 都是不可配置的常量：每个请求带 `x-github-api-version: 2022-11-28`（因为请求形状与响应解析是照该协议写的，换版本会静默得到另一套 schema）和固定的包名 UA `@zhangj1164/dsh-github-issue`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L228-L237",
+          "version": "repo-lines-v1:sha256:fe3e1ae390de04b837f8234f8614f08bcb8a210a54c608500976ae746905e41d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZDlhMzExZDg1MTgyOTM1YjhhOThkZDRkNzA5YTBmN2ZkOWI4NmUxMTVjMmJhNDZjODYyM2E3YTZjYWMwMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhZjYzMWYyNTNmNDc0OTlkNDJlNWYyMTQ1YjE4ZTc0NzU5MzliYmEyYmU1ODRkNDg1YjQ1MDlhNDIyNmYyYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4MDJjNzc2MmYyOTdhNWUzMTlhY2ZiZTFmZWUyNTgxM2ZmMWY2MWUwYjk1OWJkMWY1MjEzMmEyNDM5ZTJmMGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L55-L65",
+          "version": "repo-lines-v1:sha256:3672341aaf66ef225efdee9af5657e5448fb12809a7ad88d2f629c8a0aea156a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhM2NiM2U5ODY3ODQxYWFkMDAyMTk4MmMyYjI2ODlhM2EzYjU5M2M1Mzk3N2E3MzYyMDdjYzA4NzgzZjA0ODgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4MGZlNDRhMzM3OTIyNDQyZWVmMzU1YzJkYzBhNjg0NzI0OWE5MGFjODU5YzRkNjdlNjgwODJkYTU1NGM5YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5YTA1MWI0MmNlYmE2ZWEwNzk2ZDIxMWMwYWFmNmNkMzk4ZjYzZDdhNTliY2FjOTY2ZDk4NWI1MmY1YzMzODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cfcff3eb94bd4ff882abe7a8d0535c5b",
+      "statement": "超时是每请求的（`AbortSignal.timeout(requestTimeoutMs)`，默认 15000ms，schema 范围 1000..180000）；到期在 `fetch` 处抛出并归成 `network-failure`，因此没有独立的超时代码。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L180-L199",
+          "version": "repo-lines-v1:sha256:fa5084f80741328e02f302a801ae3849e99bc45eb703286f1681897535fd04c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYjlhNDk2Y2IxZTViMmE2MWNmMjBlOGE2ZDBhNGFmZWM2MmRlYzdjYzIzNGE5MzY3Y2JhZmE3ZmY3ZDA1YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YzY4NmMzOGFiN2NhYzBjN2I3MWQwMTQzMDFkYzM1N2YxNTc2ZWQzZDZjZmIyNWVkY2NkNmE1OGEyODEzN2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwNzgxMWNiMDE3MTUwM2U2NTllNzJhM2JlNDk0ZWZjMThmZDQ0OWUwNWVmNWUzMGYyN2Q0MTgxMTEyM2QxYzcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L151-L170",
+          "version": "repo-lines-v1:sha256:e5d9d8cb4e7887f6221f9bb13f2a3af697b9c597276038347ed3c59fbb8e8093:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMWZmNTFiYTc5ODMzNGIyMjE2ZDE1NjIwODUwYjczNGFiYmNjOGMwN2M0NzdhM2Y0MDQ3NTkxZTdhYzExZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1Mjc0ZTZkMGUyOTFhMzM1Mjc3MDU0MWFiZDAwYmU1ZDY4YjBiNmQyOGVmNzI5ZDczNDk5OGM0NzQ3NmZjYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc748348359d4344ba64ed786b3366ff",
+      "statement": "失败分类规则是固定映射：401 → `auth-failure`；403 且 `x-ratelimit-remaining: 0` → `rate-limited`，403 其他 → `auth-failure`；422 → `invalid-request`；其他状态 → `http-failure`；`fetch` 抛出（含超时）→ `network-failure`，以上由 `tests/github.spec.ts` 的假 transport 断言覆盖。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L201-L222",
+          "version": "repo-lines-v1:sha256:832c3d0ab2e05a6f1e74ff4fd57ce9ec318b7fe360d967aae6d82280651cfcca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0Y2E3ODIwMDY0OTBiNmU0Mjk1ZDU5NWEyNmEzMWZlYzdiZTYxZDAyMTJlMDBmMTk3NTEzMjhkNTA0ZjU2NjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L54-L79",
+          "version": "repo-lines-v1:sha256:adf28c572aaeafbd0bfac0aff3a9da29f273c52ae9876282fc4269d47e4459a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhZjIyZTJjMDM4NDQzNTJlZmY2M2EyZTE4OTkyNWY0YzIyM2E4M2RkM2VmNDc1YzI2YmQ4ZGFjYzgwMGNkNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNGJlMWRjN2IwM2NhOTBjNjA2OGNjODM3ZmVjODE0NDYyZTUyNWRlNDM0YmI5M2FiZGIyMzdiZTUwYmFjZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjMDNjMmQ1YTNmM2Y2NzU3OTIyODc2N2FlZDRhMzhmNDFmMDlhMzljNDc2MWIxMmY3NzY1NjU2MmE0YmYyZTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_233eefa4799a4210a8462ab8a851b4ae",
+      "statement": "分类刻意保持狭窄且无重试：限流只按「403 + `x-ratelimit-remaining: 0`」识别（429 会落成 `http-failure`），GitHub 返回的 `message` 只是被追加到给人读的消息里而从不参与分类，客户端对任何失败都不重试或退避。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L206-L222",
+          "version": "repo-lines-v1:sha256:6711885e3dbecf0615514a4fb0c941142608ae73789a74f2c3db9e3c41a5095d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlMWMxMjRmZDVjNzUzYjBiNzk3NTMyODA4MTZjNmZlYThjODcxMDQ0ODI0NWQ3OWE1MmNkOTY3YTc4ZTgxYzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0ZjA4OGJkOTlkNzY1YTEzYjc2MjJlMzMyNTRlODBkNzdhZThiYjU1NTQ2NGM2MmM0M2EzMzM2N2U0NTE3ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0Y2E3ODIwMDY0OTBiNmU0Mjk1ZDU5NWEyNmEzMWZlYzdiZTYxZDAyMTJlMDBmMTk3NTEzMjhkNTA0ZjU2NjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L312-L327",
+          "version": "repo-lines-v1:sha256:ca0656720da76e6271a13237cf04144da49eadbb954c9d77e2abd677e20fa169:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YWEyYWJkMzA3YWUzNzZiOTQ4NTVkODRhZmY0OGU2NWU1NzY1ZjM4NDQwMThkYzYzOWFlNzQ1YzhiNTFjOTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1NGM0YTFmOGUxZjg1NDA5MTczNmRmOGU0ZmI3MjdhOTQ0NmJhNzZkM2VmMDVmMmI1YjhiMjhhYTdiMTM1MmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_81022b2277614fff952b5cf47d6e27f4",
+      "statement": "共享的 `GithubIssueFailureCode` union 比客户端的产出范围更大：`session-unavailable` 与 `dispatch-failed` 来自服务的 dispatch 路径（缺 Session controller/Agent registry、Session 创建失败、prompt 被拒），而不是 REST 客户端。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L365-L372",
+          "version": "repo-lines-v1:sha256:46a14f609fc495119b32f6a0a42fba44b84500020750555be8fedb64561d8308:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U3MmU5OWE4NDk5MGE3NmJhZDBjYjE1MzU0Nzg3OWU3NzQ2NDM3MTQ3NjNlNzBkMzJhZWViZWNkZjE2NDRlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA5MmU5Yzc5ZDY3NDllMjUxM2U5NmE5YzI2MjJkYzRhZDVkN2EwNjJhZjJhOTZlYWNhYWExMTQ5MjJiN2M5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTVjZmFjN2ZmMzJjNzdlZTYxYTNmNjdlYzFiMDg0MTdkMjJiMjNmMzQ2MTc2ZjE0YjJmNmYwMGQ3YWYwMzg2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkYzliNzU0MjkzMDk5OGNjZTUzYmM2OTQ4N2FlNGY5NzliYzJiZjZiMzZkOWE4YzMxNmUyOTkxZTU4Y2E3MiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L690-L693",
+          "version": "repo-lines-v1:sha256:b1ccb23f24ed25396034999b21661810133d3c8a84921804f6d515144c66483f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWVlZjRmZmFkYWYwMWZlYTZlYjViMzFkOTViOWU1MzRlOTMwMmQyNmNlNjk5NjAxMDdhZDQxMTk5ZWQ2M2FmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQxN2U0ZWRlYWVhZTAzMTc0NjVkNjNmZGE4OTJjYTZkNWQzOGE2NzE0NGI0OTc1NjJkZDMyZGVlMDUwNDYxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjOGM3ZTYyYTg4ZDg5NTQ5NTc3OTE0MDViYjQwNDYwMmJlYjE5OGNmMGRjNDZkNjljNTFmYzhlOGFlOWYzMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDk2NmY0ZTA5NTBkYjZkMGM1YjJlYzc3NmU0ZGQxOTg0NDUzMzE4YjM5NDNjNGJhYjUyNzEyYzU1YjVmNDkwOSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/types.ts#L138-L163",
+          "version": "repo-lines-v1:sha256:6e51db7b2cc1f2c1970efa2ce70e8a020969e417a330c32fb78932866dae8613:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDY3OTdmYWU5NGZmOTc3NjIwZWU1MDQ3MGIxMzZhZWQ5MTRkOWVmYjA4YzM1OGRhNWM2Yzk1ODE2YTc2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ZjI0ZmRkMmI2NzNkMWQ5YzNjYWRiNjAwNjYwZWY1NzQwN2U0NTEyNGE2MTMxYTgyZmVhYmQ5Y2Q1MTZiYTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f1c9be92c6b445cb6b4b032663d876d",
+      "statement": "凭据按显式配置 `token` → 环境变量 `tokenEnv`（默认 `GITHUB_TOKEN`，空名跳过）→ `tokenCommand` 标准输出（默认 `gh auth token`）的顺序解析；默认命令读 `gh` CLI 已存凭据，使已登录 GitHub 的机器无需额外 secret，把 `tokenCommand` 置空串则禁用该级；命令带 `tokenCommandTimeoutMs`、`windowsHide` 与 64KB `maxBuffer`，失败只记一条 warn 并当作没有凭据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L836-L866",
+          "version": "repo-lines-v1:sha256:00d1e79dfdac16ef3e731cc22c25f4025c1236c01b138acab59a38bdc55263cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NDMzZDFjYTBhY2ZmNGQ2NzA1MjI5ODk0YTI2ZDYyNzA0YzgyNWU4MjZiYTk4NDY3ZTM3M2E1ZGQ3ODcyNzEifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L88-L110",
+          "version": "repo-lines-v1:sha256:fca5b4a77157be45f642e9fa2c938ff663b91bc7eb30030ab27fdf838f0d8a10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZmIyZDcxNTAwZDI5YWI1OTkwNmY0NDBiMWJiOTZkOGEyNjk1NzcxODRhNWM0NmE3ZDRhMmIxNmIzOGVlNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwYzUxNzZjMTNlYzhmY2RkZmY0NTkxZjA4OGZiODExNTU4MjY5Mjc2Mjg2ODY2NTA1MjIwMTgzOTFiOTQ0ZGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5e69b27db09347f6b46305063e8f7b4f",
+      "statement": "凭据解析在进程内只做一次：`resolvedToken` 与 `tokenResolved` 缓存结果（包括「没有凭据」这一终态），所以先失败后补上的环境变量在同一进程内不会自动生效，需要宿主重启。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L406-L409",
+          "version": "repo-lines-v1:sha256:7c4564ca197ceff70a754e2405948b0271572b07cbfc0397909423cd998f3d8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjgwYTFjMDBlNzQ4ZDcwNjk3MzA2NWY3YzI1OGExZTgwOWI4MWJjOWNjOTM2YWU3MDYyYTk4NDVmZjdlYzQzMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzgyNzI0Mzc3ZTQ4MzJlZGY4NzJjODZlNGU3OGI2NzllMmU0NDEwODQ5OGIyZWNlZDJlN2U4NDlhMTU0YzcyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTBmOGVjNjVhZmIyNGMxZmRjY2YyYmViZTg4YjYwNDMyOTFiYTIyZGM5M2Q5NmY2NGRlMTBiNTRhMGVkNDU3MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmVkY2I0MjMwMGZkZjkzZWJhZDEzMjU0ZmYyZGIwZTljN2EwZjc1YTRiNmJjYzBmNTdlYThmODRkYmRmN2ZhMCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L846-L866",
+          "version": "repo-lines-v1:sha256:106079bf6eea9dbc121b0454b534b88d2d2dd55efec74d7dfc47ec55c3a0a528:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZTE0ZGIwNmE3ODliODc4ZDNhN2UzZDNjYzMyN2NmYjBjMDg4ZWMwZDAxOWQ0ZWVmZGZhZDU4ZTBjZDE2MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkZWNjYmI5ODc2MDY4NjI1ZjkyOGNiYzcxNDFmNDYzYjU3NjBmZGY4NWMzNmFhNDFhYTI0ZTAwNzAxOThiNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NDMzZDFjYTBhY2ZmNGQ2NzA1MjI5ODk0YTI2ZDYyNzA0YzgyNWU4MjZiYTk4NDY3ZTM3M2E1ZGQ3ODcyNzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3582dd7e40db4cf191a681871bb46d64",
+      "statement": "`tokenResolved` 在 `await` 之前置位，因此 token 命令仍在执行时进入的第二个调用会看到已解析标记而拿到 `undefined`，直接以 `auth-missing` 短路；当前串行调用序不会显形，但并行发起 REST 调用时这条会变成真实的竞态。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L846-L866",
+          "version": "repo-lines-v1:sha256:106079bf6eea9dbc121b0454b534b88d2d2dd55efec74d7dfc47ec55c3a0a528:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZTE0ZGIwNmE3ODliODc4ZDNhN2UzZDNjYzMyN2NmYjBjMDg4ZWMwZDAxOWQ0ZWVmZGZhZDU4ZTBjZDE2MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkZWNjYmI5ODc2MDY4NjI1ZjkyOGNiYzcxNDFmNDYzYjU3NjBmZGY4NWMzNmFhNDFhYTI0ZTAwNzAxOThiNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NDMzZDFjYTBhY2ZmNGQ2NzA1MjI5ODk0YTI2ZDYyNzA0YzgyNWU4MjZiYTk4NDY3ZTM3M2E1ZGQ3ODcyNzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_18ea6ff87ea547cbabc8d39cbcefba65",
+      "statement": "token 命令的输出永不落日志：它不进 warn 文本、不进 `auth-missing` 的失败消息、也不进遥测元数据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L115-L120",
+          "version": "repo-lines-v1:sha256:077698608a2ac3906ee9142a63bed75f8c254468d57efde6b62998998266348f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYThjZTkwMDhiMGMzMTNhNTRlMWY0MjlmNjFkMGIzODRhYjU4MDAzYjRiYzI5OTY5MmUzNmJiYmYxMDM2NmZlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGEzNTE2MzhlYjVkMTY5OTZjOTAzMzJmMmI5NWJmODZlMWJmMDBiZGQ5N2JhNzZmYzgwM2E3MWE4OGYzNzMzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmQ3NWVlZTI2MjMzOTVhYzM4OTdiYjFmMTJhODg4MmM5ZGFlMGEwYmNkZTQyNDdlN2NiODU5N2NiNGU3MGY5ZiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L846-L866",
+          "version": "repo-lines-v1:sha256:106079bf6eea9dbc121b0454b534b88d2d2dd55efec74d7dfc47ec55c3a0a528:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZTE0ZGIwNmE3ODliODc4ZDNhN2UzZDNjYzMyN2NmYjBjMDg4ZWMwZDAxOWQ0ZWVmZGZhZDU4ZTBjZDE2MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkZWNjYmI5ODc2MDY4NjI1ZjkyOGNiYzcxNDFmNDYzYjU3NjBmZGY4NWMzNmFhNDFhYTI0ZTAwNzAxOThiNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NDMzZDFjYTBhY2ZmNGQ2NzA1MjI5ODk0YTI2ZDYyNzA0YzgyNWU4MjZiYTk4NDY3ZTM3M2E1ZGQ3ODcyNzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dce966ddf9054916ae70898e610ca815",
+      "statement": "缺失凭据是正常失败而不是崩溃：客户端在发请求前返回 `auth-missing`（测试断言此时一个请求都不发），服务把它当作普通失败结果记录 telemetry 后原样返回，启动检查只 warn 一行并等下一次启动。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L118-L120",
+          "version": "repo-lines-v1:sha256:975fc90110e8060833c031cbd4b6d6697c11092d736942d7dfb731d1c3ca2238:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I1YTBkZTYyNmUxYTlhMjllNDZhZTY0NWViZWZiZWI3ZTFkNTQyYzkxYmE0OTEwMmFhNTllMjY4YzVhZGYzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA4ZTNkNmUxODkzODg5NjU2NjI0ZWI0OGMwOTNjZGYxYzExMTg5YWNjODEwOTc0Y2NiY2VjMDRhM2ZiMzdhNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmQ3NWVlZTI2MjMzOTVhYzM4OTdiYjFmMTJhODg4MmM5ZGFlMGEwYmNkZTQyNDdlN2NiODU5N2NiNGU3MGY5ZiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L595-L609",
+          "version": "repo-lines-v1:sha256:b5bec8fd31d7402b832619b7f9783af5c5df855bd4f12086bf9363aba83c67e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNTQxMjBlZDEyODY1ZTA1NGIxMDRiMTU0MDdiZjk4ZDRjNjUzZmI3MDdjYTZmMDcxMzQ1ODA3ZThiNzJkYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MjhjZTQxMzE0NjEzY2U0ZjRhZmY0NWI3ZGEyZDJjZTUwZDY5OThiYzQzZmY3ZjllMTBlODZiOTk1YzdkZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMWZiNTc5NmI0ZTAzMGYxMzYyY2FjZmYzOWY1M2Q5OWFlZWE0YWY4ZDc0MzNlZjU3Yzk1NTViZWE5OTFjZjAifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L757-L770",
+          "version": "repo-lines-v1:sha256:96f4e17b563cb42a54a0cef49d787e4476820aadd88cd9b189a288acb31bb16e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmZjY0OGU1N2NlMWZmNTZkOTYzMmM1OGMxNzlkZjFjZThkNzMwMjI0MTMzNDdmZTQyMGZmOWNiMzQ0ZjNlN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViODhiYjIyMDc5N2UxNzQ5ODYwNDAwOGYwMWRiMTEzNDhhMDcwOTQ5OWMwYTdhNzA5MDRjM2E5NWM5ZTJiZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNmM0ZDViOGUzZThmOTBkYmJlNDg4NDNiNWU0NGRkYTA0MTgwYzc0YjA3YmRmYzIxYjRjZjUzMzk0MGZjNjYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L41-L52",
+          "version": "repo-lines-v1:sha256:caa33c072065a8646571183ffd5e769f0c675aed98c3312b5b70af784d7cd2f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMDUwZTMzZjQ4YzRhMzgyNWE4ZjZiYzgyYzdkZDA2YmI3OTI2MjYwNDJmZDYyOThmYTY2MTVhNDMwNjRhMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMTc2YzY2ZGQ0NDQzYmMxZmY4YzQ3Y2UzZmU3Mzg2MmMzZjY3YzNhOGVkZmE4ZTM4OGVmZGZkMGU4MmRlY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhMDI1Zjg4NWIyNDU1Njk4MTk3MTdhZWYzMjI5ODg2NjFkYjliNjc4MmU1NDNiNjdlYmVhMGJhNWMzYzM2OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2de30b54c7e4179be4f17a6ed6ad213",
+      "statement": "凭据与传输字段（`token`、`tokenEnv`、`tokenCommand`、`tokenCommandTimeoutMs`、`apiBaseUrl`、`requestTimeoutMs`）在构造函数里被拷成实例字段，因此是部署级配置、只在挂载时取值，不进设置页；自带 bundle patch 只插入一行 `github-issue` 且只覆盖 `repoUrl`，企业部署须在自己的 patch 里覆盖 `apiBaseUrl`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L26-L30",
+          "version": "repo-lines-v1:sha256:704bc927ad685f68b8c52355dcae60c81a9d0187e314f3926b533bb30ccfa12f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUxYmIwNzE0NjE4ODlhNjQ1MWEwZmQwMjQ4YzE5MDUxMTUwMGY1MDA4YTVmMDg2ZmI1ZTM2MDdhNTFmZDc3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzNhY2FlNDUyNzc2YWE3NWEwMjRhMDUzZjQ1MmNkNjcyNWMyMTg1OTkzNjdkNTJkNDc3ZTQ3MTM3NGIxMzk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L417-L430",
+          "version": "repo-lines-v1:sha256:d4dc570015c83de6aca1c0630aefb4ff54e18a040f412578ef83a435589b8cdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkMDYxMDJlOTA1NzNmNzU4YjgxNzk1ODRmMTNhNzQ3ZjAzNzQ4NjQ2ZjViNmZkNTAyNDhiYzFmZjMxNTJlZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMWY4MDY5ZjZjNzdmZWM4OTI4NTZmOGU0MjA3YjhlYTk1Njc4YmVmMTcxYmZjN2M3MDU5ZjM5MzU5YThmZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxNDNiNzRiNDNlZTQ5Nzg1YThmOGEwZDg2ZDg5NmFhZjE0OThhNmI0ZDkyMzc0NTdjYTk1YzhlY2I0NTg2YmYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L56-L170",
+          "version": "repo-lines-v1:sha256:a2ff07c9edb069ab523e3bd52f85d48d7082d3d2e8f1d6bc9ca207a1530f397d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyNDhiOTZhYmYzMWJlNzE0NWFhZDRiOThmYjM1MGNmMzM3ZjQ5MzhjMWJmZDk5OTg3YmViMjMzNDU4OGVlYWM5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1ZThlNDkyYjA2NTNmMDhhOGNmY2YwZjUzZTFiNTMyNDcyZTdiM2RjNzk3ZGQ3MDQyYWYwMDYyNmEyZTkwZjcxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjOWYxZjg1MzJlZDQ1MjM3ZGJlNzQ3NDgwNjIyYjM1NDk3Yjc4YzUxMGJhMTk0OTYzYTU5OTM5Zjc1Zjg3MTBjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_c12449ddbe104ce7b29fd0537d93a8ae",
+      "statement": "`tests/github.spec.ts` 用注入的假 `fetch` 覆盖仓库解析（含尾斜杠与非 URL）、`createIssue` 的请求形状与 Bearer 头、缺凭据不发请求、401/403+0/422/500 四类分类、transport 抛错成 `network-failure`、`listClaimable` 的标签过滤与 PR 排除（大小写不敏感）以及非 JSON 响应体归为 `http-failure`；`apiBaseUrl` 拼接、`user-agent`/`x-github-api-version` 头、超时、无 rate-limit 头的 403、成功响应缺 `number`/`html_url` 与标题为空等边界尚未覆盖。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L14-L113",
+          "version": "repo-lines-v1:sha256:c978c973052ce8e91ec5397824dbc7e7206452e1626b560c9ae45fa5e66916e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5MGE4MTQ1MzM2Y2NhNGRlMmEzNjZiMTAxZDkxMzJiZmE2ODgzODM4MDA5YjQ4ZGZhYjBmZjc4ZjQ1ZThjYTYzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyYzU4YjBmMmIwOTQ5NDRkMjhmMWVkMjFlMTcwNTFmYzIxOTIxNmNjMGNhMGNiMTJlOTQzMWQ0MzQ0OTM3YjZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzZTY3MWYxOTE4NzQ3YmZkNGJkOTQxMDQ1ODYzZTMwYWUxNzI4MjcwOGExMTdkMWY3NWM5YjU3YmUyYTBiNDZkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:6025b02a9c5e7542d38d8a26aaa35cfde0c182926002a815f75f0f98b98840d1",
+  "claims": [
+    {
+      "id": "claim_642077e64c6f4858bd0815df486c7f41",
+      "statement": "`GithubIssueService` extends `TypertRemoteService` and is registered under the cordis service key `githubIssue`, exposing seven `@Remote` endpoints; the package ships no browser half (it declares `dsh.bundle` but not `dsh.client`, and `src/client.ts` is a pure type projection), so it is a host backend consumed by UI plugins rather than a feature a user can open.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L45-L66",
+          "version": "repo-lines-v1:sha256:1b0c34c72fc4dc6e346dd5b81cbecaec8bbe7bbadeb69d09d6599e25050a140e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YWY1OGU4M2M2OWFhZTRlZGVmNWRmODRhODMzNjY4NDBiZWQzZjRmYzYxMmIwN2IzMDIyM2NkZjNlYWUzMTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/client.ts#L1-L10",
+          "version": "repo-lines-v1:sha256:7bfcc61ce4e70fe8740b2e3ea9878cd0d2eaa4afba0229fd5cd2435071d06e76:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOThlODJiZjJhNTAxZjEyMWUyNDgwMTNhMTRkYmZiOTMxY2UwMDQzOGQ2MjdlMDVjNTNiZjA3YmJlNTQ1OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L377-L386",
+          "version": "repo-lines-v1:sha256:c10cd5c3f8597e6174880c6a32a3ddbe3b906e6c7587e3627a6a9883852da594:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkZGZkMTNlMmQxMTYzM2U2YTA4M2Q0OWExYmVlNWQ1ZGZiNTQ2Mjc0NzI4YzQwOWMyOWRjNTIyMDc2YWQ3NTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyMWRjOTU0NzA1MWVkYmMxNDJlNWMwOTczMTA0ZmI0NDUxZjU4NzQ2YjRmMTVmMGVjZjk5NjRiMDhmYjIxM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NzEyYTg1YzBmNjk0ZGIwMzMyMzQ3ZjUwODVlNDM0NWQ0YWJlMzEzYzI3YmUzYjY5YTY3ZWZjMjAyZTA2YWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a246d5ee654402a8e1afd11ea29763d",
+      "statement": "`static inject` lists only `llm`: `telemetry`, `storageDomain`, `sessionController`, `agents`, and `agentDefaultModel` are read structurally via `ctx.get` / `optionalService`, so the plugin activates on its own bundle and each of those capabilities degrades to a stable failure or a documented limitation instead of blocking activation.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1100-L1114",
+          "version": "repo-lines-v1:sha256:c6b18cf5f97ea4213fdf15bd66294e7d837f01fcfa632a677c41f92118e5d0b0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0OTI4NzgwNjUzN2VlNDhiNzdjYzIzMTg2MGIwMjJkMjEyMDdiMzAyYjAzNGNkNGJlZGQ1NDNmNzBiYzcwM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MzYzYjkzODlkNGM2OTQ1NTU2YjdjMGU0Y2YxNjljN2ZhYjFlZGU5OTNlZmJlMTZlMjNiZGM5ZTExY2NhODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ZWVjNWVkNTliMDkzYTg0OTQwMGU1MjE0ZmI4OGFmNjJiMmEyMmViMmE2ZWQwNGI2ODU0NjI1ZDkwNDEyYjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L233-L251",
+          "version": "repo-lines-v1:sha256:e8df22422503b635040495d2c5560ab2137d3229330d8ece7ea8c2c8ce5663e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZThhNTliYjc1ZDBjYjU0ZTQ1ODk0MWE2MzNiYTM3NzcwODRlOGIzODhmNjY3YmQzMTA2ZGM5NDY0NThhNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiZmViMTMyN2IyMmNkYTNlYzA4NWNkNGJkYmRkYWFiY2Q5YTM4NTBjMGVlMjczNjEzMmI3ODBhMTMyM2RjYWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L384-L386",
+          "version": "repo-lines-v1:sha256:989eaabda088dd1b1a31de73c921905babce96b6e544a13ef598cd21b79732cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk2YzdmNDA3MjZkYzBlZjZmYWNmZmQ0NDY3ZTdkYmIzOGMxMjU2YzczMWFhYThhNGQ4MTc1M2RiOGEwYTQzOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ2YWI2ZTY4MDg2ZjRiN2RjYWIwMzE1ZmZlZTBjYWQxMTM1NjEwM2Y4YzE2NGUzNjk1YjhiNGJkYzk4MGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk3MTJhODVjMGY2OTRkYjAzMzIzNDdmNTA4NWU0MzQ1ZDRhYmUzMTNjMjdiZTNiNjlhNjdlZmMyMDJlMDZhYSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L453-L474",
+          "version": "repo-lines-v1:sha256:7c80704c0f036becf6109b6ea76b6e1e76d8fc6e91c8037ac680e3faf866763b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYTQ3NzQ0MmNiMzQ1NjgyYWRiYjgxMTU1M2RmMDcyZDQ0NzY5N2UxMzhlZjQ0NzZjMjkxODYxNTdiNmJjZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwNjE4NWY3NjU3MjdiMjdhMDAwOTc1YTYwYjY3YmEzOWEyMDllZGE4MTU5Mzg5M2JmYmUzMDcxYTA2YWIyMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcd54c9567764315b9b81dd436f16e61",
+      "statement": "Both model-backed methods resolve a route before calling anything: an unresolvable route returns `route-missing` and no model call is attempted, while a failed stream becomes `llm-failure` whose message names the provider, model, and preserved DSH code; `optimizeIssue` validates a blank description (`empty-input`) before route resolution and `generateReport` has no input validation.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L483-L489",
+          "version": "repo-lines-v1:sha256:dd854be482111d8c858be04706eff1f6d06738eb4388c06c485dbca80a696ddb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxM2NkNmU2ZmExMzBjMjdmMmIzZWIzZjM3YTk2YTE1MWJjMGQ3M2VkMGE3ODM3NzdiZmQyMzYwMzZmYWI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE2OTcyOGU5ZTIzZDU1ZjAyYWYyZDIyNjNiM2Y1M2NhYWY1ODBiMDQ1ZDkyNjIyYTg1ODg4NGNmNDI5YTFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjgyOGEwYjZkMzlmYjgzOGEyN2FlZGIzNDdkYWFlNTE4ZmJmNzg1NWM5MDI0MGE4YTJmOGRmNjEyNDVlNDU2NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L497-L556",
+          "version": "repo-lines-v1:sha256:77bf95772ddcc0ae97ef5e20de1cbef61eda776292c5491ae32463281b3449ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZjNhMGViMDFkMjBhMzkxMWE0OTA4MTk2YzQ4MDYxYjU1NWEzYzYzYTNhN2IwOTE3ZmM4ODdmZWFjZGVkYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjU5Y2E0OWU0NzUwNGYwODU4OTc2ZmVmYTMxMTY4MzhhODIxYWRhNjg0MWI0NzljOGYxMzlmNGY1ZjlmNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZmNjMmU2NmE2NDk2OTg4YTc3NzY2ZTY3NGI1MjUxODc0OTAwZDgwMGIyMDlmOWY3NDkyNDk3OThlYjIxMjAifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L214-L246",
+          "version": "repo-lines-v1:sha256:82fc2014eb96a95087e479cbe6d61dc2b5777867a6603f929981fbce406f14be:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYzMzMzkzZjQzYjEwOGIyNjA3NDU0OGM3ZjY0ZmRlZmYwMDgwYzdlNjBkMDNiZmQ4ZTcyNzNkNDE4OTU1MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMjYzNzI1OGQ5ZDU5OTQ3YWRmMjJjY2FmN2FhMjg2NDY0Zjk5N2UyN2MxMjcwZWI5NDk0YjFiNDA1ZDE2NmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjZmJiNWY2MjFjMjE2ZDQwMmU1Y2RhMmU3NWRjZTk2YWIzZjE5NzljZDU3YTkwNjUwOGEwNjM2NzU5NTlkMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_215e37e2e6e646ed8fafdeaf68bb8e9d",
+      "statement": "Each generated report's title comes from the model output's first `## ` heading, falling back to `Telemetry failures in <pluginIds>` for `generateReport` and `New issue` for `optimizeIssue`; labels are fixed (`['bug','telemetry']` and `['bug']` respectively) and the results are frozen.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1038-L1046",
+          "version": "repo-lines-v1:sha256:ff3ade223751f67569da51930ec850f991775587e45cbeccef13eecb862c7e8d:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmEwZWZlMmJiNTRhYmVjMWI0MzIxODk1NDQ0ZDEzZWM5MDRlMTI4MzU2ODI5NzQ2MGZjNzk5YTBhNzQyZjRjNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ0YTlkMThlYzVlY2JlMmZmMzY1MGVmNGIxMTY5YjAwZWMzYTQxYjBjYzc5Nzk1YzAwNGYyMjA3MmI3Y2NhMiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L497-L556",
+          "version": "repo-lines-v1:sha256:77bf95772ddcc0ae97ef5e20de1cbef61eda776292c5491ae32463281b3449ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZjNhMGViMDFkMjBhMzkxMWE0OTA4MTk2YzQ4MDYxYjU1NWEzYzYzYTNhN2IwOTE3ZmM4ODdmZWFjZGVkYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjU5Y2E0OWU0NzUwNGYwODU4OTc2ZmVmYTMxMTY4MzhhODIxYWRhNjg0MWI0NzljOGYxMzlmNGY1ZjlmNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZmNjMmU2NmE2NDk2OTg4YTc3NzY2ZTY3NGI1MjUxODc0OTAwZDgwMGIyMDlmOWY3NDkyNDk3OThlYjIxMjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f8227704adf348d1b5ce0c23caa56f69",
+      "statement": "`prefilledIssueUrl` enforces its length budget on the composed URL, not on the body: it composes `title`/`body`/`labels` with `URLSearchParams`, shortens the body by at least the measured overflow per pass until the URL fits (bounded by 32 passes), appends `prefillTruncationNote` so the body reads as partial, and falls back to a body that is only the note when the note alone exceeds the budget; a `maxPrefillUrlLength` of 0 or less disables shortening entirely.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1053-L1097",
+          "version": "repo-lines-v1:sha256:744cdb592d54300d0b3eaaed426dfab52ff54ccaceaab76a6aa8ec722f3a2888:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3OWM0ODk2ZjZjMjJlZmJjODVmN2I2NDA1MjljMzRiZDViMTBmODI3ZjE1OWU5ODJjMmMzM2M4MmVkY2M2YjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkNjk1OWZlMDBmZjdmMzdjZTIzMzdmMTc4ZTA2YWJkYzAwNDE3NThkZDBhZjJmMjE2OTc5NmIwZTdmZGNiNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2Yzc5M2I1M2RhMzdkYTEyNTExYzc4MGJmNTZhNDVjMGIwNmRlOTA4NDE0YzAzMzMzZGRiMjczMGY0ZTQwY2IifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L523-L533",
+          "version": "repo-lines-v1:sha256:99e4f51d680793b6c23a5af3a1a7410d30c6eb6d83320506efb2fc14290ca29f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ODY5ZjJhZjg3YjVlMzU1NGNiNmQzMDhkZTlmZDVlZWE3NWU5YTk4ZGUwOWQzMGE4YTRlNzdiNTliYjdmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNjllZjRjM2VkOWM3YWRjODUyNTI5NmM1MWEyMGQwZDEyYmE0NzkzZjI1ODE5ZDk5ZTc3YWMyYjljNjAyNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyMmIyOWM5ZWE5YjdmMWJiMjIzMjM1MzFjMzM2NGY3YzQ0NGI0OWJlMTY5ZGY0MmE5MzYyNWY2ZjFhN2FlZmMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L57-L116",
+          "version": "repo-lines-v1:sha256:b8c40590bda15ab5ca5ae82141372f339b3ace6b99c1f39ec3074fb426d61975:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2M2M5NzAyYzdmMzExZGZkZjlmZTc3MDMwMGM4NTQxY2RhOTFjMTEwODZjODE3ZGI5NmI4N2E2ZTQyMzEwZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YjE3NGNmZDhiNzBjMWZjMDNjOTgwMDc5MjY5ZTVmNWY5MGIxNGQzZDBkY2JmYWEwMGRhZmQ5OWE2YmViMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwZWE1YWJjZTBlMzAzNzBiNmE5MTdkMmYzZDU3YzRhMWQ0MmNkYTcwYjYxNzM4ZTg1MDJlODVhNjczM2M1YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae546df6a85e4118b2e35e9f653da63b",
+      "statement": "The prefill URL validator is narrower than the transport's repository parser: it requires exactly `https://github.com/<owner>/<repo>` (returning `invalid-url` otherwise), while `GithubIssueClient` accepts any host and takes the API origin from `apiBaseUrl`, so an Enterprise deployment can file and list issues but cannot produce a prefill link.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L67-L79",
+          "version": "repo-lines-v1:sha256:95715b87c75b915ff2fafa14df3b4d219b93c59da708c3f01dafa3b3fb5a1e3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlY2VlMTg0NzYyNGYzOTIxMGI5NDM4YzRkODRiMTdiOWFhNzBhOGI2YjVjODkyOTFkNWU0MmRkMDFlZGZhMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlMTcwZGQxMjkyMWM2YmEzYjllNDJiNWJhZGE4OWNhMWY3MDg0MmI2N2M3NDNlNzA0OTk4ZjFmZmJjOTQ3YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjOTAwNjdjMWEzZjUxYjg1YjgyY2U2NWM3ZmUzNmNlZjc3ZDc3NzNmMTlmY2ZiZWIwOGNmOGFhMGI1NTJiOGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L523-L533",
+          "version": "repo-lines-v1:sha256:99e4f51d680793b6c23a5af3a1a7410d30c6eb6d83320506efb2fc14290ca29f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ODY5ZjJhZjg3YjVlMzU1NGNiNmQzMDhkZTlmZDVlZWE3NWU5YTk4ZGUwOWQzMGE4YTRlNzdiNTliYjdmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNjllZjRjM2VkOWM3YWRjODUyNTI5NmM1MWEyMGQwZDEyYmE0NzkzZjI1ODE5ZDk5ZTc3YWMyYjljNjAyNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyMmIyOWM5ZWE5YjdmMWJiMjIzMjM1MzFjMzM2NGY3YzQ0NGI0OWJlMTY5ZGY0MmE5MzYyNWY2ZjFhN2FlZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_957b4e4032b844cda29353fb532c2153",
+      "statement": "`createIssue` completes all local validation before any HTTP request — a non-string or blank title returns `invalid-request`, labels are trimmed with empty entries dropped, and the body goes through `issueBody`, which strips the leading `## title` heading the optimizer repeats so the filed issue does not show its title twice.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L568-L588",
+          "version": "repo-lines-v1:sha256:09f707b42ea408a3e9497e9a3c6d6b3b8aa5c3b90046ce285a1125aab2889e83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NDFiY2RmZDU1NDBhMWIzOGMzMzA2YWI5MDBiYzM3NzQ3MjhiNDllZTFjYTAxZjk4NGJlODc3MzA3MTU0YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlNDk2YTkxZDA5Zjg0YjlkMzQyMjI2OTUxZDJiMTFiYzI2NmI1OTgzOWVhYjZlZWQ2NjQ1ZDkzNGY5YzQ2OTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViMWZhOGUxYTc5MDg3MDM0NjBhNmIxOGVhNmE4ZDc3YzZlZGRmYTcwNjRhODNlYWUyNTMwZDFjOWJmNTE5MWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L34-L51",
+          "version": "repo-lines-v1:sha256:d176cf3adf9fb17714f3580ff08b1310146fd9524edbb3129e358170902f9eb7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjMTQyOGI4NWI5MzFhNjcwYWI3Mjc3NDZhNThkNTQwY2JlYTk2MjNkMWNmYmI3M2FkNTI1NjA2M2E4ZTRmYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1NDZhOTdiYzMyNzRkNTk0MWEwMGNiMzMzZDk0ZDFjMmFhNjFmNjFjYzA1MGY2MWRkZjczMGMwMDU2ODhhZGUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L43-L74",
+          "version": "repo-lines-v1:sha256:73547b9e1f08c6d0c1db348fa0256675020c50928f2a9606d219f0e171256ae8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2YjQwNGExYzMxZmI2Y2MwMTAwMDAxZTNkZjkwNjVlZDljYWIxMzA0MWQwMGUzMmU2MDU2NGRhZjg5MmViM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMDQ2ZTQ4NTViNzNmNDI1MzIxYTJmYTI3N2RkOTUyMTAwYTVkMDkzMWE5NGZjYWI4NTVlZjJhYTgwOGY2MTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwZjMzMTJmNzFkMjA5MzQxYjZiYjYyZmQ0MDdjZDZiNDhkYmQxZTBjMTZiMWVjM2ZhN2ZiZDU0NTk2MDAyYzcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L13-L25",
+          "version": "repo-lines-v1:sha256:a6485941ae4370ccb8a47c9b2d76d41fbea927abd19404dd06e1b752203f8c4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1NDM3NTgzZjEwNWI2ZjU4YWU2MzI1NWMxNTVmNzJlMmNjN2Y5OGFjYTYyMzdjMTEyZGU3OGM0MzZkYjYxNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzNDE5NzlmYWUzMTY0YWExYjRlNzZlMDRhOTM3NGJiYWJmN2JkOTYxYzUwMzJhN2U0ZjE5NDE4ODIzNDA5YjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2ZjAzYjBjOWI4MzQ0ZWYzZDBkNTdlOTZjNDI3ZGFmZWFkMGJiYjVmODI0NDAyMWY2NGJlZTNlN2I1Nzk1NjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b3faf20447d4c098cd0c329b42eb42f",
+      "statement": "`GithubIssueFailureCode` is the caller-facing contract for the intake paths and deliberately keeps `auth-missing` (no credential configured) separate from `auth-failure` (credential rejected); `prefilledIssueUrl`'s `invalid-url` sits outside that union as the prefill path's own code.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/types.ts#L138-L163",
+          "version": "repo-lines-v1:sha256:6e51db7b2cc1f2c1970efa2ce70e8a020969e417a330c32fb78932866dae8613:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDY3OTdmYWU5NGZmOTc3NjIwZWU1MDQ3MGIxMzZhZWQ5MTRkOWVmYjA4YzM1OGRhNWM2Yzk1ODE2YTc2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ZjI0ZmRkMmI2NzNkMWQ5YzNjYWRiNjAwNjYwZWY1NzQwN2U0NTEyNGE2MTMxYTgyZmVhYmQ5Y2Q1MTZiYTIifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/types.ts#L94-L105",
+          "version": "repo-lines-v1:sha256:2a8b593be153f4ef38b393d97f13f8a05f26ef687b4b6a4cd58d705b9bc7053c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1MDc5YWUzOTQ1OWU4YzEzYWQ4M2MyZDZmNmE1MGRmY2M3Y2I2MzBhMWNjZTUzZmViMGRmNzA2YTVhMjZjNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MmJhYzk1ZWU2NjNhYTAxNjM2M2VhOWZkYzQ2NjIzMmY4MGRiOTRkNmU3NTE4ZTE3MjBhNDc1MzNjNThhNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiOWExYjJmYTNmYWNjYzJhMGJlYzQ3ZTNkOWM4N2Q4MTA3NDIyZTQ0MTIyZTFmZTRjYWJkY2QwZmI5ZjNjZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwOTFmYjg5YmEyZjI4Y2VmYzY5ODIzOTk5NGNkZTUyNmVlZWFjYTg2OWQ2NmVjZGZiY2Q0MjcwOGI3YTViOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bec9271d55ef4079aa34b1967b621164",
+      "statement": "The `generateReport` user prompt is built only from the facts the analysis carries (plugins, analysis window, totals, and per-group anchor/count/error/route/last-failure-time/attempts), and every fact the analysis does not carry is written as `not recorded` rather than omitted; the paired system prompt forbids proposing mechanisms the analysis does not evidence and forbids asking for extra collection.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1000-L1036",
+          "version": "repo-lines-v1:sha256:bde9b4a7f08b3ef3f3e1a1a992735619cf9269cec1eb9d075051c061854ed3c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlYTk3MzExNzRmMTlkNzNlODlmN2ZmYjEwZDY0ZTZjODM0NDExNjRmNThlNzY1MDIzNjYyNDRkOWFjYmU0OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNmI2YmQyYjUwMjJiYTNiZWZhYTM1OGVhMGQ1NmE5ZmQwZDgzNTZlZWQ5MDE2OWNhOGQ3MWMwODQxZGRjZDUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L253-L295",
+          "version": "repo-lines-v1:sha256:8bcd322557307fcd0f90da9e5a94ca9d14a16a1abe9268e6569d0fc0cc20520f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4Nzk2YzgyN2U3MzQ1MTBkZGRiMDc4Y2IwN2YwY2QyOWRiMTFjYmIxODYwYzkzMTAzMzRjZWNlNWMzOGU5MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTRlNTYyY2E4MTk4ZGI1YTNkNmY1MDY4MjhiNjA1MmUwMzBmZWIyMjdmYzEyZDQ0OGQ1NGFiNzg5Y2NmMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYjI1MjcwMzA1NmZiNzQ2ZjBjMzM2MmZhMGVmN2IyY2I1OWViMDZjZmU1YTYyNTA2YmZlNzU5NDI2Yjg5NzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2MWU2OGQ2MDY2NWIwZDRjNTgwZWY1ZmYzODdhOTljNmIwNWQ1MDc0Y2MxODFjMzAxNTNlYWE3ZGJjZTY5OTQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L273-L344",
+          "version": "repo-lines-v1:sha256:82001c39576cf8540ffaf536a635144eca04e90869dcc1a0873b6f1bb3bfb51d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYWE2MDI5MWFiMTdlZGQ1ODM4ZTk5MmQ1ZjBjYWY1OTFmODU5ODQ0ZWJjMTI0MmE4MzU4ZWQ3NDg1ZDg0NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMDFiZDFjMzAyOTlhMTBiNjYzMjk3NzVlOTllNmU0OWI4ZmI0NDQyYzYzYmFjMjNmYzg3MzI5YWY0ZTIwM2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkZDg5ZjI3N2VlOTIxZTI0ZGZhMDJiZWJkNjM3NDFhNDVmMmNhODRiMmE0ZjQ1NmMzZGRiYzRhZTQ5MTRiYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e67f8a5bbca4afd82f8c2f06f17b245",
+      "statement": "The GitHub credential is resolved once per process in the order explicit `token`, then `env[tokenEnv]` (skipped when the name is empty), then the standard output of `tokenCommand` (`gh auth token` by default, with a timeout and 64KB buffer); the resolution is cached, a command failure only warns and counts as no credential, and the token is never logged.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L836-L866",
+          "version": "repo-lines-v1:sha256:00d1e79dfdac16ef3e731cc22c25f4025c1236c01b138acab59a38bdc55263cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NDMzZDFjYTBhY2ZmNGQ2NzA1MjI5ODk0YTI2ZDYyNzA0YzgyNWU4MjZiYTk4NDY3ZTM3M2E1ZGQ3ODcyNzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_79278663fe194db893e0a9347c393d01",
+      "statement": "Intake state is one durable row — the local day the last pass completed plus the issues already dispatched — declared as storage domain `github_issue_intake` (version 0) with a single `state` table keyed `intake` and zod validation; the domain module is imported dynamically because `@deepseek-ai/dsh-storage-domain` is an optional peer, and without storage the service falls back to a frozen empty row with `intakePersistent` false.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L55-L66",
+          "version": "repo-lines-v1:sha256:ac8292cae7ed2f8a04c6e55a4d2a0c35f83ac129e12cf797110d9d7230951543:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OGY1NzQwMWFlMmEyYTcwNDc5YmI4M2UyMmMxM2QwNDRhOTJkZTZkNzRjN2FjY2Y5MWJjMzI1MDcxOTc4ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmY2FjNTM1YWNlYzE1NmVmY2NiYjk3OTNhOGQ5NWM1MzkxYWY0OGU4ODUyNjM0NTc4NTkzNjc5NGVkMGNhYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YWY1OGU4M2M2OWFhZTRlZGVmNWRmODRhODMzNjY4NDBiZWQzZjRmYzYxMmIwN2IzMDIyM2NkZjNlYWUzMTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L341-L354",
+          "version": "repo-lines-v1:sha256:744d00dbc20a59f347f1ec5ad5d6f8af55ada9e6ce775f4bf981b8a8cda16480:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzMWZlNzNmOTVkYzUzYmU5ZGQyMTExYTU3YTc5MjFhNzQyYjViZjhmOGE5MTY4OTc2NmM0YjU4ZTA3NmU5ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3Njk4ZDQ0ZjkwMjcxNDcxMjIyZmJkZjZlZWEwYTZiMDZmNTY1YTc2M2ExNzkyNTAwYmRiZDRmNjRhMjA4ZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiOTM1ZmQ2ZDE1ZWE1ZTNjMTMzODk1M2VmYTBiZWY1N2JkNzgxZDViYWYzNGQ4MTQ3ZTAzODY0YTlmMzNjNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwMTA5NjcwNGM5ZGMzYTE2NDNlOWM3OThhMjc5ZGNmYmFhN2ZkMjFjYWY4NWRmNDY5ZmVmNDg4ZDQzZmU1NTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/spec.ts#L34-L69",
+          "version": "repo-lines-v1:sha256:6b83410260c10369568dcaab17d32bacfcf22291b968bf51fae627f08cd9b1e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMTljNzEwMGRjOTRmOGMyZGNlOGM4N2IyMDIyMmRmOTc1ZDk4NDlmMzQzNDA1ODA3NTE2MjY4MmU0ZDcxYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxMzI4MTcyYzBkMDU3Y2ZiNzNlNTNjMGY3ZTdkYjQxNWVlNTNhZjhmY2E2MmMxNDg2MmI1MTg3ZDU5YWFmOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_21e1d7705b1f4fd7a635f4c4143ad861",
+      "statement": "`[Service.init]` opens the state, returns when `autopilotEnabled` is false, warns and skips the check when no durable state exists, and otherwise runs `startupIntake` un-awaited so a slow or unreachable GitHub cannot hold up host boot; a failed pass only warns so the day is retried at the next startup.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L450-L467",
+          "version": "repo-lines-v1:sha256:c8c1ca62eed034c582d9bda534159dfcf2b8bbc9ab6b019db64ac7024c6f617f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmNGQ2YzVmNTQ0Y2I1NjZhMWJjNTBkY2RhZDJhMmU4ZmQxMGFmNWJiOTk0OGYxMDFlMjhkNDIzN2E2MDIwNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlZjZmZDdmZTJlNmE3ZDgzNGMyZWNjZjcwOWRjZTNlNjA0OGQ0NDM0OWI0MDcxYzUxNjI1MTkwNzhmMDMxYTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L751-L770",
+          "version": "repo-lines-v1:sha256:367cfcd5186771ce49cb2565fdf11b1e80abf79b594530ca8a95720bd3b6ca8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNmM0ZDViOGUzZThmOTBkYmJlNDg4NDNiNWU0NGRkYTA0MTgwYzc0YjA3YmRmYzIxYjRjZjUzMzk0MGZjNjYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L182-L189",
+          "version": "repo-lines-v1:sha256:b9a9ecb3e301b98e8d6778a0e4d381703cf5e426ee4aaf4814c6a22792bb23c7:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE1Njg0MGQ5ZDgxZmEwNWU2NTlhZTY1OWE2OGVmNGQxYjJhMTY3OGQzYzlmMTM1NWJmMDg5NTE5Y2I5ZWZkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDhhOWIyNDk2ZjU0YzVlMzg3YWE3NjdhMDY4ZTRmOTI2YWQ5Nzk1MTBiYWZlMmYzNDAyMjk5NDBiMDM5NTgyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmM1OGIwZjJiMDk0OTQ0ZDI4ZjFlZDIxZTE3MDUxZmMyMTkyMTZjYzBjYTBjYjEyZTk0MzFkNDM0NDkzN2I2YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d500b22be2ad454db8d405698fdeceef",
+      "statement": "A pass commits its local day only after listing succeeded — a failed list returns the client failure untouched so no day is recorded — and `commitIntakeState` updates the in-memory row first, then writes durably, warning that a later pass may re-dispatch when the write fails.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L634-L676",
+          "version": "repo-lines-v1:sha256:841f6e8119ef4dfe3f5aeb8b51d3fd34b6c55ef506a62ab6e979b8f2d474a64b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMTA3NDY5ZTVmYmY3YzE5ZWMzN2JlYjliZGM2NjgxYTg0OGI5ZGI5M2VkYWI2M2EyZjI1NGE1OGViMTAzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3OTM0ZWQ4YzgyODQxYTU1M2QxMWEwMjNiM2MzNTVjODI0N2M4NWQ4ODgzMDA4YzE5YTBmYTMzNDg2ZmU5YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MDI5MmZlMWEyNjg4OTViNTMxMzkyY2U4ODk5ZTdkOTE0NWQ4YTA0ZDRjNGFhOTQzY2U4YzdlZjU0MzcyZjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L796-L820",
+          "version": "repo-lines-v1:sha256:0e947989146aaec046af63e039048345074a89cf500ed01d0b17ba28f01878d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwYmU2NzFlMmYxZDIwMDBjYzc3Y2I4NGNjYTg5YTNlNjk1MDQ0NTg3NjI3ZjgzMDBjZWIxZjkyNTg3YTA3ZGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L127-L133",
+          "version": "repo-lines-v1:sha256:a5545d740d2d40202b0df718d94d3d9891acad7dd8faf1b4a33fc1dc287c23fc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMwOGEwYzczNmYzYTI5NGU2YWQ1OWExOGNkNjI4ZGFhMTg4MjExNWIyOWUyMzFlYmI3NzY1NDczYTcyN2EzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTA5MjRmNjZmN2RiMDA1MDUyYzFlMGZhNjFjZmQ0M2IxODVmMzk1YjdjOWUzNTc0OTZhMWVmZTE0YjUyNmFmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzhlYTYxMTM2NzE0NDM3YzA4ZjAwMDQwZDM4OWY5MTI4ODA3MmMzMWVlMTRlMDdhMWM3MDAyYWY5OGNjMGNiYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6c95a7f67cd6456b86877afed27b0c15",
+      "statement": "De-duplication is by issue number, independent of the day: numbers already in the state are reported in `skipped` and never dispatched again, dispatch history is capped at 500 records, and a per-issue dispatch failure is collected in `failures` while the pass itself still returns `ok: true`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L341-L354",
+          "version": "repo-lines-v1:sha256:744d00dbc20a59f347f1ec5ad5d6f8af55ada9e6ce775f4bf981b8a8cda16480:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzMWZlNzNmOTVkYzUzYmU5ZGQyMTExYTU3YTc5MjFhNzQyYjViZjhmOGE5MTY4OTc2NmM0YjU4ZTA3NmU5ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3Njk4ZDQ0ZjkwMjcxNDcxMjIyZmJkZjZlZWEwYTZiMDZmNTY1YTc2M2ExNzkyNTAwYmRiZDRmNjRhMjA4ZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiOTM1ZmQ2ZDE1ZWE1ZTNjMTMzODk1M2VmYTBiZWY1N2JkNzgxZDViYWYzNGQ4MTQ3ZTAzODY0YTlmMzNjNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwMTA5NjcwNGM5ZGMzYTE2NDNlOWM3OThhMjc5ZGNmYmFhN2ZkMjFjYWY4NWRmNDY5ZmVmNDg4ZDQzZmU1NTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L634-L676",
+          "version": "repo-lines-v1:sha256:841f6e8119ef4dfe3f5aeb8b51d3fd34b6c55ef506a62ab6e979b8f2d474a64b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMTA3NDY5ZTVmYmY3YzE5ZWMzN2JlYjliZGM2NjgxYTg0OGI5ZGI5M2VkYWI2M2EyZjI1NGE1OGViMTAzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3OTM0ZWQ4YzgyODQxYTU1M2QxMWEwMjNiM2MzNTVjODI0N2M4NWQ4ODgzMDA4YzE5YTBmYTMzNDg2ZmU5YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MDI5MmZlMWEyNjg4OTViNTMxMzkyY2U4ODk5ZTdkOTE0NWQ4YTA0ZDRjNGFhOTQzY2U4YzdlZjU0MzcyZjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L77-L100",
+          "version": "repo-lines-v1:sha256:d670d6d8f9f11aed1cdbea0bfa78e0a5284a6d55b3591dbeb223d365ff13279e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjNiMWM0ZTBmYzYxNjczMTk5OTE3ZTlkMDhmYWJiOGQzMzZhY2JmNDE2NGNlM2Q1ZGI0YTcwYjkyZjJkZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2NzZhOWI1MzQwYzA5Nzc5MTAwYmZlMzZmNDI4ZTljNjlmZDBhMmNjOWI1NjJmMGZkMDg2NzJhMWFiMmJiNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiZGRmNTQyZjdlZGExMGMzNjM1YTAyYzRlZTUyMGMxNGFlZTZiODIxOWM0NjgzYjVlMmRiMWQ3MmM2NTQyYzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_38e6d175991b47c887d969019c9d1fe9",
+      "statement": "Dispatch creates the Session through `sessionController.create` (so the deployment's preset and workspace policy apply), queues the rendered prompt via the Agent handle's `followup` to wake the driver, and renames the Session best-effort; a missing controller or registry yields `session-unavailable`, while a failed create, a created Session without a published Agent, or a refused prompt yields `dispatch-failed`, and a rename failure only logs.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L678-L749",
+          "version": "repo-lines-v1:sha256:c9129c6e6d4c36bfc055e687721b8633eb15a8e8746e154be47a1408515757c3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4ZGQ4Y2QyNmZhNDhhMmM0NzQ5NjU1ZmU5ZGRhYTk1ODdlZWIxZjJjOWVmNDhiNTY4YzM3ZjEwYTBiZWVkODUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L146-L156",
+          "version": "repo-lines-v1:sha256:3eb89f172a28e5d64cd2f06755add27089c1a211141683e1b65ab09a73a1b22f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzdlNTZkMzc1ZTYzNzNmMzIyNjRkNjFhZDIwNDdiM2JiOTZiNjEzZWFlZmNkOWY0ZDllYzQ3MmYwNDMyYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2OTA0NGFhMjNiYjE1NjQ2ZTQyOGVhNTVlMDA5YTViZTc4YzI5MGIwYTFiYmQ2MjQ2NmJkMjc0ZTM2NjVhMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0289a148a80d4b8ebb2c0f0d27ea4f99",
+      "statement": "The dispatch prompt is the configured `autopilotPrompt` template with `{number}`, `{title}`, `{url}`, `{body}`, and `{labels}` substituted, and an unrecognized placeholder is left visible so a template typo cannot disappear silently.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L20-L73",
+          "version": "repo-lines-v1:sha256:6e03eb95043b218b88295014d6d5f749a2343a21bf237d0349dabdeae80bddef:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MzFjOGQ4MDhkNDY1OTc2ZmRiYjVlNWQzZWFjMjM1ODBhZTQ1ODhkOWNkN2M0NTkxMzI5MzgxNjBkMGZkNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2MGVjYzhlZGZiOTNlNDdlYjE4OTBkYzVlNjYzOWY0OTUwMjFiZmYwYWMzYTg0OTVkMzg4ZTVjZTM4ZWVhMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxZWY2NjllZDE2YTRjOGU1ODc0ZjkwYzJkN2UwZjY2MTJhOGEwNmJjMzExNTFkMDQ0ZGVlMzY4MGQ0OTEzZWYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L27-L43",
+          "version": "repo-lines-v1:sha256:cc3d2a623127a2d0de7a968d09fb958bdaf6a81232a62c9fd7b0443f271e1122:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMTZiYTZiZGI5ODIyODhmMjUyMzI0Y2RjMzVhNTdmZGJlZmYzNDc3YWE3Y2UwMmViOGY3NmI1ODVhZDE1MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlYWIxOWVhYmM4N2Y3NjlkOTM1MGMwMTlmMmZkMWVmMzYxMDc3MTc0MTVlZTc1YWI5MjczYTY3ODRkNTNkZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a42080cfbb104bcabda3a8c3da2c4dca",
+      "statement": "\"Today\" is the configured IANA zone's calendar day (`localDayKey` via `Intl.DateTimeFormat`); the zone is re-read per use, and an invalid zone falls back to the host zone with one warning per changed value so a typo cannot break the startup check or a dispatch.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L432-L448",
+          "version": "repo-lines-v1:sha256:a7429ac72727f6cd36332a8b2fa1552f1f5648ebadcac130dd45091a21c7a8ea:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNTNiOGE3MGZmODRiNGZlZTExZDFmZWQ2ZWEwZjA1OGIxZGJlYTc0N2E2ODBkYTM4YjQ0NjVhYmZhZGZmODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiNDk1ZGNiZDQwZTNiNDE4ZDA1YTYwNzg4NGI3NGVlOTgwNjVkNWMzMDZiZmU1NDlkOTFmZGNhYzhkYjE3OGYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L75-L115",
+          "version": "repo-lines-v1:sha256:c3a7bfc7b3185432a6523b932b176f0e1ed40e95bdf0035318b0c545ab1ce723:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMDY2OTUyMzFkMGFlZDc2NmU2NTE0MmZlODJjNGU0NDEyYjhiMDk3ZDU4YmUwZmQ2OGQ2YWM5ZGVjNTY2ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L45-L63",
+          "version": "repo-lines-v1:sha256:9cda852bb4bcb6f57798118e10c276804630045c7fcbc614a16ec3bd0b5eebdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MWQyNWU3YmU1MjcxNWRmM2ZkNmJlOWJmNzNmZTA1ODA4MzIzYmY3MTEyNTk0ZDYyZWY2OWNhYTczYThmMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ec5dee6cdbf742e69f9f3252b9597a05",
+      "statement": "Telemetry events are recorded under plugin id `github-issue` with the feature anchor `github-issue:<action>`: successes carry the route (and, for `generateReport`, the analyzed `pluginIds`), failures carry the preserved code/message/status plus route, and an unresolvable route is recorded as `NO_MODEL_ROUTE` — the same code `dsh-memo` uses so one suite-wide report can group both packages; without a telemetry service the calls behave identically.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L211-L231",
+          "version": "repo-lines-v1:sha256:e6c9e4d39560f8978818ed47cfb63314ca879cf33833f8684ccfc062432d4fed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5OWQ2YjkwMDQxOTY3NWVkYThhZTU3YjUxMDA0YTdlZTJhYzhmNDI0NDkxYjRlMWY2NGMxODAwNjQzN2M0OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkN2IwOTlhMmJlYzQxNzRkMDM4N2VmOTlhYTJkZWNlOTZiZTk5NTUxZjJiMDM4ZTlhMmRlYzhkZDc0ZGMxYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlNGI1YWQxMzY0YjEyYzkzYWNiMDFkZjcyMzlmYjM4ZmEzOGEyNzEyNzdlMTA0OTZkMzI3ZGY0Mjc0ZDJiODYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L868-L984",
+          "version": "repo-lines-v1:sha256:980a0da3ce932b5f2b98dbdcf23e210dc96124d830adceb3d5f6de938ebf355f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZjM1ZDk4NjYxNjc2MzNmZWI4YTVhMGFkYjRlMmY4ZWU0OGE5NWY4MmJlZGY3MjA4NWRjODM5N2Y3MjQ2NTBiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MTM0NTE4MDEwNWIwYzY2YTc3ZGFkNTFiYjM3OTAxYTM3MzJjOTY1NGJhNGRlMzk4MWY4MWUxODE3NTI0OGJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4MGUwNDY2NTk3NTYxN2NmMTlmMDA5N2E3ZWRjMDI2MmJkMjQ0Njg1OTI0ZTVjYzgyYTdmMGNiNTYyYjVlMDYyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4NjM2M2I5Mzg5ZDRjNjk0NTU1NmI3YzBlNGNmMTY5YzdmYWIxZWRlOTkzZWZiZTE2ZTIzYmRjOWUxMWNjYTg2In0"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L347-L474",
+          "version": "repo-lines-v1:sha256:b64995818f3e6e4c5171f9ed6bbf0476f1864bac22d0b00bd47e0a1d5d320e09:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlNGE0ZTI5MGNkYzM1ZDAwZjRkODdkY2UyMGZiYzA1MGYyNzE2YWJmZDRlMGE2ODQ0MWFkYWE5MDg5NWEyMmNhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjYmI2NWM0Mjg4Y2Y3OWU3ZGU0ZTY5NDVkMzg3ZGNlYmY4YmE1MDkxOTg1ZGVjMWEyNzNmM2M1ZjU3YWMwYzYxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlOWUyMDJjNWIwZGNiODM0NGRjNTkxZDkwMzUwMjIwNmZkOTE3ZjRmZjdiNzJiOTM2NTU0ZTU3M2I1OTM4YjgwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cb779153ec846a4883961bc5387eabf",
+      "statement": "Only three of the seven Remote methods have a shipped caller: the `ui-memo` controller calls `optimizeIssue` (with a route only when the user chose a model), `prefilledIssueUrl`, and `createIssue`; `generateReport` is called in-process by `dsh-memo`'s `analyzeLogs`, which passes its own resolved route as a request override, and `listClaimableIssues`, `dispatchIssue`, and `runIntake` are wire-addressable but have no caller besides the startup hook.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L983-L1072",
+          "version": "repo-lines-v1:sha256:9a86fdbb2b226abfe7d3061daf0a65d973ae234c6c9a64fcbcbec426254ddd97:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZGRlYTI5N2YxZDlmMTBiOWY4MzI5MmNlYmU2NzZlOGRmYmE2YzZmNWI4MDk0YmIzZDRmZjBkMDU1MjU1ZTgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1638-L1685",
+          "version": "repo-lines-v1:sha256:e6f180c00207753dc561ea3a8934ccea6c5d834e7c851930faafc5f5d73d818b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyNjI0Y2EyMDZhYmI3MmQwY2ExM2U4OGY4ZGU2MWFlZjc5OGUxZTlmMDdmMTA2MmFiODk0MTQyNjM4YzY1NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNjUwYzljMDJiMTM5YWJkMmFhNjVkZTkzYmNlOGY5MTZhZmYyN2FmZWNhZGJlMzlmODA5MDNmMTZlOTFjMDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwMTBhMGQ0YTdhMTczZWRjZmU2ZGEzNTA3Y2VjOWVlZTExMmM4MWE4ZTk5NjY2Mjc2MWZjMjFiYWE4OGQ4ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_42f1248f60a24fc38d075874a182b1de",
+      "statement": "Configuration is split by effect timing: the eight `.volatile()` fields (`repoUrl`, `claimLabel`, `maxIssuesPerRun`, and the five `autopilot*` fields) are read from their refs where used so a settings write applies to the next call, while the other ten (`maxPrefillUrlLength`, `prefillTruncationNote`, `provider`, `model`, `token`, `tokenEnv`, `tokenCommand`, `tokenCommandTimeoutMs`, `apiBaseUrl`, `requestTimeoutMs`) are copied into instance fields at construction and require a remount; `autopilotEnabled` is read only in `[Service.init]`, so flipping it applies from the next host start.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L417-L430",
+          "version": "repo-lines-v1:sha256:d4dc570015c83de6aca1c0630aefb4ff54e18a040f412578ef83a435589b8cdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkMDYxMDJlOTA1NzNmNzU4YjgxNzk1ODRmMTNhNzQ3ZjAzNzQ4NjQ2ZjViNmZkNTAyNDhiYzFmZjMxNTJlZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMWY4MDY5ZjZjNzdmZWM4OTI4NTZmOGU0MjA3YjhlYTk1Njc4YmVmMTcxYmZjN2M3MDU5ZjM5MzU5YThmZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxNDNiNzRiNDNlZTQ5Nzg1YThmOGEwZDg2ZDg5NmFhZjE0OThhNmI0ZDkyMzc0NTdjYTk1YzhlY2I0NTg2YmYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts#L70-L109",
+          "version": "repo-lines-v1:sha256:01ec5c7cfbe50a4ccd6cac792c8a9daf2d4b296b3b5159a8cf1071dfc0d2e54d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4Y2ZlZDdiMjQ5MmVhOTdmNmM1NjAzNjhjMWQxZDRmMjIxYjAxZDdhOTIzM2UxZjg2M2NlY2Y2NTE2NDNlMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3YTk3OTM5NjgwMGQ2NzNhM2I3OWJlMTc0MDc0OWRiZDU4YjA3NjdlYjE4N2VmYTgyMGE2YWFjMmFhNTQyZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0b8726a8a9446289e0d7c28bd30a621",
+      "statement": "Two change guardrails hold here: every Remote method declares exactly one parameter named `request` because the wire binding is `{ args: { request } }`, yet no source scan covers this package (the signature spec reads `dsh-memo`'s own `src/index.ts`), and `invariant.ts` registers an empty installer injecting `githubIssue` because the service owns its model calls and URL construction with no second authority — so these contracts rest on tests, not runtime invariants.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L497-L644",
+          "version": "repo-lines-v1:sha256:5b72774a96f33a7967549e2b7cf126a55c458d6201733239aacacfe98ae8ff28:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxNGYzYTBlYjAxZDIwYTM5MTFhNDkwODE5NmM0ODA2MWI1NTVhM2M2M2EzYTdiMDkxN2ZjODg3ZmVhY2RlZGM3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MzJlYmUzMDE2NWNiNWU0ZGNhNWNiMGViZDA0OGEwY2QxOTY2NDlmZjQ3MTQ0NGI3YjZlMDc2ODM5NjFlYWQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxMTY1OWNhNDllNDc1MDRmMDg1ODk3NmZlZmEzMTE2ODM4YTgyMWFkYTY4NDFiNDc5YzhmMTM5ZjRmNWY5ZjRkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YTM1MTJjODA1YmY5ODgxOWRiOWRmNzljOTAzOWFhZWU5YmU0ZTNiOWFkZjMwZmVmM2FjZjYxOWQ5NzBlYzc2In0"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/invariant.ts#L1-L27",
+          "version": "repo-lines-v1:sha256:6a287c4b40bdb9b157a89ce3cfd31d3a8edc972784e822317984a2c8077b9a3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmOTI0YzdmZWQ2N2RiZWRlYWFiNmQyNWI5NjgzZTQ3NzdkZWI2Y2Y5OGU2YWQ0YjY1ZGE4OTY0MjgzZDZkMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNDgxNGM2ZjllZTY5NzgwOWQ1NDQwZDUwMGYzMzBhNzYwZjA0MDhlOTE3ZDlkMGU2MjZiMTUzY2ZlNTg0NjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/remote-signatures.spec.ts#L19-L56",
+          "version": "repo-lines-v1:sha256:580f5f7170784c51bc378eaf6114539720262fec20e94f6b4a7a1eeb0c036ba0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ZDhiZWRjMTUxYTQzNjNmNjNlODIzZDE2YjU0MGQzMzMxZjE3MDgxMmY2ZDBhZGI3MjlhNDUwMjFjNTBlYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjMTI3NTFmZTYzYjcyODkyNjI0ZjhmZjhkZjA0NjUxYTFkZDc2ODhmZTdmMzJmYTNjODBiMDA4ZTZhZWU1ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

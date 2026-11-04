@@ -6,26 +6,108 @@ tags: [architecture, monorepo, plugins, cordis, host-client, bundles, storage]
 verified:
   - by: openwiki/0.7.2
     at: 2026-11-03T09:53:43.931Z
+sources:
+  - id: openwiki-source-8037e2358a2c4f9b2c722a11
+    resource: repo://AGENTS.md
+  - id: openwiki-source-5b54a58d1b51cd490b0e7162
+    resource: repo://package.json
+  - id: openwiki-source-fed036ced61bb76f51f30732
+    resource: repo://packages/client/ui-memo-settings/cordis.patch.yml
+  - id: openwiki-source-992aa3da48ec406bbff3de9c
+    resource: repo://packages/client/ui-memo-settings/package.json
+  - id: openwiki-source-64a5790dbea6fdffd8767bf2
+    resource: repo://packages/client/ui-memo-settings/src/client/form.ts
+  - id: openwiki-source-3677926fe619a6aaf798c3c2
+    resource: repo://packages/client/ui-memo-settings/src/client/index.ts
+  - id: openwiki-source-1d1a22e50919535558a363a6
+    resource: repo://packages/client/ui-memo-settings/src/client/intake-form.ts
+  - id: openwiki-source-30586b43521a15f53beee487
+    resource: repo://packages/client/ui-memo/package.json
+  - id: openwiki-source-a028fd3f0a07adb5259e637a
+    resource: repo://packages/client/ui-memo/src/client/controller.ts
+  - id: openwiki-source-0b90d56dca622d92cb59a4b0
+    resource: repo://packages/client/ui-memo/src/client/index.ts
+  - id: openwiki-source-5fa35bb8fabc23cbf719e24f
+    resource: repo://packages/client/ui-memo/src/index.ts
+  - id: openwiki-source-19aad1792c47357f041db14a
+    resource: repo://packages/client/ui-memo/tsdown.config.ts
+  - id: openwiki-source-68c8e82de81aaa387a403192
+    resource: repo://packages/github-issue/dsh-github-issue/cordis.patch.yml
+  - id: openwiki-source-1cfc01ca7c719fa80b067a8b
+    resource: repo://packages/github-issue/dsh-github-issue/package.json
+  - id: openwiki-source-f0ee2654973f8a962cac8f06
+    resource: repo://packages/github-issue/dsh-github-issue/src/client.ts
+  - id: openwiki-source-e2b359735a8b78c5620256a1
+    resource: repo://packages/github-issue/dsh-github-issue/src/index.ts
+  - id: openwiki-source-46cc8de5ca5730112d9646a2
+    resource: repo://packages/github-issue/dsh-github-issue/src/spec.ts
+  - id: openwiki-source-769f62162f43ed5e5b96c3ba
+    resource: repo://packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts
+  - id: openwiki-source-c35c5828e4c603df9a0ad665
+    resource: repo://packages/memo/dsh-memo/cordis.patch.yml
+  - id: openwiki-source-c6503affb5065087aa8c04fc
+    resource: repo://packages/memo/dsh-memo/package.json
+  - id: openwiki-source-af6070efd617d3968568cd0e
+    resource: repo://packages/memo/dsh-memo/src/client.ts
+  - id: openwiki-source-3a7480327133dfa38c0836e5
+    resource: repo://packages/memo/dsh-memo/src/index.ts
+  - id: openwiki-source-8373e522d34589c6a70fb91d
+    resource: repo://packages/memo/dsh-memo/src/spec.ts
+  - id: openwiki-source-1969d2ee62e0d578de0f4b3e
+    resource: repo://packages/memo/dsh-memo/tests/config-volatile.spec.ts
+  - id: openwiki-source-b3d62e1ae641becbc8087f6a
+    resource: repo://packages/memo/dsh-memo/tests/remote-signatures.spec.ts
+  - id: openwiki-source-7a2a2ebeaef9b7c69c6f895c
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml
+  - id: openwiki-source-7bdef7e571c1e06b4acd10b8
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/package.json
+  - id: openwiki-source-34ce36aa0267f32514f9fda8
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts
+  - id: openwiki-source-98feb3974b2830432c6dc106
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts
+  - id: openwiki-source-efc0ee33e7d2925732bca665
+    resource: repo://packages/telemetry/dsh-telemetry/cordis.patch.yml
+  - id: openwiki-source-18f51b9dcde4a20235f6535e
+    resource: repo://packages/telemetry/dsh-telemetry/package.json
+  - id: openwiki-source-3e51b8c97bd75a5d66ca0f57
+    resource: repo://packages/telemetry/dsh-telemetry/src/client.ts
+  - id: openwiki-source-ab1b1c67ce5f3096942f7ea4
+    resource: repo://packages/telemetry/dsh-telemetry/src/index.ts
+  - id: openwiki-source-57365fb017145af52c2aad32
+    resource: repo://packages/telemetry/dsh-telemetry/src/spec.ts
+  - id: openwiki-source-40275cb92c3610938f16ade3
+    resource: repo://pnpm-workspace.yaml
+  - id: openwiki-source-23775c3de52f3ab95a13cb8b
+    resource: repo://README.md
+  - id: openwiki-source-d96553374e6bbe1e2cc32979
+    resource: repo://scripts/tsdown.client.ts
+  - id: openwiki-source-a9478966c48821efcf7fd55b
+    resource: repo://scripts/verify-bundle-entries.ts
+  - id: openwiki-source-2ebe2bd8a87cf84a414972c6
+    resource: repo://scripts/verify-client-bundle-id.ts
+  - id: openwiki-source-fbadcd8591b65031efaaedce
+    resource: repo://vitest.config.ts
+generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 ---
 
 # 系统总览：六个插件与宿主/浏览器两侧
 
 本仓库是 `zhangj1164/dsh-mega-plugins`——一个 pnpm monorepo，按 DSH 的 `packages/<group>/<pkg>` 约定放置六个 Cordis 插件包：`pnpm-workspace.yaml` 的 `packages:` 只有一行 `packages/*/*`。它交付两条产品线：一条本地优先的个人备忘套件（备忘服务 + 遥测 + GitHub issue 服务，外加看板与 Settings 两个浏览器面），一条 Web 右 Sidebar 里的 OpenWiki 预览。
 
-共享层比「一份根依赖」要窄。根 `package.json` 只声明测试与门禁用的工具（`vitest`、`tsx`、`jsdom`、`typescript` 与 markdown 解析器），`tsdown` 和 `@types/node` 仍由每个包各自声明，所以新增包必须自带这两项。根 `vitest.config.ts` 承担三件共享工作：用 `packages/*/*/tests/**/*.spec.{ts,tsx}` 加 `scripts/tests/**/*.spec.ts` 发现全部测试；注入 `standardDecorators()`，让 `@Remote` 这类标准装饰器在测试里可用；把三个宿主包的模块别名到各自的 `src/`（它们的 `./client` 是纯类型投影，运行时解析只会得到空模块）。
+共享层比「一份根依赖」要窄。根 `package.json` 只声明测试与门禁用的工具（`vitest`、`tsx`、`jsdom`、`typescript`、`@testing-library/dom` 与 markdown 解析器），`tsdown` 和 `@types/node` 仍由每个包各自声明，所以新增包必须自带这两项。根 `vitest.config.ts` 承担四件共享工作：用 `packages/*/*/tests/**/*.spec.{ts,tsx}` 加 `scripts/tests/**/*.spec.ts` 发现全部测试；注入 `standardDecorators()`，让 `@Remote` 这类标准装饰器在测试里可用；把三个宿主包的模块别名到各自的 `src/`（它们的 `./client` 是纯类型投影，运行时解析只会得到空模块）；再把握手用的 `react` / `react-dom` / `jsx-runtime` 全部钉到 `packages/client/ui-memo/package.json` 解析到的那一份，否则 workspace 提升出来的 ReactDOM 19 与 shell 使用的 React 18 并存，jsdom 组件测试会在第一条断言之前就以 "Incompatible React versions" 或 "Invalid hook call" 失败。
 
-理解这个仓库只需抓住三件事：**每个包属于哪半边**、**每个组合入口 id 归谁**、**状态落在哪个持久域**。其余页面分别展开每一处，本页只给地图。
+理解这个仓库只需抓住三件事：**每个包属于哪半边**、**每个组合入口 id 归谁**、**状态落在哪个持久域**。下表就是这三件事的合并视图，其余页面分别展开每一处。
 
 ## 六个包
 
-| 包 | 目录 | 半边 | 宿主侧能力 | 浏览器侧贡献 | 组合入口 id |
-|---|---|---|---|---|---|
-| `@zhangj1164/dsh-telemetry` | `packages/telemetry/dsh-telemetry` | 仅宿主 | Cordis `Service`，服务名 `telemetry`；`ctx.telemetry` 记录事件与错误 | 无 | `telemetry` |
-| `@zhangj1164/dsh-github-issue` | `packages/github-issue/dsh-github-issue` | 仅宿主 | `TypertRemoteService`，服务名 `githubIssue`；报告生成、issue 创建、claim 与派发 | 无 | `github-issue` |
-| `@zhangj1164/dsh-memo` | `packages/memo/dsh-memo` | 宿主（浏览器半边在另一个包里） | `TypertRemoteService`，服务名 `memo`；周记、分析、报告、归档、会话总结、日志分析 | 无（不含 `dsh.client`） | `memo` **和** `ui-memo` |
-| `@zhangj1164/dsh-client-ui-memo` | `packages/client/ui-memo` | 仅浏览器 | 空的 `apply()`，只为让插件出现在宿主组合里 | `sidebar.panellist` 按钮 + 键为 `memo` 的 `main` 面板（看板） | 无自己的 bundle（行由 `memo` 的 patch 插入） |
-| `@zhangj1164/dsh-client-ui-memo-settings` | `packages/client/ui-memo-settings` | 仅浏览器（但自带 bundle） | 空的 `apply()` | 两个 `settings.section`：`memo` 与 `github-issue` 两个 Loader 行的配置页 | `ui-memo-settings` |
-| `@zhangj1164/dsh-openwiki-visualize` | `packages/openwiki/dsh-openwiki-visualize` | 宿主 + 浏览器，同一个包 | `TypertRemoteService`，服务名 `openwikiVisualize`；环境探测、wiki 探测、`openwiki visualize` 子进程监督、自更新 | 右 Sidebar tab 类型、pane 座位、会话头入口按钮 | `openwiki-visualize`（一行同时带上两半） |
+| 包 | 目录 | 半边 | 宿主侧能力 | 浏览器侧贡献 | 组合入口 id | 状态叶子 |
+|---|---|---|---|---|---|---|
+| `@zhangj1164/dsh-telemetry` | `packages/telemetry/dsh-telemetry` | 仅宿主 | Cordis `Service`，服务名 `telemetry`；`ctx.telemetry` 记录事件与错误 | 无 | `telemetry` | `memo_telemetry` 域 / `events` 表 |
+| `@zhangj1164/dsh-github-issue` | `packages/github-issue/dsh-github-issue` | 仅宿主 | `TypertRemoteService`，服务名 `githubIssue`；报告生成、issue 创建、claim 与派发 | 无 | `github-issue` | `github_issue_intake` 域 / `state` 表（存储可选） |
+| `@zhangj1164/dsh-memo` | `packages/memo/dsh-memo` | 宿主（浏览器半边在另一个包里） | `TypertRemoteService`，服务名 `memo`；周记、分析、报告、归档、会话总结、日志分析 | 无（不含 `dsh.client`） | `memo` **和** `ui-memo` | `memo` / `weeks`、`memo_archive` / `quarters`、`$DSH_HOME/memo/ledger.json` |
+| `@zhangj1164/dsh-client-ui-memo` | `packages/client/ui-memo` | 仅浏览器 | 空的 `apply()`，只为让插件出现在宿主组合里 | `sidebar.panellist` 按钮 + 键为 `memo` 的 `main` 面板（看板） | 无自己的 bundle（行由 `memo` 的 patch 插入） | 无（草稿只活在浏览器内存） |
+| `@zhangj1164/dsh-client-ui-memo-settings` | `packages/client/ui-memo-settings` | 仅浏览器（但自带 bundle） | 空的 `apply()` | 两个 `settings.section`：`memo` 与 `github-issue` 两个 Loader 行的配置页 | `ui-memo-settings` | 无（写的是两个 Loader 行的 volatile 配置） |
+| `@zhangj1164/dsh-openwiki-visualize` | `packages/openwiki/dsh-openwiki-visualize` | 宿主 + 浏览器，同一个包 | `TypertRemoteService`，服务名 `openwikiVisualize`；环境探测、wiki 探测、`openwiki visualize` 子进程监督、自更新 | 右 Sidebar tab 类型、pane 座位、会话头入口按钮 | `openwiki-visualize`（一行同时带上两半） | 无持久域；workspace 的 `openwiki/` 目录 + 被监督的子进程 |
 
 两个「基础设施」包（telemetry、github-issue）暴露的是 Cordis 服务而不是模型工具或面板：单独安装 `@zhangj1164/dsh-telemetry` 只是给别的插件一个 `ctx.telemetry` 可调，终端用户看不到任何东西。可见表面只有两块——备忘看板与 OpenWiki 预览。
 
@@ -34,16 +116,31 @@ verified:
 三种形态，各自的原因不同：
 
 - **纯宿主**（telemetry、github-issue）：能力本身就在宿主内——读写本地存储域、拿 `llm` 与服务端的 GitHub 凭据。它们不声明 `dsh.client`，因此不产出浏览器 bundle；客户端只能通过某个宿主服务的 `@Remote` 方法间接用到它们（`memo/analyzeLogs` 就是这条路径）。
-- **纯浏览器**（ui-memo、ui-memo-settings）：node 半边是一个空的 `apply()`，仅用于让插件出现在宿主 cordis 组合里；真正的代码通过 `exports["./client"]` → `lib/client.js` 交付，由 manifest 的 `dsh.client` 声明发现，并用共享 preset `clientBundle(id, entries)` 打包，`id` 必须等于包名。两个包的 `apply()` 各自的 `inject` 列表声明它需要的浏览器行：ui-memo 要 `slots`/`layout`/`locale`/`theme`/`connection`，设置页要 `slots`/`locale`/`configForms`。
+- **纯浏览器**（ui-memo、ui-memo-settings）：node 半边是一个空的 `apply()`，仅用于让插件出现在宿主 cordis 组合里；真正的代码通过 `exports["./client"]` → `lib/client.js` 交付，由 manifest 的 `dsh.client` 声明发现，并用共享 preset `clientBundle(id, entries)` 打包，`id` 必须等于包名。
 - **一个包两半**（openwiki-visualize）：宿主服务是包体（`lib/index.js`），浏览器半边由同一个 manifest 的 `dsh.client` 发现并服务在 `<package>/client` → `lib/client.js`。因此它的 bundle patch 只插一行，两半一起装卸。它的浏览器半边 `inject` 是 `slots`/`locale`/`connection`；右栏服务（`sidebarRightTabs`、`sidebarRight`）刻意不在其中——tab 类型通过 `ctx.inject(['sidebarRightTabs'], …)` 等待注册表出现，`sidebarRight` 用 `ctx.get()` 可选读取，所以一个没有组合右栏的 profile 仍能加载这个插件，只是没有可打开的预览位。
 
-一处容易混的地方：**`exports["./client"]` 不等于 `dsh.client`**。`dsh-telemetry`、`dsh-github-issue`、`dsh-memo` 三个包都导出 `./client`，但内容都是一句 `export type * from './types.ts'`——那是给客户端复用的类型投影，既不是 boot 行也不进模块表。反过来 `@zhangj1164/dsh-client-ui-memo` 声明了 `dsh.client` 却**没有** `dsh.bundle`：它的 `ui-memo` 行由 `@zhangj1164/dsh-memo` 的 patch 插入，所以装 `dsh-memo` 就激活看板，但包本身仍必须被显式命名（profile 的 `autoInstallPeers: false` 让安装只带来命令点名的包），`dsh plugin add` 把它报成普通依赖而非 profile 层是预期行为。设置页刻意相反：它自带 bundle，可以脱离 memo 套件独立增删，但页面只在部署真的服务 `memo`（以及 `github-issue`）命名空间时才注册，单装它不会留下任何可见痕迹。
+「这个浏览器半边需要什么」在这里有两种答案，别把二者当成一回事：
+
+- manifest 的 `dsh.client.inject` 列的是**包行**（module table 里的词），决定 bundle 里哪些 `require` 能被 shell 回答。ui-memo 声明 `connection`/`locale`/`ui-layout`/`ui-renderer`/`theme`，ui-memo-settings 只声明 `locale`/`ui-settings`，openwiki-visualize 声明 `connection`/`locale`/`ui-renderer`/`theme`。
+- 模块里的 `export const inject` 列的是 **Cordis 服务键**，决定 `apply()` 何时被调用。ui-memo 要 `slots`/`layout`/`locale`/`theme`/`connection`，设置页要 `slots`/`locale`/`configForms`。
+
+`slots` 出现在两个运行时 `inject` 里却不出现在任何 `dsh.client.inject` 里，是因为 `@deepseek-ai/dsh-client-ui-slots` 属于 shell 的平台模块表（`scripts/tsdown.client.ts` 的 `PLATFORM_MODULES`），平台模块无需声明就能被 `require`；而 `configForms`、`layout` 这类服务来自具体插件行，行必须先加载。
+
+## 最容易混的一处：`exports["./client"]` ≠ `dsh.client`
+
+同名、同路径、完全不同的东西：
+
+- `dsh-telemetry`、`dsh-github-issue`、`dsh-memo` 三个包都导出 `./client`，内容一律是一句 `export type * from './types.ts'`——这是给客户端复用的**类型投影**，运行时解析只会得到空模块。它既不是 boot 行，也不进模块表；`vitest.config.ts` 之所以把三个包别名到 `src/`，正是为了让测试不去解析这个空壳。
+- `dsh.client` 才是**真正的浏览器半边**：它让宿主按包名去取 `lib/client.js`，并把包注册进模块表。ui-memo、ui-memo-settings、openwiki-visualize 三者的 `lib/client.js` 都是真代码。
+
+两个浏览器包的 bundle 归属刻意相反，这是本层第二个易错点。`@zhangj1164/dsh-client-ui-memo` 声明了 `dsh.client` 却**没有** `dsh.bundle`：它的 `ui-memo` 行由 `@zhangj1164/dsh-memo` 的 patch 插入，所以装 `dsh-memo` 就激活看板，但包本身仍必须被显式命名（profile 的 `autoInstallPeers: false` 让安装只带来命令点名的包），`dsh plugin add` 把它报成普通依赖而非 profile 层是预期行为。设置页刻意相反：它自带 bundle，可以脱离 memo 套件独立增删，但页面只在部署真的服务 `memo`（以及 `github-issue`）命名空间时才注册，单装它不会留下任何可见痕迹。
 
 组合入口 id 的所有权是这一层的硬约束：DSH 按 `dsh.profile.bundles` 顺序逐层应用 patch，**没有传递解析，后一层也无法撤回前一层的 insert**，所以两个 bundle 插入同一个 id 不是合并而是启动失败。`pnpm run verify-bundle-entries` 在发布前就拦这件事，只放行用 `not both` 标记显式记录冲突的补丁。细节见[插件组合与 bundle 层](plugin-composition-and-bundles.md)。
 
 ## 包 / 服务图
 
-```mermaid
+<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: an unescaped angle bracket inside a label breaks rendering; rephrase the label. -->
+```text
 flowchart TB
   subgraph Browser["浏览器半边 web"]
     UIM["ui-memo 看板<br/>sidebar.panellist + main"]
@@ -84,9 +181,9 @@ flowchart TB
   CHILD --> D6
 ```
 
-一张图读完四个宿主服务、三个浏览器面、一条 configForms 通路与六个状态叶子；箭头方向就是调用或注入的方向。
+一张图读完四个宿主服务、三个浏览器面、一条 configForms 通路与六个状态叶子；箭头方向就是调用、注入或写入的方向。
 
-浏览器侧共有四条边：三条走 Remote（`memo`、`githubIssue`、`openwikiVisualize`），一条走 `configForms`（设置页读写的两个 Loader 行）。图中没有跨包的浏览器半边引用。
+浏览器侧共有四条边：三条走 Remote（`memo`、`githubIssue`、`openwikiVisualize`），一条走 `configForms`。`configForms` 那两条边不是 Remote 命名空间，而是设置页对 Loader 配置 ref 的读写；图中没有跨包的浏览器半边引用。
 
 ## 一次装配的先后顺序
 
@@ -101,7 +198,7 @@ flowchart TB
 
 - **ui-memo → `memo` 与 `githubIssue` 两个 Remote 服务**。浏览器的 controller 只有一个 `callRemote(rpc, service, method, request)`，再由 `callMemo`（固定 `'memo'`）和 `callGithubIssue`（固定 `'githubIssue'`）两个薄包装区分服务名。看板的周记读写、分析、报告导出、归档、会话总结走 `memo`；issue 编辑器的 `optimizeIssue` / `prefilledIssueUrl` / `createIssue` 直接走 `githubIssue`，日志分析按钮走 `memo/analyzeLogs`。浏览器不猜 provider/model：路由由宿主按自身 `Config` 或部署的 `agentDefaultModel` 解析。契约细节见[宿主 ⇄ 浏览器 Remote 契约](host-client-remote-contract.md)。
 - **memo → telemetry + githubIssue**。`MemoService` 的静态 `inject` 正是 `['storageDomain', 'telemetry', 'githubIssue']`：存储域是它自己的状态后端，另外两个是套件的协作方。`analyzeLogs` 是这条依赖存在的理由——它按配置的插件 id 逐个 `telemetry.analyzeForPlugin()`，合并成一份分析，再调 `githubIssue.generateReport()` 与 `prefilledIssueUrl()`，产出一份跨插件的诊断报告和预填 issue 链接。一次只覆盖 `memo` 的报告无法提到 `github-issue` 的故障，而那个故障恰好会弄坏看板自己的 issue 编辑器。
-- **github-issue → telemetry（可选）**。它用 `ctx.get('telemetry')` 读一个结构化 sink，为每个动作写成功或带 feature code 的失败事件；telemetry 缺席时它照常工作，只是不留日志。
+- **github-issue → telemetry（可选）**。它用 `ctx.get('telemetry')` 读一个结构化 sink，为每个动作写成功或带 feature code 的失败事件；telemetry 缺席时它照常工作，只是不留日志。它的静态 `inject` 只有 `llm`。
 - **memo 的可选读取**：`llm`、`agentDefaultModel`、`fs`、`workspaceRegistry`、`sessionQuery` 都通过 `ctx.get()` 取——AI 能力是可选降级项，没有模型路由时分析类方法返回业务失败而不是让插件挂掉。`readExternalPath` 因为「面板发起的调用没有 open turn，拿不到审批」而**故意不注册 `@Remote`**，留在宿主内部。
 - **ui-memo-settings → 不调 Remote**。它用 `ctx.configForms.get(namespace)` 拿到对应 Loader 行的表单镜像，编辑草稿后保存，由 `cordis-plugin-loader` 就地把 volatile 配置 ref 更新掉而不重挂插件；所以宿主服务必须在用点读取 ref（`this.config.repoUrl.get()` 这类 getter），而不是在构造时拷进字段。页面刻意只编辑 volatile 字段的一个子集——memo 9 个、github-issue 8 个——部署级旋钮（写重试、`logAnalysisPlugins`、`sessionSummaryMaxCharsLimit`）留在 `cordis.yml`。
 
@@ -132,8 +229,10 @@ OpenWiki 预览没有持久域：它的叶子是 workspace 里的 `openwiki/` �
 
 ## 改动落在哪里
 
+四类常见改动各有固定落点：
+
 - **加一个宿主能力**：新包 + `package.json` 的 `dsh.bundle`（指向自己的 `cordis.patch.yml`）+ 一个别人没占用的 insert id + schemastery `Config`（部署可变的值必须是配置字段，不得内联 URL/端口/阈值/提示词；要让 Settings 能改就标 `.volatile()` 并在用点读 getter）+ 自己的 `tests/*.spec.ts`。
-- **加一个浏览器面**：`dsh.client`（`platform: 'web'`，`inject` 写清需要的行）+ 用 `scripts/tsdown.client.ts` 的 `clientBundle(包名, entries)` 构建 + 一个属于它的入口 id（或像 ui-memo 那样由宿主包的行带上）+ 一个钉 wiring 的 `tests/entry.spec.tsx`。
+- **加一个浏览器面**：manifest 的 `dsh.client`（`platform: 'web'`，`inject` 写清需要的行）+ 模块里的 `export const inject` 写清需要的服务 + 用 `scripts/tsdown.client.ts` 的 `clientBundle(包名, entries)` 构建 + 一个属于它的入口 id（或像 ui-memo 那样由宿主包的行带上）+ 一个钉 wiring 的 `tests/entry.spec.tsx`。
 - **加一份持久状态**：`defineDomain` 声明域与表（域名只允许 `^[a-z][a-z0-9_]*$`，所以是 `memo_archive` 而不是 `memo-archive`），在 `[Service.init]` 里 `storageDomain.open()` 并用 `ctx.effect` 注册关闭；存储要可选，就像 github-issue 那样改成动态 import。
 - **加一个 Remote 方法**：`@Remote('name')` 且签名只有唯一的 `request` 参数（协议按名绑定参数），同步更新包 README 的方法表；方法表本体与失败语义在各自的 systems 页面。
 

@@ -6,6 +6,40 @@ tags: [storage, persistence, schema, zod, storage-domain, ledger, retry, durabil
 verified:
   - by: openwiki/0.7.2
     at: 2026-11-03T09:53:43.931Z
+sources:
+  - id: openwiki-source-e2b359735a8b78c5620256a1
+    resource: repo://packages/github-issue/dsh-github-issue/src/index.ts
+  - id: openwiki-source-46cc8de5ca5730112d9646a2
+    resource: repo://packages/github-issue/dsh-github-issue/src/spec.ts
+  - id: openwiki-source-ec2839ed53168f44b8651615
+    resource: repo://packages/github-issue/dsh-github-issue/tests/intake-harness.ts
+  - id: openwiki-source-acffef9d1ac2b4c5b6afb521
+    resource: repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts
+  - id: openwiki-source-3a7480327133dfa38c0836e5
+    resource: repo://packages/memo/dsh-memo/src/index.ts
+  - id: openwiki-source-8373e522d34589c6a70fb91d
+    resource: repo://packages/memo/dsh-memo/src/spec.ts
+  - id: openwiki-source-cdd2858186ec8ea8537cd0a6
+    resource: repo://packages/memo/dsh-memo/src/types.ts
+  - id: openwiki-source-1969d2ee62e0d578de0f4b3e
+    resource: repo://packages/memo/dsh-memo/tests/config-volatile.spec.ts
+  - id: openwiki-source-4d6a9f6f813e2f1e0ce32bab
+    resource: repo://packages/memo/dsh-memo/tests/flaky-storage.ts
+  - id: openwiki-source-c8a20cb4a1a061eeecdc3570
+    resource: repo://packages/memo/dsh-memo/tests/harness.ts
+  - id: openwiki-source-23f2206285354d5e386a926e
+    resource: repo://packages/memo/dsh-memo/tests/ledger-home.spec.ts
+  - id: openwiki-source-65b7018afba5ec2f8dacc87b
+    resource: repo://packages/memo/dsh-memo/tests/memo.spec.ts
+  - id: openwiki-source-ab1b1c67ce5f3096942f7ea4
+    resource: repo://packages/telemetry/dsh-telemetry/src/index.ts
+  - id: openwiki-source-57365fb017145af52c2aad32
+    resource: repo://packages/telemetry/dsh-telemetry/src/spec.ts
+  - id: openwiki-source-1478e4d2632b8581c288c843
+    resource: repo://packages/telemetry/dsh-telemetry/tests/harness.ts
+  - id: openwiki-source-b6b6d9b18e5f55cecb715a87
+    resource: repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts
+generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 ---
 
 # 存储与持久化：域、schema 与写重试
@@ -104,40 +138,52 @@ erDiagram
   }
 ```
 
+一份数据模型视图：四个域各持有恰好一张表，分析账本是与它们并列的一份独立 JSON 文档。
+
 四个域、四张表、一份账本：每个域恰好一张表，`memo` 的周行内部再嵌一个 entry 数组，账本是一个带 `schemaVersion` 的 JSON 文档。
 
 ## 域 → 表 → 键 → 行 schema
 
 | 域名 | 表 | 表键 | 行 schema | open 者 | 关闭方式 |
 |---|---|---|---|---|---|
-| `memo` | `weeks` | ISO 周 id（`YYYY-Www`） | `memoWeekSchema`（内嵌 `memoEntrySchema`、`memoAnalysisSchema`） | `MemoService` | `ctx.effect` → `domain.close()` |
-| `memo_archive` | `quarters` | quarter 标签（`YYYY-Qn`） | `archivedQuarterSchema` | `MemoService` | 同上，独立 effect |
-| `memo_telemetry` | `events` | 事件 UUID | `telemetryEventSchema` | `TelemetryService` | 同上 |
-| `github_issue_intake` | `state` | 常量 `INTAKE_STATE_KEY` = `'intake'` | `intakeStateSchema` | `GithubIssueService` | 同上 |
+| `memo` | `weeks` | ISO 周 id（`YYYY-Www`） | `memoWeekSchema`（内嵌 `memoEntrySchema`、可选 `memoAnalysisSchema`） | `MemoService` | `ctx.effect` → `domain.close()`，标签 `memo.domainClose` |
+| `memo_archive` | `quarters` | quarter 标签（`YYYY-Qn`） | `archivedQuarterSchema` | `MemoService` | 独立 effect，标签 `memo.archiveDomainClose` |
+| `memo_telemetry` | `events` | 事件 UUID | `telemetryEventSchema` | `TelemetryService` | 同上，标签 `telemetry.domainClose` |
+| `github_issue_intake` | `state` | 常量 `INTAKE_STATE_KEY` = `'intake'` | `intakeStateSchema` | `GithubIssueService` | 同上，标签 `github-issue.intakeStateClose` |
 
-四个 spec 都只声明 `name`、`version: 0` 和 `tables`：没有 `global` 槽、没有介质布局选择、没有兼容版本声明，因此全部走域的默认行为——**一个域一份整介质文档**，在 JSON 后端上就是 `<root>/<域名>.json`（例如 `memo_telemetry.json`，文件里带 `{ unit: { name, version } }` 头，见[遥测旧介质用例](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts)）。
+四个 spec 都只声明 `name`、`version: 0` 和 `tables`：没有 `global` 槽、没有介质布局选择、没有兼容版本声明，因此全部走域的默认行为——**一个域一份整介质文档**，在 JSON 后端上就是 `<root>/<域名>.json`（例如 `memo_telemetry.json`，文件里带 `{ unit: { name, version } }` 头与 `tables.events` 映射，见[遥测旧介质用例](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts)）。这也解释了写入为什么值得重试：后端发布一份 unit 用的是"写临时文件 → `rename` 覆盖目标"，一次写失败可能只是那份临时文件没换上去。
+
+所有时间戳类字段共用同一个 `nonNegativeSafeInteger`（`z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)`）：负数时间戳、浮点毫秒、超过安全整数的纪元值在介质上都不可能是合法行。备忘与遥测各自声明了一份，写法一致；行 schema 因此同时充当"介质类型检查"和"单位检查"。
 
 键的选择都不是偶然：周 id 是周记的身份，quarter 标签是归档的身份，事件 UUID 让每次写入都是"新行"而不是覆盖，而接单状态刻意只有一行——它是一份"到目前为止的进度"，不是一个可以并行增长的表。
 
 ### `memo` / `weeks`：键是 ISO 周 id，行内有两条跨字段约束
 
-行字段为 `weekId`、`weekStart`、`weekEnd`、`entries`、`updatedAt`，外加可选的 `analysis`。schema 里有两处跨字段约束，都写成 `refine`：周行要求 `weekEnd > weekStart`，entry 要求 `updatedAt >= createdAt`（[`packages/memo/dsh-memo/src/spec.ts`](../../packages/memo/dsh-memo/src/spec.ts)）。所以"周界写反了""更新时间早于创建时间"这两类行在介质上不可能是合法的。
+行字段为 `weekId`、`weekStart`、`weekEnd`、`entries`、`updatedAt`，外加可选的 `analysis`；entry 字段为 `id`、`type`（`text`/`image`/`file`）、`content`、可选 `attachmentRef`/`source`/`originSessionId`、`createdAt`、`updatedAt`。schema 里有两处跨字段约束，都写成 `refine`：周行要求 `weekEnd > weekStart`，entry 要求 `updatedAt >= createdAt`（[`packages/memo/dsh-memo/src/spec.ts`](../../packages/memo/dsh-memo/src/spec.ts)）。所以"周界写反了""更新时间早于创建时间"这两类行在介质上不可能是合法的。
 
-写入是**整行替换**：`table.put(weekId, week)` 传的是完整行，修改一条 entry 也要把整个 entry 数组重建后整体写回。这就是周行的 `updatedAt` 必须随每次修改更新的原因——它不是装饰，是这一行"最后一次被写"的唯一见证。
+写入是**整行替换**：`table.put(weekId, week)` 传的是完整行，修改一条 entry 也要把整个 entry 数组重建后整体写回。这就是周行的 `updatedAt` 必须随每次修改更新的原因——它不是装饰，是这一行"最后一次被写"的唯一见证。整行替换之所以安全，是因为服务把并发写交给域层的写链（`track()` 的契约注释写明并发调用不会交错），读改写之间不会被同一个进程内的另一个写插进来。
+
+`getOrCreateCurrentWeek` 是一处容易被忘记的写路径：当前周还没有行时，它 `put` 一条 `entries: []` 的空周行（[`packages/memo/dsh-memo/src/index.ts`](../../packages/memo/dsh-memo/src/index.ts)）。也就是说"只是打开面板看了一眼"同样会产生持久状态，并且同样走重试——读方法并不都是只读的。
 
 ### `memo_archive` / `quarters`：键形状本身就是校验规则
 
 行只有两个字段：`label` 与 `archivedAt`，其中 `label` 必须匹配 `/^\d{4}-Q[1-4]$/`。同一个正则还被服务层用作**写前守卫**：`archiveQuarter` 与 `unarchiveQuarter` 在拿到非法标签时直接返回 `invalid-quarter-label` 业务失败，不会让半条归档进入介质（[`packages/memo/dsh-memo/src/index.ts`](../../packages/memo/dsh-memo/src/index.ts)）。键形状在 schema 和调用点各守一次，是因为归档一旦落地就同时充当"这些周只读"的判据。
 
+独立域而不是 `weeks` 旁边的第二张表，是这一块的另一个设计点：归档功能写自己的表，所以归档那一路的坏行**不可能**让周记表打不开（[`packages/memo/dsh-memo/src/spec.ts`](../../packages/memo/dsh-memo/src/spec.ts)）。域级隔离是真实的；服务级隔离不存在，见下一节。
+
 ### `memo_telemetry` / `events`：键是 UUID，行 schema 管住了失败事件的形状
 
-行字段为 `id`、`timestamp`、可选 `seq`、`pluginId`、`action`、`category`（`user-action`/`system`/`error`）、`result`（`success`/`failure`），可选 `sessionId`、`metadata`、`error`。除字段级约束外还有一条跨字段 `refine`：`result === 'failure'` 的行必须携带 `error` 记录（[`packages/telemetry/dsh-telemetry/src/spec.ts`](../../packages/telemetry/dsh-telemetry/src/spec.ts)）。这条 refine 的意义是"失败事件一定有错误码可分组"，日志分析的 `featureCodeRef` 分组因此不会碰到一条没有理由的失败。
+行字段为 `id`、`timestamp`、可选 `seq`、`pluginId`、`action`、`category`（`user-action`/`system`/`error`）、`result`（`success`/`failure`），可选 `sessionId`、`metadata`、`error`（`error` 内含 `code`、`message` 与可选 `stack`/`featureCodeRef`）。除字段级约束外还有一条跨字段 `refine`：`result === 'failure'` 的行必须携带 `error` 记录（[`packages/telemetry/dsh-telemetry/src/spec.ts`](../../packages/telemetry/dsh-telemetry/src/spec.ts)）。这条 refine 的意义是"失败事件一定有错误码可分组"，日志分析的 `featureCodeRef` 分组因此不会碰到一条没有理由的失败。
 
 键是服务分配的 `randomUUID()`，而重试重放的是**同一个闭包**，所以一次被重试的写仍然是 `put(event.id, event)`——同一个 id、同一行，不会写出第二条不同 id 的事件。
 
+写行时可选字段一律用 spread 合入（`...(input.sessionId === undefined ? {} : { sessionId })`），而不是显式写一个 `undefined` 键：介质上"缺这个键"与"键在但值是 undefined"不是一回事，前者是旧版本记录的合法形状，后者什么都不是（[`packages/telemetry/dsh-telemetry/src/index.ts`](../../packages/telemetry/dsh-telemetry/src/index.ts)）。
+
 ### `github_issue_intake` / `state`：一行，且"没有状态"有专门的表示
 
-键是常量 `'intake'`；行是 `{ lastCheckedDay, dispatched }`，`dispatched` 的每一项是 `{ number, day, sessionId }`，其中 `number` 必须是正整数、`day` 与 `sessionId` 非空。`lastCheckedDay` 允许空字符串：服务用 `EMPTY_INTAKE_STATE`（`lastCheckedDay: ''`）表示"还没有跑过任何 pass"，于是"介质里没有这一行"和"这一行还没有日期"在语义上是同一件事，不需要第三种表示（[`packages/github-issue/dsh-github-issue/src/spec.ts`](../../packages/github-issue/dsh-github-issue/src/spec.ts)）。
+键是常量 `'intake'`；行是 `{ lastCheckedDay, dispatched }`，`dispatched` 的每一项是 `{ number, day, sessionId }`，其中 `number` 必须是正整数、`day` 与 `sessionId` 非空。`lastCheckedDay` 允许空字符串：服务用 `EMPTY_INTAKE_STATE`（`lastCheckedDay: ''`，`dispatched: []`）表示"还没有跑过任何 pass"，于是"介质里没有这一行"和"这一行还没有日期"在语义上是同一件事，不需要第三种表示（[`packages/github-issue/dsh-github-issue/src/spec.ts`](../../packages/github-issue/dsh-github-issue/src/spec.ts)）。
+
+`dispatched` 只保留最近 500 条（`MAX_DISPATCH_HISTORY`，提交时 `[...已存, ...本 pass].slice(-500)`），最新在尾部；上限只为防止单个 JSON 文档无限增长，更早的 issue 已经有自己的 PR 与 Session 作为记录。去重是按 issue `number` 跨天判断的：同一个 issue 永不派发第二次，即使它仍然 open、即使换了日期。
 
 这个域的行类型是**手写 interface**（`IntakeStateRow` / `IntakeDispatchedRow`）而不是从 zod 推导，schema 用 `as unknown as z.ZodType<IntakeStateRow>` 对齐。域本身由 `createIntakeDomain()` 在 `open` 现场构造，其中 `@deepseek-ai/dsh-storage-domain` 是动态 `import()`——这个包对它是可选 peer，缺了它只失去每日检查，不该让整个插件加载失败。
 
@@ -148,12 +194,20 @@ erDiagram
 | 域 | open 失败的代码路径 | 部署看到的后果 |
 |---|---|---|
 | `memo` / `memo_archive` | `[Service.init]` 里顺序 `await open(...)`，无 catch | 备忘服务不挂载；归档域打不开同样拖垮备忘服务 |
-| `memo_telemetry` | `[Service.init]` 里 `await open(...)`，无 catch | 遥测服务不挂载，`ctx.get('telemetry')` 取不到它，依赖它的日志分析随之失效 |
+| `memo_telemetry` | `[Service.init]` 里 `await open(...)`，无 catch | 遥测服务不挂载，`ctx.get('telemetry')` 取不到它，`analyzeLogs` 返回 `github-issue-failure` |
 | `github_issue_intake` | `openIntakeState()` 里 `try/catch` + `warn('intake state is unavailable: …')` | 插件照常挂载，`intakePersistent` 保持 `false`，自动接单的首启检查被主动关掉 |
 
 域级隔离是真的，服务级隔离不是：两张表分别校验、归档功能不会污染 `weeks` 的记录集，但 `MemoService` 在同一个 `[Service.init]` 里**依次** open 备忘域与归档域、各自注册自己的关闭效应，任何一个 open 失败都让整个备忘服务初始化失败（[`packages/memo/dsh-memo/src/index.ts`](../../packages/memo/dsh-memo/src/index.ts)）。接单域相反，它把"介质坏了"降级成"这功能别开了"，因为关掉每日检查的代价远小于让整个插件起不来。
 
-四个域都停在 `version: 0`，仓库里也没有任何域版本迁移代码——唯一的"迁移"逻辑是账本文件的一次性合并。所以"改 schema"和"升版本号"是两件事：前者只要新字段可选，旧行照样通过；后者等于换一份介质（文档头里的版本戳对不上），需要部署方手工迁移数据。
+三个服务对存储的依赖强度，正好解释了这三种后果：
+
+| 服务 | 依赖声明 | 没有 `storageDomain` 时 |
+|---|---|---|
+| `TelemetryService` | `static inject = ['storageDomain']` | 服务不挂载（它没有"无介质"的形态） |
+| `MemoService` | `static inject = ['storageDomain', 'telemetry', 'githubIssue']` | 服务不挂载；域存在但打不开同样不挂载 |
+| `GithubIssueService` | `static inject = ['llm']`，存储用 `optionalService(ctx, 'storageDomain')` 读 | 照常挂载，`intakePersistent` 为 `false`，每日检查被关掉 |
+
+四个域都停在 `version: 0`，仓库里也没有任何域版本迁移代码——唯一的"迁移"逻辑是账本文件的一次性合并。所以"改 schema"不存在"升个版本号再跑迁移"的代码路径：能让旧介质继续可读的只有一条规则，即下面第二条事故结论——新字段一律可选。
 
 ## 两条事故结论
 
@@ -161,7 +215,7 @@ erDiagram
 
 **一、坏行会让插件起不来。** 手工编辑、截断写、旧版本留下的非法行，效果是插件在**启动阶段**失败，而不是面板在运行时返回半个世界。备忘源码留着一条真实事故的注释：早先版本给补写的周行填了全零周界，行不满足 `weekEnd > weekStart`，那一行确实被写出去了，而它**让整个插件再也起不来**；现在补写走 `mondayOfWeekId` 现算周界（[`packages/memo/dsh-memo/src/index.ts`](../../packages/memo/dsh-memo/src/index.ts)）。用例把两半都钉住了：反例直接断言零周界行被 schema 拒绝，正例断言补写 `1999-W07` 拿到真实周界（[`packages/memo/dsh-memo/tests/memo.spec.ts`](../../packages/memo/dsh-memo/tests/memo.spec.ts)）。
 
-**二、新增字段必须可选。** schema 变严格等于给既有介质设了一道门。遥测序列号 `seq` 的注释写得最直白：把它设为必填，第一次打开旧版本的存储时会把整个 unit 连同整份日志一起拒掉。因此 `seq` 在介质上可选、在交给调用方的 `TelemetryEvent` 上必需，读写两侧的类型故意不同（[`packages/telemetry/dsh-telemetry/src/spec.ts`](../../packages/telemetry/dsh-telemetry/src/spec.ts)）。这条规则对嵌套对象同样成立：周行的 `analysis` 整体可选，但它的子 schema 里 `modelProvider`、`modelName` 是必填，所以给嵌套结构加字段时要额外确认旧介质里不存在缺该字段的记录。
+**二、新增字段必须可选。** schema 变严格等于给既有介质设了一道门。遥测序列号 `seq` 的注释写得最直白：把它设为必填，第一次打开旧版本的存储时会把整个 unit 连同整份日志一起拒掉。因此 `seq` 在介质上可选、在交给调用方的 `TelemetryEvent` 上必需，读写两侧的类型故意不同（[`packages/telemetry/dsh-telemetry/src/spec.ts`](../../packages/telemetry/dsh-telemetry/src/spec.ts)）。这条规则对嵌套对象同样成立：周行的 `analysis` 整体可选，但它的子 schema 里 `modelProvider`、`modelName` 是必填，所以给嵌套结构加字段时要额外确认旧介质里不存在缺该字段的记录。写侧对应的纪律是用 spread 合入可选字段（不写 `undefined` 键），让"这条记录没有这个字段"保持为一种合法形状。
 
 ## 派生与落盘：哪些值刻意不存
 
@@ -179,7 +233,7 @@ erDiagram
 | `lastCheckedDay` | 是 | "今天已经检查过"必须跨重启成立，正是持久化的目的 |
 | 周行可选 `analysis` | 可选，只读兼容 | 当前写入路径不再写它，读取时若存在则原样返回 |
 
-`seq` 是"必须存"的最好例子：`Date.now()` 只有毫秒精度，一次重试可能和它跟随的失败落在同一毫秒，于是"失败之后还有几次尝试"会被算成 0——一个正在发生的缺陷读起来像旧缺陷。所以服务给每个事件发一个单调写序列号，并在 open 时**全表扫一遍取最大值**接着往下发；旧行没有 `seq`，读出时补 `0`，排序回落到 `timestamp`（[`packages/telemetry/dsh-telemetry/src/index.ts`](../../packages/telemetry/dsh-telemetry/src/index.ts)）。
+`seq` 是"必须存"的最好例子：`Date.now()` 只有毫秒精度，一次重试可能和它跟随的失败落在同一毫秒，于是"失败之后还有几次尝试"会被算成 0——一个正在发生的缺陷读起来像旧缺陷。所以服务给每个事件发一个单调写序列号，并在 open 时**全表扫一遍取最大值**接着往下发；旧行没有 `seq`，读出时补 `0`，排序回落到 `timestamp`（[`packages/telemetry/dsh-telemetry/src/index.ts`](../../packages/telemetry/dsh-telemetry/src/index.ts)）。排序规则集中在一个 `compareOrder` 助手里，`latest` 选择、尝试次数统计与 `listEvents` 三处共用它，避免三处各自演化出"谁更晚"的不同版本。
 
 ## 分析账本：`$DSH_HOME/memo/ledger.json`
 
@@ -244,6 +298,8 @@ flowchart TD
   H --> B
 ```
 
+一次被重放的写：失败 → 判断是否瞬时 → 指数退避 → 原样再试，预算耗尽或错误不瞬时就直接抛出。
+
 规则可以精确到四句话：
 
 1. **只有 `EPERM` 与 `EBUSY` 会被重试。** 两者都是 Windows 上 `rename(tmp, target)` 撞上杀毒扫描、索引器或另一个读句柄的时序竞争——JSON 后端发布 unit 的方式就是临时文件加重命名，所以同一操作等一会儿再试是对的。`EACCES` 被**刻意排除**：它是真权限问题的签名，等下去不会变好，只会推迟报错。
@@ -279,7 +335,7 @@ flowchart TD
 
 **注入 Windows 重命名竞争**：真实故障无法按需复现，所以备忘与遥测各有一份测试专用后端 `tests/flaky-storage.ts`。它包住已经挂载的 `json` 后端，注册成 `json-flaky`，并通过 `ctx.provide('storage.backend.json-flaky', …)` 让域层按名字路由到它——因此被测路径下面仍然是**真实的域与真实的 JSON unit**（harness 用 `{ backend: FLAKY_BACKEND }` 挂 `StorageDomain`）。注入点在 `putRecord` 与 `deleteRecord`（文件头注释说只装饰 `putRecord`，代码实际两者都注入，这也是为什么 `unarchiveQuarter` 的删除路径同样能被测到）；`loadAll`、`setGlobal`、`backupRecord` 直通。探针暴露 `attempts` 与 `arm(failures, code?)`，后者让用例可以在若干次成功写之后瞄准"下一次写"（[`packages/memo/dsh-memo/tests/flaky-storage.ts`](../../packages/memo/dsh-memo/tests/flaky-storage.ts)）。
 
-**重试的四条边界**都被钉住：两次 `EPERM` 后第三次成功（备忘与遥测各有用例）、`EACCES` 一次都不重试、预算耗尽时备忘 reject（5 次尝试）而遥测丢事件、`storageWriteRetries: 0` 时只尝试一次；备忘还额外验证归档的 `put` 与 `delete` 各自都被重试（合计 4 次尝试）。注入失败的用例统一把 `storageWriteRetryDelayMs` 调成 1，避免测试真等退避。
+**重试的四条边界**都被钉住：两次 `EPERM` 后第三次成功（备忘与遥测各有用例）、`EACCES` 一次都不重试、预算耗尽时备忘 reject（默认预算下 5 次尝试）而遥测丢事件、遥测在 `storageWriteRetries: 0` 时只尝试一次；备忘还额外验证归档的 `put` 与 `delete` 各自都被重试（合计 4 次尝试）。注入失败的用例统一把 `storageWriteRetryDelayMs` 调成 1，避免测试真等退避（[`packages/memo/dsh-memo/tests/harness.ts`](../../packages/memo/dsh-memo/tests/harness.ts)）。
 
 **账本路径与迁移**：`ledger-home.spec.ts` 把平台 home 与 `DSH_HOME` 都搬进临时目录（默认 `ledgerHome: 'isolated'`，否则一次测试运行会污染开发者的 `~/.dsh/memo`，甚至把 `~/memo` 迁走），然后逐个钉住未设/显式/空白/带 `~` 的 `DSH_HOME`、读写对称，以及迁移的各个分支：合并后留回执、只合并一次、按 id 去重、容量挤压时旧条目留在回执里、不可解析文件原地不动、新路径不可写时仍显示旧条目、`DSH_HOME` 指向平台 home 时不迁移。
 
@@ -289,8 +345,8 @@ flowchart TD
 
 ## 改动这块代码前的检查清单
 
-- **新增一个域**：名字先过 `/^[a-z][a-z0-9_]*$/`（`memo_archive` 不是 `memo-archive` 就是这个原因），`version` 从 `0` 起，schema 用 zod、跨字段约束写成 `refine`，并在服务 `[Service.init]` 里 open + 用 `ctx.effect` 关闭；同时想清楚 open 失败该让插件起不来还是只关掉这个功能。
-- **给已有行加字段**：一律可选，嵌套对象里的新字段同样要可选，否则旧介质第一次打开会把整个 unit 拒掉。要真正改变语义就先设计手工迁移，再谈升 `version`。
+- **新增一个域**：名字先过 `/^[a-z][a-z0-9_]*$/`（`memo_archive` 不是 `memo-archive` 就是这个原因），`version` 从 `0` 起，schema 用 zod、跨字段约束写成 `refine`，并在服务 `[Service.init]` 里 open + 用 `ctx.effect` 关闭；同时想清楚 open 失败该让插件起不来还是只关掉这个功能，以及这个服务该把 `storageDomain` 写进 `inject` 还是当可选服务读。
+- **给已有行加字段**：一律可选，嵌套对象里的新字段同样要可选，否则旧介质第一次打开会把整个 unit 拒掉。写侧用 spread 合入，别写 `undefined` 键。要真正改变语义，先设计手工迁移——仓库里没有域版本迁移的代码路径可搭。
 - **新增一条写**：先决定它属于哪一类——域表的写（用 `writeWithRetry`，把"什么算瞬时"钉在 `EPERM`/`EBUSY`）、还是文件写（自己决定失败是降级还是抛出）。别忘了写下"失败之后调用方看到什么"。
 - **需要从记录推导的值**：能推出就不要存（quarter 的周 id 是模板），存下来就要接受"日历被修正时它会错"。
 - **要验证持久化**：域写用 `flaky-storage` 注入 errno，别 mock 域层；账本类的改动则必须同时跑"不可解析文件"和"目标路径不可写"两个分支。

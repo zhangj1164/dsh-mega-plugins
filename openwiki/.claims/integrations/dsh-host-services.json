@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5f6b41788bd5d6c71edbe26822399fac3e03a1b3c9e4da11284ba4fc712aecec",
+  "claims": [
+    {
+      "id": "claim_1ae23bc7d3e84dfcaab328be9f6dd740",
+      "statement": "本仓库读取宿主能力一律走 cordis 服务键，从不 import 服务类：服务面要么写成只含所需成员的结构类型（LlmTextSource、SessionArchiveSource、SessionQuerySource、FsTextSource、LlmModelCatalog），要么按服务键直读，因此六个 package.json 里没有任何文件系统、工作区、会话或 Agent 宿主包。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L297-L339",
+          "version": "repo-lines-v1:sha256:f9575ee09ce08b76fce0b7b0d990bf092b396f424972aa78151a02090af9af5c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjZTEzYTY5ZjZlODkyMGZmMjNlYmY2YmJkMWYyZDc3ZDBjZmEyMjM4ODk2NDAwMDBkZGM2ODYwZWZjNmJkODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNjAzYzU4YzhlZjc4YTEwMTU0NzllMjExMTMzZmYzMGQ3YzdlODgzYmU2ZmU0OTg0ZDI0ZDlkZGYyNTA1ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4NDQ1NWMzNWZmY2YxZTVlYTYzZThhZWQ2NDJlYWNmMDU5OWUyMTdiMmVmNjY0NDRkYWIwZjUzNzg0ODlmZWYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1906-L1974",
+          "version": "repo-lines-v1:sha256:094300c8fff75a2c2b948af3d14f9ab5167af39f3f2b3c3a8f4dbda84c279ac4:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4Nzk3ZDU4OWUxNTljM2FkZWI3NGFkZTY3YjBlOGIyY2FjN2E5YWU3ZDkzYmViNzkyOTg3MDY5MWI2NDdhY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4YzE5ZTlkMGNhMzkxZDQ0YjBlZWM1Nzc2ZGI5NjMyYmM0MTk0MjkzNzgwM2Y1OWQ3ZDI1YzkwZDc2MGFlYWMifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L24-L38",
+          "version": "repo-lines-v1:sha256:b8abce1553f6f2117901179939d36a207b3e3b892c83124f95895f24ab16caf7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyYzFmNjlmZWJkNjZiMDgzYjc0NTQ0MDI1OTlhNjczNjk0NGQwN2NjMzM1YWNkZGRlNjZkYTA1Y2E3MzNmYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwNTUzOGUyOWE4YmU2NTUyYTg0ZDZkOTAzYTBiZmRiMjE4MTJiMDYxY2Q5ZGI4ZGI3NDUzNWJmYjdlMThlNTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a471f2b495a94c118b893b75f83aa6b3",
+      "statement": "`llm` 是同一个宿主服务在两个包里被分别声明为必需与可选的样本：dsh-github-issue 把它写进 static inject，dsh-memo 只用 ctx.get 可选读，所以缺少 llm 的部署里备忘的存储与归档仍可用，而 issue 生成插件根本不激活。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L384-L386",
+          "version": "repo-lines-v1:sha256:989eaabda088dd1b1a31de73c921905babce96b6e544a13ef598cd21b79732cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk2YzdmNDA3MjZkYzBlZjZmYWNmZmQ0NDY3ZTdkYmIzOGMxMjU2YzczMWFhYThhNGQ4MTc1M2RiOGEwYTQzOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ2YWI2ZTY4MDg2ZjRiN2RjYWIwMzE1ZmZlZTBjYWQxMTM1NjEwM2Y4YzE2NGUzNjk1YjhiNGJkYzk4MGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk3MTJhODVjMGY2OTRkYjAzMzIzNDdmNTA4NWU0MzQ1ZDRhYmUzMTNjMjdiZTNiNjlhNjdlZmMyMDJlMDZhYSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1196-L1208",
+          "version": "repo-lines-v1:sha256:795360513d8ec5bed148bbd2d9be98ca5d818366bce8f9833d1172cd4a3be39e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5MGRiMTAwMDI1ZmM0NTY0ZTE4OWFlODExNjg5NTA3YjdkYjI0NzMwYTQ2ZWVjZTc5N2UzMWJiY2JiOWJkMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzZGNlYzAyYmYzNGYzZWI4MmVlYzJiZDc4MzI2NjE5ZjIxNzczN2ZhMTBhMWM5MWNjMDkwOWJiOTVhNjhmNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3MWRkM2JmZWI5MTA3NTNiNjRlYWI4Nzk4ZjJhYmQyNTY4ZGI2MjRiMzUwNmIyMDg2MDZjOWQ0Y2U2ZTI5YjkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L646-L650",
+          "version": "repo-lines-v1:sha256:b65f31fc7d8032487a601f362ee63d423e4a8e9fef0844d8b886b2c7474c5b19:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODUyZjgyMTUxZjRjNmI4ZWVkODJiN2I1Y2NmM2EzYjU2YWUzNjdjNzUwZmVkZmU5ZWFkZDI1M2YxMzI5Mzk0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjY5ZGY2ZTM0MTExMjY3ZWVhZTJlM2IxMzRkYWQzNzQ4NzgwMDQxNWU4MmM2ODM4ZjU2OWNjYjc2MThmZWIwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjBhY2UxMmFkNzcxNTFkNjYxYmY2M2Q1Y2MxZjg3NzQ3NTg0MmExYmM1NmY0OTA4YTc5NTJkNzRmOGJhNjQ1NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d935fe2638a4e1c8d15c0fe2e40db50",
+      "statement": "`workspaceRegistry` 与 `sessionQuery` 通过 ctx.get 读取而不进 static inject，这是刻意的可组合取舍：没有工作区或会话查询的 headless 部署仍能启动备忘服务，只在调用会话总结时拿到带 service 字段的 session-service-unavailable 失败。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-10-28-memo-session-summary-design.md#L18-L18",
+          "version": "repo-lines-v1:sha256:15c7d26fc9747e9d1902d8b284504e675145fa17cccc26bf5db1bf695f2a6195:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTVjN2QyNmZjOTc0N2U5ZDE5MDJkOGIyODQ1MDRlNjc1MTQ1ZmExN2NjY2MyNmJmNWRiMWJmNjk1ZjJhNjE5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTVjN2QyNmZjOTc0N2U5ZDE5MDJkOGIyODQ1MDRlNjc1MTQ1ZmExN2NjY2MyNmJmNWRiMWJmNjk1ZjJhNjE5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDhlMjM1ZGUzY2YzN2ZlNTk0MWNkZGQ5Mzc5NmE0NmQwOTNkMGZmYTE1MzA3OTliNDIzODdjZmZlMDAwZTFkMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDM2ODBjMmU0YWJiYTg0ZjY1ODZlYWQ4OTRlOWI5NzRhYjc0NzNkMzc1ODcwOGMzZjVkNWFjYWE2ZWU4YTdiOSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L852-L901",
+          "version": "repo-lines-v1:sha256:8eac0cd7f8ad2cfde198b347d34e99862c5a5329001f02e5ba1b82bfb8169758:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzOGZkOWRiMTk1ODI5OThmYTNiZTkyYWIwNDc2NTRjZTYyMmQwN2RmM2U1MTY1NTdhNTc2MDNlMmFlMjBhMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5MGY0MGNhMmFhNjM1ODNkMGFlNzhkZWRlNzFiZmJhZjNhOTQ2ZDIxMWJiYjllOTQ5MTY0YjBmNWQwOTVlZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0YTlkZTZlNjU2NWQxMWE2MWY1YTc1M2VhMTMyOTk5MWIwNzM5MmZmMWY2ZDA5OTYwYmJmY2NiNDM1YjQ2NDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fba8bc414e264129a739296dc9ba620a",
+      "statement": "归档会话读取把容错分成三层：服务整体缺席返回 session-service-unavailable 并指名服务；sessionQuery 的 listSessions 抛错退化成空 header 表而不失败；单个会话的 readSurface 抛错只在那一个 outcome 上写成 session-unreadable，其余会话照常总结。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1399-L1418",
+          "version": "repo-lines-v1:sha256:7067c9cb94819e9835a79fa963150bc81a06d2024e04adfb0c4a26a809dc36e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MmQ3OGUzMjA2NGVhMDJjMTllNGMwYjYzMzM4NjYyYzAxMTA3YWU4NDFhNDQ0OWI0OWQwY2M1MWNkNTQyNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5YWU4ZTMyNjc3OGU2YTQwYjJkNTQ1YmQzMThhNWMyMWU4YzEyMTFjMzBmMGU2MTRiNmZlMjY4M2ZlMzFjY2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNzdlNGY3ZDEyMzk3NjZjZjQ1MDI3Njg1NWRhYTcwYzRlNjE1N2JjY2QwMjE4OGIzMGNmYjkzYjg5YWU5YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliOGRkY2VmOThhOGFjMzUyYzA5ZmQyYzQ1MzRhODFiMDU1MGVlM2E4ZGZiZmViNDYxZmM5YjJjZDI3NTRiYjcifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1518-L1567",
+          "version": "repo-lines-v1:sha256:489f34dda2462da3140265b3f73a1970b66a34b1d989e7a907a79465669f4310:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3OGE5MTAwZDI5M2E0YzA2ZmMyMjlmNmQ1MDU3YTkyYTliMjk2NTY2YmJkZjUwNmVmOWJhZmY4NzY5ZjBmMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyMTk5ODEzMDMwNTYzZGI0NDRhOThiYzNmZjg3NGYzOTBkZWYxZDM2MjFjZTUzMjlkZDMxODUzZDc0ODhjMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_41223183903447c4a736498c079cefed",
+      "statement": "SessionQuerySource 把 readTitleSnapshots 声明为可选成员，因此老一点或缺该批读能力的 session-query 后端会让题名回退成短 id 形式，而不是让会话从选择列表里消失。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1544-L1556",
+          "version": "repo-lines-v1:sha256:64c9a319dc4493e7e76c03f54306787f44f2f38253f81dc0bf9c62cf195ef4fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YTc1YTMzMzRhZWJhOTgxNDQ3NTU4ZDJiNDJlOGFkNjY5MzcwMTNmYzQ3ZWI4NTM4MzkyOGI0OTRlNDc5ZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmYTBjYmU1ODU1ODhmNjI3NWIzMmVmZTQ0MjY5ODRhY2RlNDM3ZGVlZTMzNTUzNzE4MDY3YTc0Y2MyZDlhY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMjRhMTcwZWMxMDVlMWZkMzViNDJlODcyY2IyZWRiOWJmNDhlMjU1N2ExNzE1ZjcyZWIyOTBhZWRjNDVmY2IifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1964-L1974",
+          "version": "repo-lines-v1:sha256:2af7393feca2bf2648afcb9a1fc30115f47d98e0035d00d5c1beaad58532419b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4YzE5ZTlkMGNhMzkxZDQ0YjBlZWM1Nzc2ZGI5NjMyYmM0MTk0MjkzNzgwM2Y1OWQ3ZDI1YzkwZDc2MGFlYWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e96185b759c4a7f93e4f337c761ddb6",
+      "statement": "官方归档集合由 workspaceRegistry.archivedSessionIds 单独决定，sessionQuery 只补标题、header 与内容；子会话（origin 为 subagent）在宿主侧被过滤掉，避免每个子会话总结成父会话的近似副本。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1925-L1936",
+          "version": "repo-lines-v1:sha256:4c2653703cb271b3399f6d8936cdf0d784177c806f559f3e29705339f04386a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1OGUwNjZkODhmNDQ2NWVlMGQwZTBmMjZiYzI5OTA5M2E4Mjg3M2EzZDU3NzIwNGNhZjhmNzQ4NjljYzRhYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3YTI4ZWQwZTZhNmRmNWE4NWFkYWM3YWViM2NiMWIxMjBmZWZiYWEyODEzNDFhZGUyOThlYTAxNmUzZjI5YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0YjQ5MDdhZWQxOTk2NTgyZDNkMDU5NjAwOTJjNWIwMzI0OWE0ODkzYzVlN2JmZTRmMzFlZmZlODQ0ZWJlYzgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L835-L901",
+          "version": "repo-lines-v1:sha256:f63236c7bc6dabb4a3de26b48808db88511772d28e53519a4d7a2c3b790da539:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0YTlkZTZlNjU2NWQxMWE2MWY1YTc1M2VhMTMyOTk5MWIwNzM5MmZmMWY2ZDA5OTYwYmJmY2NiNDM1YjQ2NDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc36bf6996f542b6a537b9c0a07f2c69",
+      "statement": "`fs` 契约只有 resolve(path) 与 readText(target) 两步，目标值刻意留成 unknown，并把宿主 FsErrorCode 映射成五个业务码（path-not-found、path-not-text、path-too-large、approval-denied、fs-error），靠 code 字段鸭子类型判断而非 instanceof，因为 @deepseek-ai/dsh-fs 不是本包依赖。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1591-L1624",
+          "version": "repo-lines-v1:sha256:722472863963da14b6095ce774fa2afd085bc81e32fdfc311fa965aead6f32f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1YTkyNDNhMzA3MDRiZjAzOWZlMDI1YzM4ODQyY2EwMzk4YmEzMWUzNGU2ZTA2ZTdlMmJmNjZhMTkwZmI1YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMWQ3Njk0MzY3OTFjZWY4NmNlZWQ0ZWE3YjU4ZWNkZDI5OGU0NGE1YjFlODI3YmMzMTg5Mjk1YTc2ZTg1OTkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1906-L1915",
+          "version": "repo-lines-v1:sha256:04caf89e53232d909e4bb367a63f294178b0d7bd5212e15901c458181963184c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4Nzk3ZDU4OWUxNTljM2FkZWI3NGFkZTY3YjBlOGIyY2FjN2E5YWU3ZDkzYmViNzkyOTg3MDY5MWI2NDdhY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMjE0MmU2OTRjMDkxNjU1NDVmMTkyMjdjNjBhNjE3MmI0YjYxYjFhYTc2ZjJmMmVhMTJmYmQ0ZWZiYzhkYTAifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1993-L2024",
+          "version": "repo-lines-v1:sha256:223ed117596148602a545ba6e40b83ca5c002e09a8bf1744063b5ef2a4a87d89:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3Yzk1YjkwODJhNDY0ZTMzNjEyNDk5N2E3MTgxYzk3NTBiNjk4M2Q1YzQzZThhMTEzY2Y3YzAyODc0NTYyOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4NDRiMDMxODM3NGNjZTg4ZTEzMDk0NmFmMmI2OTg2MGZkNTc2MmY0YzZmOWRjZDE0ZTk3NTU5NWZiMTc2YTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_102981d29de2409ba190112a4e9a862f",
+      "statement": "会话派发由两个可选宿主服务各出一半：sessionController.create 负责创建（应用部署的 preset 与工作区归属，使派发出来的会话与用户手动新建的一致），agents.get(sessionId).agent.followup 负责投递提示词；两者缺一报 session-unavailable，创建失败、找不到发布出来的 Agent、投递被拒都报 dispatch-failed，只有可选的 rename 失败仅 warn。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md#L27-L32",
+          "version": "repo-lines-v1:sha256:1219d1e5db57ae5471e517a80d1b3bc6aecad1d752e5113170000addfa828f43:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjczM2E4MmJjOTA1Y2E1OTZkODhmNWQ3ODdlMWYxYWI2NDI1ODQwZWE4MzNhOGY0MGVkMTBhNmY3ODAyZmQ5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk5MWRkMDEyOGE3NGRmNGUyMDllOWE4ZmVjYzE1YWI0ZWRjYTU3YzBlNDViM2YxMTNjN2IwODRiODgxYmYxMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmRjNGViMmY3NGY0ZTIyNzFhYWRlODRhODk1MGFkODgyNTA2MjYzOWY5NWVjMmExNjYzOTI3NjU3NzkxN2FmMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTVkZDRkNDJiZTUyOGJjY2Y3ZGZmN2VjYWQzYzU5MWE5N2Y4YzY3ZDNhZjkwOTEzMWY4NjE1ZmY1NWY4YTNkZCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L678-L749",
+          "version": "repo-lines-v1:sha256:c9129c6e6d4c36bfc055e687721b8633eb15a8e8746e154be47a1408515757c3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4ZGQ4Y2QyNmZhNDhhMmM0NzQ5NjU1ZmU5ZGRhYTk1ODdlZWIxZjJjOWVmNDhiNTY4YzM3ZjEwYTBiZWVkODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76a8a634a923441097b6c8f26cfd553b",
+      "statement": "github-issue 用一个 optionalService 助手集中「按字符串键取一个本包不依赖的服务」，并在清单的 peerDependenciesMeta 里把 @deepseek-ai/dsh-storage-domain 标为 optional，使「这个部署可以不装存储」在安装期与运行期各有一份对应声明。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L55-L66",
+          "version": "repo-lines-v1:sha256:ac8292cae7ed2f8a04c6e55a4d2a0c35f83ac129e12cf797110d9d7230951543:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OGY1NzQwMWFlMmEyYTcwNDc5YmI4M2UyMmMxM2QwNDRhOTJkZTZkNzRjN2FjY2Y5MWJjMzI1MDcxOTc4ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmY2FjNTM1YWNlYzE1NmVmY2NiYjk3OTNhOGQ5NWM1MzkxYWY0OGU4ODUyNjM0NTc4NTkzNjc5NGVkMGNhYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YWY1OGU4M2M2OWFhZTRlZGVmNWRmODRhODMzNjY4NDBiZWQzZjRmYzYxMmIwN2IzMDIyM2NkZjNlYWUzMTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1099-L1114",
+          "version": "repo-lines-v1:sha256:caff3a2aabee2fabc61f936c6ce7369246c6efbd7b44287821d5545b22043cfc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ZTFkYWY0YzRhYTU0NGYxOWFkZjFlYWY3NTM5MmUwY2ExN2U0N2I4M2M5MmIxOGFjZGVhYTQ2NmQxYjYyNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ZWVjNWVkNTliMDkzYTg0OTQwMGU1MjE0ZmI4OGFmNjJiMmEyMmViMmE2ZWQwNGI2ODU0NjI1ZDkwNDEyYjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f2cece65e63147539d5316fb6a18464b",
+      "statement": "没有 durable storageDomain 时 github-issue 拒绝运行每日首启检查并记一条 warn，而不是退化成每进程一次，否则重启后会为同一个 issue 再开一个会话；同一包的 telemetry 依赖是纯诊断依赖，刻意不进 static inject。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L233-L251",
+          "version": "repo-lines-v1:sha256:e8df22422503b635040495d2c5560ab2137d3229330d8ece7ea8c2c8ce5663e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZThhNTliYjc1ZDBjYjU0ZTQ1ODk0MWE2MzNiYTM3NzcwODRlOGIzODhmNjY3YmQzMTA2ZGM5NDY0NThhNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiZmViMTMyN2IyMmNkYTNlYzA4NWNkNGJkYmRkYWFiY2Q5YTM4NTBjMGVlMjczNjEzMmI3ODBhMTMyM2RjYWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L459-L467",
+          "version": "repo-lines-v1:sha256:855f12320f414406c17136ecb15c90bdf08f7567c7361493a3deaecfcfcaf439:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkYjI0YzUzNjE5NzIwNGYwOGE3ZjZkMGJmNmZhMGFjMTFlZGQ2ZDk2ODIwY2UyOTkwYmM2OTAxYzAyZWY1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmJiZTk5NmQ3MzU4ZWFiOWVjOTExZWUxMWNmYmFiZmMyZjYzZThmMjk2NGMwOTE4OGZhODQ5NWM0ZmJkMDNkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWVmNmZkN2ZlMmU2YTdkODM0YzJlY2NmNzA5ZGNlM2U2MDQ4ZDQ0MzQ5YjQwNzFjNTE2MjUxOTA3OGYwMzFhOCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L772-L794",
+          "version": "repo-lines-v1:sha256:49246ba292fb6afb363d4709b00337ae7a19a2351ada567cfedd636bf49ee603:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OTc2OTYxNWQ5MmFjNjU4MTg3YWExMjBkMDM1NWI2NzA0NDAyZjM0NWE3ZDQxMzk1ZjU1ODMwNjlkYjE2ODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f8a9d182939e4b6eac95f337f4a364e6",
+      "statement": "浏览器半边的必需服务由各包的 export const inject 声明（ui-memo 为 slots/layout/locale/theme/connection，ui-memo-settings 为 slots/locale/configForms，openwiki 预览为 slots/locale/connection），但只有两处代码真正设了守卫：两个面板的 connection 与设置页的 slots，都是 console.error 后直接 return。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L108-L135",
+          "version": "repo-lines-v1:sha256:a7085a82088891ad4005fbf0102cc3d3e5c39b7e8752302ceda943b16387e6f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MTk4OWU4Yjk1ZTZmY2EzNGJiZjQ4NWM3YTkzZGQyZDViNzk1YmFlM2U0ZjdmMDNlZjQyMWUzMjRkMWEyZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NTRiNWI4ZjlmMjNmMzQwYWQ1OTg4ZmM5N2ZiMzI3YmM0Y2EyMTYyNmM2NTdhN2IyOWFjOTQwN2RhMGZlYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxNTM5ZWNhZGVhOWRjZGU5YTI1MzJkMmU2OTgxYmI5ZTQyMTcwMGYwZjQxOWVhMDI1NTFmOGRlYTFjZjYwNWYifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/index.ts#L63-L67",
+          "version": "repo-lines-v1:sha256:f691d263d9a7c1dcbecf700eef15ab5150f6162bab74bd67a1eaacf1b3f35963:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE4NGVmNDFmODU1NWQ3OTA3OTkwOWYzMDc3Yjk4NmQ1YjQzYjkyY2YxNzZhOWQ0ZjM2MzRkODdmOWY1MDVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ2ZTE1ZmRjNjIxZjc5YjkzYzhiYzZhYjUzMGY5NGNjZDEzMTAzODg0MDg3ODU4ZDNiY2Q4NTc5MTYyNjcwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTg2ZTNiNGRhMzhjNGRhYWFkNjAyZmZjOTQwNWIzYjdiMTZiNWUwMmQyMDU5MTZkYzExYjQ1OWRmN2ZiNjBkZiJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L86-L115",
+          "version": "repo-lines-v1:sha256:1d91d2f2e583ce67fd4689ce36d5976946a2ed7cc44c2d321951896944a37b3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NWJlN2EwMDlhNmJkZjMwN2IyYTMyZDc1NjNhOWMxNjk2YWFmOTJhODhhYzk0YTUyYzFjODQ0NGQzZTg1YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4ZjdmNTNjYTkwODM0MmJiYWZmNjJkODAxN2U0MWZiNmY3MTU1YjJhZTgxZDc2ZmMwMTJjOWVjZmI3NjdlNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_46cf17162bbc4a19b9bf133aa98c35d6",
+      "statement": "openwiki 预览把右侧栏标签页类型通过作用域 ctx.inject(['sidebarRightTabs']) 注册而不是在 apply 时一次 ctx.get，因为右侧栏插件可能排在它之后挂载，一次读取会静默什么都不注册；sidebarRight 则纯可选读，openTab 一定调用，只有能判断时才补一次展开。",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L122-L162",
+          "version": "repo-lines-v1:sha256:67eac145ad3dac0db5443d972c0f2970877c29886de80d4be1997ce6314ec98a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxNDVjMWFmOWQzODE4MzJlYzBkYTZhOWZhNjVlMmY0YzE2MDVmMTdjMmM0OWE5NDEzMjlkY2E4MmZiYWY1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3ZTNhMmY0MDBjNjUzOTk4NmZiNTdhMmU0MWIzNWNmZjQ2M2U3N2U1M2E5ZmNmMTk4N2JjYmFkZjhlOWY3ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZGU5MjU3OWIwMDNlZTg1ZjcwNDczYzgwY2QxODg0NjllMTQ2NDk0ODk0M2JjYTdlNDM5OWVmYTM0NDI4MDkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/index.ts#L60-L84",
+          "version": "repo-lines-v1:sha256:1e6d24fd24a1ff7da70c355c0d4124578abeff05a87910ca311f00cca5c6e3f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyM2ViYTcwOGM5MWQyODIzOTM5NDVhM2UzOTZkNTQ5NDdlZjg0OGYyNDAwNDA4MmMzMTMzZmRhOGM3ZDM5ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzNzgzZGMzZWFkZGRmZDVmYmRiNzdhZjQ5ZjIxMzZiZmZhYTM2NDdjNDRlNTU1ODczYjBiODlkZTk0NjQ4ZWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b81a1d8f6f424c268edf3f2b784fa3c0",
+      "statement": "服务键、dsh.client.inject 的包行与产物里的 require 是三套彼此独立的名字：slots 被三个浏览器包 inject 却没有任何包声明 @deepseek-ai/dsh-client-ui-slots（它是 PLATFORM_MODULES 平台种子），而右侧栏两个服务连包行和 peerDependencies 都没有。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L41",
+          "version": "repo-lines-v1:sha256:ecb9b0fdc932f29dfc5574d5e48bdcfe58cddd06e1b02bd97e66e8689c851f6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwMmExODcyMTA3NDIzOTllYmM1YzQyMjcxYmY2YjMwYmRkYjMwZDA1N2YxMGE4MzViYzQ2MmNhZTY5Yjc3YzQifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L71",
+          "version": "repo-lines-v1:sha256:a4d5ff4b2ce49f3cfde3087fd5391df047a71447bc40dac0b60eab0b9130e79e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlZDE3ZThhM2FiMmQzOWEyODI5MmUxZDE4ODM2NmYxM2RiNzZlMGIwZmI0MDZmNzQ1YjMyNGIwZjg4ZGJhOGYifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L43-L65",
+          "version": "repo-lines-v1:sha256:bda069f8d7fb2b13ad005fe2befd03426fd6fcb078d7a7955a083e55617c4608:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkM2I2YzViOTQ0MjJhN2MwNGYwMDkzMzgxYmY4ZDE3MDdlNmVjY2E2Zjc4NzMyMWE2Nzk0ZWEzZGYxNjQ1MmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjZjU0NDFmYTE3OTVmNzFmNzYxMGU0NmM2NzM5NGI3NTUxZTY5YTNhOWYzYzBmMzNiYzZmZWZlYWNkODBiOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmZTllNmRiYzM5NDM4OWM5Nzg5NjRlYTA5ZTdlMmNlMzQ5ZmY5ZDk5OGY4YTQ5ZGM4YmUzYmFkMTIwNTNlYmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_82452ee107f54262aea9b6ce1c96f321",
+      "statement": "浏览器半边的 require 只能由三类 specifier 应答——平台种子、dsh.client.inject 声明的行、dsh.client.external 声明的精确 specifier——因此一个面板无法直接够到宿主 llm/fs/sessionQuery 这类服务，只能走 Remote；模型目录必须由 memo/listModels 代理回浏览器，因为浏览器侧 Remote 面没有 listModels。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-09-15-ui-memo-model-switcher-design.md#L20-L23",
+          "version": "repo-lines-v1:sha256:b8791a56e5910455c87d84199a8e11509367b7d710dd0d934daaab20b1bdb87b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmI3MGZjOThjZjY4NjFkN2E4YjZlZTE5M2U1YjY2MGY2ZTFlZGRiNjQ0YTZlMGQ3YjliMGY5NTUwYWViYzg0OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTI1NWZjMjI1ZWFhOTcxMjkwMDlmOTliMGI1NWU2ZWYyMzU2MDdiZTNiMDg5MzI3NzIyMzk5NmQ5OTk5YTA3MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmY2NWI2YTA3OGNjODRmYTE1ZTE0MWExMmQxNTY1MzNhNWM2MzU3YzY1ZTk4OGM5OGM0ZTg3N2YyMzE2MTU5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk3NTcxN2Y2OTcyZTgzZTE3MzQxOWRkY2M4ZjQ3OWM1N2IyMjBjNDViNGU0YjQ0NjQ3ODc0NzUwM2VkOThhZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1179-L1200",
+          "version": "repo-lines-v1:sha256:cb4c4231235ed4f4b43e617f07b7df8da12cd225166025c279cec40c7d1b05eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTRjNWU4ZTlhZjNmNGRiZjQ3OTliMTY4MTNhYzdlZmM2OWU2Y2ZhNjZlZTQ5MTQyMjAzMjM2MjAyMDYwZTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwOTdlNjVjOTMyYmJlOGUyNDViZWQ4NTJhZWJlNzU2ZTgzNDA4MGRiM2E4MzAyYzM1NTM1NDNlNTA3MTk1YmUifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L20-L26",
+          "version": "repo-lines-v1:sha256:835a2d249c8974c88283439decffc3cde2b6a5ea95de31bbd9bea39646a6dcd0:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2EzY2UxZTkwN2YwYTcyY2Y3NmQ4YTM5ZWMzMmM2N2E1OTk0NzcyZjk5ODAwZDQyNTdjYzFkMDJmZjJkY2ZhMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDU4ZWMwMDhjMDZmZjFiZDczZjZlYTgwMWM0Njg0MmE3NzEwN2JlMjQwNDliOTUzNzI4OGRlNWU5ODlmOWEzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZhOGNjODFhNzQ2MzIyMmUwYjA3YjY3M2RkNGFlMTFmNTc5MDdjZWNhOWQyZGE2MzYzMGU4ZjIyZGJiNWViNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDJhZmZhNWZkMWEyN2ExY2NiZTExZWYzZWE0YWRmNjU1NDRlMDVkMTA0OWYzYTFlMDJlMjM2ODBhOTgyMjY1YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_00dd75ed2d084f2888b4fb16d7c75b3b",
+      "statement": "设置页只在宿主提供对应命名空间时才注册 settings.section（configForms.whileServed），所以没装备忘或 github-issue 宿主的部署里看不到任何空白设置页；页面写入也以宿主快照为唯一真值，逐字段 set/unset 并由宿主 revision 栅栏决定接受与否。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/draft.ts#L181-L231",
+          "version": "repo-lines-v1:sha256:35fe83f5e5683af64390e594a8f1798335a77a5ef55f63a29dd742bc2783b273:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1ZTgwMzFmODc1OTJkZGQ2MWI3NzU5MWI0ZjAxNGFjNzc3OGNmMzFiY2ZmY2Y2Y2EzZmYyZTM2ODYyYTY4ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4MzI0OGU2ZDA0NjA4ZmJkNmEyOGJmN2Q5MzEwMGExY2I1ZjgxMDAzM2QyZjQyYTA1YzcxNTM4MjdlZmFjZWEifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L137-L193",
+          "version": "repo-lines-v1:sha256:8c6f96a799f9aedb95d295f997f92148aa5d1e85bee8035551fcfbab131bd78f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODBhOTI4YjdlZmNiODI0ZTZjMzBlNTk2NmUwYjFlOTNlMzBiNzU4ODExMDUwYmRjYTZjYThlOWZkYTY5ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZmVjNDUzN2I2ZWIxMWMwNWM5ZWE0OTBmMjhlYjY2NDk0YjZlOWM4NjBlNDBmNTc2Yjk0ZDRmMzY4MGVjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNDRmZTAyMWE3MDBmY2E1MzYyMThkZTkxZmZjNGY0YzdkYWFjY2FjMGY0MjAyYjY5NDYwMDRhOWIzZTJiZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9fb5a1a9394e4fef8d0e820332f85db1",
+      "statement": "这份契约没有编译期执行点，全靠手写宿主替身钉住：session-summary.spec.ts 自定义 MockWorkspaceRegistry/MockSessionQuery 断言缺服务返回 session-service-unavailable、external-path.spec.ts 断言五类 fs 失败码并断言 readExternalPath 不在 Remote 端点表里、intake-harness 的 withoutStorage 与 withoutSessionServices 覆盖 github-issue 的两个缺席分支。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L135-L189",
+          "version": "repo-lines-v1:sha256:81bd246549cf695fc146a209147cd45bc9b77340b61df4f37df268078553e0b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwN2UxYWIwZjAxZGQyM2U5ZTNkOGY5OGVhMmFkOTA4MDY2YTUyZjlmZWJkMjM0YzEyYmVjNGJmYmUyOWZkYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGFjYWJkMGY4NTk1NmMxZDhhZWVmMGMxYzkyZDAwOTk0MGVlMWZkZTUyNGE4NDFmZTAzMzA3YzExZmIxYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjNThiMGYyYjA5NDk0NGQyOGYxZWQyMWUxNzA1MWZjMjE5MjE2Y2MwY2EwY2IxMmU5NDMxZDQzNDQ5MzdiNmIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L98-L200",
+          "version": "repo-lines-v1:sha256:7d5b8616511a7096f23924bfcc0379e6dd0173d2673baab0ba27a77fa6c21cae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4OTNhY2U0ZDQxODVkMTZkNTI1ODg5OWU0MjY5YzA1NTU0NGMyODJlMzJjZjc0M2UyZjgxNTNmMTFjYjg5ODQ4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1YWY4MzkxOGM5YmJlODgzOTZjNGYyMDQ3MDhkODliNDk4ZmYyNTZmNGE5ZGRlMWY2MWE5ZGRmYWVkMjg1ZmQ4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/session-summary.spec.ts#L175-L199",
+          "version": "repo-lines-v1:sha256:a1a2f1bef9045e762a22d801c2f41402a0c6785c936fca5f9d8282758458faa0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiOWE4MDIwZjkyOTIzZTU5MGNiZGY2MTQ1NjFkYTkxMGZkYWMzNzhkNDBmYzJiM2UyYWVmZjUyMWFmYWFiNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzA3YWIzMTRmNWUwNTJlYjFkMzc4Yzk1MmVmYTU1ZTFhMDIzYTQ4NGE2ODZmOWIzMWY4YWZlNjczNjljMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NjEwYWQyMzhkYWY0ZTcxYTBhNGU2MGNmNjVlMjE3YzBkYjMxMTNiYWY3Mjk4Mjk3MTVmZWZkZmZmMWRjYmYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:4446f926bb3f4affb44c57634e2c86a74d62070f040b552346855d237a2c3e26",
+  "claims": [
+    {
+      "id": "claim_0df6b926d2da4c04a0d103da7baf46ff",
+      "statement": "所有改动都必须从最新 main 切出的分支出发，本地 `pnpm run gates` 全绿后才开 PR，PR 门禁通过后 squash-merge 并删分支；从 Issue 开始的工作也遵循同一序列，没有「小改动」或维护者例外。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L69-L83",
+          "version": "repo-lines-v1:sha256:e0568558f9bd65ef551b87d1d205bbc18d813d845ce46113c2333752d19d22e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2N2QwMWJhZjcwMDc2NzBjNGYxNjViZGEwYzZjMDJkNmM3ZTM5YTdkMzljMDVkMWExMTg5YWMwZGQ4ZTgyNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkN2I4YTJjYWNiMjM0ZjEzZmVjODhiYWVjZTI5YzUzMWNmNDhlZjE4NzdjOGFiMDViM2E0NDE3ZDU1MWU2NmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzMDUzOGY5OTIyZjg4YjYwM2I2MmY3YmM1ZTcwNTZiNDNiZGRjOTIxMGQzODM4OGI0OWY4ZmE4OWU3NzcxYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkODE4NDc2MGU3NDc5MjRjMjY1ZmUyZDcwMDZkMjRmOGNkODdjOGE3NTI0ZWE4ZWYxNTE5MjliMjFhNmE4YzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ecd538dcdda842a48f722983eba4aea8",
+      "statement": "`pnpm run gates` 的 check-all 聚合由 11 个门禁组成（test、build、package-exports、client-bundle-id、bundle-entries、publish-guard、export-jsdoc、translation-pairing、markdown-links、markdown-wrap 与 issue-policy），其中读取产物的事实门禁声明 `needs: ['build']`，本地模式并发上限为 4 个 worker 并可由 `DSH_GATE_CONCURRENCY` 覆盖。",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L9-L23",
+          "version": "repo-lines-v1:sha256:1e29444fc03a65dd830b461902de4a5b3596c3c66cef5548908c19b0ecc1d477:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NDA2OTg0YmRlZmNhMzRkZDZiYzkwMDI3ZjFkMTFhYmNiMTcwMzRjNTI1YzlhNWNlZmExZDg0ZmNjZDgxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1NzIxYmQ0MDg2NzBiOTExYjhmMDgxMTFmZjhiM2JlMzY4YjNiM2FmZjcyZTM2NDAzOWEwNTIzZWM1MTNiMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNjZiZjdjZmE2N2E4MjJlMGQ2ZWUwMmU3ODcwMjQ1NDk3Nzc0MmZkYzFkNTU3OWNkYWExYTUzMjdiMGYzMzQifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L107-L132",
+          "version": "repo-lines-v1:sha256:5f10b593f77a039e92e8bcca6640e21f99ad4e76ae38d10a9572f00d713f855a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZGVhYzJjNDBkMTFhYWU5ZjhiNTY2ZTYzZDZlODNkNzM2NGU4OWE3Y2I4YTNmMDRmMzhlMDc4OWUxYTUzNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwMDBiYTY1ZGYzMGMzYTA1MDY4OWEzZmUwYWU4OTg5ZTRhNDJiMzAxMmQ4NGM3NmYzZDU1ODRkZDAzMmQxMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMTQ3NDRlNTMyYTg4ZjhhNjFlYmYxZWVjMTUxNTU2OTRlYzhiZTdkMDE0MWRkMDYyNjE5YTUzODZiNjM0ZTYifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L172-L223",
+          "version": "repo-lines-v1:sha256:be21351efb7e0d090f8887996b8d0bf2df577c9a7a5e1913e329aace68a69516:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OWE3NjdkNWRlMWIzMTg5ZDk4NDQ1N2I2NTAzNjM0ZGRkYmE3MzY4Y2ExOWIyZWUzZjA0MDFiMmFlMTEwNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyOTQyZmFhM2IyOWQ1YmQwMjUzZDAwZTcwOTgzMTlmMjIwOTBkODI4NTViZmExYzI5MWQ3N2NhNTQ0NjNmYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2ZjZTkxMzQ4Y2IzYjFlMzQ2YjJlYmJlYzBhM2E0NWU5ZWNmOWYwYmNmNzhkYjgzNmNiMjU2YWI4OWQxY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f3ccdafbaf64448791beac4fca589982",
+      "statement": "发布只能用 `pnpm publish`：每个声明 `workspace:` range 的包都以 `prepublishOnly` 运行 `scripts/publish-guard.mjs`，该守卫在 packer 不是 pnpm 时（以及无法识别 packer 时一律）中止发布，而 `pnpm run verify-publish-guard` 保证这条接线不被摘掉。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L39-L43",
+          "version": "repo-lines-v1:sha256:119541bb6a4ea21dd34b3c5afe2ab526ddbd48238df741d6c3c3a11aa2da8ca9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg0MDY5ODRiZGVmY2EzNGRkNmJjOTAwMjdmMWQxMWFiY2IxNzAzNGM1MjVjOWE1Y2VmYTFkODRmY2NkODFkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOTQ5ODU1MjZjMWM1N2VmMDBjMDBkM2Y0ZGM5MDYxNTY3N2EwYTM2YThiNzk1ZGZmOWFmZmQ1MGZlOWY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNhZDZhNjFlOTAwOWU5NDZjMTY5ZWYzMGU2YTQyZmQ5YmFmN2JmMWEwNTNhMmE3ZDc4ZTBhYTFiM2Y5NWY2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDNjZWZlYTRlY2NkOWQ0N2FhODkzMmFmODhkY2ZlYjhjODMxYTIwNTU5MzA2ZjMzYzBkM2JjZmRkZGE0Y2ZmYyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L48-L52",
+          "version": "repo-lines-v1:sha256:119541bb6a4ea21dd34b3c5afe2ab526ddbd48238df741d6c3c3a11aa2da8ca9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg0MDY5ODRiZGVmY2EzNGRkNmJjOTAwMjdmMWQxMWFiY2IxNzAzNGM1MjVjOWE1Y2VmYTFkODRmY2NkODFkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOTQ5ODU1MjZjMWM1N2VmMDBjMDBkM2Y0ZGM5MDYxNTY3N2EwYTM2YThiNzk1ZGZmOWFmZmQ1MGZlOWY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2Q3ODBjZGM2YWRmMDljM2Y0YWEyN2E4OGYyYjFlNmI3N2VmOTMxMjMwN2Y5N2VlZDM5NWIxNzdlNTM5Yzk0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDNjZWZlYTRlY2NkOWQ0N2FhODkzMmFmODhkY2ZlYjhjODMxYTIwNTU5MzA2ZjMzYzBkM2JjZmRkZGE0Y2ZmYyJ9"
+        },
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L1-L26",
+          "version": "repo-lines-v1:sha256:14d517aa81beef81f68420d800d5ae46e67f66561562b0c48aa990b9b12b9dd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3Y2MwMmYzY2Q1ODFkM2Q0NDY4NDUxOTEwYmE2Y2Y4OGE2NDRmMDQxYjExNDQ3MTI3ZDYxMjdjY2ViMTFlZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f2b265aa5df4dc086aa01d9b03b7003",
+      "statement": "部署可变的值（URL、端点、端口、阈值、提示词片段、存储路径）必须是校验过的 schemastery `Config` 字段并在 `cordis.patch.yml` 里由部署覆盖，不得在代码中内联；要支持 Settings 免重启修改还必须放在 `.volatile()` 节点下并在用点读 getter，`DEFAULT_*` 常量与测试钩子不算可配置性。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L95-L99",
+          "version": "repo-lines-v1:sha256:f80734eb8d44a91059a302378ccff0ec3fabb54b258e99cef0e905cef39f940e:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ4NjYyNTdlODVlNDVkZDQwMzVkMDUyNmNkOGVhYTc0NWQyMmNlMDdiZWRiNzc0MGMzMmQ3NjdlZDM4MDQ1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRiYTJkM2MxODVhYmY1NTRhODJjZmUzYzg3MmIxZTgwZTBjOGEwYjI2NWZiOTdkOWQ0YWE1ZTZiYTJkZjJjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L16-L38",
+          "version": "repo-lines-v1:sha256:3838da75ab1d19732d66a2dc69533e50472a2461bd376535d183b6763b0e6603:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkYTFmYmU1NGI1OWRmZWZiMGZiYTI4MzdiZDRlZmE2MjIxNGFmNzAyMGVlYzY2OWZjZTFjZDBkODY1ODY3YzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NmY2ODE0ZjBjODE2YTYxMzViMDgzNDNiMjhiYTUxNTQ4OWQ3YmYzZjFiMjYzZjczYWFkOTJiYWMxMjYwNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExOThjN2VlYTU2ZDA3OWM4NDZlMGZiYzJjMmM4MjM4MjdmMjVkOWVhMjUxZTdlNTQyNjI0NTQxMWY0YzhkYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_723c01233a20443c96bf65ad7d18d3e7",
+      "statement": "组合入口 id 的归属是：`telemetry` 属 `@zhangj1164/dsh-telemetry`、`github-issue` 属 `@zhangj1164/dsh-github-issue`、`memo` 与 `ui-memo` 两行都由 `@zhangj1164/dsh-memo` 的 patch 插入、`ui-memo-settings` 属 `@zhangj1164/dsh-client-ui-memo-settings`、`openwiki-visualize` 一行同时带上该包的宿主与浏览器两半；`@zhangj1164/dsh-client-ui-memo` 自己没有 bundle。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/cordis.patch.yml#L19-L20",
+          "version": "repo-lines-v1:sha256:3d61e84a98f31db27f176f19e71ad2a8c5a38c17f938e37dbdfd948c9c5cb9f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzcyYWJiZmNjODFlYmM0YjJiZWYzZWJlNTU1OWFlNWEyZjM0NWRjNzBhNjNkODk2MGRhMzdjZGE1NDg1ZDVjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzIxNjY5NzJiMjNhM2U3NjhlY2QwMzQwOTNkYzAxY2Q4NzljYjMxYWE2ZTZhODA2MGM0YmJiODIzN2RmYzQ1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjk2MDk3ZTEyNzNiNDczNmFjZWZlMzJhNzYxMDc4NDg2ODM3NGY2ZWI2NWVhZWZiYjA0YzE5NzdlMmZhMzM5NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L27-L28",
+          "version": "repo-lines-v1:sha256:1471df6d410b3cf689a64dbf65d69837497032c122ee293cd1b2f20a619d4403:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTNiYjQyYzNkYjAxYmMzZjhhNzFhODcwMzU2ZmY2MmNiMGZkOGM0MDNhNzQ3MTIwOTEwNTcxNTUxNTUxNGE0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U2MjlhMGU0NmM0MzI1YTA5MjRkYjNkYjUxZjBiNjM3ZmZlOGQ2MzBkMzQ0ZTZjNzRjYzM3ZTQzNzA0NWIxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDdkYjFkOGMzMGNmYjU3YmZjOTdlMGJhNzdjYjM2NjA4ODhjY2NhYmVkMGQ0OGYwNzY2MDEyNzhkZThiYWE1MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmExYTI1ZTFhMDEwNThjYmI1MmQ4ZjBjNDE3YjBhNTY4MTk3OTg1OGRiMTU4Njg3M2U4MGVhNDJmNGE3MWFiYSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L16-L27",
+          "version": "repo-lines-v1:sha256:62763dc606223d171630a3ad65c96f72cb95392022beb0bb02a69a3cf9180b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMGU0MmQ2ZjliNDYxOTc1M2RkNzI5NWUwNmZhODczOTRkYzY3NjA5NTc4MTY5NGZkYjJjZTBiZDczN2NkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NDI3YjM0MWVlMDg5YmY4ZDhkNTUwZDdlNjIxY2ZmODkwMjE5ODg5MDgyOWUxZGQ0ZDVkZDhhNjMyOTNmNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L19-L21",
+          "version": "repo-lines-v1:sha256:ead0fdd393a93421a5b64d6a24d72d9707502b24bb1b8c7abd76dec581193430:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzNhNDJlMGZjZjgwNzZjODUwZjBhYWRlOWExNjBhOTY0OWIwNTQ3NzM0MmE3MTcwZDZiYWZmNzc2M2ZhNGFhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzNlMTI3NGY0MmI4NzZhMGE1ZDRkNjFmZGJlMzY0MjRhNDVkNWRlN2RlYWYxMWYwMjY1OTA1NjYyNTA2OWM0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTIwNTg0ODhiNDU4ZjY4NGRiNDZiYjlmOWYwYjdmYmVhNjUxNjY1YjM5ZDZjNTI0MWNiOWUwNTVjMWJhNGNhOSJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/cordis.patch.yml#L6-L7",
+          "version": "repo-lines-v1:sha256:0de0bc584a1d8b2eccd24bf864dbf824d1af91f8ff2cbd6c84f1ffdc45114bb7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzU4OTJlOWE4MWVhNDk4ODlhYTExOWU3MTM4OTYwOTJlYjRhMTg1ZDBiZWM0MzBkZDgxMGUzNDJiN2JjYWEwYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRjMzQ1Mzk2YjQ1ZTYxMjZiZjIzMWEzZDdiNjZmOGNjOTdjMmM0ZDk4ZjNjNDZiMzZkZmFlNmRhY2E0MzViNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2U5YTY0OWUyNDZkOTQzNmVkZjdmNTQ2ZGZkYTE1ZjE1YzJjN2U5ZThiMWZmMWU0YjY3YmVmOGFlNzY1MjdmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWE4ZDQ5M2I5OTA4NjY1ODQ5ZjY2YjZlOTQ5MDFhYzExZTMyMDVmYzBhMDI1YTg5MzUzMDZjM2E0NDU5MTI3ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0609c778adc44bbb8398470b79f76782",
+      "statement": "`MemoService` 静态 inject `storageDomain`、`telemetry` 与 `githubIssue`，而 profile 的 `autoInstallPeers: false` 只安装命令点名的包，所以单装 `@zhangj1164/dsh-memo` 会让依赖行解析不到并启动失败；`GithubIssueService` 只静态 inject `llm`，用 `ctx.get()` 可选读取 telemetry，缺席时照常工作只是不留日志。",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L28-L42",
+          "version": "repo-lines-v1:sha256:74b9ebe9e42b41d46c40a6794c5f73fb55b3b82e8f396617afeb420e0ccd7bfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1MjQ5YzExYjY2OWNhNWVmOWJhNWIzODIxM2QxN2JmMjQxZDIwMTNhMTk3MGJlZTVmYWVjNmM4MjU0YTNiM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiNDZiODRkZGM2NDUxMzA4MGU1MDBiYmZkZGU2ZGEwZjRjNzExODdiY2FkYWFmOTZiNjk0OWUzZGIyYjNhMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNzI2ZDAyMGY1YzlkMWNjMWFhN2QwOWRjMzg3OTI5NGRhMGM2MWYzYzFkOTk4ZGQ3ODU4YjgxZDdjZTBlZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmMDQyNzVmYWIxNDY3MzdjOWYwYjkxM2U3NTNkNjY5ODhmZGY1YzYyNGZhYzk2YTIyODQ0MDk3MzM5Yzg5NzcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L385-L385",
+          "version": "repo-lines-v1:sha256:d005551d685d16eebfe0422851e162ddd03d12eccf9af37f6d607c4a40fe2714:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDAwNTU1MWQ2ODVkMTZlZWJmZTA0MjI4NTFlMTYyZGRkMDNkMTJlY2NmOWFmMzdmNmQ2MDdjNGE0MGZlMjcxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDAwNTU1MWQ2ODVkMTZlZWJmZTA0MjI4NTFlMTYyZGRkMDNkMTJlY2NmOWFmMzdmNmQ2MDdjNGE0MGZlMjcxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTlmNWFkODgxMmUwNzdjMWUwZTk1ZDk3NWJjZTc0MWI3MTc5N2Q1YTlmYTNmYzUwNDMyNGIyODNmNGExMjhkNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2I2MmNhNzYyOWQ0MDc2Zjc0NmQxMjllMDI4YmNmNTE4YTM1NmY3NDUzZTE3ZTBhNGY5YWRhNWZjOTVkYTRlZiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L650-L650",
+          "version": "repo-lines-v1:sha256:852f82151f4c6b8eed82b7b5ccf3a3b56ae367c750fedfe9eadd253f1329394b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODUyZjgyMTUxZjRjNmI4ZWVkODJiN2I1Y2NmM2EzYjU2YWUzNjdjNzUwZmVkZmU5ZWFkZDI1M2YxMzI5Mzk0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODUyZjgyMTUxZjRjNmI4ZWVkODJiN2I1Y2NmM2EzYjU2YWUzNjdjNzUwZmVkZmU5ZWFkZDI1M2YxMzI5Mzk0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzVmMjViYWRiN2Q1OGEzZjFlNjk1MzFkNTM2ZDNmOGE1MWY5ZDEzMDE1ZmRhMDM0NmRlNGQzMmI5ZjE0ZGYxOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjBhY2UxMmFkNzcxNTFkNjYxYmY2M2Q1Y2MxZjg3NzQ3NTg0MmExYmM1NmY0OTA4YTc5NTJkNzRmOGJhNjQ1NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd62a4ac042344428bc05f95424616b7",
+      "statement": "浏览器半边访问宿主只有四条通道：看板经单一 `callRemote` 包装分别调用 `memo` 与 `githubIssue` 两个 Remote 命名空间，OpenWiki 预览调 `openwikiVisualize`，而设置页只通过 `configForms` 读写两个 Loader 行的 volatile 配置；浏览器半边之间没有跨包引用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L109-L172",
+          "version": "repo-lines-v1:sha256:0259b976bf1b8a5009fec7c84eaa7e76e82678f58972ad83c0050202ac2709cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0ZWQyMzIxZGU0NDAzNmYyZGZkNzJiODllNmZjMWU0YzEyZjcwZDg4NzJjZTFhZjMzYzQ5MGYyMWVmN2Y2NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhYjI0OTdiNTEzYjUyODVjYzBkMDdlMjMyNTcxY2Y2YTVlOTMxMWNhYjY0ODAyMGM3YTQzNjY4NWEyMDk4YTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyNjU2YzZmOWIyNTNmMWE4NjQzMzA1NDgwOTZlNmE1NzIyNmQ5NjUwODIyYjJjMWZkODNjNmVlMzEwMDM5OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmZmQwODcwN2Y1ZjYxOWRjOGMyYzUyYTZlOWE0MjEyNWVlYmVhYWJiY2E5ZTY5MTFiMWEwZWQ1NzUxNTBlZTgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L95-L140",
+          "version": "repo-lines-v1:sha256:810f71aae835957ae4d081df1a1558c9db7a2c5a9f8b530bbb361b2bf9c1e360:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiOWYyZmFkNTEyYWFkNjdjM2U3NTgwZmUzNTM5YTMwNzA1NTljMjRlMTQzMTViMDI0MTQ1ZDFlMzA3MDFkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxYTE2M2M3MjY5MTNmNWMzMDFmMDVlNzg0ZmIzYzhjMDk5OTE2YmY4ZTA1NTQ5NjgzZTRhYjMzMWMzYjllODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNjY4YWY4MDNiMjk2MzM5YjQwYTgyMDcyNWU5MTZiMjc5Nzk4ZmFmYjBiOTIzNmFhZTkyNGFhMTJmODNmM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ODRhYmE1NTBkMjY5MjlmNjA3NzJjNzgxYzcxY2RiMjZjMGQ4MjJlYmIyYWNhMjY3Y2I3Mzk4MDY0NGY0OTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69a751255ffe4838a2aea8eb8a6b60ff",
+      "statement": "根 `vitest.config.ts` 从 `packages/*/*/tests/**/*.spec.{ts,tsx}` 与 `scripts/tests/**/*.spec.ts` 发现全部测试，全局应用 `standardDecorators()` 以支持 `@Remote` 这类标准装饰器，并把 React/ReactDOM/jsx-runtime 钉到 `packages/client/ui-memo` 解析到的那一份。",
+      "evidence": [
+        {
+          "resource": "repo://vitest.config.ts#L1-L60",
+          "version": "repo-lines-v1:sha256:a9877a9be064e17d61c9073052399f507c58fcca81533decd64fd0b7947e31d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NDI2NWQ4NWRiZjIwNGI5YjZiYzU2NWIzYjFlMmY5OThhZmEwMjYwMDQ2MzA2OWQ5MDY0YmQ2MmMyYjVjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a21e6ab768949cd937e9ca159d8d06d",
+      "statement": "面板发起的 Remote 调用发生在 turn 之间，`ctx.approval.request()` 需要 open turn 与 `agent`，因此敏感宿主能力只有两种合规形态：不注册 `@Remote` 留在宿主内部（如 `readExternalPath`），或包装成 turn 内 tool 走 `ctx.approval`。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L99-L99",
+          "version": "repo-lines-v1:sha256:6b3c7eccd2fdb232f9936a18d35a3535b5881dae209862daa2b5f71ffbd67146:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ5ODI0ODYxYTkwZGQ1MjBhYzkzYjZhMDcxNTA4ZjVjOWE4NmE3MzBjYjAzMjBhNjFlNzNiYTNjMWMyNTEzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

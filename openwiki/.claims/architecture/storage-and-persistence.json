@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d0f74def7a5bac737f3a4aeff5e63ab20504fb88fda6c7e3fe489c41ae3471cb",
+  "pageVersion": "sha256:59c3aa20978117617ecd03342fceaf88abf2f699d3e8daf86968a9239ba90769",
   "claims": [
     {
       "id": "claim_d569a3d2140d4178a00393995ca3e4df",
@@ -569,6 +569,112 @@
         {
           "resource": "repo://packages/memo/dsh-memo/src/spec.ts#L34-L57",
           "version": "repo-lines-v1:sha256:2ce80040a236664aea07b2b236ed1064daf08675e164b5e1554d86104dfc683c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyNDliYjU3YmFiN2UwYTdhNWRiMjg1M2ZkNDFhZjFhMmM2N2ZlNDIxMmNkNzNmMmY0YzEwNDNmNjhiMzc4YjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxNDNkYmYyMzA3YzQwMWE1ZWMwNjYxMGIwNGE5N2FiYTA5MWUxZmE1YmUzMDk1YzJjMTJiMzcyNWIxZTkwOGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4Y2Y2NmMwZDJhYmIyMmE2NTc3MGRjYTg1ZTg2NWE4ZGFlYmI4NjIwZTg0M2VhYmQ0NDNlZDcwYmVkMmMzMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiN2I1MmQzYTJjN2E4MzMzNjA3OTNjMzNjZGQ1NGNkZjg2NTdkZjlmNWIyOGUwYjE2OWU0OGVmMmI0Yjk5M2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69f11c360abb4f129c75377482b2e361",
+      "statement": "三个服务对 storage-domain 的依赖强度不同，因而介质缺席/损坏的后果不同：TelemetryService 与 MemoService 把 storageDomain 放进 static inject（缺席即不挂载），而 GithubIssueService 只 inject 'llm'，通过 optionalService(ctx, 'storageDomain') 读取并用动态 import 构造接单域，因此缺存储时它照常挂载、只关掉每日检查。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L384-L386",
+          "version": "repo-lines-v1:sha256:989eaabda088dd1b1a31de73c921905babce96b6e544a13ef598cd21b79732cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk2YzdmNDA3MjZkYzBlZjZmYWNmZmQ0NDY3ZTdkYmIzOGMxMjU2YzczMWFhYThhNGQ4MTc1M2RiOGEwYTQzOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ2YWI2ZTY4MDg2ZjRiN2RjYWIwMzE1ZmZlZTBjYWQxMTM1NjEwM2Y4YzE2NGUzNjk1YjhiNGJkYzk4MGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk3MTJhODVjMGY2OTRkYjAzMzIzNDdmNTA4NWU0MzQ1ZDRhYmUzMTNjMjdiZTNiNjlhNjdlZmMyMDJlMDZhYSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L779-L794",
+          "version": "repo-lines-v1:sha256:1316058662ee7e71260fa98ce874213ab51b5507a07174b950934e9a55c73dad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ZGEwMmRlMTA5MDUwNmZhN2FjN2MzODJkN2JkMTJmOWI5ZjM2NTY2MmNiNDQyZTVhZTA2YzkwNzNlZjk1ZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2ZTYzODY1YzE4NWMyNjQ5ZDZiNDUxZTJkNGFjNGQwYTFkMjBkOGM1MzIxNDU1NTVkM2Y0MzU4ZTkwYjExY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OTc2OTYxNWQ5MmFjNjU4MTg3YWExMjBkMDM1NWI2NzA0NDAyZjM0NWE3ZDQxMzk1ZjU1ODMwNjlkYjE2ODMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/spec.ts#L49-L69",
+          "version": "repo-lines-v1:sha256:52688bfdb635e2c63fb6007db0eb32fe1ad6152d88e1c10f74822f11970190dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMDBjODlhY2UzNTBlYWM0ZjIzNzg3MTE0MzM0YTRjZTMxNDI0NDdmYmU4MWE2OWQ3MzY1MDVkYzczMGYwYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L649-L651",
+          "version": "repo-lines-v1:sha256:cabaca5c626e4d384496579025d0904cc07d38a53f103abb79ee08062eae944d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc2MDU3Y2Y5NjBiNGM5YWE2Y2FjY2M2YTk2MTA5ODI2ODE3NWEzMjBkMjUyYzk3MmM1N2VjNzcwNmQ5ZDFhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWU5YjkxM2Q1ZTVhZWM2MTJiNTkyNDhmNWQ2NTcwM2MzNTgwMjk3MTM4OWJhYzk2ZmFmZDc1MTc0OTQxNTcwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU2YzVhZmE2YTAyYWVlMDMwODY1MjIzNzgzMTdlNGJhZjY3MzgwMGYzNWM5OGM0NmYyNzhiYTJkOWFkNmZhNyJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L124-L126",
+          "version": "repo-lines-v1:sha256:a215f4e57b613f2b2d7a4425618ce60c1a5629e70148fbecab9a6c718709300d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBlZWVlMTc0YTY2ODc1N2RiMzRmYWZkZTA4Njk0ZWRhMzkxZjgwYzNjMzliYmYwYTA2YWQ4M2U4YjBkZDgyNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM4NjQ2NDgwZGE2ODkyMmQwZmI0ZDgxMTAxMzhmNmYwMWY0MTkxOTBjYzFlNjExMmZjMWY0ODRhZTYyNDkzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODA3MjU1YzVmY2NmOTI3MWMzYmM3ZjAzN2M2MDBmYmM2MmFkYjFkMTMwOGRhYzNiZjc1MDViZTExYjk0MmI4YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2bf57f338b254e54940f8c768cf92a12",
+      "statement": "备忘的 getOrCreateCurrentWeek 在目标周没有行时会 put 一条 entries 为空数组的周行，因此这条“读当前周”的 Remote 方法同样产生持久状态，并且同样经过 writeWithRetry。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L941-L959",
+          "version": "repo-lines-v1:sha256:f8db6748b8c5b9ce5156ec5347085d140c3dfc243a279c47a547c3bfd2026402:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwODIwMDg2NTQ2YzI0ZDBkMjFjYzNkZjRjNTc1ODgyZjFhYzJmMzQxNjc2NzM1YmQzNjQ2YWQ5MTk5NjE3MWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNDA1Nzc2YmNlMTYyZjY1YjNlMTQ5ZjU3MGM5NTM3OTE5Zjk1MjlkOWYyYWE2OTJkY2ViZWNhMjUyNDRiMDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4YzNkOGYzMmVkMzFlNjI4OTM0MDg0N2Q0Mjk2ZGNmMTU4YzI3YTA3Nzk2OWMzZWI4ZmJkNTEwY2MzMzcwODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_945ebb56780e4a4486fb60dbdaed85f5",
+      "statement": "接单域的 dispatched 记录只保留最近 500 条（MAX_DISPATCH_HISTORY，提交时对已存记录与本 pass 新记录做 slice(-500)，最新在尾部），而是否派发过是按 issue number 跨天去重的，所以同一个 issue 即使仍 open 也不会被派发第二次。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L347-L354",
+          "version": "repo-lines-v1:sha256:ff19538e05cf6916baa0615bc73237dfe266ac1e64265bdc45f6962944694e89:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc2OThkNDRmOTAyNzE0NzEyMjJmYmRmNmVlYTBhNmIwNmY1NjVhNzYzYTE3OTI1MDBiZGJkNGY2NGEyMDhkNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzYWRmMDdkYmE4N2I3MTA2MDFmMzllZjliNGQ4YjU2YzVmYTQ5NTVlZTFhYjA3OGY2MzY5NGQ0MjZkMjA4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzAxMDk2NzA0YzlkYzNhMTY0M2U5Yzc5OGEyNzlkY2ZiYWE3ZmQyMWNhZjg1ZGY0NjlmZWY0ODhkNDNmZTU1OCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L641-L647",
+          "version": "repo-lines-v1:sha256:d59d8a42624d8444c41fcf7ba60e25b7557feb8c55cec8edd4d4c0a678ec9e4a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVhMzkyNjZiMDY3YjdhNjAwMmMzODE0ZjhhYjcyYmY3MDE0ZTQwOTRmNDkyODRlOGY5NmMzOTg3NzI3ZWRkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTU2ZTE5MzIxMzkwOThiMDA5MTBhMDE0OTU3NTRkOTBlOWY0ZmJlNzU5MzMyZmI2Y2Q3YWI1MmM2Zjk0OGU5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTAzNmQzNjcyYWYwZDUwY2RkOTE5Yzc3YjQzYjk4NGU5MmM5NjA5YWY2MDU1MmY1N2Y2Y2ZmOTZlMmZjZGZiYyJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L806-L820",
+          "version": "repo-lines-v1:sha256:f8df946c4ddd019533d50a09036e9eea7cc63d41d0f97c395bc0c14763282b5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMDVjNzFkNDQzNDhkZjAxZjNiZDEyYjM5YTNhYzc5ODBkZDZiNjZmMDU0NzM2MTMzOGZjYzMxMmNlYTJkZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkNTBhNTNkOTk3ZjhkOGNhMTM5MDRiOTViY2FlNWU0MDQwM2Q3YWUzMTI4NmIwYjhhYTFjNzBlODkyNTMwMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwYmU2NzFlMmYxZDIwMDBjYzc3Y2I4NGNjYTg5YTNlNjk1MDQ0NTg3NjI3ZjgzMDBjZWIxZjkyNTg3YTA3ZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d48f01dea4f4ba1b4f2fae41d55c60f",
+      "statement": "备忘与遥测的行 schema 共用同一个 nonNegativeSafeInteger 时间戳校验（z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)），使负数、浮点或超出安全整数的时间戳在介质上不可能成为合法行。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/spec.ts#L15-L15",
+          "version": "repo-lines-v1:sha256:35f4fe6d0e8223811343ce345d3449a8d14277ef81eac7e19ac46d51e07000d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVmNGZlNmQwZTgyMjM4MTEzNDNjZTM0NWQzNDQ5YThkMTQyNzdlZjgxZWFjN2UxOWFjNDZkNTFlMDcwMDBkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVmNGZlNmQwZTgyMjM4MTEzNDNjZTM0NWQzNDQ5YThkMTQyNzdlZjgxZWFjN2UxOWFjNDZkNTFlMDcwMDBkNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmZlNTkwNWI2MWMzMDliYTc1Mzk3YzZiYzdhMjdkZjJiZjljZDA4M2JjOGQxZGVjYmQyZGViZmYyYWVkMDFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjM3MDc5YjVjYTE5YWViMjliZTdiZDVjNjQ1OWIzMmY1MWQ2YzQ0NDMzMTlhZDExMmJiYzZmZDM2MWE3ZjA3NiJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/spec.ts#L15-L15",
+          "version": "repo-lines-v1:sha256:35f4fe6d0e8223811343ce345d3449a8d14277ef81eac7e19ac46d51e07000d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVmNGZlNmQwZTgyMjM4MTEzNDNjZTM0NWQzNDQ5YThkMTQyNzdlZjgxZWFjN2UxOWFjNDZkNTFlMDcwMDBkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVmNGZlNmQwZTgyMjM4MTEzNDNjZTM0NWQzNDQ5YThkMTQyNzdlZjgxZWFjN2UxOWFjNDZkNTFlMDcwMDBkNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmQyMWFiZTA4MTE0ZmE0MDJjYjk4OWRjMWEwYTZlYWE5NjYyZmU4YzJhYWZiOGFjOGNkODQ3ODRiNDg3OGEyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzU5ZDhkN2YwMDlmZDM2OGY4MTk1YzZiYzExOGZkNDE3ODNiNmQ2NTFmMDNmNDk1YjllYjFiYjQ1Y2ZhNGQ2YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_db66246fb1df44b99647ed68925ca734",
+      "statement": "写入遥测行时可选字段用 spread 条件合入而不是显式写 undefined，因为介质上“缺这个键”与“键存在但值为 undefined”被区别对待，前者是旧版本记录的合法形状。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L186-L199",
+          "version": "repo-lines-v1:sha256:43c16c550ef2ca93510c80a250a837582e29ee21e4e58c5bec07dbe23fee8ab4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYjliODA5NjQwYmViMTdkOWJjNTI2OWY0OGVhMGNkZWFhNTdiNzNmZjBmYzU2ZWM2OWRlZGU1YTU4NDgxNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0OWViYzEyOWUzMTRkNjRjMTc2NTNjMTI2YzNlZTBhYzQzYzIwNzgxZmQxOGQ2MzEwNzBhNWFjYTBlZjJmZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzRiMjVlYjM1NGJiYzJiYjM4ODMzNDEzNmRiZDIwZDFmYzdlNmU4MWI4NzRlM2VjYWI4ZjY3NmVlNTlmYzQifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L367-L378",
+          "version": "repo-lines-v1:sha256:6f22e6fe0f9288d695fb28c9251a8484b2a75a2200d58ef299abd0e7f0fe9deb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiMTgyODRlYmQxYmJlNThiMDZhMDk2NjY2NjIxN2FhYjA5ODU2ODcyZjMxNTRlYTIwYTdkMTBkOTI4Yjk2NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f7bd10aadb9648078393f3d9b26613df",
+      "statement": "备忘对周行采用整行替换式的读改写，其安全性依赖域层的写入排队——服务的契约注释写明并发调用不会交错，因此同一进程内的两个写不会插进同一次读改写之间。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1016-L1052",
+          "version": "repo-lines-v1:sha256:a5d41913474466e66e70e02082428cf1a1faf5295d8a59c7f401041901438384:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2NmJmNTA0YjNlNmI5ZTBjZWNiMGNiYzBiYjJjMWY2M2QwMTg2NGJlMzBjOGRlYzIxMmVjZGUxYTE2ZDUwNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZjg4YWRlMDY3OTZmYzFkMGJlOGU3ZjI4MzVmZGQyYzE3OTg4N2MxZTNjNjQwMjBmMTZiOWY5MDFkZjkyOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwOWY4MDczYTdjY2MwNGEwMGVkOTc1N2JmNzZmOTEwZDdkNDk5MDlmODMzNDE3Y2M4NWQ3MDAyMGJjMWM5MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L179-L199",
+          "version": "repo-lines-v1:sha256:45a4d9ab7f01148dcaf3e3f3ef7cd1b6077a00b8a7ac332482f7b18f404343c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzRiMjVlYjM1NGJiYzJiYjM4ODMzNDEzNmRiZDIwZDFmYzdlNmU4MWI4NzRlM2VjYWI4ZjY3NmVlNTlmYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a82c9347e5d24de4b70e74a8f1edb929",
+      "statement": "遥测读数时的“谁更晚”只由一个 compareOrder 助手定义（先比 seq、seq 相同再比 timestamp），latest 选择、attemptsAfterLastFailure 统计与 listEvents 三处共用它，避免三处各自演化出不同的排序语义。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L462-L486",
+          "version": "repo-lines-v1:sha256:d100c37e2917d870b7f006c767c270657c8a98731277efaaba00d133db3013b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ZDUzYmExOTNkYmRmZjMyMzQ3ZWMzMGFiMzFhMjczZjY1YjMyZjY0ZDFkZmFjYzIxYWE2MTU2ZWZlMzU0ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjZGU4ZTIwZTAzZTkzYmI5ZjVmNmQyYzRiYzRjNGVlMTZiN2EyOTA4ZmE3MzgzNDBkOTI3YWFmNGY5N2UxOTIifQ"
         }
       ]
     }

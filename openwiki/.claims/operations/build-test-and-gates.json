@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3195d36a821949b85891ec00b9629e99efe6c7ab6ef39d12e11721911eb18e75",
+  "claims": [
+    {
+      "id": "claim_f591c3307dca42e188d02f429c0a3aba",
+      "statement": "The root `build` script is the fan-out `pnpm -r run build`; every workspace package declares `\"build\": \"tsdown\"` with tsdown as its own devDependency (not a root one), emitting ESM into the package's `lib/` with `dts: true`, `clean: true` and `fixedExtension: false`.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L10-L10",
+          "version": "repo-lines-v1:sha256:a4746c6f9803f3bf801e70fbeed610bbdc9df2e79a785090e1de5f8197954f54:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ3NDZjNmY5ODAzZjNiZjgwMWU3MGZiZWVkNjEwYmJkYzlkZjJlNzlhNzg1MDkwZTFkZTVmODE5Nzk1NGY1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ3NDZjNmY5ODAzZjNiZjgwMWU3MGZiZWVkNjEwYmJkYzlkZjJlNzlhNzg1MDkwZTFkZTVmODE5Nzk1NGY1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjY1NjA0OTgwYjc0MDI1OGUzMDZiNTQ1YmRjYTg5MDU2MjQ2MzZmNTRmZWEwNDU2MjNjNjM4Nzk3MTFjN2UxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGQ4ZTg5YTU4MDM0M2RiODA5MzM3NjQ3ZDEyMDI3MTM3ZmRiNjU4OGJiNWUwOTQ3M2UwNWE2NGJjZjU3ODEzZCJ9"
+        },
+        {
+          "resource": "repo://package.json#L25-L35",
+          "version": "repo-lines-v1:sha256:71e589a4039c66d33d5207df4371fb361e95e5a7e4a3f59534a1bad54a8a7331:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyOGI1M2MzMmNiZThiNDRmMDRkNmNkMjkwNWZjY2VkMWE3MzIxYjJjZjc2MzRmZTk3ZjQ1ZDNjOWU1MTFhNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1MzIxYzU0ODk5YmQ0OWY2ODg4YjQ1OGM4ZDcyNmE5MGY0N2I3NDU4YTUyMTliM2VhYjhhNjAzZjk1MTNlNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMGIzNmFhNzRhNTliY2Y0YTg4MTg1ODM3ZjY1OGFmYWYzNjQ2ZWZmMmJiMTZjMzkyOGQwZTkzMzVlOTQ1ZDIifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L43-L46",
+          "version": "repo-lines-v1:sha256:8fff3a151d39af1d61fc26eb3bf69ec1159a9711e97e9bb5dfc5a237989bd0bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg0MDY5ODRiZGVmY2EzNGRkNmJjOTAwMjdmMWQxMWFiY2IxNzAzNGM1MjVjOWE1Y2VmYTFkODRmY2NkODFkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxZGQ5MGYwNzI2MGQyZTZhOTk2NGYwNmMyOTI2MTgwYmQzMTcwOWFjMDA4YjFkMmNkZmZmNmJiMDRjZjM5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNhZDZhNjFlOTAwOWU5NDZjMTY5ZWYzMGU2YTQyZmQ5YmFmN2JmMWEwNTNhMmE3ZDc4ZTBhYTFiM2Y5NWY2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDQyZWU0ODE2YTNiZTc1MGFjM2JjZmYzYTk5NzI2ODU4ZjYwNjFjYzU4ZDI5MmM2MDI3NzNmOWQwNGU0MDk1NyJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/tsdown.config.ts#L8-L16",
+          "version": "repo-lines-v1:sha256:71d3818d459ec15a3b82f442fd535c13c28b6d250e5bad6be30322b6b3e6484c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJjZWNiMTQ0YTQ2ZjVkY2YxMmE2MTY5ZmNlZWQ3Njk1ZTgyOTRiMDkwZGU3NmYzNjYxY2RkMDI0OTMwMDE0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVkMjk1NGUxMmRiNThjOWQyN2Y0ZDhhOTY1NjlmM2NmMWQ3OWJjYTI4NjBjNGJlNTcwZGI5ZDgxNDQwMjc3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTdiNTVjZGQ2Mjg3ZWRmNjU1ZTAxMmUyYWNjYzNiNGMzMGJjNDgxNzllODkyMzMyMDQ1MTU4ZDhlZjFjMmE2YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODU4MGI3NjUxOGRhZTk3OWZhZWJkMDIzNjdhMjkyOTJhNTBkOTc2MDkyMjUxYTM4YTZjZTMwODgwYmE0MjgyNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d8946a418ad343408f1a6f97b6e94943",
+      "statement": "A package that declares `dsh.client` builds through `clientBundle(id, libEntry)` in `scripts/tsdown.client.ts`, which returns three tsdown configs in emission order — the node half (owner of `clean: true`), the browser bundle pinned to `lib/client.js` as CJS with the `window.__ModuleLoader__.load({ id, factory })` banner and `clean: false`, and a declarations-only pass (`dts: { emitDtsOnly: true }`) that produces `lib/client.d.ts`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/tsdown.config.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:f94252a46841a2234398a30b4fefd95c9ff11f924a0dfdb9d87bd338327b98c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYWVmMzc5MWU4Y2E4YjdkNjQ5ZjI2NjExNDAyMmFlY2RlMjMxOWEwMGRiOTRkNWM4YTAxZjE5Njc0MWI5YzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMzllMDIyZTBkODU0MTIwMDAzZDc5MGMyOGI3NTk2MmVkZDMwMzc1NmQ1MTMzM2RmNzQ1Y2ZiODZlYTExY2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L137-L167",
+          "version": "repo-lines-v1:sha256:20af79c2503da1ccc3cfe0c572b6383c069fc8ae1e776432b920cb08bbce51ea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNWI0ODdmMDMyZWJmMjVhNDViMTIyNjdkMDg4YTUwMzVmMTJhOGE1MjU0OWI2YTMwYmU3ZWY1YmQzOTViNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2OThlMTk2NTZjMjFkM2E1NWZlMzE2MDRlNjVlYzE1ZTE3ZWI2M2EzMjQ1OTQyYmE2MDM1MjJiNmFiOTlkZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxNTYwMGI5NTBlZmM3M2JlYTg3MzZhNWQxYTc4MDNiN2EwYTM0ZTQ2YjgyMTVhODkzYWMyZTZhMzE3OTA4MDIifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L169-L234",
+          "version": "repo-lines-v1:sha256:19a8ba739a31554f073064f69f684cfd5de255579591462c02f1fb5bb3a92094:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiZGNlYTMxODhhNzBhYjUyYzk2ZjcyNDAyNDNlODlhZDFiN2YzZTBjYTBkNjY1NTUwZGIzYzViODQ1NGU4ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4YTEzZTQ3NWEwN2E5YjgwNGFlYzIwNDM5MWI1N2MyZTQ4ZmRkNjg4NjQ3YjBiNmFjNTFlMjZkZTk2ODgzNTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlNzU0M2YyZWFlZDFhYTg3MGZkZjY2NWQ5OTE4MjkwZWM4MmJkM2RjMTQwOTFjNDAwOTg1NWEwYzY3MmUwNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2MzYzYjkzODlkNGM2OTQ1NTU2YjdjMGU0Y2YxNjljN2ZhYjFlZGU5OTNlZmJlMTZlMjNiZGM5ZTExY2NhODYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1faf2dc203c04d37aad350ef20a48d33",
+      "statement": "The client preset moves the runtime contract \"registration id equals package name\" into the build: `workspacePackage(id)` searches `packages/*/*/package.json` for a manifest whose `name` is exactly `id` and throws otherwise, so a stale id fails the build instead of emitting a bundle no boot-graph row can claim; `PLATFORM_MODULES` is the single copy of the shell seed table that `moduleTableWords()` and the `deps.neverBundle`/`alwaysBundle` predicates derive from, and `clientPurityPlugin` turns inlining another plugin's browser half into a build error.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L248-L277",
+          "version": "repo-lines-v1:sha256:b04205d41e0121e94fe0bc859823a216849f7e66c782e850580dbb8b3cd7a607:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0YTdkZGY4Y2ZjZjg4Y2U5YTc0YzNkOWQwNDg3ODQ5YjU3NTFhZDEyOWEzYzdlOTE2ZjhhNzY3NmFjNTZkYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjMDg0OTk5NGJjZWY2YjljY2JhODk1YWQ0ZmVkZjM3NWJmOTdiOGM3ZWNjZmY4ZGJkMzU1NDQyNDc3ZWEyMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3Y2Q4MGQyZGY1MDg3YmVmMTg2NDUzM2U1MDEzZWUxZDdkMjNjYTIzOTkzM2E3MzU1Y2ZmODJhNGE1ZjQ1ODEifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L402-L424",
+          "version": "repo-lines-v1:sha256:8ee9f78c85e03872c9d82c8d6274674753e995101100771e3ca8dd46c4d2a4d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZjM2YTI4ODc2ZTIyMjJlY2Q2Y2E0OWRhZmRhOGU1OTVmMmZkYTc5NjBkZjg4NGRhOGUwM2U3OGVmZTk0ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/tsdown.client.ts#L53-L65",
+          "version": "repo-lines-v1:sha256:25bd1e4744fc804ef8b8cf477c11dab9fcc578a088db44210c2ccc0b370524db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ZTgxNzNiNjRkZmQ4NTFmNjdjYjNmYzRiNDE3MTkzNDA2NjgwNmE0MTAzNmFiMjhiMTZmMDM2OWRkMGEwOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkM2I2YzViOTQ0MjJhN2MwNGYwMDkzMzgxYmY4ZDE3MDdlNmVjY2E2Zjc4NzMyMWE2Nzk0ZWEzZGYxNjQ1MmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYTBjYzE1MDQ4ZjA0OTZmNWQ3ZjEyNWFlNDBlOWQzNTgxNDAzMTk4OGE0ZjI0ZWExZGU3YTc0MmE2YzJjMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmZTllNmRiYzM5NDM4OWM5Nzg5NjRlYTA5ZTdlMmNlMzQ5ZmY5ZDk5OGY4YTQ5ZGM4YmUzYmFkMTIwNTNlYmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cef2e0ba5cee4f16a5e8ea667f17f8a0",
+      "statement": "`scripts/run-gates.ts` owns three validated aggregates — `check-all`, `hygiene` and `doc-sync` — and the root package scripts are only aliases of them (`gates`, `gates:hygiene`, `gates:doc-sync`); `check-all` currently schedules 11 gates and includes a `node --test .github/issue-management/policy.test.mjs` gate for the issue policy engine.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L20-L22",
+          "version": "repo-lines-v1:sha256:d133f950b0963558b3d9e7d85fa3244aee22e65c674817a28cdc97e79e6e4317:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODk5YWNmYzMwYTdkNDc1MzljZWU1MGE3NTEzZmE2ZTE2ZTY3Yjg3ZmE2MzUxZjIyYzdmNzA2YmJkMTYyZmM5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDBmMDJhMzgyNDJlYzNiNTMzZGYyM2UxZjNhMjIxODkyYzAyYWRiM2Y2NWM5NDhmMTljYmRmOTJmMDcyMjBmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzNhYTNhNGQ3NjJmYzJjMzg4Nzg0OWZiNTRlY2I0NDA3ZGQ3YmU1YmRiZmY3MGQ4NDc0YmM1NTQ1YzYyNDk1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTg1M2YzMDAzODIzZDMxNDNlMzVhOWZlNWNiZTg1N2ZlOWYwNzFiZTgzMDMzMWRlNjk4NmI1ODA2NTI0NDMxYiJ9"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L172-L223",
+          "version": "repo-lines-v1:sha256:be21351efb7e0d090f8887996b8d0bf2df577c9a7a5e1913e329aace68a69516:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OWE3NjdkNWRlMWIzMTg5ZDk4NDQ1N2I2NTAzNjM0ZGRkYmE3MzY4Y2ExOWIyZWUzZjA0MDFiMmFlMTEwNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyOTQyZmFhM2IyOWQ1YmQwMjUzZDAwZTcwOTgzMTlmMjIwOTBkODI4NTViZmExYzI5MWQ3N2NhNTQ0NjNmYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2ZjZTkxMzQ4Y2IzYjFlMzQ2YjJlYmJlYzBhM2E0NWU5ZWNmOWYwYmNmNzhkYjgzNmNiMjU2YWI4OWQxY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_09945cd76d40445683a3db94c9042444",
+      "statement": "Only the two gates that read build artifacts — `package-exports` and `client-bundle-id` — declare `needs: ['build']`; `bundle-entries`, `publish-guard`, `export-jsdoc`, the three doc-sync gates and `issue-policy` are dependency-free leaves, no gate uses `after`, and although `check-all` passes `hygieneLeafGates({ artifactNeeds: ['build'] })` that option is not consumed, so `export-jsdoc` does not wait for the build.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L175-L223",
+          "version": "repo-lines-v1:sha256:2beb3b2698ab3799793172b2732b6dcbd82d41d421d14201a28f15a867865830:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDU5MzQ0NDc0YWExMjFiYTY3YTRhMjUyNzk5ZjM5NmRmMTgwYmQxMTcyYTc2YWRmNTkzNjYzNjQ4Y2FjZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxOGE4NTg5ZGE1OTdjNzllNWY2NjRmMTk4MzcyNGExZmZiYTk2YWY5ZWQ5NjQ2MzY1N2NjODU5ZjQ2NTM2YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2ZjZTkxMzQ4Y2IzYjFlMzQ2YjJlYmJlYzBhM2E0NWU5ZWNmOWYwYmNmNzhkYjgzNmNiMjU2YWI4OWQxY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fbbb38c7126b42478c01467f7b5861e1",
+      "statement": "`runGates()` validates the graph before any child process starts: an empty graph, duplicate gate id, a `needs`/`after` entry naming an unknown gate, or a dependency cycle (reported with the full cycle path) throws instead of letting the scheduler stall.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L229-L252",
+          "version": "repo-lines-v1:sha256:2d56b0245f6c2d863b1fe533e9b6f6a99a37ae4fb70e1ece5db7b33b77367458:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MmZhY2ZiOTJmNGM3NWJmN2IzNDE2Y2FmM2Y3ZjI3YTU5MDQ0YmNlNjA4YWZmYTg1MjAwNTllMWQyMzE4YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2NWIzMDMxMWRjNWI3YzQ0NDVjNGI1Y2Y4NzY5NGQ3ZTA3M2I2ODQxNWFkMWY3MmViYmE5YzYyNjY2YWZiZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MGQ3ZjEyZWU1Y2E1Zjk3MDE5NmZlNGJlZjgzMzEyMjk1MzNhNjE0ZGY4MjkwMDY2Mzg5MmNhOTU5ZGQzMWUifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L294-L303",
+          "version": "repo-lines-v1:sha256:e970bd0ee69eabeba050408a9b9559c495c3a6b87fb7346be803b898f95e9eb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwM2IxMjNhNzAzMzFiNWU3ZDdjMjRhODMzYTg0M2ZkYjE3NGE5ZGY2YjYxZTZhYzI1MTNmMTk2MWIyNjY5ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0YjI3NTM3Mzk5OWNhZTBmMmNlMGY0ZWI2OWNlNjE3MDZiNjAwMjM4MDdmMTZlYWZiNTAzODlhN2NmNDExODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0N2UwMzlhNTJjOTNjNDk3MThmOTlhZTMwYTQxYTI4ZTIyOTU3OTM0NGM1NWUxYWJhZDcxYmI1OWVkMmMyMTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_091f621508ab4ed6a9cc014aaeaa6d17",
+      "statement": "Gate scheduling separates ordering from success: a gate starts when every `needs` predecessor has `passed` and every `after` predecessor has merely settled; a pending gate whose `needs` predecessor failed or was skipped is recorded as `skipped` with `durationMs: 0` and an `error` naming the failed dependencies, and the aggregate exits 1 whenever any gate with `allowFailure !== true` is `failed` or `skipped` (no current gate sets `allowFailure`).",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L308-L367",
+          "version": "repo-lines-v1:sha256:e1a7da64193c661be47e45b8708626ed04e34d243339ad08ff6d430e9ca9b230:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmZDA1NmRlMWM3NjQ1ZWJhMDE0NWUyZDg4NDZlNjM5ZjllODk0NTcxODFlZDE1YzVlZDQ2MjYwNzI0Y2Q5NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGVhMmYyZmZjNTFiYzQ1NTg2Nzg0ZWYzODg5OTUyMmUyNjY5MGRkMjMzYjhjOWFkOTQ4ODU1YjQzNTE1NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3OTljMWRlMmRjMjA3YjQ2NzdkZjI4OTUzNGFmNjA4ZWQ1YTVjNjQyOTlmZTI5NTRjYmFkNzE5NWQ2ZjllMTEifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L453-L471",
+          "version": "repo-lines-v1:sha256:70f1c097d4405c7935a270a69aad6acac37bc43be89041e06e42630dbd5054f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NzRmZDE3ZDMyODQ0N2M2YzBhYzMxMDVmZDhlMmVhYzA3NDZiMzljOTdiMzRiOTIxNGQxYWM4ZWQ5YjJhNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZjQzZjBjOGE1ZjUxOWU0NzQ1NjBlZTY1MTc2ZGFlN2JhM2QxMzk0YmE3MTYwNDFiZTkzZDk2YmQxMzg1NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3ZGQxYjZmNDNiMmU1MTE4Mjg3OTM5ZTAzODYxNDNkNzNhZTcxM2RjZWI5NjkzYmVjZDBkYTA2ZjMzZTNhMmUifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L82-L82",
+          "version": "repo-lines-v1:sha256:17e8cab3a5eccfed4064df7e9da2dc5c4141ec85fb472444a281c567b5503ade:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTdlOGNhYjNhNWVjY2ZlZDQwNjRkZjdlOWRhMmRjNWM0MTQxZWM4NWZiNDcyNDQ0YTI4MWM1NjdiNTUwM2FkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTdlOGNhYjNhNWVjY2ZlZDQwNjRkZjdlOWRhMmRjNWM0MTQxZWM4NWZiNDcyNDQ0YTI4MWM1NjdiNTUwM2FkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZkMTZmMDVkYmFmNzdkNjA0YWUyMDBmN2RjOTI2MWVkNDllMmY5OTA1MTE4MGM3MWU0YzU3MzhmMjUwOTkzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGJmZGM2NTEzNzVkMGNjODUxYWRiOWExYjcxYzZlMTBmYjgzYjgzNjcxMjlmYzA0N2VhNTIyNDgxMGZkYTFiYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc4191f6fdf14a2fb22a81b39b073533",
+      "statement": "A gate counts as passed only when the child exited 0, was not killed by a signal, and did not fail to spawn; failure reporting keeps the three independent facts (spawn error, exit code, signal) from hiding each other.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L374-L420",
+          "version": "repo-lines-v1:sha256:f65ba14aac8aad0e2b12b708016a988d26d623cd906807f4ab838bce2a67a71a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwZGU5NjJiYTNjZjhmODE4OGYyM2M1YTg5NGI5ZjBmM2ZmN2E5YzNjYmRiOTMwMzA0NGIxNTRjODEwYjc0NzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNTQ0M2JjZTRiZmQyMDk3NmQ5MzQxZWI0ZjRhM2UyYTkyMjU0ODIxOGU1YjNiZDMzNDJkZDY1ZTE0YWZlMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyMTY5MTM2MDA3OGYxODc3YmRiZjFlODQ5MDA3NjE4MjQyOTUyNzFjNTRkMzE2YTJkMWRhNjY3NGY0NzZkODMifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L427-L433",
+          "version": "repo-lines-v1:sha256:6fbcb179d51cd9b3ab504f1fa3b5565ed6874bc18f76b8e7d91cb54338663f71:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODZhNjQ3Yjc2MDJiZjAyYzZiMWZmYzljNzcyMDM2ZDIyYzg2ZmMyMzE5NWYwMTQ1NmU5ZTNlNWM0MjYyODU2NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmE2MTNkOWFmZWQ3MTFkZDA0NDQ5MWUyYTJmMmI0NjRmYzU5MDc3MTc5Yjg5YmI0MzIyZmM4MzhkNDgwYmY3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTlmNWU1NDY2YTVkZjU2N2I1YTFlNjMzNzcwNGU2ZTJhNWUyZjBiZjNhZDM1ZDFkZGU0ZDhmNWRkOTEzMDQ3ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_173a667e5ccc47f59620db05bfb3b84b",
+      "statement": "Gate concurrency defaults to `min(gate count, min(4, availableParallelism()))` for every aggregate because several documentation gates each build a full parse/`ts.Program` workload, `DSH_GATE_CONCURRENCY` overrides it (must parse to a positive safe integer, otherwise the runner throws) and the startup line prints the worker count with its source, while `DSH_GATE_VERBOSE=1` additionally prints the captured output of passing gates.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L107-L132",
+          "version": "repo-lines-v1:sha256:5f10b593f77a039e92e8bcca6640e21f99ad4e76ae38d10a9572f00d713f855a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZGVhYzJjNDBkMTFhYWU5ZjhiNTY2ZTYzZDZlODNkNzM2NGU4OWE3Y2I4YTNmMDRmMzhlMDc4OWUxYTUzNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwMDBiYTY1ZGYzMGMzYTA1MDY4OWEzZmUwYWU4OTg5ZTRhNDJiMzAxMmQ4NGM3NmYzZDU1ODRkZDAzMmQxMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMTQ3NDRlNTMyYTg4ZjhhNjFlYmYxZWVjMTUxNTU2OTRlYzhiZTdkMDE0MWRkMDYyNjE5YTUzODZiNjM0ZTYifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L435-L451",
+          "version": "repo-lines-v1:sha256:2206dd34ab293a5cb038e8e985f6a3ff33495e2e4bd102ee249ace304132721f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0ZDMzZDdmYWFlZTczNTIxMWZhY2Q4OThkMTZhZjY4MWY4OGVhNmVkYTkwOTkyMDU5MjFjYzQ4NDNiYjFiNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0Y2MwMzM0ZWUyMjBjNWI3MDkwMDc2MzRiNzE3Njc0YmJhOGVhM2RkMTJhMzNiZWNmYjg2YjA5M2U1YTg5ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkOTY2MmY1MzBiMDA3NjAxYTdmZTNlZmFlNTBjM2Y0ZjRlZGNlMjFiZTNhM2Q0MTc0N2QyN2Q1ODE1M2ZmOGYifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L68-L85",
+          "version": "repo-lines-v1:sha256:c7373d1dbfe4654016869c0c46983198fe1f7971d25b8a63bbe395ade17bc322:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMjdjMjAxYzBkZWM5ZmUzZTYzZTExNmE3YTRlOTZiNDNiNGJhMWY0MWJlY2ExNmJmMDc5NzdhODUxYjFlYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5YTMyMDZjYWE4OWM4OWJkODRkNGFkNzFiMjY2ZTRlZjMyY2FjN2JkZjIxZGNhMDVlNjUwN2NkMTlkZTUwMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ZTVjNmFiMTMxOTk5OTM1MzFkNjIwODg4YTM2NWM3ZjdmNjFlNTM2NTEzZTFhMjY1ODk5YzNhODY1MzFhZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d7e3137c1d44916aceac4da0b07a745",
+      "statement": "The runner must be started through `pnpm run`: `pnpmScript`/`pnpmExec` resolve pnpm's executable from `npm_execpath` via `pnpmInvocation()` and throw when it is absent, and each gate is spawned shell-free with the repository root as `cwd`, merged `gate.env`, stdin ended, and stdout/stderr captured unless `streamOutput` is set.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/pnpm-invocation.ts#L9-L21",
+          "version": "repo-lines-v1:sha256:e39a08ef81980b20e7bac6fdf535a0c184d36f445cde6b4d4f30aafd2ea47e83:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNmQ0MjUyZjU0ZjFkNDhiZTgwN2QxOTczYTk3ODEzZTUxZDg3YWI5ZjdmNTM4NDllMzVjNDhhNzQ4ZTU2OWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2ZTA4MjNhMzc5YWZmMTJkMmMxMjljZWMzYjNlNGQwOWM4NmNlN2IxNzg4NDEzMjQzYmJhNmE3NTE4MzIzNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L134-L152",
+          "version": "repo-lines-v1:sha256:55860c9528ab9b1843c6e8ba4f5b3a3d6153be9dfd02033b8555b298d250bfe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNjAzMzVjNmY4NjYyYjNkYTNmMmNhOWUwODQ0NWMyMTc2ZjFjZTVhNWMxZTRmMTAyNjlhNWE0MzdlNmYxYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkZGM5NDk0MjIwNzk3ZWY1YmQ0OWJlNzM3YWZhNzc5YmIzNGNjNDVjNGYyMzQ5ZjI1NzI0ZGJmOGU0OTcyM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4YTYzNWY2NDNlYTM5MWJlN2Q1YTEwZDdmY2Y2ZjJiOGYzMDY4MmY0NTk2NzQ5YzlkZGZiOGEzYWExYjZmODUifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L382-L406",
+          "version": "repo-lines-v1:sha256:c72be46883964806341f55ddae8878b16405b790f0d83df069493918836d0f44:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYTdhYmViMDUwNTg2NjM3MDI0MjcwNjExZWM2NWU5M2E0ZDFiODYxN2Q3ODYzYzBhYzVlMzFhYzY3ZGM3ZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4ZGY2NjkzMWE1Y2ViOTAwNzAwZjE2ODY4ZDJjNTU3YTRmNjcwZGRjY2Q1ODVkNzkxNjU2OTgwMTQxMTljODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhZWMzYjE1ZDcxNzJlMjgzNTU2NzExYTJmYTBmZjcxZDVlOTViMDZiODA1MGVkZTc0MDk2ZmEyNDYyZTg5OWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_915b6efc48d143ee856e7ba9cdd2301e",
+      "statement": "The root vitest config discovers two test sources — `packages/*/*/tests/**/*.spec.{ts,tsx}` and `scripts/tests/**/*.spec.ts` — so the `test` gate (root `test` = `vitest run`) runs the gate scripts' own tests in the same pass as package suites, and no per-package vitest config exists.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L11-L11",
+          "version": "repo-lines-v1:sha256:d8d66f79e965b0913a764970557a9d0db8cfec844172b4fd58c34b8f8c2f81f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDhkNjZmNzllOTY1YjA5MTNhNzY0OTcwNTU3YTlkMGRiOGNmZWM4NDQxNzJiNGZkNThjMzRiOGY4YzJmODFmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDhkNjZmNzllOTY1YjA5MTNhNzY0OTcwNTU3YTlkMGRiOGNmZWM4NDQxNzJiNGZkNThjMzRiOGY4YzJmODFmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGQ0YjNmOWQ2YjA5YzJlYjFhN2U1YTE5ZTI3MzVjNDI1YmM1ZmQ3Yzc0OGIyOTIxYTY0YTFjNjljNGU4NDEwNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2I0NjhhNWQ0MzBjYzU2ZTRkMjNkNjljM2IxMjk1NGExYTU4ZGJjMWYwNTZkN2JjNTFiY2NhYjlmNzEwNGE2NyJ9"
+        },
+        {
+          "resource": "repo://vitest.config.ts#L53-L60",
+          "version": "repo-lines-v1:sha256:4b890910476b00bc55d650aee1f9da57d9fd83bd4c7a539049740c1611641483:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzU1M2YwMTc3NGEyYjVhMjc1YzBjZTk4NjY5YjZmZTg4MGViNTIyYTQyNTNhOTdkODFkMTJhOGJkZTU4YjNjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOTQ5ODU1MjZjMWM1N2VmMDBjMDBkM2Y0ZGM5MDYxNTY3N2EwYTM2YThiNzk1ZGZmOWFmZmQ1MGZlOWY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM4YWRkZmUwNjc1MzBlNjkzYTE2OTUzMTllOTg3N2Q5YjQxNDQ4YWVmMGQ3ZWZlYTM3Njc3OTcyNDYyYTc1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTBhOGY2MGZlM2M1MGIwY2Y1MzQ3MjIxMTNmZTkwZDczNDE0Mzg3Y2U5MmU1OTc4YzgyY2JkODAxY2MwNTAwZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c50daa59f853427baa8877d5d313fb44",
+      "statement": "The root vitest config exists to remove three failure modes: workspace packages are aliased to their TypeScript sources with exact-match regexes because their published `./client` faces are type-only projections an object-form alias would swallow by prefix; `react`, `react-dom` and the JSX runtimes are pinned to the copy resolved from `packages/client/ui-memo/package.json` so a hoisted ReactDOM 19 cannot mismatch React 18; and `standardDecorators()` pre-transforms files containing `@Identifier` syntax so `@Remote` services run under test, with jsdom opted in per file via `// @vitest-environment jsdom`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/tests/MemoBoard.spec.tsx#L1-L1",
+          "version": "repo-lines-v1:sha256:472e31df50978fadfb1298589ed115040086a52975d3e5b2b6cb2d9e975f7842:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcyZTMxZGY1MDk3OGZhZGZiMTI5ODU4OWVkMTE1MDQwMDg2YTUyOTc1ZDNlNWIyYjZjYjJkOWU5NzVmNzg0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcyZTMxZGY1MDk3OGZhZGZiMTI5ODU4OWVkMTE1MDQwMDg2YTUyOTc1ZDNlNWIyYjZjYjJkOWU5NzVmNzg0MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQ5MWYzMmZiM2E5ZmQ1NTM5OWI1M2JkOTVkZDI1ZmZhYmQ1NTdmNDk2ZDRiNmNhNWM3M2E5Y2E1ZjUxYzQ3NiJ9"
+        },
+        {
+          "resource": "repo://scripts/vitest-decorators.ts#L24-L45",
+          "version": "repo-lines-v1:sha256:be9e201dc30d27ec6078c5a64ea3d9479e08fe970ceef6c9087e684b3980b53f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MWJkNDA0ODBkYTBjNTE3OGVkMTg3MTRkYTI3NjkzZDdhYjE2MmFiMjRjMmFjMzljNjVhYWJiNWVjMjk5NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNjI4ZjE0YTQ0ZTlhY2NjMDUxZTQxZjI3OWY1ODFjZjFhNTQ2YmMzZmVlNDQzMDg0YjkyMjY3OTcwMDMyNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://vitest.config.ts#L1-L52",
+          "version": "repo-lines-v1:sha256:67e2ffc015a51932c64963d7347a2fed3d005107eb16d162add4de1ad1cd4364:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NDI2NWQ4NWRiZjIwNGI5YjZiYzU2NWIzYjFlMmY5OThhZmEwMjYwMDQ2MzA2OWQ5MDY0YmQ2MmMyYjVjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3NmNkZmYyOTgxMTI5NDJiYTZhM2VjOGUzYWFmYzliYTc0NzQzZjJmNmU2OWU3NDRiNzM2NzY2MTY1MzBjNGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_25bc6ee5aa5d4a91b32165face2b68fb",
+      "statement": "`verify-package-exports` asserts that every declared export target resolves on disk — `default` and `types` for each subpath, plus the root `main`/`types` fields — with no exclusions, including the declarations of a package that ships a bundled `dsh.client` face; it reads the emitted layout, so it must run after the build.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-package-exports.ts#L100-L150",
+          "version": "repo-lines-v1:sha256:04cdb7d64b934c6957c8fd877dcacfa865179f8384e5a0e5af9d251de77d76ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1ODVhNGMzN2Q3MGY5NWI5OGMzNGEwYzgyYTI2YjI4YTlmMGZjMTgxNzZhNDlmMjAyNjkxYmE2YWVhZGE4OWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNjFlOTM2Yjc4MTk3YTgyMTM0YmEwNGY2YWU5YmM2NmRmZjYzZmUyMGMwY2ZlMDBmYTRmMjhhNjIwY2U1NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYzBjNTZlYWFiNWI1YzMwZTE3MGU4ZjQ4MTQzZWY1NmJmM2RhMTJjODAxZmY3YWNhYmYwNTc3MzU3NGE5OTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0890a1bd30d04756b1a682477adeea8e",
+      "statement": "`verify-client-bundle-id` reads each `dsh.client.platform === 'web'` package's built `./client` bundle and asserts that the `window.__ModuleLoader__.load` registration id equals the package name, that every literal `require` is answerable from the module table (platform baseline plus `inject` plus `external`), that no non-literal `require` exists, and that every declared row resolves to an installed package which itself declares `dsh.client` (subpaths judged by owning package).",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-client-bundle-id.ts#L1-L24",
+          "version": "repo-lines-v1:sha256:60326bc3e7729912607c17445967b85c76dd30bad49918ccb5288ed89a756f0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NjRlY2MxNDdmOTUwYTMxMjgyZTBkNzg2M2YyNzc3N2ZkYTcwNTFiOGQ5YTZhYzdlNWQ3OWYyMzg0YWRkMDQifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-client-bundle-id.ts#L200-L229",
+          "version": "repo-lines-v1:sha256:9dfd16861a757c22326960e4ceea508df958f378295dffc7c433a6018d2479c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhNDU3NTA3NmVmNWMxYTE4YmZiN2Y4ZWIzNDg2NjBmY2EwZTRiODgwMzkxOWJhY2RjYzhlMjg0Y2E3NDAxMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzNGQ0YWM4YWZiZjNmNWVhYWUwODVlMmU2NzRkYjUwNGIxN2VkZWJmOWE5MTgxODRkN2E3ZWRlMDFlMTE0MmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGIwYjg5NjY4MmViYTFkNTc3MTZlYjFkOTYzZTA2NDJiOGFlMjU2NTlkYzI5ZTNhYmRjNjIyNGQxODYwMTkifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-client-bundle-id.ts#L89-L177",
+          "version": "repo-lines-v1:sha256:8a3ec409d5b710946e230354f1a50d3ea9919b5d78d738ff94042935dcd8febf:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMmRjZDk5ZjMyMWIzYzRlMWJlYzYzZTAwN2FjMmQ1NWYyY2M5YzQ3NDI1ZmVlODBjMzliNDg3MTQwYWJkNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0YWYzOTU2YjBhNDJiMzAzNTllNTViZGVkZmQzZWJmN2E3MGVmYjg2Y2M1YzE1MTBjMGQwNTBhNWVlOWQwOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkMWY3OTAxYWUwNDJkMjdkOGQwZDYxNmVjNjZkNTllNjlkMjhkOTU4NTc2OWQwODgwNmE1YWJhMDNiNTNmNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b3e291b2b5349a4a4d68911a1ced3ed",
+      "statement": "`verify-bundle-entries` enforces that each composition entry id has exactly one owning bundle: a patch inserting the same id twice always fails, two different bundles inserting one id fail unless both patches record the exclusion with the `not both` marker plus the bare id, and a documented overlap is reported rather than failed; the gate states its own limit — it can only see bundles this repository ships.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L1-L25",
+          "version": "repo-lines-v1:sha256:54821921a6fee04bb1ea2b69e7b9fdb4975b0034966e0ac2f6d400c5b5e8a287:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NTZiOTA5MDFhODQzNjA2ZTMzOWZhMjkxM2NjNGE4MzEyNjc2MjRlZTMwZmYxZGU1YTM3MTc0NjQ4YTRmNjkifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L147-L216",
+          "version": "repo-lines-v1:sha256:0c5c2ba9d1a93ae7c819f0a94719b62b0600d4ff98e5d4e4a72e424e0d43aa0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YjUxMTNiZjVhNDc2Y2QzZGU3NjMwZDVhNTIwYTg0OGU1NWQ1OGRmZThkNjFhNmQ2YWVkMTk4ZWJjMzQxNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4YjE0YTYyYWZkOTJmN2FjNjEwYTdlZDc2Y2NhOGI1NjZkMGQ2MTNkNGI3MTYzNjE2MjI5ZGU1M2JiMWM4ZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmZjFlOTIzZjYwZDBmM2Y1OWFjZGVhZDk1NmViNjQyZTAwNzlmM2M1N2UwYjY0NmEwNjQ0YWI3NmNkNTc2NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f874a13d816460b988b5875cb53f9c8",
+      "statement": "`verify-publish-guard` requires that any manifest declaring a `workspace:` range in one of the four dependency fields run `scripts/publish-guard.mjs` as `prepublishOnly` and that the named path resolve to the repository's own guard file; it reads manifests only, so it verifies the wiring rather than observing a publish, and the guard itself is what blocks a non-pnpm packer.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L1-L25",
+          "version": "repo-lines-v1:sha256:ca391370299bd9898b0a02cf2a39bd9fb96622adcfc7ad810108710cbde2d008:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NTZiOTA5MDFhODQzNjA2ZTMzOWZhMjkxM2NjNGE4MzEyNjc2MjRlZTMwZmYxZGU1YTM3MTc0NjQ4YTRmNjkifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L138-L170",
+          "version": "repo-lines-v1:sha256:176ed90852f36f0179285ca8566be5c959771fafbf04ee845fed493d834f7d99:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0M2NmYTA5YWNiZGJjMGY3MTM1M2NhZTBjNjFiNzZhYmIyZDQzNGEzNjkxMmM2Y2ZjMmMxM2QxOWYzYzE5Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlYmFjY2MwZDgxNzkzYzZkZmVkYTM3YTJhYmQ2NTY1NGM0ZTBmMzVjNTAyMzNlMjA1OTkyMTVmZjMyM2ZiYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjOTg3NDEyY2I2NWEyYTUyYTk5YTk4NDA1ODk0OGY3ZTUwNTlkOTk5MmE2ZGE4NWY4ZWYyNDMwZDQ1MDM5MzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f526e777ce64a27bedb7f6508087f6b",
+      "statement": "`verify-export-jsdoc` builds a read-only `ts.Program` over `packages/*/*/src/**/*.ts` (falling back to `skipLibCheck`/`noLib` compiler options because the repository has no root `tsconfig.base.json`), requires parameter and non-void-return documentation on exported functions, public class members, namespace members and inline callable types plus description prose on exported declarations, exempts protocol slots, constructors, inherited contracts and source re-exports, fails closed on unclassifiable forms, and restricts itself to the names reachable through `exports` for packages that do not export `src/*`; since it reads source, it declares no build dependency.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-export-jsdoc.ts#L1-L8",
+          "version": "repo-lines-v1:sha256:c9a3caf4db823c75b2856188f7e5bcbfc1a866806e0d3944712ad55e4b0f5e02:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTcyYTQyOTM4MmIyZTE0NzE4ZTBlMzdiMDU3MGE4YTE3MDI5OTFmY2Q4NDk4Y2Q4NDA2MGE4YmY0ZjA1MDE3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzhkOTAwY2RhZWNhMDMyMzMyMjE0M2M1MzYxZDBjMjJlZTM1MDI1MzI4MGI4NjQ5YjE1NTQxMWY2MzYyNGFmOCJ9"
+        },
+        {
+          "resource": "repo://scripts/verify-export-jsdoc.ts#L507-L544",
+          "version": "repo-lines-v1:sha256:b5cd0c2cc7ececd207caad0fb38d7a463917573f91d06d7634b97b06fab5fe67:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNmQyODE0MTEyZDlkNjhjYjMxMjgzOTFkZTY3YTc2MTMyZTkyMzNhZDA3ODgyOWIxZmI5N2RmZTI0ZWJkNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3YTY4ZTAyNWNiZDRjYzFlYTczMzNmM2EyYmQzMGU2OTYxZDEzZjZlZGFiMjI2Y2Q0ZjI3ZmYxOTVmNWIyZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YTgzM2UxYmNlMjhhM2JlMTMwZTQ1MjAwMDI4ZDBhOWQ5Zjk3MjU1YTRmM2M2MDJhNzNlYTA3YmQxNDUzYjUifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-export-jsdoc.ts#L552-L600",
+          "version": "repo-lines-v1:sha256:1ded876d8d33681756a39fe513c3f2e8377642a8613b4761840fd40bc4f6b12a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZjAwMGM3NGQ2NTU1NzJjZTE2MTA5M2M5MjA3MTkyMjY4NzJjY2RlNDE2YzZkZDYyMmYwMmQ3MmUxNjllYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljODEwMDVlYjE4ZmM4ZDQ5NzE3YWFhMDRiNWYyNWQ3NWY1MzA4YjRhNWFkNmQ2MjE4OTBmODFhMTkxM2JhMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3Y2FhMzBlZGFkY2U1NTk2NTNmYmJjOTQyN2YxMGVkNjYwOWUzYjNkNDVhNmIwMzNlNmNmNWNlNzQ0NjJjZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_60e14bcde93e47a8a2c1ab5c3690881a",
+      "statement": "`verify-translation-pairing` treats a README as a three-file pair (`README.md`, `README.zh.md`, `README.i18n.yaml`): the metadata file records the git blob hashes of both sides with CRLF normalized to LF, and the check requires matching hashes, a language switcher linking each side to the other, and identical structure signatures (heading levels, code-fence count and info strings, table row counts, list types), with `--write` re-recording and `--list` reporting state.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-translation-pairing.ts#L1-L16",
+          "version": "repo-lines-v1:sha256:8c457b9643afd6b028c4a4d6d700569d28ad5b2367edb86823d86b1bf4d7466b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljZGNkNzM0MjhlMDRiY2U4NWMwODViNjg0ODJhMmQ5NDA0NzI5ODMxNzFhOWZkNzRhYjAyMmE2ZmJhNzVkYzYifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-translation-pairing.ts#L232-L247",
+          "version": "repo-lines-v1:sha256:d97dd76e0958833eedca300efe9707b8b2dd2cb841bd1018b4b19ebc68483616:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMWQ4YTdmMmU1NmQ0ZWU2YjYwMGM0ZDdlNzE5OWJkYmU4NjVkNDVlNWNlMGNmZDBiMjE5ODc5ZDRkZTAwOGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1MDE5YWYyMmM1NWE5OWI1NDkzMWJlMWY3MGRjYTE3OGVhNmU1MGU2MTUyMWU1YWY4NDFhMWU3MzQ1ZjE5NjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MDIxOTFiMGQ2ZDI2OTMxZWY2OGQzNmFjMmZkMGQ3ZDIwZWQ1NmI1MjIzNDdiN2RmYWRjOTkzYWM3NTAzYjkifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-translation-pairing.ts#L312-L387",
+          "version": "repo-lines-v1:sha256:2b36edf818ed2dd9f327e3057891312e4184b7eea0b4f28e8a2dadca8f5cf408:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwYjlhOTMxNzkwZWVkZmVmYzc0ODQzNzM3MDAyMDNmNDRmZDFiNGZiYzk2NTRmZTYzZWMyZWM0YWVkNzE4OWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlYzg1ZmJmZjBkZjhjZGE4OGE1Y2IwY2EyYjMyZTIyZTUxNmIzMDRjZjMwNDkzMzU2ZGFmMjQxZTcyOTJjNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkYjk0YzViOTAyOWVkYWNhZjc1NmQyZDhjOWNkN2MyMTBlZTI1ZjViNmRjMWU5M2Q1NzczNTFiMzU1YzQwNmYifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-translation-pairing.ts#L79-L90",
+          "version": "repo-lines-v1:sha256:0ae866b9366c847bcc79cdc2102e895599055e9d6e61d93a1041aecd06edc4de:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYTFmM2RjMzVkYTBmZjgyMTAyNDJkODA5ZmY0ODhlYTM5OTlkZTdjYzhjNzEyNmZjM2RlNTM2N2U1MGZjZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhZmRjOGU1ZTU3OTJjMTA5YzgzYTlkN2EyNDk0N2I4NWFhOGYyYjZkNTY4MTVhZGU5OWI4OWU0OTY3MGVhMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMzk3NmNkMGZjNzk0OGU5ZmU2YzQ5YjVkZDQ1OTY4NWNiOGEzNTcxOWZkNjU3MTI0MmJiMjZkMzE5ZWRlZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc52c4c5c4554600b7e3597572556e11",
+      "statement": "`verify-md-links` and `verify-md-wrap` share `scripts/markdown.ts` and `scripts/repo-files.ts` and scan only repository-authored READMEs, `AGENTS.md` files and `.agents/skills/**/*.md` (excluding archived agent notes and deduplicating symlinks): links and images must resolve to existing targets, a `#fragment` onto Markdown must match a GitHub heading slug or explicit `<a id>`, and a prose paragraph must occupy a single physical source line, with the wrap gate masking VitePress frontmatter and `:::` delimiters first.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/repo-files.ts#L25-L55",
+          "version": "repo-lines-v1:sha256:78825b3bcf0bfd6996dcfb0639efc750ed57379b6cc8720507015ba98f0d0f81:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4MjY3MmM0Njg4OWM5MGEzODgzYThlMjk2YmFkMTFlNzRhN2IwZGI3MDUwMmE3NzJmNmRlNjYzYzIzMzIyMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0M2U2MTZhYjIzM2E2Yjg4OGMzOTJjZWI0NGJhOTE0NGU5MDhiOWUzMGFhZjU1ODE5MTNhMjZmOWViY2Q0ZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NWNmODMwZTU5ZGNmOTg4MGJjMjNiYmYwMDkwODUxNzk4MWFhZDM3NGM0ZWE3ZmZhODY4MzJkODY5MDkzNjcifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-md-links.ts#L112-L193",
+          "version": "repo-lines-v1:sha256:2faf7030a5d3c59135529db629f87270c5e783fd29ba91f61e07970ff758e90e:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MDcwYjQwNmY3NTQ0MjllYmFlYTZiYjUzNzZkNGYwNTRiNmNjZmYwNDlkODFmYmQ3NjM5MzJhNjljZTViZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjMDg5MmU1NTQ2Zjk5OWQzMmU3ZTQ5YTMyYTYwM2I1OWQ3MTNlZTVhYmI4OTg3NzQyZWM2YTc1ZTA0NDQ5Y2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1MTczOTY5YjJlYzg2M2UzYjQ1YjA4OWNmODljNTQ4OTIzNTc0MGZmYzg0NGE1MDhkMjAwMmViMDI5NTUyNzkifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-md-links.ts#L18-L27",
+          "version": "repo-lines-v1:sha256:b3c75dfb7664acf7d3d1ce32e066d1156acf301178d8821176e6fb1961780ae5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjZmFjMDY4NDU3ZjIzNGNmMmQzMzVjYjg4YjIzYzkyMzE4MDY3MjFiOGFlMTI2YmU4OTlmYTg1M2Q0YzNiMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ODg4NWQyNzgwZjIwNzU2MWVhMWVlMmYwMjYyYzA1NGE3ZDk3Y2NjNzA4OTUwMGVjZGRiMTM2ZjkyODM1YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiM2FiZWI5MWU5YmYzMWFhN2E5YjQxNTFjYWY4YzJkMGNmODc0OWIwZDI3OTNiYmJhYWRmM2Y2NjU2YWMxZTEifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-md-wrap.ts#L17-L67",
+          "version": "repo-lines-v1:sha256:6d5dd1886fb8f7e3a2b90327042a7eebf81168be7d0c537ecfbdba9142bd7827:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwYTg1OTY1MTk0ZWRkZGQ4MjljZDkzM2U1ZThiZDFjZjcyMGJjYWU3ODQwNTAyNzhlYzJmMTZjYzQ2Mzc1OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ODg4NWQyNzgwZjIwNzU2MWVhMWVlMmYwMjYyYzA1NGE3ZDk3Y2NjNzA4OTUwMGVjZGRiMTM2ZjkyODM1YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2ZTBhMWMzZWU3MDM3ZGFhZjNlZGIwYmQ0NTdjY2VkOGI0ODU0MzAzYWEyNWU3Y2YwNWNkYzI3MmUzYTBkMjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9e4424057a3b4987a6295596662c5424",
+      "statement": "Gate scripts are themselves tested from `scripts/tests/`, but those unit tests deliberately pin only parsing and resolution rules while workspace-wide artifact assertions stay inside the gates — because `lib/` is build output absent from a clean checkout, a global unit assertion would fail on any machine that had not built yet, which is what allows `test` to run before `build`.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/tests/client-bundle-id.spec.ts#L1-L30",
+          "version": "repo-lines-v1:sha256:e43dfc402dfe19250699b9d127764f365ea04912ede8f16ba453de9898e0053d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiYzEwZDhiNmE4YmFjMTA2NTZjNjIzNTk1ODQ2M2VmMzZjYTA0N2E4ZGQzYjgzZWIyYTg3NmJhMjFlYWY4NmYifQ"
+        },
+        {
+          "resource": "repo://scripts/tests/package-exports.spec.ts#L1-L13",
+          "version": "repo-lines-v1:sha256:7d5d886c3ff05cf2b811bbd21a7a2f3369b497295c426e765f92c9bbb6cd8d6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmZmNlNWI3Y2ZhZDQxMGNlMWQ0Y2ZhYTkxYTMwNTA5ODBlNzFhY2Q3YmMxMzM5Yzc4MzUyZGI5NDA3ZGE0NTEifQ"
+        },
+        {
+          "resource": "repo://vitest.config.ts#L53-L60",
+          "version": "repo-lines-v1:sha256:4b890910476b00bc55d650aee1f9da57d9fd83bd4c7a539049740c1611641483:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzU1M2YwMTc3NGEyYjVhMjc1YzBjZTk4NjY5YjZmZTg4MGViNTIyYTQyNTNhOTdkODFkMTJhOGJkZTU4YjNjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOTQ5ODU1MjZjMWM1N2VmMDBjMDBkM2Y0ZGM5MDYxNTY3N2EwYTM2YThiNzk1ZGZmOWFmZmQ1MGZlOWY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM4YWRkZmUwNjc1MzBlNjkzYTE2OTUzMTllOTg3N2Q5YjQxNDQ4YWVmMGQ3ZWZlYTM3Njc3OTcyNDYyYTc1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTBhOGY2MGZlM2M1MGIwY2Y1MzQ3MjIxMTNmZTkwZDczNDE0Mzg3Y2U5MmU1OTc4YzgyY2JkODAxY2MwNTAwZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_eda7be2302d248718f68d128aa401b65",
+      "statement": "A gate must not guard its own fix: the issue-policy workflow checks out `policy.mjs` from the default branch, so a policy fix cannot be validated on the pull request that introduces it and must land on `main` first, and the general rule is to fix the subject instead of weakening a gate to make it pass.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/issue-policy.yml#L20-L30",
+          "version": "repo-lines-v1:sha256:cd93a4bf7e9ad70dc94e6b51147b1f58e4b332a0fcb36d3a1c6e10e17a95331b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNGUwYmUyNmVjODJiNDBlOTUwY2FmNDJmYzVjOWVjNzVmZjExMjY5OTA3ZDQwMmNiZWFkNDE2NDkyYjQ3ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlNjNlY2E0OTlhODA3YjdjMWJlYWUxMDc4Mjc2ZDEwZTI2OWJlNjRlMmU5YTljMDFhOWZhNjRjNzY3MjhmODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ODJkMmJkYzY1ZGRhN2UzNzlmNzNjZjhiNzgwZTE1MGFhOWFlMTgwYzI3MThmODIyYjM2YTExZDBlMThhN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2Y2JmZTkwOGRjODIzNzlkYTNkMzM4ZjE3OTJjMWRmYzBkZmFiZjVkOGZmZTk0MTllY2NhZTY4YTdmZTVjNTgifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L85-L87",
+          "version": "repo-lines-v1:sha256:72f6154141df3b3e53c453c70adcc5cd9eb78739df61f0e189f52d6a39d9e150:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWJmOGNiNDkxNTBkMDcyYzg4MWQ5ZWE5MjhiNjk5MzM1NmM0YjFkNGVlYmJjNWYyMTNjM2ZmZDFiNjk3MGExMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg2Y2FkMmRhYzM0ZWRkYTFkMDU0OTM3M2E5NjNmYWZlY2NmMWVlM2U0NThkODc1OWI3MzNlYjFiZmM1NzBkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGQyMDdlNzcxYjBlZDM0ODFiNWQ4OTNkMDFkNzgxOWZkNmYwY2FmYTU4ZWQyOWU4YjNkMjlkYWQ2YWE2MWIxNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDY4YTFlNmRhMjk4NjhmZWZjOTc2Y2E1YWU5NjUwYzQyODQ4NjlhN2E5N2EyNWI0OGI3Mjg5MzczN2E2ZmNjZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a3d5bea5c5874a06b661ce98c4bf4d85",
+      "statement": "CI's only verification job installs with `pnpm install --frozen-lockfile` and then runs `pnpm run gates` — the same aggregate used locally — so the local-first rule applies (the whole suite green before a pull request, never pushing a red gate for CI to discover), while separately path-filtered workflows re-run the translation-pairing and issue-policy checks as faster feedback rather than as additional authority.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L12-L24",
+          "version": "repo-lines-v1:sha256:29bcd6963553ad41cee2aa3ad98684a2bbee6a012711d12c16be268084f06863:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1MGE2MDZkZWQyMDhhNzcwMWFmZTU5ZTg2MjQzYWQ4M2EyMjg0MjlmNTMzMjk4MDNlZGU1MDBlOGY2Y2M5ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NWJhYjEzODY0M2FlMjNkYzc0NzBiZjEwMDgwMTA2OGQwMjQ3ZDVmZjc2ZmVlNDM5N2NmNWIwYmY0MGYxZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0Zjc5NDhlODYyZjVmOWZiZThmZjE1ZWJmMjU3YjU3NDI2ODNlYWVhYjVmMjVmYTE5NzlhYWY5NzljZmVhNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/verify-translation-pairing.yml#L1-L34",
+          "version": "repo-lines-v1:sha256:c980cdfd0b4ebbb38f764eb023df51aa77129bd931899cd27a1428781fb8008e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3Y2ZmZGFlMDViOTcwOGUxNjQ0ZDI0NmFkNzVkZGVhMGI3YWFmNWVkNGJlZDRhYzJiNTg3ZDA4NTM3ZGEyYTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxYTkzZWE4ODYyZjExYjNiNDUxOGM0OGRhNTIyMDQ2YWVhYWJhYTFiMjNmYmNhYTk1OTQ0ODM3MjE2MGUwZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L69-L79",
+          "version": "repo-lines-v1:sha256:b8ae25fbe3f80fa07f8bb3c8128cbd3693e8fc96f2c48619ab6bd28ce85aea66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2N2QwMWJhZjcwMDc2NzBjNGYxNjViZGEwYzZjMDJkNmM3ZTM5YTdkMzljMDVkMWExMTg5YWMwZGQ4ZTgyNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwNmQwOGE4YmJjNjIxZWVkMzRmZjBlOGMyN2MxN2FmZGMxNGFhMWZmZjEwYzdkMmExYTFkMzY1MGIyYWU5NGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzMDUzOGY5OTIyZjg4YjYwM2I2MmY3YmM1ZTcwNTZiNDNiZGRjOTIxMGQzODM4OGI0OWY4ZmE4OWU3NzcxYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjZjU2N2JhOWE0Yzg1ZmE3ZGY2ZTliNmZhNzA3NzY1M2ZjMmI5YmJjZDZhMjU2NjJmNzlmNjFjNjBkNTEzZjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_406cd4ffa1934eab9e63221a48837910",
+      "statement": "Adding a gate takes two edits — a `verify-*` script in the root `package.json` plus a `pnpmScript()` entry in `gatesForMode()` carrying `needs: ['build']` only when the gate reads artifacts (with `pnpmExec()` and `nodeGate()` covering tool execution and `node --test` forms) — after which `AGENTS.md`'s command list and gate count must be updated to match.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L12-L22",
+          "version": "repo-lines-v1:sha256:d50df0b8e1e77aa495eedbfe30167ad468f0d23c986f776dbb382d16b8bd53ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZjZiOWQ3OTgwODkxOWIyZmQyOGMxMjRkZDU4OTVlMWFiMjdiODg5NjFmMDFhNjY5MWVhODExYTQyMDNkNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwZjAyYTM4MjQyZWMzYjUzM2RmMjNlMWYzYTIyMTg5MmMwMmFkYjNmNjVjOTQ4ZjE5Y2JkZjkyZjA3MjIwZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNWQ0MjZhZWVmOTEzNGM4ZTdjMmY2MDRkZWM5ZmVjODkwZDUwYzFjODJjOTMxNDQwYTQwMzZmZGYyNjJiNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NTNmMzAwMzgyM2QzMTQzZTM1YTlmZTVjYmU4NTdmZTlmMDcxYmU4MzAzMzFkZTY5ODZiNTgwNjUyNDQzMWIifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L134-L165",
+          "version": "repo-lines-v1:sha256:4b603bb3df0d1dc9cec1be030ded3152892206223ebba74d155cb8365098552c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNjAzMzVjNmY4NjYyYjNkYTNmMmNhOWUwODQ0NWMyMTc2ZjFjZTVhNWMxZTRmMTAyNjlhNWE0MzdlNmYxYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkZGM5NDk0MjIwNzk3ZWY1YmQ0OWJlNzM3YWZhNzc5YmIzNGNjNDVjNGYyMzQ5ZjI1NzI0ZGJmOGU0OTcyM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlODgwMDUwMDZkMTIzZTU4MGIwMzExNWZkZWNiOWUyZjliZmFhM2Q5NmJlYTA3MjcxZWYxYzNjOGEyODFiNjIifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L211-L223",
+          "version": "repo-lines-v1:sha256:50c96800c13893c3319ac17c74c2ff75fcd4533b1ac754d5c2a0679eb942ba80:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMGRlODZhNWMxMzBmNWRjZDg0Y2VkZTI2MGQwMmY2ZGQyN2ExMmRhZDU1Njg1YTI4MTc4ZjcxZWIzNzM5ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2ZjZTkxMzQ4Y2IzYjFlMzQ2YjJlYmJlYzBhM2E0NWU5ZWNmOWYwYmNmNzhkYjgzNmNiMjU2YWI4OWQxY2IifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

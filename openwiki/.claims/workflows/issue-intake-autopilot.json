@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:515fdcaea8a28bfb4cd59ae58aa0529ca6977af7ebe61240be75803009d31111",
+  "claims": [
+    {
+      "id": "claim_bcaf6f72fffb4bc6b18f77b03ce37a03",
+      "statement": "接单循环把仓库里带 claimLabel 的 open issue 变成一个已排入提示词的 Session，是 issue 闭环的后半段；服务端入口是带 `@Remote('runIntake')` 的 pass，仓库内唯一自动调用者是首启检查 `startupIntake`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L634-L676",
+          "version": "repo-lines-v1:sha256:841f6e8119ef4dfe3f5aeb8b51d3fd34b6c55ef506a62ab6e979b8f2d474a64b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMTA3NDY5ZTVmYmY3YzE5ZWMzN2JlYjliZGM2NjgxYTg0OGI5ZGI5M2VkYWI2M2EyZjI1NGE1OGViMTAzODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3OTM0ZWQ4YzgyODQxYTU1M2QxMWEwMjNiM2MzNTVjODI0N2M4NWQ4ODgzMDA4YzE5YTBmYTMzNDg2ZmU5YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MDI5MmZlMWEyNjg4OTViNTMxMzkyY2U4ODk5ZTdkOTE0NWQ4YTA0ZDRjNGFhOTQzY2U4YzdlZjU0MzcyZjcifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L751-L770",
+          "version": "repo-lines-v1:sha256:367cfcd5186771ce49cb2565fdf11b1e80abf79b594530ca8a95720bd3b6ca8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNmM0ZDViOGUzZThmOTBkYmJlNDg4NDNiNWU0NGRkYTA0MTgwYzc0YjA3YmRmYzIxYjRjZjUzMzk0MGZjNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04607ed7bc854b49a2eb275df78b66a1",
+      "statement": "`[Service.init]` 是唯一的自动触发点，按三层门判定：`autopilotEnabled` 关闭则直接返回；启用但 `intakePersistent` 为 false 则 warn 后跳过；通过后 `void this.startupIntake()` 不被 await，异常与失败只 warn，因此 GitHub 慢或不可达不会拖住宿主启动。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L450-L467",
+          "version": "repo-lines-v1:sha256:c8c1ca62eed034c582d9bda534159dfcf2b8bbc9ab6b019db64ac7024c6f617f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmNGQ2YzVmNTQ0Y2I1NjZhMWJjNTBkY2RhZDJhMmU4ZmQxMGFmNWJiOTk0OGYxMDFlMjhkNDIzN2E2MDIwNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlZjZmZDdmZTJlNmE3ZDgzNGMyZWNjZjcwOWRjZTNlNjA0OGQ0NDM0OWI0MDcxYzUxNjI1MTkwNzhmMDMxYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f25e77e341e8417e9232b4b7f47ea355",
+      "statement": "没有持久 intake 状态时首启检查拒绝运行而不是退化成每进程一次，理由是缺少「已派发过什么」的记忆会让重启给同一 issue 开第二个会话；测试以「不挂 storageDomain + 启用 autopilot」验证 fetch 一次都未被调用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L459-L466",
+          "version": "repo-lines-v1:sha256:58f51d9b2747920b9b10989e769d5ff1407104e05a175a40efd6151bc3fe5b2e:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkYjI0YzUzNjE5NzIwNGYwOGE3ZjZkMGJmNmZhMGFjMTFlZGQ2ZDk2ODIwY2UyOTkwYmM2OTAxYzAyZWY1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGM2ZTUwM2Q2NTc2ZTVmMWExYzYwMzA0MTVmY2JjYmI1MGU4MTAxNDdmMzI4YWQ0MDFjYTNhOGQ1ZWEwN2Q0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmJiZTk5NmQ3MzU4ZWFiOWVjOTExZWUxMWNmYmFiZmMyZjYzZThmMjk2NGMwOTE4OGZhODQ5NWM0ZmJkMDNkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWE4NzBlZDFmMDYyMDJkYTEzMTJhY2YyMGNmYWZlMjIyMTcyZDU2ZjU2MjNmOTRiY2IyZWU4OTllYTA0NTlhZCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L182-L189",
+          "version": "repo-lines-v1:sha256:b9a9ecb3e301b98e8d6778a0e4d381703cf5e426ee4aaf4814c6a22792bb23c7:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE1Njg0MGQ5ZDgxZmEwNWU2NTlhZTY1OWE2OGVmNGQxYjJhMTY3OGQzYzlmMTM1NWJmMDg5NTE5Y2I5ZWZkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDhhOWIyNDk2ZjU0YzVlMzg3YWE3NjdhMDY4ZTRmOTI2YWQ5Nzk1MTBiYWZlMmYzNDAyMjk5NDBiMDM5NTgyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmM1OGIwZjJiMDk0OTQ0ZDI4ZjFlZDIxZTE3MDUxZmMyMTkyMTZjYzBjYTBjYjEyZTk0MzFkNDM0NDkzN2I2YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7e22fb0a04004e53b8251e4ce7535a32",
+      "statement": "首启检查把 `localDayKey(Date.now(), 时区)` 与持久状态里的 `lastCheckedDay` 比较，相等即结束且不发起任何请求。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L757-L766",
+          "version": "repo-lines-v1:sha256:ef1231de6901ef1bfb7a1b03a57fab39f05c3414c7438a060017486d59e67ced:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmZjY0OGU1N2NlMWZmNTZkOTYzMmM1OGMxNzlkZjFjZThkNzMwMjI0MTMzNDdmZTQyMGZmOWNiMzQ0ZjNlN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkZjE3OTZhN2MwNjg0YjMxMDkwMTA2ZTBmOTAxNDdmYTU1OGI2NDUxYjRjOGE5MmE1MWEyZWNiMDA5ZDBkMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViODhiYjIyMDc5N2UxNzQ5ODYwNDAwOGYwMWRiMTEzNDhhMDcwOTQ5OWMwYTdhNzA5MDRjM2E5NWM5ZTJiZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmZGQ0NmMwODk0ZWQzNmJkMzliMzQxN2JmYzM2YWM1NGVkNjU4NzQ0Y2Q1ZTU2MWYzY2RiYWFmZDI4ZTJmODAifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L158-L170",
+          "version": "repo-lines-v1:sha256:5db96b314ee65ecf201220b90f2e5de6ac3d679add7134314eaaccbc2f59120f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhYWEyNjllN2YzZjQzZDllODlkM2U0MzRiOWYwODVmMDU5ZjdkMDNjZGNmNjY4OWZjYzAyYzlhY2RlMmQ2M2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1Yzg2NzRjNzEzNGU0ZTQ2MGYwNDViZjcwNDQzZGIwZjFjYTQ0YzE1NDNkZjUyYzk5ZGQ0MDc0OTIzNzQzNmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_129a88f39f294e2294e2947bf38a40be",
+      "statement": "`runIntake` 的 `repoUrl`、`claimLabel`、`max` 按「请求覆盖 → 配置」解析且空串视为缺席，`max` 经 `clampCount` 收敛到 1..100 后被用两次（列单的 `per_page` 与去重后 `slice(0, max)`），而 schema 里 `maxIssuesPerRun` 只允许 1..20。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1116-L1124",
+          "version": "repo-lines-v1:sha256:32b2407eed7fe021fcd7b363b02a22b3cf000a461d26ae4e99fcd9ff3fd19b4c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ2OTg3YzMxZTAxYjliOTM4MmRlN2E5OWE3ODkzMWJlM2VhYWEzYWYzMjFjNTg3YzViMjQwMGQwOWYxMjQzYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRlZTM2ODU1ZWNlOWI3NjNjOWFhOGQwMGQzOGZmMzVkYWYwNjEwYzkzYjBhNTQxNDkwMWZhZWU2MWI5YjIwOCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L150-L170",
+          "version": "repo-lines-v1:sha256:0264a3cda9f19d3c59ee00f26cd3143b80b6bc21f395ad649c66770e3f635a72:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxZjZlMWNiNDljNTdkYTE5Y2E1ODNmMzA3ZGZiNGFmNWY5YWU4YmQ1Y2U3ZWRjZWUzMjQ5YWNkMzllZjAzMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ODI4ODY5YmNlMzA1NmFlMjNlZjMzMzAyYzdiMmIzMDFiNmU1ZmFlYmU5MDYwOGVmMWJhOWVjZDNhZThlMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L636-L648",
+          "version": "repo-lines-v1:sha256:0be4cdcbc404e3d468dedd4ddbbda0e91af821b42936730e25c820f9471148a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1Mzg5ODk3YzJhMDg1ODk1N2M5MjM3YWVjZDIxY2RjNTM0ZTdiYTYyOWViOWVlOWExZDQ1NTNiZTYzNzczNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYmJjNWM0NDBkMGM4NzVjYmZjMjFlNWQyYjlkZDliMTUyNTY4ZWMyZDQ3MWY5MmMwNmVlOWM1MzI5ZmNjOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzNmJkNDdiMDhmMzNlYjJhY2M2YTRkM2ZlYmZkNTU4ZjA0MzZjNWIxOGJhYTFiOGIxYTllMTExYTU5ODFkOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhZDkyYTQ0ZjZjNWY1ZThlYWZmOWM0YzdkYjZmNmI2YWMxYzFlYjJjYmMzNWE5MTg5OTViZmFiMDIwOWYyYmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0666791819bb4b44a7568b2c2db0d715",
+      "statement": "列单失败时 `runIntake` 直接返回该稳定失败、根本不调用 `commitIntakeState`，所以那次「今天」不会被记住而是下次启动重试；测试确认这种情形下存储里没有 intake 行。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L639-L640",
+          "version": "repo-lines-v1:sha256:17aab3c68ec3492fed3cff4458ee6942f3366af9b416d0344f31b30fd2f90560:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUzOTE0ZGVlNTc5MmRlMDU2MzEzZjMyZDcwNWI2MThmNmUwMTRkYjAwNjJhMzQ3ZGQxMDRiZWM3MjAzMWZmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA2ZWFhZGRjOTliMGExOTdjYmQ5MWQ0ODA4NDhiNDIyZDc2OTQwMmFkZGM1YjhhMWU2ZmNiYmRjNGRiZmFiYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDg2Yzg0ZjhjNTJjY2M5MjFlZDNiZDljNjFkYzk4OWU1N2VmYjkwMDg0YWNkNzkyOTc3ZGNkM2Y0ZTc5YjNmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjdmMDdjNGZlNDI3NDY4NDQ1MmRlNTBiZGUyYjgyZjVlMzhlNjc4YjE1ZGNlMjI0NmMxM2I5YjMzYzlhMGFjNCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L663-L664",
+          "version": "repo-lines-v1:sha256:a2860653a4b19d767ab2b00e072404a172137c14991b08e5b9832517c5c7a78d:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMyYWNhZTEzODk5M2IyYWFhNzFmMTdiMTVlN2YxNjE4NjkzMmU1MmE3YjNkYmEyYTkwMWYzNjhlMzVlZmRhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjhlYWRiMzc2OTcwNjBmMGQzYWVjNjllYjJjYzJmZmE3YjllODMzNmI4ZmEwYzg0MWEzM2UxNWNiYTNjOTFmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjQwYzhiYWYzMmZmNDJhNGYxOTVkMDU0ZmUyNWQ1OThhZDIwZGRkNTFlOWEwNTg4NGU5NjM4ODk2Y2UyMjljMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQzOGRjNTM4ZTdlOTUzNzFmMmVhNTVmZjhjOTZiYTk4NDdjMzJhOGVjYjA4NTM5NWY5ZDQ4NDJlYzU0NGZiZSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L127-L133",
+          "version": "repo-lines-v1:sha256:a5545d740d2d40202b0df718d94d3d9891acad7dd8faf1b4a33fc1dc287c23fc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMwOGEwYzczNmYzYTI5NGU2YWQ1OWExOGNkNjI4ZGFhMTg4MjExNWIyOWUyMzFlYmI3NzY1NDczYTcyN2EzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTA5MjRmNjZmN2RiMDA1MDUyYzFlMGZhNjFjZmQ0M2IxODVmMzk1YjdjOWUzNTc0OTZhMWVmZTE0YjUyNmFmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzhlYTYxMTM2NzE0NDM3YzA4ZjAwMDQwZDM4OWY5MTI4ODA3MmMzMWVlMTRlMDdhMWM3MDAyYWY5OGNjMGNiYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f8cccfbca3644de9e0944e963054ce5",
+      "statement": "去重键是持久状态 `dispatched` 里的 issue 号集合、与记录中的 `day` 无关，因此同一 issue 即使仍 open、即使换了一天也不会被二次派发；历史仅保留最近 `MAX_DISPATCH_HISTORY = 500` 条，纯粹防止单个 JSON 文档无限增长。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L347-L354",
+          "version": "repo-lines-v1:sha256:ff19538e05cf6916baa0615bc73237dfe266ac1e64265bdc45f6962944694e89:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc2OThkNDRmOTAyNzE0NzEyMjJmYmRmNmVlYTBhNmIwNmY1NjVhNzYzYTE3OTI1MDBiZGJkNGY2NGEyMDhkNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzYWRmMDdkYmE4N2I3MTA2MDFmMzllZjliNGQ4YjU2YzVmYTQ5NTVlZTFhYjA3OGY2MzY5NGQ0MjZkMjA4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzAxMDk2NzA0YzlkYzNhMTY0M2U5Yzc5OGEyNzlkY2ZiYWE3ZmQyMWNhZjg1ZGY0NjlmZWY0ODhkNDNmZTU1OCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L641-L647",
+          "version": "repo-lines-v1:sha256:d59d8a42624d8444c41fcf7ba60e25b7557feb8c55cec8edd4d4c0a678ec9e4a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVhMzkyNjZiMDY3YjdhNjAwMmMzODE0ZjhhYjcyYmY3MDE0ZTQwOTRmNDkyODRlOGY5NmMzOTg3NzI3ZWRkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTU2ZTE5MzIxMzkwOThiMDA5MTBhMDE0OTU3NTRkOTBlOWY0ZmJlNzU5MzMyZmI2Y2Q3YWI1MmM2Zjk0OGU5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTAzNmQzNjcyYWYwZDUwY2RkOTE5Yzc3YjQzYjk4NGU5MmM5NjA5YWY2MDU1MmY1N2Y2Y2ZmOTZlMmZjZGZiYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_19360a77200f4a39abde985f6a3bfa38",
+      "statement": "单个 issue 派发失败只进返回值的 `failures` 而不阻断同批其他 issue、pass 仍返回 `ok: true`；失败条目不写入派发历史，所以它会在下一天的 pass 里被重试（同一天的首启检查不会跑第二次）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L649-L676",
+          "version": "repo-lines-v1:sha256:26a9522b563ca12e4925382f79164c77e1ee3621dd69946abf2a7ca74709eaae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NGRjODFhMWI5ODBhM2RhZmU3MWVmNTY0ZTFjY2I3MzMwZmYwYWViY2QxMDM2NTA0ZTdkNjM5Nzc3NmQ5NTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZTUzODRmYTg2MDMyNDY5MjIwNDU4ODBiM2I5MGE3MTY3Zjg1OWU1ZWUyYmViNTFlYWNiNGQ1ZGMxN2JjODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MDI5MmZlMWEyNjg4OTViNTMxMzkyY2U4ODk5ZTdkOTE0NWQ4YTA0ZDRjNGFhOTQzY2U4YzdlZjU0MzcyZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ca4905685ca4092bc8bf065536d8658",
+      "statement": "只要列单成功，pass 就提交本地日，即使这次没有任何可接的候选、或者被选中的 issue 全部派发失败。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L663-L665",
+          "version": "repo-lines-v1:sha256:44f364d3dd9e64aadead3b80a06c8abb47868b90df8f6a0b8e06bed1220bf94e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMyYWNhZTEzODk5M2IyYWFhNzFmMTdiMTVlN2YxNjE4NjkzMmU1MmE3YjNkYmEyYTkwMWYzNjhlMzVlZmRhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzg2NjJiMzU0NDA2MTEwYTA5OThhODUwYjZmMWFhZTZhMjk1OTFlMWQ2YTFiMDQ4MDliOTYxMjJjZmQwNDBkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjQwYzhiYWYzMmZmNDJhNGYxOTVkMDU0ZmUyNWQ1OThhZDIwZGRkNTFlOWEwNTg4NGU5NjM4ODk2Y2UyMjljMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGExNGNmYzc3YmI0ZmVlZGVhZDU5YTlmMTM5OGM2ZjU4ZWE0ODlhYjE1NGY0MmI4MDJjMjJiNGVjOTIxYTM4NyJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L806-L812",
+          "version": "repo-lines-v1:sha256:16d1b273abd0cd2bc3fe3902adf3160ea3b8b2d21164bcb89d4a9cbddd26a48d:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmYwNWM3MWQ0NDM0OGRmMDFmM2JkMTJiMzlhM2FjNzk4MGRkNmI2NmYwNTQ3MzYxMzM4ZmNjMzEyY2VhMmRmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2QyNzRhNDViMTY5ZmQwNDk3MmI4NmVjN2NiZjMzMTlhMzk1Y2MzMWRmNTMzNDQ5NWViMTZmNmFiYThmMWIyMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ1MGE1M2Q5OTdmOGQ4Y2ExMzkwNGI5NWJjYWU1ZTQwNDAzZDdhZTMxMjg2YjBiOGFhMWM3MGU4OTI1MzAyNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGYxYjM0NjE3ZjhlYmQ2ZjQ1NDBkNWNiODMzNWU3Y2IzNWY3ZmM5MGFiMDIzN2Q0YmJhMzc4YTY5MjFlMTA5NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a5a44a84a8c84fcebecac121cf74157d",
+      "statement": "`commitIntakeState` 先更新内存状态再 `table.put`：写失败只 warn 并声明「后续 pass 可能重复派发同一个 issue」，于是本进程内下一次 pass 仍视为已派发，而进程重启后读到旧行、那一天等于没查过；没有 `intakeTable` 时函数在更新内存后直接返回，什么都不会落盘。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L796-L820",
+          "version": "repo-lines-v1:sha256:0e947989146aaec046af63e039048345074a89cf500ed01d0b17ba28f01878d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwYmU2NzFlMmYxZDIwMDBjYzc3Y2I4NGNjYTg5YTNlNjk1MDQ0NTg3NjI3ZjgzMDBjZWIxZjkyNTg3YTA3ZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d085b9dab7a4acc9d70c43c1a0c7e97",
+      "statement": "派发两步走：`sessionController.create({cwd?, agentPreset?})` 建会话，再 `agents.get(sessionId).agent.followup({content, source:{kind:'github-issue'}})` 投递渲染后的提示词；经控制器而非直接建 Agent 是为了让它应用部署的 preset、工作区归属与发布流程，从而与用户从 Web 新建的会话一致。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md#L30-L32",
+          "version": "repo-lines-v1:sha256:a132ed638f4a38ae702f3eaa4d96e96b7fb79001132862ff12508c663166467c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU3MDMxNTdlYTVlMWY2MGE2NDhjZmE2YzA2OGQxMWFmYzA3ZWNmZDkwNDMwOGVlZjY4YWYyY2IyOWRiMWJmZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk5MWRkMDEyOGE3NGRmNGUyMDllOWE4ZmVjYzE1YWI0ZWRjYTU3YzBlNDViM2YxMTNjN2IwODRiODgxYmYxMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzA1NjMyOGQ5NzU4MTk5MDYxZGVmYjNhMGY0M2U2NDdlMzc2NTU3M2UxYWI1ODYwYTk4MjVmN2Q5OWMxODgyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTVkZDRkNDJiZTUyOGJjY2Y3ZGZmN2VjYWQzYzU5MWE5N2Y4YzY3ZDNhZjkwOTEzMWY4NjE1ZmY1NWY4YTNkZCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L690-L730",
+          "version": "repo-lines-v1:sha256:4aa74928bf257222411ee507134fe8536f8021c25aa72fd6be6ed7e94e95d590:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlZWY0ZmZhZGFmMDFmZWE2ZWI1YjMxZDk1YjllNTM0ZTkzMDJkMjZjZTY5OTYwMTA3YWQ0MTE5OWVkNjNhZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzhjN2U2MmE4OGQ4OTU0OTU3NzkxNDA1YmI0MDQ2MDJiZWIxOThjZjBkYzQ2ZDY5YzUxZmM4ZThhZTlmMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZDA4MGU4NmZlYTc4OWFmYWU2NDIyY2UxZmU1YTRiMzExY2IxNDJiNjQ4Njg3Y2Y1YzAxYWFiNTY2ZTcxY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2da8541a8a73482eb11dca25b7d38cc8",
+      "statement": "`sessionController` 与 `agents` 任一缺失时 `dispatch` 在创建任何东西之前返回 `session-unavailable`；`create` 抛错、会话建好却没有活着的 Agent、`followup` 被拒都返回 `dispatch-failed`，消息里区分是哪一段失败。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L365-L372",
+          "version": "repo-lines-v1:sha256:46a14f609fc495119b32f6a0a42fba44b84500020750555be8fedb64561d8308:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U3MmU5OWE4NDk5MGE3NmJhZDBjYjE1MzU0Nzg3OWU3NzQ2NDM3MTQ3NjNlNzBkMzJhZWViZWNkZjE2NDRlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA5MmU5Yzc5ZDY3NDllMjUxM2U5NmE5YzI2MjJkYzRhZDVkN2EwNjJhZjJhOTZlYWNhYWExMTQ5MjJiN2M5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTVjZmFjN2ZmMzJjNzdlZTYxYTNmNjdlYzFiMDg0MTdkMjJiMjNmMzQ2MTc2ZjE0YjJmNmYwMGQ3YWYwMzg2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkYzliNzU0MjkzMDk5OGNjZTUzYmM2OTQ4N2FlNGY5NzliYzJiZjZiMzZkOWE4YzMxNmUyOTkxZTU4Y2E3MiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L690-L730",
+          "version": "repo-lines-v1:sha256:4aa74928bf257222411ee507134fe8536f8021c25aa72fd6be6ed7e94e95d590:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlZWY0ZmZhZGFmMDFmZWE2ZWI1YjMxZDk1YjllNTM0ZTkzMDJkMjZjZTY5OTYwMTA3YWQ0MTE5OWVkNjNhZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzhjN2U2MmE4OGQ4OTU0OTU3NzkxNDA1YmI0MDQ2MDJiZWIxOThjZjBkYzQ2ZDY5YzUxZmM4ZThhZTlmMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZDA4MGU4NmZlYTc4OWFmYWU2NDIyY2UxZmU1YTRiMzExY2IxNDJiNjQ4Njg3Y2Y1YzAxYWFiNTY2ZTcxY2YifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L146-L156",
+          "version": "repo-lines-v1:sha256:3eb89f172a28e5d64cd2f06755add27089c1a211141683e1b65ab09a73a1b22f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzdlNTZkMzc1ZTYzNzNmMzIyNjRkNjFhZDIwNDdiM2JiOTZiNjEzZWFlZmNkOWY0ZDllYzQ3MmYwNDMyYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2OTA0NGFhMjNiYjE1NjQ2ZTQyOGVhNTVlMDA5YTViZTc4YzI5MGIwYTFiYmQ2MjQ2NmJkMjc0ZTM2NjVhMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba49d19637db43199e6dde4e15ddbd53",
+      "statement": "给派发会话改名（`Issue #<number>: <title>`，截到 120 字符）是可选的 fire-and-forget 步骤：`rename` 不存在或失败只 warn，不影响派发返回的 `sessionId`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L316-L322",
+          "version": "repo-lines-v1:sha256:c0b6b38afcf51f444a83f05107212e8d7e9b23f645513f69ccdbeb16add8914d:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDY4NTg5M2FhNjc2OWViYjExYWRjYTdiYTAzYTE5OTM3NWJlNDk1MTUwYzZlOGQ2MDVkMTViOGFhYjk0MmUxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA0N2ViYzQ1YjExMTg1NTg0YjRhYzBhYjE3ZmEzMzI5NDFhMzUwYzI5MjdlMzgxNGE0ODYyNmI4YjZiNDhkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk1YmQ5MTc4YWM2NDE0ZmIxZTlmNTk5Yzg4Y2I1YTRhZjAyMTUyNTI4Y2VmYjdlOTgwYTZiMmNhMGM2ZGU1NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L727-L749",
+          "version": "repo-lines-v1:sha256:efaaaade654272af177c05cba5269f00331ded227b013dfc160bdcdff3df6864:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNjA5ODA3NTA0ZWQ2NDdlZTI2MzI4YzBmOGM5MjE2ZGY3ZDlmMjRlMTlkYTMzOTFiNWI4M2YxNWIwZjNiZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3NjAwODBkZjJjYjAyZDIxNzc4YWM1ZjNjOTllYWY3NzI3NGRkYjZkYzU5MDE2NGE3MDQ2YmYzODg5M2MxYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4ZGQ4Y2QyNmZhNDhhMmM0NzQ5NjU1ZmU5ZGRhYTk1ODdlZWIxZjJjOWVmNDhiNTY4YzM3ZjEwYTBiZWVkODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_84cdbcbe6a6a49508d77d486a6216503",
+      "statement": "提示词由 `renderDispatchPrompt` 替换 `{number}`、`{title}`、`{url}`、`{body}`、`{labels}` 五个占位符，替换正则只认这五个名字，因此未知的 `{token}` 原样保留在提示词里；测试把 `{number} {unknown}` 断言成 `42 {unknown}`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L31-L73",
+          "version": "repo-lines-v1:sha256:840f22a9c27cb70596fefdb7e79e20285ece641798454c8e150cb027cba118cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyNWFlMmI3YjMxNjQ3YjVkZmY1ZTgyMDlmZGY0OTFkZmJhOGZiNDM1NjM1NmQ4ZjhjMDU4NWM4YmU4ODU3OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmN2RlYzgyYTNkMzAyOTM3YWZmZTJmYTg4YTIwMDcyYzAwZDM0NmUwOWNjYjRkNTkyNjQxY2U0YzEzY2M4OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxZWY2NjllZDE2YTRjOGU1ODc0ZjkwYzJkN2UwZjY2MTJhOGEwNmJjMzExNTFkMDQ0ZGVlMzY4MGQ0OTEzZWYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L27-L43",
+          "version": "repo-lines-v1:sha256:cc3d2a623127a2d0de7a968d09fb958bdaf6a81232a62c9fd7b0443f271e1122:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMTZiYTZiZGI5ODIyODhmMjUyMzI0Y2RjMzVhNTdmZGJlZmYzNDc3YWE3Y2UwMmViOGY3NmI1ODVhZDE1MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlYWIxOWVhYmM4N2Y3NjlkOTM1MGMwMTlmMmZkMWVmMzYxMDc3MTc0MTVlZTc1YWI5MjczYTY3ODRkNTNkZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_399c46df4f2c42bc9da128cd78596eed",
+      "statement": "默认模板 `DEFAULT_DISPATCH_PROMPT` 指出 issue 编号、标题、URL 与正文，并要求接收会话按仓库 AGENTS.md 工作流从最新 main 切分支、实现并补测试、跑通门禁、开 PR 引用该 issue、不直接提交到 main。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L20-L29",
+          "version": "repo-lines-v1:sha256:38c8a62ff0986f2ff68e5cea223f09185aa6be8e249ba26ddae8db453dd2ccc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MzFjOGQ4MDhkNDY1OTc2ZmRiYjVlNWQzZWFjMjM1ODBhZTQ1ODhkOWNkN2M0NTkxMzI5MzgxNjBkMGZkNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTRlNTYyY2E4MTk4ZGI1YTNkNmY1MDY4MjhiNjA1MmUwMzBmZWIyMjdmYzEyZDQ0OGQ1NGFiNzg5Y2NmMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2MGVjYzhlZGZiOTNlNDdlYjE4OTBkYzVlNjYzOWY0OTUwMjFiZmYwYWMzYTg0OTVkMzg4ZTVjZTM4ZWVhMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0NDM3YTllYThhY2Q1ZDVlMzI0ODBiMjA2MzJjZTkwNDJmZDgwNzM4ZTk2YjU5ZTk5N2M5NTEzY2JlNWVhMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e83eb912200f43b9b3ca0a2968a44ab6",
+      "statement": "「今天」由 `localDayKey` 用 `Intl.DateTimeFormat` 按 IANA 时区生成 `YYYY-MM-DD`（空时区跟随宿主），`autopilotTimeZone` 每次使用都重读、非法值回落宿主时区并对每个新值只 warn 一次；测试钉住 `2026-11-01T16:30Z` 在上海是 `2026-11-02`、在 UTC 是 `2026-11-01`，且非法时区仍然写出合法的日键。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L432-L448",
+          "version": "repo-lines-v1:sha256:a7429ac72727f6cd36332a8b2fa1552f1f5648ebadcac130dd45091a21c7a8ea:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNTNiOGE3MGZmODRiNGZlZTExZDFmZWQ2ZWEwZjA1OGIxZGJlYTc0N2E2ODBkYTM4YjQ0NjVhYmZhZGZmODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiNDk1ZGNiZDQwZTNiNDE4ZDA1YTYwNzg4NGI3NGVlOTgwNjVkNWMzMDZiZmU1NDlkOTFmZGNhYzhkYjE3OGYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L75-L115",
+          "version": "repo-lines-v1:sha256:c3a7bfc7b3185432a6523b932b176f0e1ed40e95bdf0035318b0c545ab1ce723:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMDY2OTUyMzFkMGFlZDc2NmU2NTE0MmZlODJjNGU0NDEyYjhiMDk3ZDU4YmUwZmQ2OGQ2YWM5ZGVjNTY2ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts#L111-L118",
+          "version": "repo-lines-v1:sha256:4d8f65097d1bb299f6820633c8442b68b96922120996038bb443e919f513de09:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRlZjhjYjJjZmUzNjU0NzBjOWU2NWVkNWQ1Y2Y0NDMwNTFhODI1NDMwNzQxMWE2ZDc1ZDA2MTAxZjQ2M2U1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JiNjVjNDI4OGNmNzllN2RlNGU2OTQ1ZDM4N2RjZWJmOGJhNTA5MTk4NWRlYzFhMjczZjNjNWY1N2FjMGM2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDU1YzM1YWQ5NTlhY2NhYTE5NzA1M2IxZTBkYTFiNjViZTA2MjI2YmU1NTAzZDJlZDA4NjZlNTcyZTljMDE4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTBhOGY2MGZlM2M1MGIwY2Y1MzQ3MjIxMTNmZTkwZDczNDE0Mzg3Y2U5MmU1OTc4YzgyY2JkODAxY2MwNTAwZCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L45-L56",
+          "version": "repo-lines-v1:sha256:89c8acec957c7ddc0cdf7688c10b4961d22a102aaa1e79a246891914876ab721:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MWQyNWU3YmU1MjcxNWRmM2ZkNmJlOWJmNzNmZTA1ODA4MzIzYmY3MTEyNTk0ZDYyZWY2OWNhYTczYThmMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5ZTIwMmM1YjBkY2I4MzQ0ZGM1OTFkOTAzNTAyMjA2ZmQ5MTdmNGZmN2I3MmI5MzY1NTRlNTczYjU5MzhiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0MWEyMWI4ZjBmN2NmNDE2YTY2MGJjZDE1MThjZDEzMTM3M2UyMmVjMjhiMTk4MDBhNDcwMGNhOTNkNjA0ZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3af8c4992f9b40cbbc355fe549756255",
+      "statement": "首启检查是启动钩子而不是调度器：宿主跨午夜持续运行时，检查发生在下一次启动而不是午夜；设计文档明确排除了用 Automation tasks 的 cron 表达「首次启动」。",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md#L15-L22",
+          "version": "repo-lines-v1:sha256:8397c4f11c31efdc5af166218aeae80c23bc43823e9cc16eb22d05a7f2010e13:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjRiZTJjNzA4MTczYWEyZWQwODZjY2RkMzQwMTk4YmQ0NDgwOGRiMjM1ZjZjNWU0MzM5NTUzNWMwODgwZDA0MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWEwODcxOTljOTliOWRjZDhmNjRkOTBjMTVjMzQzOGEzODQ3MWIwM2M3ZTA5ZjcyYWFjODdlMjE0ZmYzMDEzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDg5OTVhOTZiZTIyODBiNDcwOTU3NDgwNTM1YTE5NDg4MzczODQ4ZTQ5ZDFlZmRjNTY4OWIyZWNmZWIwMmRmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjE0MzU3YTY3YjNlNjdmZDQ3MWQ1ZWU0ZTZjZjRkOTkzZWVlOTg5YWJlOWY3YmRhM2FlZmU0MDBmOWU0MmYxMyJ9"
+        },
+        {
+          "resource": "repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md#L74-L79",
+          "version": "repo-lines-v1:sha256:94382c356dfdc44cd31384d3a7672e77c2cf7f1d46c066cc2b847321defa218c:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzZmU5MmMxYmI1MzZlODI4YWIyM2JkMzI0YTI0NjFlMTcxNDNhZGU2ZDVlY2RkNDM2YzBhM2QyZWI3ZTBkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDBkN2YxMmUyNzJmMzFiYjc3OTNkZmZkZjlhNzQzNjc5NzZiMTg5MGNiNWIwNzMzNzkzMzE0NzhjMGQ4ZDczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWU1MmM0OThhODVlNGEzNDBiYTNlMWEzYTgyZDIyNmUzM2YxYjUxNmNkYThlYzNkM2UzNmQ4MjU3MDUxMjM0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L751-L770",
+          "version": "repo-lines-v1:sha256:367cfcd5186771ce49cb2565fdf11b1e80abf79b594530ca8a95720bd3b6ca8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNmM0ZDViOGUzZThmOTBkYmJlNDg4NDNiNWU0NGRkYTA0MTgwYzc0YjA3YmRmYzIxYjRjZjUzMzk0MGZjNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e7a288b73e74351a1437dc4ca4d2a98",
+      "statement": "去重与记账只存在于 `runIntake`：`dispatchIssue` 这个远程方法落到同一个 `dispatch`，既不检查派发历史也不写入历史，所以「永不二次派发」只覆盖走 pass 的链路。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L611-L619",
+          "version": "repo-lines-v1:sha256:2ae96cc9b324cbcb23103ddb97ea1f1c68335b451ede5c438aaae5c10eadb710:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzNWQ5ODY2MTY3NjMzZmViOGE1YTBhZGI0ZTJmOGVlNDhhOTVmODJiZWRmNzIwODVkYzgzOTdmNzI0NjUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjk5Njk0YjY5ZDY3ZTYwNzYxMjVkN2EwM2NjZDkwNjk4OTQ2MjU5ODc0YWQyMTQ3MDY1YWE0MDIxODcwYTNjNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGY5YjNkNGY3MmNmZTllYTFlMjJkY2ZiYTNhN2JhMGNjZTRmMmNjODY1NmIwMDdlYmNhNWQyOGE5NTM3YTU5YyJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L690-L730",
+          "version": "repo-lines-v1:sha256:4aa74928bf257222411ee507134fe8536f8021c25aa72fd6be6ed7e94e95d590:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlZWY0ZmZhZGFmMDFmZWE2ZWI1YjMxZDk1YjllNTM0ZTkzMDJkMjZjZTY5OTYwMTA3YWQ0MTE5OWVkNjNhZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzhjN2U2MmE4OGQ4OTU0OTU3NzkxNDA1YmI0MDQ2MDJiZWIxOThjZjBkYzQ2ZDY5YzUxZmM4ZThhZTlmMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZDA4MGU4NmZlYTc4OWFmYWU2NDIyY2UxZmU1YTRiMzExY2IxNDJiNjQ4Njg3Y2Y1YzAxYWFiNTY2ZTcxY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7cb90bd9df3c43a99a229d40be6b1bbe",
+      "statement": "接单相关字段（`repoUrl`、`claimLabel`、`maxIssuesPerRun`、`autopilotEnabled`、`autopilotCwd`、`autopilotPreset`、`autopilotTimeZone`、`autopilotPrompt`）都是 volatile 且在每次使用点现读，所以设置面板写入无需重启即可送达；其中 `claimLabel`/`maxIssuesPerRun`/`autopilotCwd`/`autopilotPreset`/`autopilotPrompt` 在下一次 pass 生效，`autopilotEnabled` 只在 init 读一次、翻转从下一次宿主启动开始。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L118-L170",
+          "version": "repo-lines-v1:sha256:31a67374c0514a6eff1a2dd8b55bf6c0f93f8597e610cb221aee0ebebcba7064:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2M2VkMWU3YjM0YWM4YzliMzUyOGRhNWM5MTM2OWNkZjY4YmViOGU0NGFiMjEzODAyODc0ODU0YmY4NmUyOGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1NmM2YjRiNzNhZGQ3ZWYxZWY5OGE5OTA0OTE0NjMyYThhYWExMjg0ZjczOTk0YjhiYmNmNWEyMDk5YzZhZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjFmODUzMmVkNDUyMzdkYmU3NDc0ODA2MjJiMzU0OTdiNzhjNTEwYmExOTQ5NjNhNTk5MzlmNzVmODcxMGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts#L89-L109",
+          "version": "repo-lines-v1:sha256:c99ccbc94f30f5cca51ea3dad15c20040c44ae1da6bdb3c49a86d56c3923a97e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZmE0M2RiYTUyNzcwNjY4ZTY5N2FkNWZhYWUyNTQ2ODdhNDE3OWRhNmE2NDljZGI5NGYzNDAwMzcyNTdmZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyNDQ5MTJlNzFjYjMzOWE0ZDBiZDI2YWM2YjI1NTY2NzAyZmM2ZGJlMThmNjAxZTNjMDJhMzhiODY5YzI3M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3YTk3OTM5NjgwMGQ2NzNhM2I3OWJlMTc0MDc0OWRiZDU4YjA3NjdlYjE4N2VmYTgyMGE2YWFjMmFhNTQyZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6fd32c4bec39481bbe1f02de756c07ff",
+      "statement": "接单循环默认关闭；启用需要部署显式设置 `repoUrl`、`autopilotCwd`、`claimLabel`（仓库的 triage 词汇决定标签值）并提供 GitHub 凭据，`autopilotEnabled` 的默认值是 false。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L15-L30",
+          "version": "repo-lines-v1:sha256:e3d475df725f4ea632e2512fcb616d2c97bcf433e37e141f13be3aa132bdc95d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZDNlNDk3N2M0ZmNmMDI4MGJiNTIxNDM0Yjk4OGNiODc5ZmU0N2Y0MzljZDAyZmFjZDhjZmY1ZTJkZTU0YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MWJiMDcxNDYxODg5YTY0NTFhMGZkMDI0OGMxOTA1MTE1MDBmNTAwOGE1ZjA4NmZiNWUzNjA3YTUxZmQ3N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxZTgwY2Q5NTA3ZTZhYmE4MDIwZDQ3YmM4YWViODdjNzFiNTkxMmJlMTExZTNkMDk0NzNlODQ1YmQyOGZlZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L163-L169",
+          "version": "repo-lines-v1:sha256:8aabb0c5e92946ac5c85b9da61890c432c1ee585158bda718e08164e4f424900:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDkwNmU4OTk2N2JiZjYwNWFkOTQwOTU4N2VjMTA5ZWQ5NTExOTk1ZWIwZjkyOWUzY2JiZTgxOTY2ZjQxN2FkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjY3ZTY0MGE4MjM5YjI1YjFiYjI3ZjU2NGNlNGJkNWI2ZmNhMmQzZDMyNDJkYTlmN2FlOTgzNTIxZDFmYzgwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4Y2FiY2YwNTMwMWIxZWRmZDIyYTBkZjg2MjczOGJhMTUwYTA0OGE1MDAyODgzY2M3ZjUzYzhkMTExOWZkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjk1ZGIyMGNjM2ZiM2I1ZTVkZjhiMGJjNDUzODI3ZDUwYmEwODExMDI2N2Q2MjdhMzZlODllOTZlNzc0NWZmYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_225374d3504543b88e40394c416650e7",
+      "statement": "`intake-service.spec.ts` 覆盖了 pass 的主要契约：派发一条新 issue 后第二次 pass 跳过它、本地日与派发记录落盘、`cwd`/`preset`/`prompt` 被转发、列单失败不记日期、缺会话组件时保留失败，以及首启检查的三个分支。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-harness.ts#L98-L174",
+          "version": "repo-lines-v1:sha256:c17c295a29dc7d84caf3892e050dab41e2df8af892f03f7cf2c0c9ff5c65148a:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3OWUyNTdiYjA2YTVmNzc4YjRjNTZlZDY3YTRlZDhlZTEzMjc3ZDJiMmZhYTM2MDM5MGVhYmM5N2Y5OGE3MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMGIzNmFhNzRhNTliY2Y0YTg4MTg1ODM3ZjY1OGFmYWYzNjQ2ZWZmMmJiMTZjMzkyOGQwZTkzMzVlOTQ1ZDIifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L76-L189",
+          "version": "repo-lines-v1:sha256:da98347d68db0be57aa5b788172976f30439224960638a44cd204aef6175986c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0OGUwYjg0ZTkzMjMzMzE3OTQ2NzA0ZDFjZDA5YjE3OGYwZTM1NDU2OTZmZWQ0MmY3Yzc1ZjAyMDA0MjJkNjFmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjYmI2NWM0Mjg4Y2Y3OWU3ZGU0ZTY5NDVkMzg3ZGNlYmY4YmE1MDkxOTg1ZGVjMWEyNzNmM2M1ZjU3YWMwYzYxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlOWUyMDJjNWIwZGNiODM0NGRjNTkxZDkwMzUwMjIwNmZkOTE3ZjRmZjdiNzJiOTM2NTU0ZTU3M2I1OTM4YjgwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyYzU4YjBmMmIwOTQ5NDRkMjhmMWVkMjFlMTcwNTFmYzIxOTIxNmNjMGNhMGNiMTJlOTQzMWQ0MzQ0OTM3YjZiIn0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}
