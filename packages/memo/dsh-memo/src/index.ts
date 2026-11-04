@@ -988,7 +988,7 @@ export class MemoService extends TypertRemoteService {
     if (uncached.length > 0) {
       for (const [sessionId, title] of await this.readSessionTitles(query, uncached)) titles.set(sessionId, title)
     }
-    const { workspaces, bySession } = this.archivedWorkspaceIndex(sessionIds)
+    const { workspaces, bySession } = this.archivedWorkspaceIndex(visibleIds)
     const summarized = this.summarizedSessionWeeks()
     const sessions: MemoArchivedSession[] = []
     for (const sessionId of visibleIds) {
