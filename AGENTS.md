@@ -111,3 +111,20 @@ That rule was prose, and prose did not stop the publish. Two mechanisms back it 
 - **Bilingual READMEs**: every README is a complete pair (`README.md` + `README.zh.md` + `README.i18n.yaml`). After editing either side, bring the other along and re-record with `pnpm run verify-translation-pairing --write --all`.
 - **Issue management**: Issues carry exactly one category label (`bug` or `enhancement`), keep their body's visible text under 50 units outside a collapsed `<details>` block, and must not carry `kind/*` labels — those are PR-only. PRs must reference at least one Issue, carry exactly one `kind/*` label, and at least one `area/*` label. The policy engine in `.github/issue-management/policy.mjs` enforces these rules mechanically: `policy.mjs issue` runs on `issues` events from the event payload alone, `policy.mjs pr` runs on PR events. A closed Issue is out of scope: it was filed under whatever rules existed then, and rewriting its labels or body to satisfy today's rule would edit history instead of enforcing the tracker's policy on work that is still moving. Two checks are still opt-in. The native Issue Type is not enforced, because types are an organization-only GitHub feature and a user-owned repository reports none for any Issue. The Project Status is enforced only when the repository variable `DSH_MEGA_PLUGINS_PROJECT_GATE` is `true` and the secret `DSH_MEGA_PLUGINS_ISSUE_TOKEN` holds a classic PAT with the `project` scope: a Projects v2 board owned by a user account is out of reach for a GitHub App token and for a fine-grained PAT alike, so that switch is the only way the gate can read it. With the switch off, `policy.mjs issue` validates the event payload alone and an absent Status means "not checked" rather than a violation.
 - **This project is based on the DeepSeek Harness framework** and references official implementations. The `policy.mjs`, issue templates, and PR template are adapted from the [deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) repository under BSD-3-Clause.
+
+<!-- OPENWIKI:START -->
+
+## OpenWiki
+
+This repository has a generated `openwiki/` evidence index. It is optional just-in-time context, not required startup reading.
+
+- Do not enumerate, preload, or search wikis at task start. Use retrieval when the user asks for it, when unfamiliar architecture or dependency behavior materially affects the task, or when source inspection leaves an important uncertainty. Stop once the question is grounded.
+- When those conditions apply and OpenWiki retrieval tools are available, use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections. If search returns `workspace_required`, ask which listed workspace to use and retry with its ID.
+- Use `openwiki_list_workspaces` or `openwiki_list_wikis` when workspace membership itself needs to be discovered.
+- If the retrieval tools are unavailable, read `openwiki/quickstart.md` and follow its links to the relevant pages.
+- Treat source code and tests as authoritative. A brief's unknowns and review items are verification gaps, not automatic requirements.
+- Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
+
+The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
+
+<!-- OPENWIKI:END -->

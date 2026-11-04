@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b70b3af5f90945bfae90b14f88e5354a5f6486c713e948ad02335e3fac66a182",
+  "claims": [
+    {
+      "id": "claim_2107a13a2420475aa0c8d30c9dd3a660",
+      "statement": "A deployment composes its plugin tree from `dsh.profile.bundles`, an explicit ordered list applied layer by layer over the entry list with no transitive resolution; a later layer cannot remove or override an earlier layer's insert, so two bundles inserting one composition entry id is a boot failure rather than a merge.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L108",
+          "version": "repo-lines-v1:sha256:eb8635a7df478fed91525d23de4fbb8bf5710b360d59b052f749db87c9d353ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTAyZjI3MzVkYWEwNTljYWIyYzllMDExNzljOGZlY2VjMTVlMjkwM2E2MDBhYmQ5ZDk3OWJkZTlkZDAwMzkwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMwZjYwMzUwOTI0MWZiMDg0MTA5MTQyNmE5YmIzYzY1NzFjNWQxOTIyNTczYjA4NjBmZGQxNzU2OGRmMWQ1ZCJ9"
+        },
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L1-L25",
+          "version": "repo-lines-v1:sha256:54821921a6fee04bb1ea2b69e7b9fdb4975b0034966e0ac2f6d400c5b5e8a287:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NTZiOTA5MDFhODQzNjA2ZTMzOWZhMjkxM2NjNGE4MzEyNjc2MjRlZTMwZmYxZGU1YTM3MTc0NjQ4YTRmNjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_edc439b2acd148c4950481452855ca7c",
+      "statement": "Every composition entry id in this workspace has exactly one owning bundle patch: `telemetry` is inserted only by the dsh-telemetry patch, `github-issue` only by the dsh-github-issue patch, `memo` and `ui-memo` only by the dsh-memo patch, `ui-memo-settings` only by the dsh-client-ui-memo-settings patch, and `openwiki-visualize` only by the dsh-openwiki-visualize patch.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/cordis.patch.yml#L18-L20",
+          "version": "repo-lines-v1:sha256:15dcde3a240d58afd50b81c3999db9d782ee89e085dfecb4319d042e6f463b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzIxNjY5NzJiMjNhM2U3NjhlY2QwMzQwOTNkYzAxY2Q4NzljYjMxYWE2ZTZhODA2MGM0YmJiODIzN2RmYzQ1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk4NjQxY2IxYjBmZjUxYjc3M2ExOWRlN2ZkYzUxZjZmZTllNWFkMDE3MjRkNmY0NzgxYmYxZmRlOTliZWYxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L26-L30",
+          "version": "repo-lines-v1:sha256:704bc927ad685f68b8c52355dcae60c81a9d0187e314f3926b533bb30ccfa12f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUxYmIwNzE0NjE4ODlhNjQ1MWEwZmQwMjQ4YzE5MDUxMTUwMGY1MDA4YTVmMDg2ZmI1ZTM2MDdhNTFmZDc3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzNhY2FlNDUyNzc2YWE3NWEwMjRhMDUzZjQ1MmNkNjcyNWMyMTg1OTkzNjdkNTJkNDc3ZTQ3MTM3NGIxMzk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L16-L27",
+          "version": "repo-lines-v1:sha256:62763dc606223d171630a3ad65c96f72cb95392022beb0bb02a69a3cf9180b5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjM0Y2QyMmZmMjRhMzVjNWNjM2UxMzBmYjk3ZmRmNjFmZGZhMTc3YjU4NTYxZTcyNGFhNDcxNmEyN2VjYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMGU0MmQ2ZjliNDYxOTc1M2RkNzI5NWUwNmZhODczOTRkYzY3NjA5NTc4MTY5NGZkYjJjZTBiZDczN2NkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NDI3YjM0MWVlMDg5YmY4ZDhkNTUwZDdlNjIxY2ZmODkwMjE5ODg5MDgyOWUxZGQ0ZDVkZDhhNjMyOTNmNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L19-L21",
+          "version": "repo-lines-v1:sha256:ead0fdd393a93421a5b64d6a24d72d9707502b24bb1b8c7abd76dec581193430:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzNhNDJlMGZjZjgwNzZjODUwZjBhYWRlOWExNjBhOTY0OWIwNTQ3NzM0MmE3MTcwZDZiYWZmNzc2M2ZhNGFhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzNlMTI3NGY0MmI4NzZhMGE1ZDRkNjFmZGJlMzY0MjRhNDVkNWRlN2RlYWYxMWYwMjY1OTA1NjYyNTA2OWM0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTIwNTg0ODhiNDU4ZjY4NGRiNDZiYjlmOWYwYjdmYmVhNjUxNjY1YjM5ZDZjNTI0MWNiOWUwNTVjMWJhNGNhOSJ9"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/cordis.patch.yml#L5-L9",
+          "version": "repo-lines-v1:sha256:7e4bad29ac721ed8d62429bfb3f5040aa67a107d0d89c043a25c68aa41c22a4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlmZGMxOTgzZGMwYjU1ZWMxYWVhZWE4ZTI5NzVkZWYyODRjNjE3ZTNiYTMxMzY3MmRhZTE2NDY3OTU0MTYxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmY1ZGM1NWM1ZmZlNWQ1ODA2MWExMTVkM2IyNmQ2NmNlYjBlYjdhZDU1MWE4YzBlMmEyM2QzOGRlYzBjZjhmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_88a218eb5a4c4468b383340e85862afe",
+      "statement": "One owning bundle per entry id is what lets any subset of the suite be installed together: the dsh-memo patch inserts only the `memo` and `ui-memo` rows and deliberately omits `telemetry` and `github-issue`, because it formerly inserted the `github-issue` row itself and naming every package then failed the boot with `duplicate loader entry id: github-issue`.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L28-L28",
+          "version": "repo-lines-v1:sha256:45249c11b669ca5ef9ba5b38213d17bf241d2013a1970bee5faec6c8254a3b3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUyNDljMTFiNjY5Y2E1ZWY5YmE1YjM4MjEzZDE3YmYyNDFkMjAxM2ExOTcwYmVlNWZhZWM2YzgyNTRhM2IzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUyNDljMTFiNjY5Y2E1ZWY5YmE1YjM4MjEzZDE3YmYyNDFkMjAxM2ExOTcwYmVlNWZhZWM2YzgyNTRhM2IzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjE3MjZkMDIwZjVjOWQxY2MxYWE3ZDA5ZGMzODc5Mjk0ZGEwYzYxZjNjMWQ5OThkZDc4NThiODFkN2NlMGVmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFiZDFlNWM1MzYxZjMzODBkYjE3MWVlZjBiOGIxNjM2OTJjZWFiNjg4MTk0Yjg1OTdkYzY2M2FhODJhMjZiNiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L151-L161",
+          "version": "repo-lines-v1:sha256:b3507731ac6fbc0ab0802c511c2a753021a3d19505cedf998f52c5561319eead:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMTExOTA0MDBjMmM4NTU5MmI5NzY0OGUyZDY0NTFlMDg2ZWI4OGNiOTRkOTNlOGU5ZjQxYzk4ZGFiN2NkYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3ZGFmZGY5MGFlODg1ZWM3MTY2YWNjZGVlZDAwNzVkZWYxYzZhNGZiNTAwNzg2MjY2MzQyMDMxZjdhOTIwZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmMmE1ODhkMGYwYTNmMDRmMzE4NzA1ZWYwZGI1YTUyZTU0YzEwMDQyZTdhY2ExOTdkYjg3NjczNWRkNjlmZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiM2UyNzA1NmE5OWFkZTZhNGJkMjIyZTRmODFkODA4MmY1ODM3ZjAzODVjMWY5ZGU0ZjFhYTc4MjBkNzEzN2MifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L1-L14",
+          "version": "repo-lines-v1:sha256:a22f2635058c73397b737bf50a2c6e6f0010267902decfac2eadf21ba7313169:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiYzM4ZGZkM2QxNmVjZTA5MTc3MTRiZGI1NGUyMmI5NmI4ZTFhZWZhZjg1MTk4ZmM3YjliY2FjODc1ZTc4ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNTU3YWVmMTU0MDQ5ODNmN2U4NTM0ZjM3Y2FiMWFmM2JiNWUzOGUzYTY4MzUzMjI3MTUyNzQxM2YwNjQyYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhZjZhNDBkZTBjZTBmODkzZmIyZTM3MzAzMzk5MDFhNTEzYzhlNTZmNzViMDJjZjkyMzJhMDc1YzMxMjI3MDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7cbcb90968b418c97777d1dc36d4661",
+      "statement": "Five workspace packages declare `dsh.bundle` with their own `cordis.patch.yml` and list that patch in `files` so it ships in the tarball, while `@zhangj1164/dsh-client-ui-memo` declares `dsh.client` but no `dsh.bundle` and therefore ships only `lib`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/package.json#L27-L57",
+          "version": "repo-lines-v1:sha256:85d1ad387d5fa68d9cc218ccac834a7c833c76fa452c6ff45973906a3a0bba3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYWE0OWFlYzQyZjJiN2E4YzlmZjdmMmI0M2IzMDM3Nzc4Y2JjZDI3OWQ2MjU1ZTJlNWM0NjcyYWEzZDA5MTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYWQxNjI5MmEyNDgzOGZhNmU3MzM0MzA3ODVmYTg0YmJkNTZiMmRiODgwN2FmY2E0MzJjMmE4MjVjNmE1NzAifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L42",
+          "version": "repo-lines-v1:sha256:6af79d64d6f65006b5244d2ed652b92df1baaf6e96629aad8ae5d333adfe44d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L57-L60",
+          "version": "repo-lines-v1:sha256:e5259d0dd2cbfd7c355ca5ab78dcf5b72cf34d4f9efcf5e56176ac6d121884d5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE4ODYzMmUyNzEyODQzNWNmOGZlNDcyYzFlYjc4MTU5NWI2NzE4NzdjY2I4N2UyZTQyNWM3NjgyZDBmODQ5OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VhYTQ5YWVjNDJmMmI3YThjOWZmN2YyYjQzYjMwMzc3NzhjYmNkMjc5ZDYyNTVlMmU1YzQ2NzJhYTNkMDkxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZhZjlkYWI2N2Y2NjhhODk5MjM2MmJjMWQxZWRlOWM2MmQ0NzhkYzI2NjBkNWNlYmQ2ZmQzODM3OGIzMzMyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY4MTFhMDE5OTE4MTRlYmM1ZGY1NmNjMzVkZWQ1NGYzOTc4MGE2NjNjMWExOTNmNTU1YzY0ZDE5NDdmNGM2OSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L27-L49",
+          "version": "repo-lines-v1:sha256:292e2cc2122b75e222ac0df9d478a533a7767bed112a490463f785707ce63dbb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxODg2MzJlMjcxMjg0MzVjZjhmZTQ3MmMxZWI3ODE1OTViNjcxODc3Y2NiODdlMmU0MjVjNzY4MmQwZjg0OTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhYzRhYjU1ZjU3ZWM5N2FhMjc1MzRkNzRiNzEyNzQ2MjNhZTBhOTE0NTNhZTA4MzY3YjM1YTgzNDg1NTdjZjMifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L43-L66",
+          "version": "repo-lines-v1:sha256:3f4c35a9b1d233c2fd2017b378db105a783f84d7aae491ae7fd6cb14d2e8c300:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxODg2MzJlMjcxMjg0MzVjZjhmZTQ3MmMxZWI3ODE1OTViNjcxODc3Y2NiODdlMmU0MjVjNzY4MmQwZjg0OTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhYzRhYjU1ZjU3ZWM5N2FhMjc1MzRkNzRiNzEyNzQ2MjNhZTBhOTE0NTNhZTA4MzY3YjM1YTgzNDg1NTdjZjMifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L58",
+          "version": "repo-lines-v1:sha256:7ce1697306b9711bbbaf62fe769583e982e9e52d094a94048d882ec102cdcc4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMzJjM2VjMjIyYzFmM2FkOTg1MjM2Y2M4NzA0YzQ5NGYwMzU5MTZhNTVjZmU3NGIzNzgwMzcyYzA3NjczYmQifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/package.json#L31-L53",
+          "version": "repo-lines-v1:sha256:ab52241381c420082522271da2ec7f6e2559332c524aaf0f336964ff82277dda:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxODg2MzJlMjcxMjg0MzVjZjhmZTQ3MmMxZWI3ODE1OTViNjcxODc3Y2NiODdlMmU0MjVjNzY4MmQwZjg0OTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmODExYTAxOTkxODE0ZWJjNWRmNTZjYzM1ZGVkNTRmMzk3ODBhNjYzYzFhMTkzZjU1NWM2NGQxOTQ3ZjRjNjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0cc1ea6483a4a099b64629f2bd69e5c",
+      "statement": "`@zhangj1164/dsh-client-ui-memo`'s browser panel is activated by a row that the dsh-memo bundle inserts by name, so `dsh plugin add @zhangj1164/dsh-client-ui-memo` reports it as a plain dependency rather than a profile layer — expected for a `dsh.client` plugin — while the package must still be named explicitly for that row to resolve.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L40-L40",
+          "version": "repo-lines-v1:sha256:98cfe744cf3d56eb112908a82ab4dcc66621829beddb90348ef614f14200fde2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOThjZmU3NDRjZjNkNTZlYjExMjkwOGE4MmFiNGRjYzY2NjIxODI5YmVkZGI5MDM0OGVmNjE0ZjE0MjAwZmRlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOThjZmU3NDRjZjNkNTZlYjExMjkwOGE4MmFiNGRjYzY2NjIxODI5YmVkZGI5MDM0OGVmNjE0ZjE0MjAwZmRlMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM2ZTFhOTdhMGVlNWUwN2ZlZmQ5NmI0YWYzNDg5YzczYTZjMjViZWRjNjEzYzM0Mzg5ODk5ZGJiMWNmOGY2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGJmZjAxMjMzNTc5Y2Y0ODg5M2I4NWVhZDlhNWE3YWI2YTYzNzQ2MWUxMzkyOGE4YzI3OTE2NGFlYTRmYTQ3YiJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/README.md#L88-L90",
+          "version": "repo-lines-v1:sha256:97149063c0e0ccc0528d2b8f7592222b1067206dfb2153db090af90824470663:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ1OTIzYzMwMGU4ZDg2MDc2ZDZkNDFlOWQ5OTA4NGU3ODk1MzQ2MGZmNDExNmQwYTY5NzQzZmNkOWYyZjRjMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdkZDViYThmOWVkZmExMDc1ZmRiMzk4NmIwYWE5MTU1NjMyZjgzYzFjM2I5NjFiOGNmYzJkNGRhZTVmMGY0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDk1MTBhOWZlNTBmMGIwNGI5NzI4NDlmNWE2MThjZWFiOGFmOGVhOTUwOTFjNGZjNmE3MjU0NjFlZGI3YmQ0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDZjYmFiNjY0NGE5ZTE2ODg5NGQ1YjQzOTQ4OGUyODg3NmFmZTllMTA3MDkzMTVhMzk4NTllODMxMTdkNDVmNCJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/package.json#L31-L42",
+          "version": "repo-lines-v1:sha256:6af79d64d6f65006b5244d2ed652b92df1baaf6e96629aad8ae5d333adfe44d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmOGZlYzViYzRhZjMxY2RjMjJhZmQ3NTA4MmMzZmM5NmMzZDBlOGE1NDE2YThkNWY3YzJmYjc2NzU3MWQxYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNmUyOWYxYzJkMTUyNzE0YjM3M2UxZWRlNGM4MzI1N2Y4MDA2MzhhM2I1Y2IyY2Q4YzEzNGQzYzUwMTZkY2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_367caed97cda467fab6149f4f2892b4b",
+      "statement": "A profile's `pnpm-workspace.yaml` sets `autoInstallPeers: false`, so an install brings in only the packages named on the command line; installing `@zhangj1164/dsh-memo` alone leaves the `github-issue` and `ui-memo` rows unresolvable and the loader fails the boot with `Cannot find package '@zhangj1164/dsh-github-issue' imported from …` and the same error for `@zhangj1164/dsh-client-ui-memo`.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L38-L38",
+          "version": "repo-lines-v1:sha256:0c81819ea5fa914be259ea954e9f7b16ef707dc3828498b0f6980f34fc17f788:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM4MTgxOWVhNWZhOTE0YmUyNTllYTk1NGU5ZjdiMTZlZjcwN2RjMzgyODQ5OGIwZjY5ODBmMzRmYzE3Zjc4OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM4MTgxOWVhNWZhOTE0YmUyNTllYTk1NGU5ZjdiMTZlZjcwN2RjMzgyODQ5OGIwZjY5ODBmMzRmYzE3Zjc4OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM1OWJlODY0NzVjZjIwNzA2ZDVmYTU4NjRhNTJlY2Y2YzFjYWU3YTc2M2MxMDk1ZjVhODgwMGE1ZjIzNGVjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODE0YTNhMzYwNzUwYmE1MWJjNzRhMjIzZWM3OGY5OTllZjQ0MzdjZTNlZDgzMjEzMDQ3YWQ2Y2UzNzE4OTRmNSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L159-L159",
+          "version": "repo-lines-v1:sha256:7d86974461f956daa0a127d752e5588da184d6bda222fdc40ed4d69f612baad3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q4Njk3NDQ2MWY5NTZkYWEwYTEyN2Q3NTJlNTU4OGRhMTg0ZDZiZGEyMjJmZGM0MGVkNGQ2OWY2MTJiYWFkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q4Njk3NDQ2MWY5NTZkYWEwYTEyN2Q3NTJlNTU4OGRhMTg0ZDZiZGEyMjJmZGM0MGVkNGQ2OWY2MTJiYWFkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTFhYTExMWZmYzYxYjZkNWQzNDFiYmViNjk1ZTRmZDk4NTdlYTVhNzFiZWFiYjE0ZWQ1MWY2MWQwYTNhNWU4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTU0ZGZhMzJiMDNlN2JlOGVhMDA5NzU4ZDlkMTY4MzllMjVhYWQ4NzRjMDVmMWQzOWJiZGQ1YTQxZjFjOTU3NiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L649-L651",
+          "version": "repo-lines-v1:sha256:cabaca5c626e4d384496579025d0904cc07d38a53f103abb79ee08062eae944d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc2MDU3Y2Y5NjBiNGM5YWE2Y2FjY2M2YTk2MTA5ODI2ODE3NWEzMjBkMjUyYzk3MmM1N2VjNzcwNmQ5ZDFhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWU5YjkxM2Q1ZTVhZWM2MTJiNTkyNDhmNWQ2NTcwM2MzNTgwMjk3MTM4OWJhYzk2ZmFmZDc1MTc0OTQxNTcwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU2YzVhZmE2YTAyYWVlMDMwODY1MjIzNzgzMTdlNGJhZjY3MzgwMGYzNWM5OGM0NmYyNzhiYTJkOWFkNmZhNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2795bca29064332896c36069cc5e887",
+      "statement": "The full memo suite is installed by naming all five packages in one command: `dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings`.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L108",
+          "version": "repo-lines-v1:sha256:eb8635a7df478fed91525d23de4fbb8bf5710b360d59b052f749db87c9d353ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI4NjM1YTdkZjQ3OGZlZDkxNTI1ZDIzZGU0ZmJiOGJmNTcxMGIzNjBkNTliMDUyZjc0OWRiODdjOWQzNTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTAyZjI3MzVkYWEwNTljYWIyYzllMDExNzljOGZlY2VjMTVlMjkwM2E2MDBhYmQ5ZDk3OWJkZTlkZDAwMzkwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMwZjYwMzUwOTI0MWZiMDg0MTA5MTQyNmE5YmIzYzY1NzFjNWQxOTIyNTczYjA4NjBmZGQxNzU2OGRmMWQ1ZCJ9"
+        },
+        {
+          "resource": "repo://README.md#L30-L36",
+          "version": "repo-lines-v1:sha256:2b4156d8ee47d1a0125a6bb2114ae872254405f61258fff3945522120755dfd7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmZhM2U3M2FiYmZjNGQ4ZGJjYTYzNzIxMzQ1MmEyOWExNTA1Zjc3OWJiNDFkY2E1NmJlNmY4Y2ZhZDBjYzg3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2VjNTY4ZWFkZGNjNDg0MDI2ZjFlMzJhZjIyYzc1ZjM4NTM2MmNmMmM1YzFkZDk2OGMwNTkyZjU3MTk1ODMzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTQ1MWFlYzlmZjFjMjk0OWQxYjVjYTQ2M2RkZDkyZjA1ZGE1YTUzZDkxYWZhMjIzZjc5MDBjMWRiN2Q2NWI1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM2ZTFhOTdhMGVlNWUwN2ZlZmQ5NmI0YWYzNDg5YzczYTZjMjViZWRjNjEzYzM0Mzg5ODk5ZGJiMWNmOGY2OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_94fd33d7aea948b8b1975b896c975609",
+      "statement": "`@zhangj1164/dsh-client-ui-memo-settings` carries its own bundle that inserts the single `ui-memo-settings` row, so it installs as a profile layer independent of the memo bundle, but each settings page is registered inside `ctx.configForms.whileServed(...)` for the `memo` and `github-issue` namespaces, so a deployment that does not serve those namespaces shows no page and no error.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/README.md#L60-L62",
+          "version": "repo-lines-v1:sha256:cc39e8acb99e618364bfc27c53f1d69475af0e49f7828c7bff73f5b6a16bc769:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ1OTIzYzMwMGU4ZDg2MDc2ZDZkNDFlOWQ5OTA4NGU3ODk1MzQ2MGZmNDExNmQwYTY5NzQzZmNkOWYyZjRjMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1OGI5NDVmMTg5NzhmNDkzMzJlYzIyZTcwYWI0NDkyMzEwMjQ4ZjMzZDU3NDg0OTc1MTkzNmUwYjVmMjhjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWQ1YjgyZGNiZDkyNGE0ODU5MjM4NjQ2MzlmNGJhNDY1MjM1ZDY5ZWMyMjA2YzFiMjZmMTFiZjdlNjU3NWE0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWI5NWI4YWE4MDdiNjQ4MTcxNWNiNTg2NzQ0NGQ1Y2ViMTE5YzZmNTVlNTUzMDRlNWI0MTMxOGVkMzc0M2QwMiJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/cordis.patch.yml#L1-L20",
+          "version": "repo-lines-v1:sha256:5111716a6bcc73998b43555fe9de07d38a97d732a6b07aa6e0a5b61617f1d9b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OTA2ZTUxOGIxNmNlYTQ4ZDAyMWM0YmJlY2YzMzczZDhmMzE2Njg1NjdhMTliNjRhZGU0YzRiYzliMGUxOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMTY2OTcyYjIzYTNlNzY4ZWNkMDM0MDkzZGMwMWNkODc5Y2IzMWFhNmU2YTgwNjBjNGJiYjgyMzdkZmM0NWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo-settings/src/client/index.ts#L157-L193",
+          "version": "repo-lines-v1:sha256:50db92b1f435727f7891894ffb1fe8e8eacd6bd3578386f107032241fc824207:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYTEwMmMxNDhjNDE2NTA4NWRjMDRkZTZkMjAyMzc0MDU4NTlhZGMzODUxMTYzZTkxMWE5NzU5MjgyZDYyYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZmVjNDUzN2I2ZWIxMWMwNWM5ZWE0OTBmMjhlYjY2NDk0YjZlOWM4NjBlNDBmNTc2Yjk0ZDRmMzY4MGVjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYWM0ZTI0ODcyZGZkZGZiODdjZDA0ZDI0NTM3NzIzMzU0NmJjMTk0NzhjMDFmMTRmNWFjZDgxNjBjNDg5NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_996617da5663490c8197cf24f940b0ef",
+      "statement": "`@zhangj1164/dsh-openwiki-visualize` owns one entry id for both halves: the host service is the package body and the browser half is discovered from the same manifest's `dsh.client` declaration, so one bundle layer installs and removes the service and its right-Sidebar tab together.",
+      "evidence": [
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L1-L21",
+          "version": "repo-lines-v1:sha256:1df5031f8abffa8c3003f7b31367d632bd676a73afc683bf304a4d9d9229be8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3Y2QwMGJmOTE2ZGRjMGZmMmNiYjQ5MDhkZmE5MGRhYTVkYzFhNDVjNGFkMjlmZDcyMTMwMzhlMjhhOTlhZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYTQyZTBmY2Y4MDc2Yzg1MGYwYWFkZTlhMTYwYTk2NDliMDU0NzczNDJhNzE3MGQ2YmFmZjc3NjNmYTRhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyMDU4NDg4YjQ1OGY2ODRkYjQ2YmI5ZjlmMGI3ZmJlYTY1MTY2NWIzOWQ2YzUyNDFjYjllMDU1YzFiYTRjYTkifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/package.json#L45-L58",
+          "version": "repo-lines-v1:sha256:7ce1697306b9711bbbaf62fe769583e982e9e52d094a94048d882ec102cdcc4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NzQxNmI3NDAxMWRjMDg5MTgyMjkzOGRmNGNmMDIyNjg0ZmE1NmViZjI5YWVmM2UzYzM0M2ZmZmFkM2RjODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYWY5ZGFiNjdmNjY4YTg5OTIzNjJiYzFkMWVkZTljNjJkNDc4ZGMyNjYwZDVjZWJkNmZkMzgzNzhiMzMzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMzJjM2VjMjIyYzFmM2FkOTg1MjM2Y2M4NzA0YzQ5NGYwMzU5MTZhNTVjZmU3NGIzNzgwMzcyYzA3NjczYmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d7bc37d740bd43398d9215239160e7ef",
+      "statement": "Each inserted row's `config` block supplies deployment-overridable defaults rather than fixed behavior — for example telemetry `maxEventsPerQuery: 500`, github-issue `repoUrl` plus the default-off intake parameters, memo `repoUrl` with `provider`/`model` deliberately unset so analysis follows the deployment's `agentDefaultModel`, and openwiki-visualize version floors, port, and registry URL.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L12-L30",
+          "version": "repo-lines-v1:sha256:6065714bf90d1cd490c47f008044f00a13470a2e31f46c60aabffea5ff685813:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4NjBlZWYwZjdlMTQ0MGM0YjAxMmY5NTIyN2U1MTM4ZDkyMzk0ZGQwYjVmYTc2OTE5MGRhMmQyMDYyY2IxMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MWJiMDcxNDYxODg5YTY0NTFhMGZkMDI0OGMxOTA1MTE1MDBmNTAwOGE1ZjA4NmZiNWUzNjA3YTUxZmQ3N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMWYwNDkyYmE1MTY2MDUxZjUwOWU4M2M4YThiNjU5N2UwZDFlZWMyZmM5NGQ5YmNmZjUxOTQ5YWMxYzg3NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/cordis.patch.yml#L16-L23",
+          "version": "repo-lines-v1:sha256:3417440ce64746f6842fbbd6156606f9317f2cbe70212f39f370f872e4d9212e:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1OTJkMzM5OWNmOTNiMDIxY2Q3MDkxNDRiODlmZjI4YTRkNGNmM2YzNTlmY2JlNjdlZTk0NDM4ZjY1NzFjNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTk0MjdiMzQxZWUwODliZjhkOGQ1NTBkN2U2MjFjZmY4OTAyMTk4ODkwODI5ZTFkZDRkNWRkOGE2MzI5M2Y0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY3NWU4NWUwMWVlNmQyNDI3OGE2ZmZkYTQ2MDQ5YmEzNTEzMzliODAwYmJiOGNiODNlMjg4NmRkMTA0MzFkZSJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml#L22-L38",
+          "version": "repo-lines-v1:sha256:4c8ed3d0ef5bb1c80d27117733cbca5039e0843659895afdef93880f1f8bb2e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwM2I0ZWU2OGE3NDkzNDE5ZTA5OTQ1NmY3MTU5NmI0OTZmNTgxNDcwODE2ZDcwZDc2ZTRlOTgxNzFiYjkzYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NmY2ODE0ZjBjODE2YTYxMzViMDgzNDNiMjhiYTUxNTQ4OWQ3YmYzZjFiMjYzZjczYWFkOTJiYWMxMjYwNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhZDBmZGQzOTNhOTM0MjFhNWI2NGQ2YTI0ZDcyZDk3MDc1MDJiMjRiYjFiOGM3YWJkNzZkZWM1ODExOTM0MzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/cordis.patch.yml#L5-L9",
+          "version": "repo-lines-v1:sha256:7e4bad29ac721ed8d62429bfb3f5040aa67a107d0d89c043a25c68aa41c22a4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ2MzRjZDIyZmYyNGEzNWM1Y2MzZTEzMGZiOTdmZGY2MWZkZmExNzdiNTg1NjFlNzI0YWE0NzE2YTI3ZWNiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlmZGMxOTgzZGMwYjU1ZWMxYWVhZWE4ZTI5NzVkZWYyODRjNjE3ZTNiYTMxMzY3MmRhZTE2NDY3OTU0MTYxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmY1ZGM1NWM1ZmZlNWQ1ODA2MWExMTVkM2IyNmQ2NmNlYjBlYjdhZDU1MWE4YzBlMmEyM2QzOGRlYzBjZjhmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e0d1ff5f4c704029a71b055c34afe6bd",
+      "statement": "`verify-bundle-entries` reads every workspace package whose manifest declares `dsh.bundle.patch`, extracts inserted entry ids with a targeted line scan (comments stripped with quote awareness, no YAML parser), throws when a declared patch is missing or inserts no id, and fails when one patch repeats an id or when two bundles insert the same id.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L147-L184",
+          "version": "repo-lines-v1:sha256:976b01046633dc98fa1407343745b60e5addef5e443e4f17e141429fce17df74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YjUxMTNiZjVhNDc2Y2QzZGU3NjMwZDVhNTIwYTg0OGU1NWQ1OGRmZThkNjFhNmQ2YWVkMTk4ZWJjMzQxNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4YjE0YTYyYWZkOTJmN2FjNjEwYTdlZDc2Y2NhOGI1NjZkMGQ2MTNkNGI3MTYzNjE2MjI5ZGU1M2JiMWM4ZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4ZjRmZmQ0MGJjZDViYjNlYzEwNTVjN2YwMjA1ZDAxZTFiZWUxNDYxZDczODE2OTk2NTVjNDhiMWE3NDJiZWMifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L222-L240",
+          "version": "repo-lines-v1:sha256:856778c44a3fba51023163bec7ef8b28cba0ffffab36dbe07997d9ad78e2daaf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxYjViZGNiNmNiYzI4ZGMxZTQyZmI2ZGY4NWY3MzY2ZGY3N2VjNzIwZjY5YjllNjQ4OWZmMmNiOTk0MzFmODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4OGQxODRkMjhmMmIwYmYwZWIxMzcxYTMxMTMwMDZiZjcwMDc1YmY4NWIyYTdiMzIyNmRhOGU1ZDIzMWIwZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxODc3YmRlNGExMzU5OWQ0ZmI2ZGY5NjkxYjllNTgyNTZmYTdjODRjMDVkNTY4N2M0YWM3ODhlYmE1MDYwMWQifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L58-L131",
+          "version": "repo-lines-v1:sha256:c6636514a9468aa8b399bf06e6aefb4e6bb1bc2fd685785c609d72e65d63d629:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlNmJhZjkwYjAzMTBjMjhkNzhlYTA5ZWE0MjZhOTAxODIwNDU3MWE0ZDk5NWQ2NjAwMTA0NTNkYjgxNzM2NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMmE1OGM5OTRmNzkwNTM1MzBmNTAwMzYxZjc0NDZhYjVlNzc2YzBkMzlmNGI2YzNlMWQ2MTY3MGEzNzA4NWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd64fefcc9054f03953be24c2516f759",
+      "statement": "A shared entry id whose patches both record the exclusion is reported and allowed instead of failing: the check requires the literal marker `not both` plus the id itself as a standalone token whose neighbouring characters are not `[A-Za-z0-9_-]`, so `github-issue;` satisfies it, `github-issue-x` and the reordered phrase `do not enable both` do not.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L186-L216",
+          "version": "repo-lines-v1:sha256:53ceb5ee0bfea7476fd4a37b85479f1550a01809bf0d2eb4e960c3278215c8e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwYTIwNTY2OGI1NDI2YzkxZDkwMTI0MzIxMDYwYjE0MDUzN2RjNTMxYWVkYzExZjVhYmU1NDAwY2E0MzlmYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmZjFlOTIzZjYwZDBmM2Y1OWFjZGVhZDk1NmViNjQyZTAwNzlmM2M1N2UwYjY0NmEwNjQ0YWI3NmNkNTc2NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_87c828953099489889fdf81f6c7e18a4",
+      "statement": "The bundle-entry gate's limit is deliberate: it can only observe the bundles this repository ships, so a deployment that enables two mutually exclusive patch layers through its own profile is outside the repository and remains a documented constraint rather than a gate failure.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L16-L21",
+          "version": "repo-lines-v1:sha256:b66790c14f2547e3d145421a167a3a040386e8913c94bab3a9f766a8d177fd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTIwYmVhODNjYjVhN2ViZDgwNjMyZjNhMGRiMTQxMjE0M2RjODBmOWUxNzIwMWU2YTY4M2UzZjg1ODg2MWUzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTIwYmVhODNjYjVhN2ViZDgwNjMyZjNhMGRiMTQxMjE0M2RjODBmOWUxNzIwMWU2YTY4M2UzZjg1ODg2MWUzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWFiNzk2M2NiMmQ5MTIzOGMxODA1ZTI5ZWFkMjY4MmQyNzBmZjI0OTExNDhlOGUyMjRkODhkNzM0ODA5OTJjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzIwMDU3NzgyNTNjYzUwYzM0YWM1MDNkOTU3ODQ1MzAwNjU3NDQxODQ0NGE3OGYyYTRjYzk5OTVkZTM2OWM3MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7eb4cd4cef7343daadd6ca20c296c661",
+      "statement": "`verify-bundle-entries` is scheduled in the `check-all` gate aggregate without a build dependency because patch files are source, as is `verify-publish-guard`, while the artifact-reading gates `verify-package-exports` and `verify-client-bundle-id` declare `needs: ['build']`.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/run-gates.ts#L172-L198",
+          "version": "repo-lines-v1:sha256:aa0df23b6d5ceac715c9d680ab2e962a71e83fad8523c43e911786b59220c1d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OWE3NjdkNWRlMWIzMTg5ZDk4NDQ1N2I2NTAzNjM0ZGRkYmE3MzY4Y2ExOWIyZWUzZjA0MDFiMmFlMTEwNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhYjU2ZWJmMzk4ZmUwZjdjOGE2ZGIxMzg0NTc5MDJmNmY2OWQ4ZTcwMGZiNDNkNTdhMDZjMGZkZjJmZThlZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyOTQyZmFhM2IyOWQ1YmQwMjUzZDAwZTcwOTgzMTlmMjIwOTBkODI4NTViZmExYzI5MWQ3N2NhNTQ0NjNmYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NjYxODM3Y2ZkOGYxMmQxNWY3ZDdjODcxZDk0NTFhYTBmODQ5MDg0ZGJiMTg0Mjg4MzU5YzhlMjE0MDk1NDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a4cf3dc03cd6415ea2c0aa259c2b9ddf",
+      "statement": "`scripts/publish-guard.mjs` refuses to publish a manifest with a `workspace:` range when the packer is not pnpm and fails closed on an unidentified packer; a git install is unaffected because neither npm nor pnpm runs `prepublishOnly` on install, and `verify-publish-guard` fails any workspace package whose `workspace:` ranges do not wire that guard at the repository's own path.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/publish-guard.mjs#L14-L25",
+          "version": "repo-lines-v1:sha256:24cefef4ab73fea87a02c50faf7570d34995b99d9e0540bf013cbcf29de33f55:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyMGJlYTgzY2I1YTdlYmQ4MDYzMmYzYTBkYjE0MTIxNDNkYzgwZjllMTcyMDFlNmE2ODNlM2Y4NTg4NjFlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MDg0ODdiZTg2MjAzZGVlOTQzMzJlZWIyY2M3YzRiYWIyNjQwMjEyZmEzOGEyMTQzOTM2NTc5MmIwY2E4YzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMjQ2Njc2MmVkNTQ3NmYzODcwNjZhMGFkYzA2NjliZmY4NDg2OTFhZjdiZTE5ODI2YTExMzNkNTdkODlkNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMWFiMWJkNGI3MTMyODY0YWNkNjQwZGFiZjkyMWEzYmUyN2MxNWIwZDY4OWE2NDgxY2YzYzJhYTgyN2Y0MmUifQ"
+        },
+        {
+          "resource": "repo://scripts/verify-publish-guard.ts#L133-L170",
+          "version": "repo-lines-v1:sha256:2ff42fa23df4596b74bab53ba80be4041abeb274bd62de6b360bcef2d3fdcf88:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2NThlYzEwN2UzOTE2YzlmYTZjYTMyMjUwY2EwMWFlN2VlYzY5OGY2NDUxMWUxMzM3MTlkZWY2MjVmMjZhYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjOTg3NDEyY2I2NWEyYTUyYTk5YTk4NDA1ODk0OGY3ZTUwNTlkOTk5MmE2ZGE4NWY4ZWYyNDMwZDQ1MDM5MzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a07ed0d541094bdaa37df8a530128758",
+      "statement": "`scripts/tests/bundle-entries.spec.ts` pins the gate's parsing and collision rules — indent variants, commented-out rows, a quoted id containing `#`, an empty patch throwing, `mentionsExclusion` requiring both marker and bare id, and `findCollisions` accepting a documented shared id while rejecting an undocumented one and an intra-patch repeat — while the workspace-wide no-duplicate assertion lives in the gate itself; `packages/client/ui-memo-settings/tests/entry.spec.tsx` pins the two `whileServed` namespaces and that nothing registers while they are unserved.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/tests/entry.spec.tsx#L121-L153",
+          "version": "repo-lines-v1:sha256:1f4407ee13faaa442e7f8a5e32e25d9ea22e769b10affb69eb13a20f95808e44:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjE3Y2FiZmZhNTE2ZDg0Mjg0Y2Q0NTRmMjZiM2UyOGZiODE1MzBiOWIwODRmNDY0NTQzYmUwYzhhODMxYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjOTNmYWViY2ZhMTExNGEwNmUxOTNhYTlhZDdhYTVhOWJiMTlkODdlNGIxOGUzMmJmNTkxYjFlMjQzNTlhYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyNzIxMzYzYzFmNTJiMTgxMzlhNThiMDI3ODFiOTg4NjY2MDI5MWUxNDAxNzY0YmY5OTNhMDI4Yzg3MmY4MDkifQ"
+        },
+        {
+          "resource": "repo://scripts/tests/bundle-entries.spec.ts#L28-L139",
+          "version": "repo-lines-v1:sha256:0a38958cfeddc83601d76b828ec3ec3cf9165a2d911252c9de2853ee7cfbaff8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyYjczNDE0YWE0Y2M0YzAyZjg1ODc0NWFiNmFmZDQ2YWI5MGUyYzRmMTIzZGEwNDUwNjQ2ODExNTZmNzk3YzJhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjYmI2NWM0Mjg4Y2Y3OWU3ZGU0ZTY5NDVkMzg3ZGNlYmY4YmE1MDkxOTg1ZGVjMWEyNzNmM2M1ZjU3YWMwYzYxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NDdmMjIwM2RlM2FjYTY1YTY1YTYxZmI1NzJlZjk0ZDEwOWM0NzlmYjQ0MzI2ZDE4YWVhMzRlNmI4YjUzOWI1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_845993b5c0604af396b85297d9a45364",
+      "statement": "A package inside this monorepo is installed from git with a `path:` parameter that belongs to the committish, as in `github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo`, with a commit pinned as `#<sha>&path:packages/memo/dsh-memo`; an `&path:` written against the repository URL is taken as part of the repository name and fails as a missing repository.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L109-L109",
+          "version": "repo-lines-v1:sha256:d597da01993af89f03331ca41404cb404d517c5e4611a24369f71cb8e00b2ed1:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDU5N2RhMDE5OTNhZjg5ZjAzMzMxY2E0MTQwNGNiNDA0ZDUxN2M1ZTQ2MTFhMjQzNjlmNzFjYjhlMDBiMmVkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDU5N2RhMDE5OTNhZjg5ZjAzMzMxY2E0MTQwNGNiNDA0ZDUxN2M1ZTQ2MTFhMjQzNjlmNzFjYjhlMDBiMmVkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzZmZjc2YjJjODVhNzg3ZWFhZGE2NjRjMWQ1ODc2NjFjZjlmNzMzN2I5OWYyZjM2ZDY1NGQ0ZDRkOWUxYWMxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDg2ZDNlODAzYmQwOGMyOTQ4ZGZiNWM3MDMzMjBlY2RlMmFjNjM1OWMwZTgzZWZlYTdiYmFhNmI2ODhjYjg4YSJ9"
+        },
+        {
+          "resource": "repo://README.md#L44-L46",
+          "version": "repo-lines-v1:sha256:a7c57be094e4d3c7bc11eba6304f3ff7d3843da30794dde5a4fb1aa61bb4d577:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWYyNDg5OTc2NjE2MzEwZDlmOWE1OWM5NmE3ZWZjYWU3YTU1ZDcyOTVlNzI5YTFjNmI3ODUwMzk4YTVlMDNkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmE5OTJiY2M4ZWFjZjFlNGE3ODMxODgyNzdhNjliM2UzM2E4ZGU2ZGEwYTM5MmMwNzNmNTcwOWJiNTkxMjg2MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGJmZjAxMjMzNTc5Y2Y0ODg5M2I4NWVhZDlhNWE3YWI2YTYzNzQ2MWUxMzkyOGE4YzI3OTE2NGFlYTRmYTQ3YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTkyZDEyNzU1ZTVlMTNjODg0ZDY5MGFmM2E0OTQwOTgyMGRhOGJkNDcwMDkzNjMyNjYyY2FlYTM2YWU5NzM4ZSJ9"
+        },
+        {
+          "resource": "repo://README.md#L68-L68",
+          "version": "repo-lines-v1:sha256:b0c9d04e04e9f8133ca9f8ab935c94dd77666e035ea96b669d7eeacf1c569a6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOWQwNGUwNGU5ZjgxMzNjYTlmOGFiOTM1Yzk0ZGQ3NzY2NmUwMzVlYTk2YjY2OWQ3ZWVhY2YxYzU2OWE2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBjOWQwNGUwNGU5ZjgxMzNjYTlmOGFiOTM1Yzk0ZGQ3NzY2NmUwMzVlYTk2YjY2OWQ3ZWVhY2YxYzU2OWE2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTA2NzI5ZjE3MWM2YzU1NjViOGM0ZmU4MjIzN2Q3ZTZmYjE3MTUzMjhlZGI3NzMzMTA1NDUwZTBkMzg3ODgzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFlNWFlYjZkNTkwNThhOGY1MTJmYWRlMTk5NjY5YWJkOWFjMTczNTYzODRhYzYwNmYxZGFmNWZhNDI3ZjJiZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_004bb4431a7945739361886dc8b0531f",
+      "statement": "A git install fetches source rather than build output, so `prepare` builds `lib/`; pnpm ≥10 refuses that build until the profile authorizes it (`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`), the printed `allowBuilds` key names the resolved commit and stops matching after a push, and the durable repository-level key `'<package>@git+https://github.com/zhangj1164/dsh-mega-plugins.git': true` authorizes package code to run on the installing machine outside any agent sandbox.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L57-L68",
+          "version": "repo-lines-v1:sha256:f7af273ffe72aa742a9445fb5b91863ea23a34df43ef6c2e8548e26214b209e3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OTg0MjY2MWM0ZmMwN2FjNGViZmRhNjVmYzE0ZjM2M2M5MjAzM2ViNzZmYTJhZWI5YzNlOGM0ZThmZDNjMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzlkMDRlMDRlOWY4MTMzY2E5ZjhhYjkzNWM5NGRkNzc2NjZlMDM1ZWE5NmI2NjlkN2VlYWNmMWM1NjlhNmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1YWRjNDFkZTk1ZDM4OTI5MWIzZTIzZTdmYjE1Yjc1NWFkNmExNDI2M2UzYzQxNDA4MDhiZWFlMDEzM2IzNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhZTVhZWI2ZDU5MDU4YThmNTEyZmFkZTE5OTY2OWFiZDlhYzE3MzU2Mzg0YWM2MDZmMWRhZjVmYTQyN2YyYmYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L48-L51",
+          "version": "repo-lines-v1:sha256:8fff3a151d39af1d61fc26eb3bf69ec1159a9711e97e9bb5dfc5a237989bd0bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg0MDY5ODRiZGVmY2EzNGRkNmJjOTAwMjdmMWQxMWFiY2IxNzAzNGM1MjVjOWE1Y2VmYTFkODRmY2NkODFkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxZGQ5MGYwNzI2MGQyZTZhOTk2NGYwNmMyOTI2MTgwYmQzMTcwOWFjMDA4YjFkMmNkZmZmNmJiMDRjZjM5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2Q3ODBjZGM2YWRmMDljM2Y0YWEyN2E4OGYyYjFlNmI3N2VmOTMxMjMwN2Y5N2VlZDM5NWIxNzdlNTM5Yzk0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDQyZWU0ODE2YTNiZTc1MGFjM2JjZmYzYTk5NzI2ODU4ZjYwNjFjYzU4ZDI5MmM2MDI3NzNmOWQwNGU0MDk1NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f1e2b27556d48419f6438fed735be1e",
+      "statement": "A git-installed manifest keeps `workspace:^` in its sibling peer ranges because nothing rewrites a manifest read from a checkout; pnpm prints a peer warning and the boot is unaffected since the profile names every needed package and sets `autoInstallPeers: false`, while the registry stays the better default because a published package ships prebuilt `lib/` and needs no build authorization.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L70-L70",
+          "version": "repo-lines-v1:sha256:13871555b45b0025c56b90f9445a7f102db59c45f4583ac3f853b90c63584216:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTM4NzE1NTViNDViMDAyNWM1NmI5MGY5NDQ1YTdmMTAyZGI1OWM0NWY0NTgzYWMzZjg1M2I5MGM2MzU4NDIxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTM4NzE1NTViNDViMDAyNWM1NmI5MGY5NDQ1YTdmMTAyZGI1OWM0NWY0NTgzYWMzZjg1M2I5MGM2MzU4NDIxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQyM2U1Y2NmN2RjYmEwZWNlN2NkNzhhYTRmY2M5NDI1ODA2MWQ4YjgzMDgwNzNlY2NkOGU4MmFjZGE4OGY5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzkyYjQ1NTFhZGZiZTFiNTVkNmQwY2ViOWVjMjQzZTJhYmIwMzg1NTE3MTA4Yzc4ZGFjMjZjZTM0NDk2ZTNkZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_101aeaacafd7448498a4020ff6fd4dea",
+      "statement": "A bundle layer is composed at boot, so composing an unpublished build means running `pnpm run build`, installing the package directory with `dsh plugin --profile web add \"link:<absolute package path>\"`, and restarting the host; `patchReload: live` reloads configuration documents rather than modules, so a rebuilt `lib/` and a newly written `dsh.profile.bundles` row are both invisible to a running process.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/README.md#L80-L88",
+          "version": "repo-lines-v1:sha256:f21fa33be6a36fec3657fbae09bed2105cf9f43bd22f619c5846b8c40f31015b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODBkMDFmODllNmU1ZWJhNmY1OWUwNjRkMjg4M2FmYmY5YjM1MjdiZmZhOGZjNjM3MTNjZTA0NTQ3ZGNmZDlkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTI0NDdlOGZhNjE4YThkMzZhMDMzOTcwOTI1NWYzNzkzNzkxNTY2NTU0YzZiMjJhMjk0MGNjODEyNTcwNjY3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjZkMjg2ZTczNmRmMWQxY2Q2ZTEwZGUzZGQ5ZGE2ODFiYjIxMTAzOGNhNGZjZDJiNDZlMjdhOTRlNTZjNjFlMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjAxZWU5N2E4MzllYWRhNzk4N2NkNjc3OTc4NGY0ZjA5OTI5MzQ3MGFjYjA1MzI2MjhhYTc0ZDkwMGRlYmE1YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4239333766f743c29157d6fc4f59259d",
+      "statement": "`@zhangj1164/dsh-openwiki-visualize` is installed completely by naming that one package, because its single `openwiki-visualize` row carries both the host service and the browser half, whereas the memo suite requires five package names in one command.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L30-L36",
+          "version": "repo-lines-v1:sha256:2b4156d8ee47d1a0125a6bb2114ae872254405f61258fff3945522120755dfd7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmZhM2U3M2FiYmZjNGQ4ZGJjYTYzNzIxMzQ1MmEyOWExNTA1Zjc3OWJiNDFkY2E1NmJlNmY4Y2ZhZDBjYzg3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2VjNTY4ZWFkZGNjNDg0MDI2ZjFlMzJhZjIyYzc1ZjM4NTM2MmNmMmM1YzFkZDk2OGMwNTkyZjU3MTk1ODMzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTQ1MWFlYzlmZjFjMjk0OWQxYjVjYTQ2M2RkZDkyZjA1ZGE1YTUzZDkxYWZhMjIzZjc5MDBjMWRiN2Q2NWI1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM2ZTFhOTdhMGVlNWUwN2ZlZmQ5NmI0YWYzNDg5YzczYTZjMjViZWRjNjEzYzM0Mzg5ODk5ZGJiMWNmOGY2OSJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/README.md#L26-L32",
+          "version": "repo-lines-v1:sha256:87ee2444db09ac3aabfceaf19fa9baa72f4bb2e2c2d2acb9463f6ae97b0abd51:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDhmZjY3MTZiN2VhNTk4OTRkYTE1MjRiNmQzNDk5NWZjMDM3ZmY3NzIzZDIxNTUwNTFiMDkwODQyYjcxOGU5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk0YmZhYTI5YTBlZjAzMjZmNzg2NDNkMjIzNTY4MmM4MzY2ZjEwNjYyODJjNjdhYThmYTlhYzQyYjYwNmJhZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2IwMzhhYTY1NzUxMDk1NWFjNDg2ODM0ZTk1YWMzYmE1NmU5YjVhNWMyZjUyYjJiMzYyNGY2N2Q3YTNjMmYyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2RhMDllODBhNWE4NDEzMjUyOGFiZDYzMDFmYzdkZmMzZTI4ODY0OWVmNGY3ODg1OGVmY2MxMjdmYTAzNDViZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ebe38d5acc7b4e0c892d14b9b20202cf",
+      "statement": "Four of the five memo-suite names are the minimum for the dsh-memo bundle's two rows to resolve — `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` supply the injected `telemetry` and `githubIssue` services and `@zhangj1164/dsh-client-ui-memo` is the package its `ui-memo` row names — while `@zhangj1164/dsh-client-ui-memo-settings` only adds the Settings page and can be added or removed without touching the memo bundle.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L40-L40",
+          "version": "repo-lines-v1:sha256:98cfe744cf3d56eb112908a82ab4dcc66621829beddb90348ef614f14200fde2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOThjZmU3NDRjZjNkNTZlYjExMjkwOGE4MmFiNGRjYzY2NjIxODI5YmVkZGI5MDM0OGVmNjE0ZjE0MjAwZmRlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOThjZmU3NDRjZjNkNTZlYjExMjkwOGE4MmFiNGRjYzY2NjIxODI5YmVkZGI5MDM0OGVmNjE0ZjE0MjAwZmRlMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM2ZTFhOTdhMGVlNWUwN2ZlZmQ5NmI0YWYzNDg5YzczYTZjMjViZWRjNjEzYzM0Mzg5ODk5ZGJiMWNmOGY2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGJmZjAxMjMzNTc5Y2Y0ODg5M2I4NWVhZDlhNWE3YWI2YTYzNzQ2MWUxMzkyOGE4YzI3OTE2NGFlYTRmYTQ3YiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L151-L159",
+          "version": "repo-lines-v1:sha256:c2f496256374816767c182b8f51d55cab4f7c36d432f0ddd3b8e742dc72d7079:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTAxMTE5MDQwMGMyYzg1NTkyYjk3NjQ4ZTJkNjQ1MWUwODZlYjg4Y2I5NGQ5M2U4ZTlmNDFjOThkYWI3Y2RiOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q4Njk3NDQ2MWY5NTZkYWEwYTEyN2Q3NTJlNTU4OGRhMTg0ZDZiZGEyMjJmZGM0MGVkNGQ2OWY2MTJiYWFkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWYyYTU4OGQwZjBhM2YwNGYzMTg3MDVlZjBkYjVhNTJlNTRjMTAwNDJlN2FjYTE5N2RiODc2NzM1ZGQ2OWZkZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTU0ZGZhMzJiMDNlN2JlOGVhMDA5NzU4ZDlkMTY4MzllMjVhYWQ4NzRjMDVmMWQzOWJiZGQ1YTQxZjFjOTU3NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_686ec81c85f344fcb61288f1d5e3e549",
+      "statement": "When the settings page does not appear after a restart, the documented check order is: the Host build carries `.volatile()` schema fields, `dsh --profile web --dump-config` lists a `ui-memo-settings` row (otherwise the package never became a profile layer), and the browser fetched `<package>/client.js`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo-settings/README.md#L90-L94",
+          "version": "repo-lines-v1:sha256:cd5b0e65df5ef8cf95e6f71fa007c00e835dc8f32cd39d6505a7ffb1167fa07a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWUyZWUyODhiNTc2MDU2MjRmZmM5ZWEwZTkwNzMyMWVkZjI3ZDliMzMwYTJmZWU4NzNlOWQyNTY3OTgwMWM0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWE5ODU5OTEwZjhlYjg0ZTUzNWM5ZjBmM2E5ODg3MTIwNjc4YjUwOTNhM2U3Y2EwYTY4YjU0NTgwZTYwNjhmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2VmYTIwM2VjOGIwZjQ3ZDJlYWQxYzlmMDdlNzI3YzA1MjkwMmJiYTJiM2ZhMDBiYThjY2RjOWE4NWY1YTFhYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjRjODI0OWIyZTM1OGFhMDA3MmVlYWVmYmJmOGQwYjEwMDM5ODc4ZjViZGI1NzNlNWMwZTM3MDQ3YzNhYmJlNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3edaba1cca2949e2b77bda495b2072e5",
+      "statement": "On success `verify-bundle-entries` prints the bundle count, `no duplicate entry id`, and one line listing every bundle with its inserted ids, so the gate output doubles as the current ownership listing; on failure it names each collision and which patch did not record the mutual exclusion.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/verify-bundle-entries.ts#L242-L259",
+          "version": "repo-lines-v1:sha256:d40bcc23a6ed388d3c30c7443690bec16937ac55239af6111633e2bec7af9b5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyZGJkNTA3YjY5ODZhM2U2OGJmZmEwODhjNmQ0MTc4MzQwNTA4ZjQ5NzM5NTM4ZmQyNGE5NDE1MDE5NzY0OWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwODM2ZTMzYTNiMWE3NWE2MjU3NTU5YjM4ZjZlNTE0Y2ZhOWQ5NTYyYWUyNmMyNWZkNjNiYjQ2YzUyODFjMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYzBjNTZlYWFiNWI1YzMwZTE3MGU4ZjQ4MTQzZWY1NmJmM2RhMTJjODAxZmY3YWNhYmYwNTc3MzU3NGE5OTQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

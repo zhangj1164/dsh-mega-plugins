@@ -1,0 +1,723 @@
+{
+  "schemaVersion": 1,
+  "runId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f",
+  "mode": "init",
+  "phase": "generating",
+  "startedAt": "2026-11-03T09:53:43.931Z",
+  "language": "zh",
+  "languageChanged": true,
+  "requiredRewritePages": [],
+  "initialPages": [],
+  "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+  "targetGitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+  "actor": {
+    "producerActor": "openwiki/0.7.2",
+    "metadataModel": "deepseek-flash"
+  },
+  "previousLastUpdate": null,
+  "beforeContentSnapshot": "ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
+  "preparedWiki": {
+    "generatedProvenance": []
+  },
+  "plan": {
+    "pages": [
+      {
+        "id": "df1f86f6-9844-4084-ace6-9371aed20c4b",
+        "path": "/openwiki/architecture/host-client-remote-contract.md",
+        "title": "宿主 ⇄ 浏览器 Remote 契约",
+        "purpose": "记录浏览器半边调用宿主能力的完整契约：TypertRemoteService 与 @Remote 命名、方法必须声明单个名为 request 的参数、双层信封（transport ok + 业务 ok/value/error）、dsh.client 发现链与 exports['./client'] 的区别，以及 clientBundle 与 verify-client-bundle-id 的产物门禁。",
+        "seedPaths": [
+          "packages/client/ui-memo/src/client/controller.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/tests/remote-signatures.spec.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts",
+          "scripts/tsdown.client.ts",
+          "scripts/verify-client-bundle-id.ts",
+          "vitest.config.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/overview.md",
+          "/openwiki/concepts/capability-and-approval-boundaries.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/openwiki-visualize.md",
+          "/openwiki/testing/testing-strategy.md"
+        ],
+        "instructions": [
+          "把「exports['./client'] 是类型投影，dsh.client 才是浏览器半边」这一易混点单列小节。",
+          "用一次真实调用（如 memo/addEntry）走完浏览器 → connection RPC → 宿主方法 → 信封 → UI 的路径，并标注失败时浏览器看到什么。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "d97134e1-cefe-4f45-a787-c70e23e7e953",
+        "path": "/openwiki/architecture/overview.md",
+        "title": "系统总览：六个插件与宿主/浏览器两侧",
+        "purpose": "仓库全局地图：六个包各属宿主还是浏览器半边、暴露哪个 Cordis 服务、占用哪个组合入口 id、状态落到哪个持久域叶子，以及「加一个宿主能力 / 加一个浏览器面 / 加一份持久状态 / 加一个 Remote 方法」分别落在哪里。",
+        "seedPaths": [
+          "AGENTS.md",
+          "README.md",
+          "packages/client/ui-memo-settings/package.json",
+          "packages/client/ui-memo/package.json",
+          "packages/github-issue/dsh-github-issue/package.json",
+          "packages/memo/dsh-memo/package.json",
+          "packages/openwiki/dsh-openwiki-visualize/package.json",
+          "packages/telemetry/dsh-telemetry/package.json",
+          "pnpm-workspace.yaml"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/integrations/dsh-host-services.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/systems/openwiki-visualize.md"
+        ],
+        "instructions": [
+          "保持「每个包属于哪半边、哪个入口 id 归谁、状态落在哪个域」这条主线，不要把各服务的 Remote 方法表复制进来（指向 systems/ 页面）。",
+          "用一张 mermaid 流程图表达包/服务/持久域之间的连接，避免逐文件清单。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "1807af1b-5bb3-4216-bfaa-14b7b00d2d03",
+        "path": "/openwiki/architecture/plugin-composition-and-bundles.md",
+        "title": "插件组合与 bundle 层",
+        "purpose": "解释 dsh.bundle / cordis.patch.yml 的插入模型与入口 id 唯一所有权：为何两个 bundle 插同一行不是合并而是启动失败、profile 安装为何必须点名每个包（autoInstallPeers: false）、git 安装的 path:/allowBuilds 语法，以及 verify-bundle-entries 的门禁与 not both 例外。",
+        "seedPaths": [
+          "README.md",
+          "packages/client/ui-memo-settings/cordis.patch.yml",
+          "packages/github-issue/dsh-github-issue/cordis.patch.yml",
+          "packages/memo/dsh-memo/cordis.patch.yml",
+          "packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml",
+          "packages/telemetry/dsh-telemetry/cordis.patch.yml",
+          "scripts/verify-bundle-entries.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/overview.md",
+          "/openwiki/concepts/configuration-and-live-settings.md",
+          "/openwiki/operations/build-test-and-gates.md",
+          "/openwiki/operations/release-and-publishing.md",
+          "/openwiki/systems/memo-settings-ui.md"
+        ],
+        "instructions": [
+          "区分三种安装形态：registry、git（path: 属于 committish）、以及 dsh.client 包被报成普通依赖的预期告警。",
+          "把「一个入口 id 恰好一个所属 bundle」写成硬约束，并给出当前所有权表（telemetry / github-issue / memo+ui-memo / ui-memo-settings / openwiki-visualize）。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "fad7f0f4-f668-48ea-961b-5f93d14e6627",
+        "path": "/openwiki/architecture/storage-and-persistence.md",
+        "title": "存储与持久化：域、schema 与写重试",
+        "purpose": "汇总四个 storage-domain 域（memo.weeks、memo_archive.quarters、memo_telemetry.events、github_issue_intake.state）与 $DSH_HOME/memo/ledger.json 的键形状、schema 约束、打开失败语义、EPERM/EBUSY 写重试与降级策略，并说明哪份状态属于谁。",
+        "seedPaths": [
+          "packages/github-issue/dsh-github-issue/src/spec.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/spec.ts",
+          "packages/memo/dsh-memo/tests/flaky-storage.ts",
+          "packages/memo/dsh-memo/tests/ledger-home.spec.ts",
+          "packages/telemetry/dsh-telemetry/src/spec.ts",
+          "packages/telemetry/dsh-telemetry/tests/flaky-storage.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/concepts/period-calendar.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/systems/telemetry-service.md"
+        ],
+        "instructions": [
+          "按「域 → 表 → 键 → 行 schema → 打开/写入失败行为」组织，不要重述业务语义（指向 systems/ 与 workflows/）。",
+          "明确写出「新增字段必须可选」「坏行会让插件起不来」这两条既有事故结论。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "f0023720-2f6e-4d52-8d7e-5fb9b5081c3f",
+        "path": "/openwiki/concepts/capability-and-approval-boundaries.md",
+        "title": "能力与审批边界：turn 之外没有审批",
+        "purpose": "记录仓库级安全不变量：面板发起的 Remote 调用发生在 turn 之间，ctx.approval.request() 没有 open turn 可落，因此敏感操作只有两种合规形态——留在宿主内部不注册 @Remote（如 readExternalPath），或包装成 turn 内 tool 走 ctx.approval。",
+        "seedPaths": [
+          "AGENTS.md",
+          "docs/plans/2026-10-21-memo-read-external-path-accuracy-design.md",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/memo/dsh-memo/tests/external-path.spec.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/index.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/systems/openwiki-visualize.md",
+          "/openwiki/workflows/issue-intake-autopilot.md"
+        ],
+        "instructions": [
+          "把「不可寻址」与「寻址后受限」区分清楚，并点出 readExternalPath 的 approval-denied 实际指宿主 fs 权限/沙箱拒绝，不是一次审批决定。",
+          "明确禁止自建一次性令牌或客户端对话框冒充审批的理由：绕开部署的 ask/never 策略且不产生审计。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "ce00bef6-3c31-4040-aa71-f17ed2fdbbac",
+        "path": "/openwiki/concepts/configuration-and-live-settings.md",
+        "title": "配置与热生效（volatile settings）",
+        "purpose": "解释 Config/schemastery 字段、.volatile() 与 Loader 就地刷新 ref 的链路：设置页如何只提交脏字段、空白为何写 unset 而非空串、为什么服务必须在用点读 ref，以及哪些改动（autopilotEnabled、代码与组合变更）必须等重启。",
+        "seedPaths": [
+          "AGENTS.md",
+          "packages/client/ui-memo-settings/src/client/draft.ts",
+          "packages/client/ui-memo-settings/src/client/form.ts",
+          "packages/client/ui-memo-settings/src/client/intake-form.ts",
+          "packages/github-issue/dsh-github-issue/src/index.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/tests/config-volatile.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/concepts/capability-and-approval-boundaries.md",
+          "/openwiki/systems/memo-settings-ui.md",
+          "/openwiki/testing/testing-strategy.md"
+        ],
+        "instructions": [
+          "区分「存储语义」与「生效时机」，尤其 autopilotEnabled 只在下一次宿主启动生效。",
+          "把「部署可变的值必须是 Config 字段，协议常量与安全不变量保持固定」作为本页的判断线，并给出两个正反例。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "76e6c7bd-9b5b-4b1c-83d0-6e0b11822056",
+        "path": "/openwiki/concepts/llm-route-and-failure-facts.md",
+        "title": "模型路由与失败事实",
+        "purpose": "统一解释模型调用的路由优先级（请求 → 服务 Config → agentDefaultModel）、NO_MODEL_ROUTE 与其余失败码的区分、streamLlmText 对 DSH 失败事实的保留，以及成功/失败事件都记录 provider/model 的理由。",
+        "seedPaths": [
+          "packages/github-issue/dsh-github-issue/src/llm-text.ts",
+          "packages/github-issue/dsh-github-issue/src/types.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/llm-text.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/telemetry/dsh-telemetry/src/types.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/integrations/dsh-host-services.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/workflows/analyze-and-export.md",
+          "/openwiki/workflows/log-analysis-to-issue.md"
+        ],
+        "instructions": [
+          "强调「路由解析失败」与「模型调用失败」是两个不同事实，不能折叠成一条消息。",
+          "指出 llm-text 是两个宿主包各自的实现（memo 与 github-issue 不互相依赖），改动时需成对检查。"
+        ],
+        "status": "complete",
+        "completedBy": "openwiki/0.7.2"
+      },
+      {
+        "id": "6143563c-54f5-4c77-a9d6-e9be99816515",
+        "path": "/openwiki/concepts/period-calendar.md",
+        "title": "四维周期日历（period calendar）",
+        "purpose": "钉住唯一日历契约：四个维度的固定标签形状、ISO-8601 周（周一起始 + 星期四决定年与归属）、weekIdsInPeriod/weekIdBelongsToPeriod 的一对实现，以及为什么浏览器永不自行重算日历。",
+        "seedPaths": [
+          "packages/client/ui-memo/src/client/logic.ts",
+          "packages/client/ui-memo/tests/logic.spec.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/period.ts",
+          "packages/memo/dsh-memo/tests/period.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/workflows/quarter-archive-and-read-only.md"
+        ],
+        "instructions": [
+          "标签格式是已存数据的读法（analysis.periodLabel、ledger、归档 label），必须标注为不可改动的持久契约。",
+          "说明「形状校验」与「语义归属」的分层，并点出跨年周在两维分属不同年份是规则。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "cdbbff61-bbca-40b2-beb2-f58b0ade4352",
+        "path": "/openwiki/integrations/dsh-host-services.md",
+        "title": "DSH 宿主服务与集成边界",
+        "purpose": "本仓库依赖的 DSH 宿主契约清单：llm 与 agentDefaultModel、fs、sessionQuery 与 workspaceRegistry、configForms（含 whileServed）、storageDomain/storage-json、以及浏览器侧的 slots/layout/locale/theme/connection/sidebarRightTabs；标明哪些是静态 inject、哪些是 ctx.get 可选降级。",
+        "seedPaths": [
+          "packages/client/ui-memo-settings/src/client/index.ts",
+          "packages/client/ui-memo/src/client/index.ts",
+          "packages/github-issue/dsh-github-issue/src/index.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/index.ts",
+          "packages/telemetry/dsh-telemetry/src/index.ts",
+          "pnpm-workspace.yaml",
+          "vitest.config.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/overview.md",
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/systems/memo-settings-ui.md",
+          "/openwiki/systems/openwiki-visualize.md",
+          "/openwiki/workflows/session-summary.md"
+        ],
+        "instructions": [
+          "不要复述各服务自身的业务方法，只描述消费方用到的契约面。",
+          "按「必需 inject」与「可选 ctx.get」两类组织，并逐项写清服务缺席时的降级表现。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "685b926e-cacb-4261-8cef-cfa42eb0f574",
+        "path": "/openwiki/operations/build-test-and-gates.md",
+        "title": "构建、测试与门禁",
+        "purpose": "本地与 CI 的质量门：tsdown 与共享 clientBundle 预设的构建分工、根 vitest 配置的测试发现与源码别名、run-gates 的三个聚合（check-all/hygiene/doc-sync）及 11 道 gate 的依赖顺序与并发上限、常见门禁失败的定位方法。",
+        "seedPaths": [
+          ".github/workflows/ci.yml",
+          "package.json",
+          "scripts/pnpm-invocation.ts",
+          "scripts/run-gates.ts",
+          "scripts/tsdown.client.ts",
+          "scripts/verify-export-jsdoc.ts",
+          "scripts/verify-md-links.ts",
+          "scripts/verify-md-wrap.ts",
+          "scripts/verify-package-exports.ts",
+          "vitest.config.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/operations/release-and-publishing.md",
+          "/openwiki/operations/repository-governance.md",
+          "/openwiki/testing/testing-strategy.md"
+        ],
+        "instructions": [
+          "保留完整失败输出而不摘要，说明 DSH_GATE_CONCURRENCY 与本地 4 worker 上限的由来。",
+          "用一张依赖图（needs/after）表达 gate 关系，并标注哪些 gate 需要先 build 产物（package-exports、client-bundle-id）。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "80fdbe19-0e4f-409f-9986-e6d954b3e6a0",
+        "path": "/openwiki/operations/release-and-publishing.md",
+        "title": "发布与打包",
+        "purpose": "发布路径与互锁：pnpm publish 才会替换 workspace: 范围、npm publish 会把协议写进制品的事故与当前两道机制（prepublishOnly 的 publish-guard 与 verify-publish-guard 静态检查）、registry 与 git 安装的差异，以及发布后的 registry 校验清单。",
+        "seedPaths": [
+          "AGENTS.md",
+          "README.md",
+          "packages/memo/dsh-memo/package.json",
+          "packages/telemetry/dsh-telemetry/package.json",
+          "scripts/publish-guard.mjs",
+          "scripts/verify-publish-guard.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/operations/build-test-and-gates.md",
+          "/openwiki/operations/repository-governance.md"
+        ],
+        "instructions": [
+          "写明 publish-guard 对无法识别的打包器 fail closed，以及 git 安装不受 prepublishOnly 影响。",
+          "把「工作流：分支 → PR → gates → squash merge」与「发布动作」区分开，不要混成一条清单。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "d06dfae7-b216-4784-8eb8-95c7546937e6",
+        "path": "/openwiki/operations/repository-governance.md",
+        "title": "仓库治理与 CI 自动化",
+        "purpose": "仓库自身的自动化系统：.github/issue-management/policy.mjs 的 issue/pr/lifecycle 三模式与标签/正文规则、config.json 的 Project 看板状态机与受控开关（PROJECT_GATE + ISSUE_TOKEN）、五个 GitHub Actions 工作流（CI、issue policy、issue lifecycle、translation pairing、OpenWiki 定时更新）的触发与权限，以及 Issue 模板与 PR 模板的约束。",
+        "seedPaths": [
+          ".github/issue-management/config.json",
+          ".github/issue-management/policy.mjs",
+          ".github/issue-management/policy.test.mjs",
+          ".github/pull_request_template.md",
+          ".github/workflows/ci.yml",
+          ".github/workflows/issue-lifecycle.yml",
+          ".github/workflows/issue-policy.yml",
+          ".github/workflows/openwiki-update.yml",
+          ".github/workflows/verify-translation-pairing.yml",
+          "AGENTS.md",
+          "docs/agents/issue-tracker.md",
+          "docs/agents/triage-labels.md"
+        ],
+        "relatedPages": [
+          "/openwiki/operations/build-test-and-gates.md",
+          "/openwiki/operations/release-and-publishing.md",
+          "/openwiki/quickstart.md",
+          "/openwiki/workflows/issue-intake-autopilot.md"
+        ],
+        "instructions": [
+          "区分强制检查与两个可选检查（Issue Type 受组织限制、Project Status 受 PROJECT_GATE 开关限制）。",
+          "说明 policy 从默认分支检出，因此「门禁不能给自己的修复放行」；不要把它写成可绕过的建议。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "b0e9eb9e-5412-4181-8639-77b803128b34",
+        "path": "/openwiki/systems/github-issue-service.md",
+        "title": "GitHub issue 服务（GithubIssueService）",
+        "purpose": "issue 生成与接单服务的宿主能力：generateReport / prefilledIssueUrl / optimizeIssue / createIssue 四个报告方法，listClaimableIssues / dispatchIssue / runIntake 三个接单方法，GitHub REST 客户端与凭据解析（token → tokenEnv → tokenCommand），以及稳定的失败码与 telemetry 可选上报。",
+        "seedPaths": [
+          "packages/github-issue/dsh-github-issue/README.md",
+          "packages/github-issue/dsh-github-issue/src/github.ts",
+          "packages/github-issue/dsh-github-issue/src/index.ts",
+          "packages/github-issue/dsh-github-issue/src/intake.ts",
+          "packages/github-issue/dsh-github-issue/src/spec.ts",
+          "packages/github-issue/dsh-github-issue/src/types.ts",
+          "packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts",
+          "packages/github-issue/dsh-github-issue/tests/github.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/concepts/capability-and-approval-boundaries.md",
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/systems/telemetry-service.md",
+          "/openwiki/workflows/issue-intake-autopilot.md",
+          "/openwiki/workflows/log-analysis-to-issue.md"
+        ],
+        "instructions": [
+          "强调 auth-missing 与 auth-failure 的区别，以及 token 永不写日志。",
+          "把「报告方法」与「接单方法」分成两节，接单只给摘要并链接 workflows/issue-intake-autopilot.md。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "9e8d38ed-2b80-4219-980a-3fc31bb9a1c7",
+        "path": "/openwiki/systems/memo-board-ui.md",
+        "title": "备忘看板 UI（@zhangj1164/dsh-client-ui-memo）",
+        "purpose": "浏览器看板的完整形态：两个槽位注册（sidebar.panellist 按钮 + 键为 memo 的 main 面板）、关闭时切回 conversation 的 layout 语义、controller 的方法与状态、四维导航/标签规则/年份切换、结果卡（分析/报告/日志）与归档只读在 UI 各处的表现。",
+        "seedPaths": [
+          "packages/client/ui-memo/README.md",
+          "packages/client/ui-memo/src/client/MemoBoard.tsx",
+          "packages/client/ui-memo/src/client/controller.ts",
+          "packages/client/ui-memo/src/client/index.ts",
+          "packages/client/ui-memo/src/client/locales.ts",
+          "packages/client/ui-memo/src/client/logic.ts",
+          "packages/client/ui-memo/tests/MemoBoard.spec.tsx",
+          "packages/client/ui-memo/tests/controller.spec.ts",
+          "packages/client/ui-memo/tests/entry.spec.tsx"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/concepts/period-calendar.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/systems/memo-settings-ui.md",
+          "/openwiki/workflows/quarter-archive-and-read-only.md",
+          "/openwiki/workflows/session-summary.md"
+        ],
+        "instructions": [
+          "明确浏览器不猜 provider/model：菜单只能来自 memo/listModels。",
+          "用一个 controller 侧的状态转换图（维度切换、周期选择、mutation 后 refresh、只读态）表达控制流，避免逐组件清单。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "edac0b48-2eff-4475-a272-9721dd794698",
+        "path": "/openwiki/systems/memo-service.md",
+        "title": "备忘服务（MemoService）",
+        "purpose": "备忘宿主能力全貌：static inject、13 个 volatile Config 字段、17 个 Remote 方法的分区（周读写、分析/导出、周期与记忆、归档、会话总结、模型目录、日志分析）、周行补写、past-week force 门与归档守卫，以及失败结果的统一返回形态。",
+        "seedPaths": [
+          "packages/memo/dsh-memo/README.md",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/spec.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/memo/dsh-memo/tests/memo.spec.ts",
+          "packages/memo/dsh-memo/tests/remote-signatures.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/concepts/period-calendar.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/workflows/analyze-and-export.md",
+          "/openwiki/workflows/log-analysis-to-issue.md",
+          "/openwiki/workflows/quarter-archive-and-read-only.md",
+          "/openwiki/workflows/session-summary.md"
+        ],
+        "instructions": [
+          "方法表按能力分区而不是按源码顺序；每个方法标注成功值与失败码，并指出 readExternalPath 故意不在 Remote 表面。",
+          "跨系统工作流只给一段摘要并链接 workflows/ 页面，不要在本页重写归档或会话总结的完整流程。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "7c6f2510-7c21-487d-b294-754ab8badbf6",
+        "path": "/openwiki/systems/memo-settings-ui.md",
+        "title": "备忘设置页（@zhangj1164/dsh-client-ui-memo-settings）",
+        "purpose": "设置页的形态与边界：两个 settings.section（memo 与 github-issue 命名空间）、whileServed 门控、draft/stage/save 的按字段提交与 revision 语义、空白即复位、页面侧边界校验为何只是便利，以及哪些字段刻意留在 cordis.yml。",
+        "seedPaths": [
+          "packages/client/ui-memo-settings/README.md",
+          "packages/client/ui-memo-settings/src/client/IntakeSettingsSection.tsx",
+          "packages/client/ui-memo-settings/src/client/MemoSettingsSection.tsx",
+          "packages/client/ui-memo-settings/src/client/SettingsSection.tsx",
+          "packages/client/ui-memo-settings/src/client/draft.ts",
+          "packages/client/ui-memo-settings/src/client/form.ts",
+          "packages/client/ui-memo-settings/src/client/index.ts",
+          "packages/client/ui-memo-settings/src/client/intake-form.ts",
+          "packages/client/ui-memo-settings/tests/entry.spec.tsx"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/concepts/configuration-and-live-settings.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/workflows/issue-intake-autopilot.md"
+        ],
+        "instructions": [
+          "列出「页面静默消失 = 宿主产物陈旧或命名空间没人服务」的排查顺序。",
+          "按「页面不拥有值」这一前提组织：草稿 → 逐字段写入 → 宿主校验为唯一权威 → 快照追上后草稿消失。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "8fe7a120-fb42-430c-b397-8b3178fc7026",
+        "path": "/openwiki/systems/openwiki-visualize.md",
+        "title": "OpenWiki 预览（@zhangj1164/dsh-openwiki-visualize）",
+        "purpose": "唯一同时带宿主与浏览器半边的包：环境探测（openwiki/DSH 版本下限）、workspace 的 wiki 分类与标记强弱、visualize 子进程的点火/端口回收/超时监督、右 Sidebar tab 类型与 header 入口按钮的注册、以及「检查自动、安装手动」的自更新姿态。",
+        "seedPaths": [
+          "docs/openwiki-visualize-reference.md",
+          "packages/openwiki/dsh-openwiki-visualize/README.md",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/EntryButton.tsx",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/client/index.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/environment.ts",
+          "packages/openwiki/dsh-openwiki-visualize/src/index.ts",
+          "packages/openwiki/dsh-openwiki-visualize/tests/environment.spec.ts",
+          "packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/architecture/overview.md",
+          "/openwiki/concepts/capability-and-approval-boundaries.md",
+          "/openwiki/concepts/configuration-and-live-settings.md",
+          "/openwiki/integrations/dsh-host-services.md"
+        ],
+        "instructions": [
+          "列出故障排查对照表（无 wiki、版本过低、pane 空白、CDN 不可达、无右 Sidebar）。",
+          "区分纯决策模块 environment.ts 与持有效应的宿主服务，并给出子进程生命周期（ctx.effect disposer 回收）的时序图。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "b2579b7a-c0f6-4612-9cc4-435c0d18bf8f",
+        "path": "/openwiki/systems/telemetry-service.md",
+        "title": "遥测服务（TelemetryService）",
+        "purpose": "本地遥测基础设施：事件模型（pluginId/action/category/result/error.featureCodeRef）、单调写序 seq 的续号与跨重启、写入前脱敏规则族与字段白名单、读时二次脱敏，以及 analyzeForPlugin 返回的 window / attemptsAfterLastFailure / route 三组事实。",
+        "seedPaths": [
+          "packages/telemetry/dsh-telemetry/README.md",
+          "packages/telemetry/dsh-telemetry/src/index.ts",
+          "packages/telemetry/dsh-telemetry/src/redaction.ts",
+          "packages/telemetry/dsh-telemetry/src/spec.ts",
+          "packages/telemetry/dsh-telemetry/src/types.ts",
+          "packages/telemetry/dsh-telemetry/tests/redaction.spec.ts",
+          "packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/workflows/log-analysis-to-issue.md"
+        ],
+        "instructions": [
+          "写清 track/trackError 是 fire-and-forget：预算耗尽的写入仍会丢事件，重试只收窄窗口。",
+          "说明脱敏为什么发生在写入前（记录会进入模型提示词与预填 issue），以及规则是 Config 而非常量。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "dfb19f0f-0f8b-4694-8e10-86ea0a6499a9",
+        "path": "/openwiki/testing/testing-strategy.md",
+        "title": "测试策略与测试替身",
+        "purpose": "仓库的测试分层与替身设计：包级 vitest 用例覆盖哪些边界（Remote 签名、period 纯函数、storage 重试、脱敏、transcript、controller 与入口注册）、memo/telemetry 的 harness 与 flaky-storage、ui-memo 的 fake-rpc、设置页的 fake-form、scripts 下的门禁用例、以及 node --test 跑的 policy 用例，并说明为何按边界而非常规覆盖率来测。",
+        "seedPaths": [
+          ".github/issue-management/policy.test.mjs",
+          "packages/client/ui-memo-settings/tests/fake-form.ts",
+          "packages/client/ui-memo/tests/fake-rpc.ts",
+          "packages/memo/dsh-memo/tests/flaky-storage.ts",
+          "packages/memo/dsh-memo/tests/harness.ts",
+          "packages/openwiki/dsh-openwiki-visualize/tests/service.spec.ts",
+          "scripts/tests/bundle-entries.spec.ts",
+          "scripts/vitest-decorators.ts",
+          "vitest.config.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/host-client-remote-contract.md",
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/operations/build-test-and-gates.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md"
+        ],
+        "instructions": [
+          "指出 UI 变更只有单元测试不够，仍需在运行中的 DSH Web 验证，并说明 workspace 源码别名防止测试依赖陈旧 lib/。",
+          "按「纯决策 / 替身驱动 / 真实浏览器半边 / 产物门禁 / node --test 策略」分层，每层给代表用例与它防住的回归。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "6c2a8213-bd9e-4764-a63c-047bcd585ff9",
+        "path": "/openwiki/workflows/analyze-and-export.md",
+        "title": "分析与导出：分析 → 账本 → 报告",
+        "purpose": "一次 AI 分析的端到端流程：按周期收集条目、三种分析类型（梳理/总结/分析）与模型调用、成功分析追加到 ledger.json（容量、schema 版本、迁移、写失败降级）、listMemory 读取记忆，以及 exportReport 产出 Markdown 报告的失败传播。",
+        "seedPaths": [
+          "docs/plans/2026-09-15-log-analysis-report-fidelity-design.md",
+          "packages/client/ui-memo/src/client/controller.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/llm-text.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/memo/dsh-memo/tests/ledger-home.spec.ts",
+          "packages/memo/dsh-memo/tests/memo.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/concepts/period-calendar.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md"
+        ],
+        "instructions": [
+          "用一条时序图表达 UI → memo/analyze → llm → ledger → 返回结果卡，并标注每个失败分支返回给 UI 的码。",
+          "说明账本写失败只降级为「本次分析照常返回」，不在内存丢结果。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "e716f55a-dc75-4ed8-97f1-043ac32d93fd",
+        "path": "/openwiki/workflows/issue-intake-autopilot.md",
+        "title": "Issue 接单自动驾驶",
+        "purpose": "闭环的最后一段：claimLabel 列表（排除 PR）→ 跳过已派发 → 经 Session controller 建会话、命名并用 followup 排队提示词 → 持久记录本地日与派发记录；以及每日首次启动检查的时机、可选 storageDomain 的降级与「没有记忆就不跑」的判据。",
+        "seedPaths": [
+          "docs/plans/2026-11-02-github-issue-intake-autopilot-design.md",
+          "packages/github-issue/dsh-github-issue/src/github.ts",
+          "packages/github-issue/dsh-github-issue/src/index.ts",
+          "packages/github-issue/dsh-github-issue/src/intake.ts",
+          "packages/github-issue/dsh-github-issue/src/spec.ts",
+          "packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts",
+          "packages/github-issue/dsh-github-issue/tests/intake.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/concepts/capability-and-approval-boundaries.md",
+          "/openwiki/operations/repository-governance.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-settings-ui.md"
+        ],
+        "instructions": [
+          "用状态图表达「启动检查 → 列表成功 → 派发 → 提交本地日」以及列表失败当天重试的路径。",
+          "说明为什么走 Session controller 而不是 ctx.agents.create()，以及该决定把交接面缩小到哪里。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "61b55e8a-4798-4cd2-8d98-a544244e8dfb",
+        "path": "/openwiki/workflows/log-analysis-to-issue.md",
+        "title": "日志分析到 Issue",
+        "purpose": "跨三个包的一条链路：memo/analyzeLogs 按配置插件 id 逐个读取 telemetry 分析并合并（合计、窗口并集、按 featureCodeRef 分组）→ githubIssue/generateReport → prefilledIssueUrl（URL 预算与截断）或 createIssue（去掉重复标题），以及沿途的失败码。",
+        "seedPaths": [
+          "packages/client/ui-memo/src/client/controller.ts",
+          "packages/github-issue/dsh-github-issue/src/github.ts",
+          "packages/github-issue/dsh-github-issue/src/index.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/memo/dsh-memo/tests/memo.spec.ts",
+          "packages/telemetry/dsh-telemetry/src/index.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/systems/github-issue-service.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/telemetry-service.md",
+          "/openwiki/workflows/issue-intake-autopilot.md"
+        ],
+        "instructions": [
+          "区分「读取为空」「未配置插件」「模型失败」「URL 非法」四类结果各自返回什么。",
+          "解释「一份报告覆盖整个套件」而非每插件一份的原因，并给出插件 id 集合来自部署配置这一事实。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "0e2b447e-81de-493c-b242-04b9e87e7efb",
+        "path": "/openwiki/workflows/quarter-archive-and-read-only.md",
+        "title": "季度归档与只读",
+        "purpose": "归档的完整流程与只读语义：archiveQuarter 只写 {label, archivedAt} 标记而非搬移、weekIds 由周四规则派生而不持久化、归档/取消归档在 UI 四维下的表现，以及宿主 addEntry/updateEntry/deleteEntry 与 controller 双层的 quarter-archived 守卫。",
+        "seedPaths": [
+          "docs/plans/2026-09-14-ui-memo-shell-and-archive-design.md",
+          "packages/client/ui-memo/src/client/MemoBoard.tsx",
+          "packages/client/ui-memo/src/client/controller.ts",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/period.ts",
+          "packages/memo/dsh-memo/src/spec.ts",
+          "packages/memo/dsh-memo/tests/memo.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/storage-and-persistence.md",
+          "/openwiki/concepts/period-calendar.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md"
+        ],
+        "instructions": [
+          "强调归档当前季度会连带关闭今天，UI 必须给出一步可达的取消归档。",
+          "解释为什么请求只接受明确的季度标签，绝不由当前周期猜季度（跨年周与本季度内归档两个反例）。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "8c386276-a8c7-4232-aee1-ae4fc2b448e6",
+        "path": "/openwiki/workflows/session-summary.md",
+        "title": "归档会话总结",
+        "purpose": "从 DSH 官方会话归档生成周记卡片的流程：workspaceRegistry/sessionQuery 取候选会话（排除 subagent）、transcript 渲染与字符预算头尾裁剪、每会话一次模型调用、语言与长度解析、provenance（originSessionId）与 already-summarized/force 去重，以及按会话隔离的失败。",
+        "seedPaths": [
+          "docs/plans/2026-10-28-memo-session-summary-design.md",
+          "packages/client/ui-memo/src/client/MemoBoard.tsx",
+          "packages/memo/dsh-memo/src/index.ts",
+          "packages/memo/dsh-memo/src/session-transcript.ts",
+          "packages/memo/dsh-memo/src/types.ts",
+          "packages/memo/dsh-memo/tests/session-summary.spec.ts",
+          "packages/memo/dsh-memo/tests/session-transcript.spec.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/concepts/llm-route-and-failure-facts.md",
+          "/openwiki/integrations/dsh-host-services.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/systems/memo-settings-ui.md"
+        ],
+        "instructions": [
+          "画一张从选择器到写入周的流程图，并标出「目标周落在已归档季度」这条提前拒绝路径。",
+          "说明来源注释由宿主在模型返回后渲染，模型无法伪造。"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "5463000f-e8f8-4a37-984e-7a68092c3ff6",
+        "path": "/openwiki/quickstart.md",
+        "title": "快速开始：任务路由地图",
+        "purpose": "本 wiki 的唯一入口。按「我要改什么」把读者路由到架构、概念、系统、工作流、集成、运维与测试页面，并给出最小可用的构建/测试命令，使编码代理不必先读完全部页面就能定位证据。",
+        "seedPaths": [
+          "AGENTS.md",
+          "README.md",
+          "package.json",
+          "packages/memo/dsh-memo/README.md",
+          "packages/openwiki/dsh-openwiki-visualize/README.md",
+          "pnpm-workspace.yaml",
+          "vitest.config.ts"
+        ],
+        "relatedPages": [
+          "/openwiki/architecture/overview.md",
+          "/openwiki/architecture/plugin-composition-and-bundles.md",
+          "/openwiki/operations/build-test-and-gates.md",
+          "/openwiki/systems/memo-board-ui.md",
+          "/openwiki/systems/memo-service.md",
+          "/openwiki/testing/testing-strategy.md"
+        ],
+        "instructions": [
+          "只链接本计划中最终存在的页面路径；不要链接不存在的页面，也不要生成目录索引页。",
+          "本页是全站路由表，不要复述其他页面的结论；每个入口用「读者意图 + 目标页面 + 为什么会需要它」三列式列表。",
+          "语言为中文（本次运行语言为 zh），路径与命令保持仓库原文。"
+        ],
+        "status": "pending"
+      }
+    ],
+    "deletePages": []
+  }
+}

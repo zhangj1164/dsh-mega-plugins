@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:48b48a14d4ad5a63bd923b9fc282bafd9677d4e09df6894a203676c8669457b1",
+  "claims": [
+    {
+      "id": "claim_bcbf7d4546b34a299ebd1b277d0eb808",
+      "statement": "Two host services make real model calls — `@zhangj1164/dsh-memo` and `@zhangj1164/dsh-github-issue` — and both resolve the route of every call in the same three-level order: the caller's request, then the service's own `Config`, then the deployment's `agentDefaultModel.currentSelection()`; no level carries a hardcoded provider or model.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L469-L489",
+          "version": "repo-lines-v1:sha256:8255c6f96829c1ad228957bb1e8c5499c2cb10be860903552bc060e2921882c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4YWQ2YTMyYTljNmI2OTkxZGI4N2IwZWM2ZDk1Y2FlZTQyYzU0NGQxNWRiMzNiODZlMmM5ZTY2Nzc5NGExZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MjhhMGI2ZDM5ZmI4MzhhMjdhZWRiMzQ3ZGFhZTUxOGZiZjc4NTVjOTAyNDBhOGEyZjhkZjYxMjQ1ZTQ1NjUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1134-L1150",
+          "version": "repo-lines-v1:sha256:1c95d987fde0bf3558fa5225548c75af730d43d9d0251a2eee528acdbf8f7298:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhYWQ5Nzg5MmExZDZkMjg5YjRjYmM1MjUwYmQ1YTUwZTQ5MjYyYzdlMDcwMzliYTg1ZGRhZWZjYTRhMmQ5MDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmNDI4YjExZGUxZDY0MjQxMTYwZjY4OTc0ZTFhYjZiZjdjZjRmY2MxZWUwMzg0ZTgwMTNmMjMxYThjNjQ4ZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6922ddec2e884d8a88945afcd6e5b7d3",
+      "statement": "`dsh-github-issue` resolves the route through `firstNonBlank`, so a blank or whitespace-only `provider`/`model` counts as absent and cannot shadow the next level (`Config`, then `agentDefaultModel`); only when all three levels are blank does `resolveRoute` return `undefined`.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L483-L489",
+          "version": "repo-lines-v1:sha256:dd854be482111d8c858be04706eff1f6d06738eb4388c06c485dbca80a696ddb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxM2NkNmU2ZmExMzBjMjdmMmIzZWIzZjM3YTk2YTE1MWJjMGQ3M2VkMGE3ODM3NzdiZmQyMzYwMzZmYWI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE2OTcyOGU5ZTIzZDU1ZjAyYWYyZDIyNjNiM2Y1M2NhYWY1ODBiMDQ1ZDkyNjIyYTg1ODg4NGNmNDI5YTFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjgyOGEwYjZkMzlmYjgzOGEyN2FlZGIzNDdkYWFlNTE4ZmJmNzg1NWM5MDI0MGE4YTJmOGRmNjEyNDVlNDU2NSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L987-L998",
+          "version": "repo-lines-v1:sha256:d82f3b89c56e2d397e5a6e044e8e624d2080d95b5ef4f9cda54188e000a3753e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0N2YyMjAzZGUzYWNhNjVhNjVhNjFmYjU3MmVmOTRkMTA5YzQ3OWZiNDQzMjZkMThhZWEzNGU2YjhiNTM5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmZTUzMjJlZWI1OTdkM2Q1NjliNjZiMTJjMTllN2MzY2MyZDdmOTY0NjYwNGY0MWUzODQ4M2M2YWU0OTEyODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_46c778b246a14e018ed98c0595b9f9c0",
+      "statement": "`dsh-memo`'s `resolveRoute` chains the same three levels with `??`, so a literal empty string survives resolution as a route value; what turns that into a failure is the pre-flight check inside `streamLlmText`, which returns `NO_MODEL_ROUTE` before any `llm.stream` call is made.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1134-L1150",
+          "version": "repo-lines-v1:sha256:1c95d987fde0bf3558fa5225548c75af730d43d9d0251a2eee528acdbf8f7298:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhYWQ5Nzg5MmExZDZkMjg5YjRjYmM1MjUwYmQ1YTUwZTQ5MjYyYzdlMDcwMzliYTg1ZGRhZWZjYTRhMmQ5MDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmNDI4YjExZGUxZDY0MjQxMTYwZjY4OTc0ZTFhYjZiZjdjZjRmY2MxZWUwMzg0ZTgwMTNmMjMxYThjNjQ4ZDkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L76-L84",
+          "version": "repo-lines-v1:sha256:65a35300067e12fbf8378ee9e9db42f56c0463a23ac2f7a1de40896b4050fbc9:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBiYWVjNDAwY2FhNGVmZDc1ZWQzMDIzMDk2NjljYTU3N2Y5MDYzYzAyMzYwY2Y4ZDQ5YWE2OWE2MmUwNGEyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODI2ZDU3ZGQ5NTE0NjRkMTFhNWYyZGE5YTNmN2E5MzJlZTU1N2ZkMjgzOTYzNGIxYjlkZWE0NGU0N2Y3NWJiNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNiODc0ZDY1N2M4NWYyN2U2ZjM0ZWIyZjhjMjJhMzAwYWYyZjk0ZTk2ZDU1OGEwOTM0YTUwYTVjMTdmODE4NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f3a8aec7ba0477d879d7ded45ac4704",
+      "statement": "When nothing resolves a route, `dsh-github-issue` returns the distinct business code `route-missing` and attempts no model call, while recording a telemetry failure under DSH's `NO_MODEL_ROUTE` code with `featureCodeRef: github-issue:<action>` so a suite-wide analysis groups both packages under one code.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L211-L232",
+          "version": "repo-lines-v1:sha256:8f7017181538e787c004055cf4b579646b01495b6d17c1a54d888f9dc777d38e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkN2IwOTlhMmJlYzQxNzRkMDM4N2VmOTlhYTJkZWNlOTZiZTk5NTUxZjJiMDM4ZTlhMmRlYzhkZDc0ZGMxYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiNWRlMGZkZjVmN2NmYjNkMTlhYzMwMDgwYzM1NzY3ZWI2Zjk3ZjZkZWZlMTI1NTU4Y2Y4NDAzNzExYzU2NDQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L491-L510",
+          "version": "repo-lines-v1:sha256:e590ab9d997756c39d5077f9bf2c2b361cb5aa4161adc6d9f96a2579b9e066fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2M2JlMTUwMWYyZmM0NTUyODI5ZTE4YWFmMjViZjlhNDZkODliNTZjYjIwODAyNWJiNTAwYzkxZWIzZmI4NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZjc3NTE4YTg1ZTA3MDQ4MzE2MDU1NzBkNWEwMGY4NjFhZjk0NWU2OGFkMGE3MDliN2Y0YTRkZmVlZDcwODMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L914-L932",
+          "version": "repo-lines-v1:sha256:0e49718a223ecde5f3a72f6b4cfce5d7050c9af6523b58c09f4da09144fafba0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkYWQxNGU5MjAxZWMyOWRiZmZlZWU5NjZmOGQ0Yzg0MjU0ZGE5OGY5YmM2MDcwMzEwM2Q5ZTdhYjJjNTMyMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2YWZiNWM2MGUwMDg3ZWQxODg0YTQxMjMwYzE2ZjY2ODc3M2NhNjM0YTUxYWQzNzgyNDEzZTA0NTY0YWI0M2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e6867a8f1a241f09b754e265ec25cdf",
+      "statement": "`streamLlmText` terminates in exactly five failure shapes plus one success: `LLM_UNAVAILABLE` when the `llm` service is not mounted, `NO_MODEL_ROUTE` when the resolved provider or model is empty, the preserved DSH `code`/`message`/optional `status` when the stream's `finish` reason is `error` or `aborted`, `LLM_STREAM_THREW` when an exception escapes DSH normalization, `EMPTY_RESPONSE` when the stream ends normally with zero text, and `{ ok: true, text }` otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/llm-text.ts#L62-L134",
+          "version": "repo-lines-v1:sha256:76e2427668dbeaba728624c9e486ea24b4bafdbe9d3e6432d1663ac88cdb1484:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwYTNkYjQ0MmMyZTIyZjQzZDNlYjg5Y2Y5MjM0YjBiNWY2YmI5NDg3NjZkNDczNzY2ZjVmMzJjMmExMGQ3YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L58-L130",
+          "version": "repo-lines-v1:sha256:76e2427668dbeaba728624c9e486ea24b4bafdbe9d3e6432d1663ac88cdb1484:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwYTNkYjQ0MmMyZTIyZjQzZDNlYjg5Y2Y5MjM0YjBiNWY2YmI5NDg3NjZkNDczNzY2ZjVmMzJjMmExMGQ3YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_340b1c371da3480182cabf5dc52dcde5",
+      "statement": "`EMPTY_RESPONSE` is not invented locally: both helpers import `EMPTY_RESPONSE_CODE` from `@deepseek-ai/dsh-llm`, the code DSH itself reserves for a successful call that produced no text, which is what keeps \"the model answered nothing\" from sharing a code with \"the route does not work\".",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/llm-text.ts#L127-L133",
+          "version": "repo-lines-v1:sha256:17f77487cd9b57beb02d17dffae372c946c6cc8fe9d5a85e9f3298c3340a535a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmFkNjMxYTllMzZiNGIzOGE4M2Y1YzdkOTAwYzE3OTBkODdjZTRmMjVkNTg1NDIwYTQ5YWQ1NDk0YWI2ZTZhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGYwNzBmNjE5MzAwMWI4ODg5ZjJiZDkwNWRkNGRiMTg3OWQ1NzVkY2E2NzFhMjAyNjBkMTBmYmY2ZmQ5YzU5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGNiMThjZTcxNDMwZThjYWFkYmMyNDUyYThlMjhkNGM3Y2M5ZTAwNTgyMTdjODMxOTg0ZDdkZTNjZTg2YmQwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L123-L128",
+          "version": "repo-lines-v1:sha256:22352cee375baebc17be49d3baa1babe7e2e37ddf74ffc8042bfba635e6dce82:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmFkNjMxYTllMzZiNGIzOGE4M2Y1YzdkOTAwYzE3OTBkODdjZTRmMjVkNTg1NDIwYTQ5YWQ1NDk0YWI2ZTZhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGNiMThjZTcxNDMwZThjYWFkYmMyNDUyYThlMjhkNGM3Y2M5ZTAwNTgyMTdjODMxOTg0ZDdkZTNjZTg2YmQwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmM3NTllYThlMTU3NzEyOGNhMTlkZTgzNDdkNWIyYzdjN2NkZmJlZDAxZmYwODJjNzVmMGJkNTg1ZmQzYTFhYiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L13-L22",
+          "version": "repo-lines-v1:sha256:8c49e18e93b742b759af7a20568e9074f4fbfa93fd3a26bc9ae9e623c44d7349:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzNjYzRmYjliNmU4YjFiNjYyOTVhYzcxMmU1Njc3MTA3OThiZjNlZjNiZjk3YzNlODkwZmEzNTNiYzNjODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2M2JkMGMwZDhiYTcyNWIzN2E5YjYzNGQ0MTE3NmI0NGEwNTdmMTdlNTExY2NjYmVjMzg1YmFlYjExNmI4ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTIzMGVjNjA0ZmI1M2NkYmVjNGY1MDg2OTA1Zjc5NWFiMDBkYjVlZmVmZjJkNTUxM2QzNzZlMDU4NWVhZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiNDg0NmQwMjU1ZWYwOWZiNmM3NjIyNDAyZGE2MzVjMjhhOGM4YzQzMTFhODcxNTQ2OWFiNjhhOWIzNmUzMmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0613be478ba2407b82d0c3a76e39c7f6",
+      "statement": "Preserving the facts exists to keep two defects distinguishable: a route that is unregistered or missing (`NO_ADAPTER`, `NO_MODEL_ROUTE`) is a routing or configuration defect whose owner is the deployment, while `EMPTY_RESPONSE` is a model that answered with nothing; reporting the first as the second sent users hunting for a model problem in a call that never reached a model.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L211-L225",
+          "version": "repo-lines-v1:sha256:e46fc72f87fe1c265a0142f0e91498d2ab156d1aca40413217f6d67f8dbacaf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwOTJlOWM3OWQ2NzQ5ZTI1MTNlOTZhOWMyNjIyZGM0YWQ1ZDdhMDYyYWYyYTk2ZWFjYWFhMTE0OTIyYjdjOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkN2IwOTlhMmJlYzQxNzRkMDM4N2VmOTlhYTJkZWNlOTZiZTk5NTUxZjJiMDM4ZTlhMmRlYzhkZDc0ZGMxYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkMzIwZTc3YzZkNzk0NzEzMDM5MzhjMjgwOTFlOTQ1MzM5OTg1Yzk4OTk2ZmFmNzJlOTA4OGRhMTdhZjE5MmMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/llm-text.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:b0aa3f52d767e0b0f8b0978e4f310dd1eb311ce13ce0c6c678265a4edcd0a774:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZGNlNWMwYzgxMzU0MjNjZGZmMjkyZTk2NjIyNzYzYTY5OGQzZjQyOTNjYWY2ZDViYTBlMmEyODI2ZGM2MWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyMTdmMDhiYmVjYTAyM2U1NDEyOTAxMDRkYWViZmZjZjdhMDU2ZjlmOTEwNDQ3Yzc3NThkYTg0MDRlM2YxMGEifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1152-L1160",
+          "version": "repo-lines-v1:sha256:93c847ed62671d4dac5b8683fe8da44cbf39fdf6271eb3f5c8e5ebed2cc3022a:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzNWQ5ODY2MTY3NjMzZmViOGE1YTBhZGI0ZTJmOGVlNDhhOTVmODJiZWRmNzIwODVkYzgzOTdmNzI0NjUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDM2MjM5MzM3MjA3MWViNWY4MWVlMDVhYzRkZWVlOTI1MjViYjdjYWZjY2I4NmFiYWFjZjQ2ZWQ3NTg4YWU2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTg1MDhiNmNiMDU4OWFiYTc1MDMyMDJkZTJjOGY4N2VkOWIxOWNkNTg2NTNmZDAxYTNlNjc1ZTNhYjdiNTk2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjlmMzA1NTE5MDU5MjllYmMyODAyMTA4ZTg2NDQyNGFmZWZkOWZiN2IyMTIyMWY1ZTEwMWE4YzFlMTFjOTk1OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e45825e0588447d5afd8280f6d6c9fb1",
+      "statement": "`dsh-github-issue` wraps a preserved failure in a `llm-failure` business failure whose message reads `model call to provider \"<provider>\" model \"<model>\" failed: <code>: <message>`, and records a telemetry failure carrying the preserved `code` and `message` plus `provider`, `model`, and `status` metadata.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L886-L912",
+          "version": "repo-lines-v1:sha256:12ca3df4fd869ae587682bcd2ceaa375ec9c49b02fb104cfd95226e1dcee70bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1ZGY3NDQ4OWNhODBkZWM0MzJkNDM1MGI2YTQ5ZWI0YmMxMGE4Yjg3ZDVkYTIyZjVjY2VmY2M2MzkyOTVkYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YjQyYmYzZjAwN2ZjMGJiMWVjYzI1MzAwZWYxYWZkMTg1YTYwZWJhODgzYmYxZTM1YTRhM2VlYTdlYzhlNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3210d56fbbd84984b6068796f138c771",
+      "statement": "`dsh-memo` uses the same message prefix, and additionally lifts `failureCode`, `provider`, `model`, and optional `status` to the top level of its `llm-failure` failure object, so callers can branch on the machine-routing code without parsing the message string.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1161-L1177",
+          "version": "repo-lines-v1:sha256:8ce8b5535364238ee662ec223535472baebd78e39906e78077a422d97c8cef4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkODM4ODJjZDI2MGRiOTg2NzdmZGU2MTYyZDBhYTk0YjBjYjgyYWZjZjFlZTYyOTI2YTI1ZGVmMTE1ZGIzNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYmZhNjk1YWNiMzYzODcwZjRhZjA2NDljNDI3MjcxYjY0Y2NhOTgzODE4OTdmMWUzMGI0ZjBiOTRmMjFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNzFiNTRiOTAyMjk3MzUyMjg4Yzk1ZDc1YTE1ZTY3MWZmMzZjY2JiMGFhZGMwY2IxZmE2YTAzYTlkNTM1ZWYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L269-L291",
+          "version": "repo-lines-v1:sha256:d691ac06d480b44a0a666371f3c9962645d31ea9615cdd1a9c7c5f61f491af0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwZmJiMmY2ZjRkY2RlZGExYTU0ODJkZjNjNTAwODIxNGZiYmY5MTNkOGMyYTk3MTZiZGJlZTJhZDk0NzEwMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjOGI1ZjgxZmUyODI4MTA3ZTRkY2NkMDUzMWIyOGJmM2NhYTlmMGExNTFmMjMwZTZhNzNhYTVkYzhlNzUxMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1ZDI4ZTk2ZGZmNTE1NDkyNGE1MmI1YTc5MGYxMTE5MDExMTdjZGU4YmQxNjQxOGE1NGJkNWFjM2FlYTk5YzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5e1ab1aeb01c4537911a9b43fae2378e",
+      "statement": "Both services attach `provider` and `model` to successful telemetry events too, not only to failures, because a record that named the route only when it broke can never answer whether changing the route fixed it.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L934-L946",
+          "version": "repo-lines-v1:sha256:dab3e4c468acfa46fa95f3e1ed0b4d8cbb1e1ece6787c6ef693c9fe13dcd80f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwNTYzYTZmZDlkMjYwNTBkZDJlMWEzODBmOWM4Mjk4YjJkNTA1MDY5NjYwNWJiY2M3ZDQ4M2U2MjIwMTRjY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5YTE1NTg0ODQ5OGQ5NzM1N2NlYWY1YzZiNWZhNWIwYzZjNjI3YTgzNDk2N2VjMWExN2QyYTE1OTg4M2JjMjQifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1269-L1269",
+          "version": "repo-lines-v1:sha256:c9f31ea4c84c65968a0d98b9a6fd229baa4e63ea5d6465160f621ed1b5ae7071:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzlmMzFlYTRjODRjNjU5NjhhMGQ5OGI5YTZmZDIyOWJhYTRlNjNlYTVkNjQ2NTE2MGY2MjFlZDFiNWFlNzA3MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzlmMzFlYTRjODRjNjU5NjhhMGQ5OGI5YTZmZDIyOWJhYTRlNjNlYTVkNjQ2NTE2MGY2MjFlZDFiNWFlNzA3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWFjMjY2YjE2ZTY0Y2Q3OGVhMDY1ZDQ4ZjM5ZTg0OWQ5Mjc0YmE2ZDBmZjRhNmExZDU1MTE0Y2ZjOWZkNThkOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjhiYWUzZjlhYWE1MDE5YTI0MmZlNDA3OTViZDRiODVkOWRkNDY5ZWVlMDRiN2MxMjA5OTYxNjFjNmMwNGVkZCJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1815-L1827",
+          "version": "repo-lines-v1:sha256:d9d10e1cfa5deced6a05abc3a8c770a701bb25b3ed9a1f0e462c101b6f75b978:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMDdjOTJjNDMyMTQ2ZGRhMjYzNzAxZjk2YjJkNjYxN2E5MGExOGJkN2Q3YjU0MzZkOWM3OWQ1MmRhZDUzZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0ZjdjZjAzZWE0ZTYyMmE3ZWIyMzg4MjQyNTdhZjc3MTFhZWYzMmEwNTYwNzUzZWI3MGRiYWRiYzc2MTc2YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0N2M0YjA4OGVlYTdjYjYyZDA3MjkxOGU4MGI0MDBjYjIwYjY2ZDE2ZDU3MDZhM2QyZTUwNTBmMGUzYjBhM2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_949dd8be81a14a38ac1a0716cba3a049",
+      "statement": "`memo/listModels` builds its catalog only from `llm.listProviders()`, i.e. registered routes, so dormant providers an adapter merely declared are excluded; each registered provider's models come from an independent `llm.listModels(id)` call, and a catalog query that throws leaves an `error` on that provider alone while the others keep their models.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1179-L1237",
+          "version": "repo-lines-v1:sha256:47c25a1cb40368f563dcf9ec92c361559df971725cc669ce64adab2eb2267d20:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTJhMGViNGZlNzNiZjRiZDBkNmM3ODg4YjU3MTVkMzBlMTI5ZTMyN2I0ZDBkZjg3ZTBiYTY2NjJhY2MyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlMzljNjEzOTU4YmQ3NjY3MzNlZTAyYWM2OWEzZWU4ZDc0ZDI1OGY1MWRhY2M1Mzg4Y2FhOWU5NGJhODI0ODIifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L451-L477",
+          "version": "repo-lines-v1:sha256:1e37d30781542c89e2efba133f55392c00ae2b46bac174cb9524f0f1b10d00f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzZTFmYWFkNWIyNjNjZjUyNmZkNWM1NmVlODM5ZmNhNGMxMjRjNWE3MmM0ZWFjMjk0ZTFmNTUwMDUyNjQyNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2ZThlMTUzZThlYmE1OTI2ZTY5YTljYTg2MGE2MDg5NjIzOGZlZGI0NDRmZTcyZDYzODFlNTIwYmVjZGEwMjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a5553cd6db84fbe959a034af4232cde",
+      "statement": "`MemoListModelsResult` has no failure variant: an unmounted `llm` service, a `listProviders()` that throws, and a registry with zero registered providers all return `ok: true` with an empty `providers` list plus a `catalogError`, and are recorded as `llm-unavailable` / `providers-threw` / `no-provider`, because a deployment without a model route must still be able to open the memo board.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1200-L1236",
+          "version": "repo-lines-v1:sha256:295153b11918019897b2ab19d37ba2387fbdfe75a61b71d2f4b1c7e1664aec70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTRjNWU4ZTlhZjNmNGRiZjQ3OTliMTY4MTNhYzdlZmM2OWU2Y2ZhNjZlZTQ5MTQyMjAzMjM2MjAyMDYwZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MzVmNjY0ODJhNDg5ODMwYTcwNTgxZTkyNmY3YjIxZjhiOTVlOTg3YTk4YWIxMTM0YWU4Yjg0NzJhMThmMmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0ZjA1OTAyODU2NmFmOWZiYzZlMzVmNjlhYzVjMzBjNjJmNzBkNmJiZmNkMjZhYWVmZGZmY2ZjMDJmNjFiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L487-L516",
+          "version": "repo-lines-v1:sha256:b41b0f6f6e8d93c905c88bbc2a9ff2c758a08bc25f2d5439e237a961542da262:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5YTg3Njc3MWY1NGNiY2E1YjMwNWFhZDYxYzhhMzYzN2E4MjhiMDZkOGIxZWIxYjJhYjY5NzhhNzE5NDNkODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1ODFhNDM2YTBhMDQyY2IwOGNjMWU3ZTNkYmM2YzYyMzU5ZTE0MjY0OTM4OWRiNjBlODg1NzYwYWNiNDhlYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4YmE5ZDVlODM3MDc5OTU0ZTViNDAzNmJjNTk5NDcxZTQwZWY0ZmIxOTFjODYyMjEwYjc3OWY1NWE5MjczMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7f0121dcce944f1792690a5ddfecd8a5",
+      "statement": "The route catalog is produced on the host only and read by the browser over the `memo/listModels` Remote call; the browser never hardcodes a route, `selectModel` accepts only a provider the host just reported with both halves non-empty, and a remembered choice is dropped when its provider disappears from a readable registry yet kept when `catalogError` marks the registry as unknown rather than empty.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L434-L505",
+          "version": "repo-lines-v1:sha256:6caa6012b436982f52a81e6352d213d2500d352ad83e6de09895fbd745646899:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmNzM1MmYyMTYyZmE0YjE1MjAyMjk1MTcwZDdkNzM0NjlhY2RjYmE5YmVkNGQ5NTJkMWM3MTdhNGY3ZGFjODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwN2Y5MDEzMWE2OWM4OWFkNjY0NzZiYmRlNTY4OGY4MTNlMDVkODUwM2Y0NjViNzNmOGQxOGFlYjQ4NmU4NzgifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L507-L532",
+          "version": "repo-lines-v1:sha256:9b9d7a64877319a66b04b880c2262e496ce82eb750e2c9e333f70c5705b7466e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZDllNjEzOTkwMmVkNTQxNTBhN2MzYWI4MmU5MmI2OWUzYTY5NjFhOWQ4Zjc2YzUyZjBmNDhlMzZlN2E2NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1NDAxZmQ5YjUzYzBjNTM4ZDgyNjViNzhiZDllYTZmY2UxYzQyZjZhOWI3YWRkOGY0NWIzZjAyYmIyMDBjMDMifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L908-L926",
+          "version": "repo-lines-v1:sha256:ef2d2d8f42b3fea4a597b3603420fb88545025bf3ff505bf273497f4e8c139cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4MmQ4YjY1NDZkODA3Zjc2YWU5ZTk1MDVjNWJlM2Q1Y2IyMmMwMzJlYTNkZjlkN2ViZTZmMTQxOTA0MzY5NzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_23af2b37d6974597bf61ea301218c17e",
+      "statement": "`streamLlmText` is duplicated rather than shared: one structurally identical copy lives in each host package because `dsh-memo` depends on `dsh-github-issue` and not the other way round, with the stated extraction point being a third consumer — so any change to failure preservation must be applied to both copies or one service silently regresses to reporting an empty response.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/llm-text.ts#L15-L20",
+          "version": "repo-lines-v1:sha256:87f41d8b69f117923b71ffdece2aa602ab1d0ad0b6a781fb74fe9cc53b5421b5:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmIwNmM2MzIxYjlmYjAzY2Q4ZTFkNTdkNzBiNjFhY2Y3N2Y1ZGU4YTBkMWU0ZWZkNGE5NDljYTFiYmMxNGY5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTJkY2U1YzBjODEzNTQyM2NkZmYyOTJlOTY2MjI3NjNhNjk4ZDNmNDI5M2NhZjZkNWJhMGUyYTI4MjZkYzYxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODg1MTU4ODZkYjRiNTY4MmE3ZjBjNjQ5MTBlMzRmYzNkOWU4YmYzZjBjNTAxNzIyMTNjMjViMTYxMGY4NmFkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTIxN2YwOGJiZWNhMDIzZTU0MTI5MDEwNGRhZWJmZmNmN2EwNTZmOWY5MTA0NDdjNzc1OGRhODQwNGUzZjEwYSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/package.json#L67-L83",
+          "version": "repo-lines-v1:sha256:a83d1bd32eafa832f703349e9440a61130603020930bf22062f33b1eab86ff88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMTEzZWMxYzA1ZmMyY2JhODdkNmJkODg0ODQ5ZjQwMzcwNjA5ODc1MWE0OTkxMzE3MjZkYTI0Y2EzNzJjMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYzk0OTg1NTI2YzFjNTdlZjAwYzAwZDNmNGRjOTA2MTU2NzdhMGEzNmE4Yjc5NWRmZjlhZmZkNTBmZTlmNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNmExYzVlNmNhNmQzOTljZDczYTRjNTM5M2U0MWY5ZGRjN2U5ODhjMmY3ZjkzMDlmZWY0MGZjNzQ2YmM5ZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YWY1OGU4M2M2OWFhZTRlZGVmNWRmODRhODMzNjY4NDBiZWQzZjRmYzYxMmIwN2IzMDIyM2NkZjNlYWUzMTgifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/llm-text.ts#L1-L19",
+          "version": "repo-lines-v1:sha256:c0e8b189b6b021442e849e065c21046971c48fc2d137b0e39c6b3f8f60104823:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYjU0NGE1ODg2MzQzNTBjMTkxNjlhODI0M2I1MzFiZjMwOTVlYjU3YzhmYjAzZTQ0ODM2OTQzZjA4MTY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxZDNmOTlkYWE4MTU0NTBjOWEyYzg0MWRhOGQ5N2M4NDQ2MmY5NjNlNTg2MDYzZTE2M2IxNzY4Zjg4MjdlODQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f8347e0ba954d31bfa22abbaa9a5281",
+      "statement": "`memo/analyzeLogs` passes memo's own resolved route as `provider`/`model` to `githubIssue.generateReport`, so the report-generation call follows memo's route rather than the github-issue service `Config`, and a failure there collapses into a `github-issue-failure` business failure carrying the underlying message.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1656-L1678",
+          "version": "repo-lines-v1:sha256:1e7b92f1903457813e03ed5084303b6d374dfa8c39f6f7810dcd5e8d2798da68:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5ZTE4NjQ4ZmM4NDZiMzg1NzI5Y2FjNDE1ODUzMjljMDk0ZjU3ODdjOTNhOGFlMjEwOTQ0MDJjYjAxMTJmZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlZjM4OGNhYWQ2NDA5MWRkMzE2ODZmN2U4ZjdlYjYyYTBkYmJmMDk3NDYzZWNhZmM4N2JhNzk1NjE2NDkwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxN2Y0NTk4ZTYxMjUxN2RiMDViYWM1ODZiMzI3ZDA3MGVlNWU2OTNmZmZmMjAxYTUxYWE1MmE2ZDQxNjYyNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_402eaa8d92e3475daf25c54052cb2157",
+      "statement": "Every contract on this page is pinned by focused tests: github-issue covers the three-level precedence, blank-as-absent, and `route-missing` with an empty `llm.requests` list; memo covers `NO_ADAPTER`, `MISSING_CREDENTIAL` with `status`, `EMPTY_RESPONSE`, catalog aggregation and its degradations; the controller covers refusing to pin an unreported provider and keeping a choice while the registry is unreadable.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/tests/controller.spec.ts#L550-L583",
+          "version": "repo-lines-v1:sha256:a75708fca81e12e418081626b1b0af49c0363e68e728db0419acc7cfe25a52ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MzIxYmQyMDJlZTY2OWJkOTI0YzhiMjAyY2E1YTljYjYyZTg1NmViOWQ0OGQwYzU2NWJkZDM1ZTIxMWY2MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMjk4NzAwNDEzYTZkYzFmOWNhNmU4ZmQ4NDU0Y2ZkMDRjMDM5NjFjMThjYTczMDA2YmEwMjU5MDc5MzdkZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwZjVhODRmODc3ODUzODA5YmZkMGM0MmUzNTBiOThjMjgzNDZkODM1YzU3ZjIzOWNmMmZiZjAwZmQzNmM5MzYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L183-L247",
+          "version": "repo-lines-v1:sha256:cf6e7bb8274945c5a9ab4a8f0a3571af8a41b8c01d29f9dbf5b77cf83149c8d8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2NWQ1Mzk5NzZlNTMxODQxZTAxOTQxZmQyN2JlMDFjOGM2NGYwZmQ2MzUyZjRhNjgyN2Q1OTEyZGMxZjcxNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNTc1YTdjMGYxMDgzZTE2NTFjZGM5MTc0ODU2ZGQyZWU3YjZlOWY5MjJiOTZkOWYzODZmOWRiZjVmNjAzMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NmQ0ZDM2ZDc5YzI4MDI4NTBjZGVkYjIzYWRlNWMyOWYxMzNiOTVmMDFmMDMwNTk5NDBhYWQzYmNlYmUxZjYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L441-L545",
+          "version": "repo-lines-v1:sha256:c47b1abf126c9db95ae513e01404b97901827776895e47f2004b68fef92cfc96:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzMDc4YTgzZmFkNWYyNmNiZjIyNjU3NDlhM2JiYzdlYTU4NGYzZmQ0MDI1ODQ2MjdmOThhNjU5M2MxM2MzNjI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlOWUyMDJjNWIwZGNiODM0NGRjNTkxZDkwMzUwMjIwNmZkOTE3ZjRmZjdiNzJiOTM2NTU0ZTU3M2I1OTM4YjgwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YTBkYjAwMmE3Nzk3MTY3MDkyNmU0Y2IzZjFiNjAyOTIwNGVhYTdiOTFiZDEzNzcxYjA1M2MwZDM1ZTUwZmNkIn0"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L826-L966",
+          "version": "repo-lines-v1:sha256:62af0ca167d179df0ba5f2f7eba067971f3721685be3e34c44fe68ef777b18a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5N2Y3MjZmOTRiM2UxYTkyOTRjNDc5ZjBhNjBmYzVlNzlhZmRlODFiZTFjNDM4ZDk2MmQxMGFlNmNiMGM0ZTdkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxMGE4ZjYwZmUzYzUwYjBjZjUzNDcyMjExM2ZlOTBkNzM0MTQzODdjZTkyZTU5NzhjODJjYmQ4MDFjYzA1MDBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlOWUyMDJjNWIwZGNiODM0NGRjNTkxZDkwMzUwMjIwNmZkOTE3ZjRmZjdiNzJiOTM2NTU0ZTU3M2I1OTM4YjgwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMTdjNDY1NWVhZWI1YzgzYmQ3NTZmYjcyMDk4ZDM3YjVhZWYzMDYzMzMwODliNGRlZjVlMTcyNjY0NmUwYmI3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b94b82532534a2892927056b873d8cb",
+      "statement": "两个包都逐半解析路由：`provider` 与 `model` 各自独立沿「请求 → Config → agentDefaultModel」取第一个合格值，因此一条可用路由可以由不同来源拼成，而不可用的唯一判据是其中一个半区为空。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L483-L489",
+          "version": "repo-lines-v1:sha256:dd854be482111d8c858be04706eff1f6d06738eb4388c06c485dbca80a696ddb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxM2NkNmU2ZmExMzBjMjdmMmIzZWIzZjM3YTk2YTE1MWJjMGQ3M2VkMGE3ODM3NzdiZmQyMzYwMzZmYWI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE2OTcyOGU5ZTIzZDU1ZjAyYWYyZDIyNjNiM2Y1M2NhYWY1ODBiMDQ1ZDkyNjIyYTg1ODg4NGNmNDI5YTFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjgyOGEwYjZkMzlmYjgzOGEyN2FlZGIzNDdkYWFlNTE4ZmJmNzg1NWM5MDI0MGE4YTJmOGRmNjEyNDVlNDU2NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1143-L1150",
+          "version": "repo-lines-v1:sha256:050b72eea9a2caec0e8551f8e6219a049ce5b75b026a8812796b28bca79e71d9:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIxNWNkNDZjM2UwNGNhZWQwYTIzZTg5NThmNWEwMWFhYjQzYzUzZWVmYzUyYTkxYTc4YmRkYjYwZTEzM2NhNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGU1MDYwMmY3NDZkZGZmZThlOWJiNDBiZTA5ODkwYzBjOTg2MWNlMzFhN2RhMzJhNTBmMzQ3ZmJhMDE5ZWRhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY0MjhiMTFkZTFkNjQyNDExNjBmNjg5NzRlMWFiNmJmN2NmNGZjYzFlZTAzODRlODAxM2YyMzFhOGM2NDhkOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6529e5d52f624009bdd63116f3f4bedb",
+      "statement": "`provider`/`model`/`status` 这几个遥测元数据键跨包构成契约：`dsh-telemetry` 的 `routeFromMetadata` 用白名单只复制这三个键、要求 `provider` 与 `model` 都是非空字符串、`status` 是有限数，缺一半即视为「未记录路由」而不产出 `TelemetryFailureGroup.route`，因此改名或只写一半会让 issue 报告静默丢掉路由而没有任何编译或服务测试失败。",
+      "evidence": [
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L295-L310",
+          "version": "repo-lines-v1:sha256:203a3deb7c88f70583441601fa7a86252b78fa018c902abbda0d3fd93d9378ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhMjhjNDFmZjEyMTcwYTMwZTUyNGU1MDhlZWJlNGJhNDAwMjdiOGZiYjYxNjc3YTdlY2FkM2FhNDhmNDMzY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkMDgyNDhhZTNkMDA2YjI1YTBkMjAwN2EzMTkyNWY4YWNhZGI3Y2VlMTdmMWZjYjQ3YzAyZjczY2I3ZDdhMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZmUwYjhjMmMyZDBiYTY0NzcyZTZlY2YzN2E2YTgzNjgxMmU1NjBmMzVhNmY2NTA3MzA4YzFlZmFlZmQ0NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2NTFjY2RiZDYzMGVhZjNlYWE3NTM4N2ZjNWE4NGU3ODAwZTJiZmRmNjYzMDI0MjY0YjFkM2M0ODQxMDIwNzIifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/index.ts#L516-L538",
+          "version": "repo-lines-v1:sha256:b257961d9ce676ebdc41dd96860fd4a72e608d3d651d28687e13329a69976691:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzA3YWIzMTRmNWUwNTJlYjFkMzc4Yzk1MmVmYTU1ZTFhMDIzYTQ4NGE2ODZmOWIzMWY4YWZlNjczNjljMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMDEzMGUwOGQ5NDAzYmFkZWYxZDZkMWQ1M2Y1MGEyNTVjYzRlNDVlNmYwMTE0ZjUwOGVkMDhhZWIwZmI1NGIifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/types.ts#L114-L158",
+          "version": "repo-lines-v1:sha256:c2c53eccf2460df59bfc2efb28e0aada8ab9f6c54fad0a2f71993e4b123c4a54:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MTk4OTcwZTNiMGU3NDk1YmJlYmFhZDhlOWRmMjFiNWUxMTMwZDg3OGFiYjcyZWRjYzI3OTIwYmMwYTg2ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkYzRmZDQxNDg1NzhiYjQyNzk2M2ZhZjRkNjllN2MyYWQ4ZTQyNjRhYzU0NTY4YjlkYzM1OGFkOTVkNzYwMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExYWZmZjZlZTAzMmIyMjZiODI4NTkwYTIzNGJjYjA1ZTQ1MzNhNjZmMDIwZDllZjUwNjJmMTA4ZjUyYjlhZDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e96a29215ff4eb99ada9ee64716235c",
+      "statement": "「未记录」与「没有路由」被严格区分：`TelemetryFailureGroup.route` 的缺席只表示那些事件没记路由，memo 在路由解析为空时显式写入 `provider: ''`/`model: ''` 以区别于老事件的省略键，而 github-issue 的 `route-missing` 事件因为无路由可记而不带路由元数据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L925-L932",
+          "version": "repo-lines-v1:sha256:e017303676430f52d2677afec3e790fdc235567654a18b84d7c824d6447bfa70:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWZmZjgyYWVhZjlmMDU1ODk1MTM2OTZkMGEwYTRjNDkxZmMxYTBmODY1ZGYyMDIyNzJlMDBkZTUzMzlmOWFmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGY0ZDhmMjUxN2Q2ODBjZTE0OTc2M2Y5M2FiYmMxMzY5MjY0ZGQ2Zjc4MjhmMzZjZjA5ZjFlYWFhZDRmZmRlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTZhZmI1YzYwZTAwODdlZDE4ODRhNDEyMzBjMTZmNjY4NzczY2E2MzRhNTFhZDM3ODI0MTNlMDQ1NjRhYjQzYyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1808-L1827",
+          "version": "repo-lines-v1:sha256:1fe1e039fa070373357f5fec0d99052f0fdb0520ef300b41650ac26521b3eff6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0N2M0YjA4OGVlYTdjYjYyZDA3MjkxOGU4MGI0MDBjYjIwYjY2ZDE2ZDU3MDZhM2QyZTUwNTBmMGUzYjBhM2EifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/memo.spec.ts#L1032-L1047",
+          "version": "repo-lines-v1:sha256:7180cb4f47c17fb2742e850346bc065b75d0f4915c1313e0aa1be9d7a1aca13e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3NjU3OTk2NzAwNDM2MjQ5NTkzMGIwYzg3ZGRkYjQ5NTI5NDE1Yzk0Mzg2NTM3MzBiMmJjOWZiZjA1ZDVmNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwNjE4NWY3NjU3MjdiMjdhMDAwOTc1YTYwYjY3YmEzOWEyMDllZGE4MTU5Mzg5M2JmYmUzMDcxYTA2YWIyMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiY2UyMTRhNDUwMjkxODVjYmNkNDEzMTJiZmFmZDEyNGY5NGYzNWU4ODFkNTM3ZWFlN2Q1MjJjOWEzNGFhOTYifQ"
+        },
+        {
+          "resource": "repo://packages/telemetry/dsh-telemetry/src/types.ts#L152-L158",
+          "version": "repo-lines-v1:sha256:e7503b8c8b3f064306dcef8f90dd305dac28bdd65fc2665f13694adf9f299fbe:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzNWQ5ODY2MTY3NjMzZmViOGE1YTBhZGI0ZTJmOGVlNDhhOTVmODJiZWRmNzIwODVkYzgzOTdmNzI0NjUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTIyZmFhNTM1YmQyZWEzZDUyZTc0MWVkNDU0NDM1YjdmZTQ5ZTgzNTg2ZTk0M2Q5OGQ4MmJiZmIyNGQxZjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjVlYzMxMzgyYjNlY2I3Y2ZlNjhkMWIwZDI5YjBiNGI3M2ZjMzdjNjVhYTgxY2RkMGNhNmQxMjRhNzliNmUzMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTFhZmZmNmVlMDMyYjIyNmI4Mjg1OTBhMjM0YmNiMDVlNDUzM2E2NmYwMjBkOWVmNTA2MmYxMDhmNTJiOWFkNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_647d4b595c0741edafb21ff99aa00c4c",
+      "statement": "`memo/listModels` 的三条降级路径（未挂 `llm`、`listProviders()` 抛出、零注册 provider）把遥测事件记为 `result: 'failure'` 并在元数据里带 `reason`，而业务结果仍是 `ok: true`，所以日志分析里 `memo:listModels` 会出现失败组而看板照常可用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1200-L1236",
+          "version": "repo-lines-v1:sha256:295153b11918019897b2ab19d37ba2387fbdfe75a61b71d2f4b1c7e1664aec70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTRjNWU4ZTlhZjNmNGRiZjQ3OTliMTY4MTNhYzdlZmM2OWU2Y2ZhNjZlZTQ5MTQyMjAzMjM2MjAyMDYwZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MzVmNjY0ODJhNDg5ODMwYTcwNTgxZTkyNmY3YjIxZjhiOTVlOTg3YTk4YWIxMTM0YWU4Yjg0NzJhMThmMmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0ZjA1OTAyODU2NmFmOWZiYzZlMzVmNjlhYzVjMzBjNjJmNzBkNmJiZmNkMjZhYWVmZGZmY2ZjMDJmNjFiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0558c5b1d0a54c689b6b15af1f5dd406",
+      "statement": "`memo/analyzeLogs` 传给 `githubIssue.generateReport` 的路由可能含空串的一半，github-issue 的 `firstNonBlank` 会把这一半当作未提供而回落到自己的 `Config` 与部署默认，因此该链路只在 memo 解析成功的那一半上跟随 memo 的路由，也不会因为 memo 没路由就直接返回 `route-missing`。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L483-L489",
+          "version": "repo-lines-v1:sha256:dd854be482111d8c858be04706eff1f6d06738eb4388c06c485dbca80a696ddb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIxM2NkNmU2ZmExMzBjMjdmMmIzZWIzZjM3YTk2YTE1MWJjMGQ3M2VkMGE3ODM3NzdiZmQyMzYwMzZmYWI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEzNDUxODAxMDViMGM2NmE3N2RhZDUxYmIzNzkwMWEzNzMyYzk2NTRiYTRkZTM5ODFmODFlMTgxNzUyNDhiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE2OTcyOGU5ZTIzZDU1ZjAyYWYyZDIyNjNiM2Y1M2NhYWY1ODBiMDQ1ZDkyNjIyYTg1ODg4NGNmNDI5YTFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjgyOGEwYjZkMzlmYjgzOGEyN2FlZGIzNDdkYWFlNTE4ZmJmNzg1NWM5MDI0MGE4YTJmOGRmNjEyNDVlNDU2NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1656-L1678",
+          "version": "repo-lines-v1:sha256:1e7b92f1903457813e03ed5084303b6d374dfa8c39f6f7810dcd5e8d2798da68:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5ZTE4NjQ4ZmM4NDZiMzg1NzI5Y2FjNDE1ODUzMjljMDk0ZjU3ODdjOTNhOGFlMjEwOTQ0MDJjYjAxMTJmZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlZjM4OGNhYWQ2NDA5MWRkMzE2ODZmN2U4ZjdlYjYyYTBkYmJmMDk3NDYzZWNhZmM4N2JhNzk1NjE2NDkwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxN2Y0NTk4ZTYxMjUxN2RiMDViYWM1ODZiMzI3ZDA3MGVlNWU2OTNmZmZmMjAxYTUxYWE1MmE2ZDQxNjYyNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c13bae079b004e48b6f08c24da7df312",
+      "statement": "`LLM_UNAVAILABLE` 的可达性由挂载声明决定：`dsh-github-issue` 声明 `static inject = ['llm']`，没有 `llm` 就不会激活，该分支对它只是防御；`dsh-memo` 的 `inject` 不含 `llm`（按 `ctx.get('llm')` 可选读取），因此未挂 `llm` 是 memo 真实可达的部署状态，且这种部署仍必须能打开备忘看板。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L384-L386",
+          "version": "repo-lines-v1:sha256:989eaabda088dd1b1a31de73c921905babce96b6e544a13ef598cd21b79732cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk2YzdmNDA3MjZkYzBlZjZmYWNmZmQ0NDY3ZTdkYmIzOGMxMjU2YzczMWFhYThhNGQ4MTc1M2RiOGEwYTQzOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ2YWI2ZTY4MDg2ZjRiN2RjYWIwMzE1ZmZlZTBjYWQxMTM1NjEwM2Y4YzE2NGUzNjk1YjhiNGJkYzk4MGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk3MTJhODVjMGY2OTRkYjAzMzIzNDdmNTA4NWU0MzQ1ZDRhYmUzMTNjMjdiZTNiNjlhNjdlZmMyMDJlMDZhYSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1200-L1208",
+          "version": "repo-lines-v1:sha256:b046c62236e110990bee75296ced2f8ec7f61b1a0e9b492934529b551768c382:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJlNGM1ZThlOWFmM2Y0ZGJmNDc5OWIxNjgxM2FjN2VmYzY5ZTZjZmE2NmVlNDkxNDIyMDMyMzYyMDIwNjBlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQxOWE2ZGNjMDRlMjEzYTNjN2E3N2E0NTZiMDFlNzZkMWVmNzhjZDAwYmJlYzFkOGY4MTQ1OGZlOTNlZGM1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTRmMDU5MDI4NTY2YWY5ZmJjNmUzNWY2OWFjNWMzMGM2MmY3MGQ2YmJmY2QyNmFhZWZkZmZjZmMwMmY2MWI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTcxZGQzYmZlYjkxMDc1M2I2NGVhYjg3OThmMmFiZDI1NjhkYjYyNGIzNTA2YjIwODYwNmM5ZDRjZTZlMjliOSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L646-L651",
+          "version": "repo-lines-v1:sha256:eb2ec34e5bde87239d5206595fc203c8c099d9958186c182d1c5332ee71b6a39:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVkNWFiYWNhMjI2ODBhZTk1MzM2NzAwZGY3NjYzNjE5N2E3Y2I2YzAwNGY0Y2Q3OWFjMWIxZmQyZjBhYzRhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRkZmQxM2UyZDExNjMzZTZhMDgzZDQ5YTFiZWU1ZDVkZmI1NDYyNzQ3MjhjNDA5YzI5ZGM1MjIwNzZhZDc1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjY5ZGY2ZTM0MTExMjY3ZWVhZTJlM2IxMzRkYWQzNzQ4NzgwMDQxNWU4MmM2ODM4ZjU2OWNjYjc2MThmZWIwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU2YzVhZmE2YTAyYWVlMDMwODY1MjIzNzgzMTdlNGJhZjY3MzgwMGYzNWM5OGM0NmYyNzhiYTJkOWFkNmZhNyJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:048ef21c606e87c7ee31dd85c905ccbcf336685805d7d8d0f5712bd47ea81459",
+  "claims": [
+    {
+      "id": "claim_40e0c6a713694fd89a3b694b8fdbd78c",
+      "statement": "Approval is structurally unavailable to panel-initiated Remote calls: ctx.approval.request() requires an open turn and an agent, and the approval/asked + approval/decided pair is the unit a turn commits and replays, so a click arriving between turns cannot be confirmed even when the caller can obtain the agent.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L99-L99",
+          "version": "repo-lines-v1:sha256:6b3c7eccd2fdb232f9936a18d35a3535b5881dae209862daa2b5f71ffbd67146:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ5ODI0ODYxYTkwZGQ1MjBhYzkzYjZhMDcxNTA4ZjVjOWE4NmE3MzBjYjAzMjBhNjFlNzNiYTNjMWMyNTEzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L88-L90",
+          "version": "repo-lines-v1:sha256:c5b47f32fbbf45e9a22f1e2e0ed77a8b679647125956e7c5e2319c510004eb0f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzFmZTU4ZDRlYjFiMjk5NzVkNjIzZGQzZDgzMDliMjE1MjdmMmUxYzQxNGM5Mzk1ZDUwYmU4NjQ0YzEzMThmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzUwMjMwMTEwOGZlNjUzODU4YTg3ZGRiYmUxYjhkN2U0YWIzMWE3MTA5NGFlNjg1M2M5ZjUxMzNhODRiOTliNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY0Nzc2NThkMjVmYTI3YTQwYmRjZjExYTc4MDdmYjYxYmEzZDdiM2U5N2RmNWJiYjIyZTgwMTA1ZDUwYTJiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGMyYjMzNzZkNjVhYjUyYmZhYWY3MDUzNTRjOWQ2MGVkM2NhYmQzNDQ4YzFmNDUxNGVjZDgzODNmODBkOTdiYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_832f111d93c943a994cd34a15577b440",
+      "statement": "The repository's rule allows exactly two compliant shapes for a host capability that needs consent — keep it host-internal with no @Remote registration, or expose it as turn-time work that goes through ctx.approval — and names narrowing the exposed surface rather than rebuilding consent on the client as the fix; the rule is stated in AGENTS.md design principles and restated by the memo host and memo panel READMEs.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L99-L99",
+          "version": "repo-lines-v1:sha256:6b3c7eccd2fdb232f9936a18d35a3535b5881dae209862daa2b5f71ffbd67146:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ5ODI0ODYxYTkwZGQ1MjBhYzkzYjZhMDcxNTA4ZjVjOWE4NmE3MzBjYjAzMjBhNjFlNzNiYTNjMWMyNTEzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/README.md#L99-L99",
+          "version": "repo-lines-v1:sha256:415f7cc5c2edd47c551eeb60e513ef293f40974b2af729ad071f7d6cd341f5b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE1ZjdjYzVjMmVkZDQ3YzU1MWVlYjYwZTUxM2VmMjkzZjQwOTc0YjJhZjcyOWFkMDcxZjdkNmNkMzQxZjViMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE1ZjdjYzVjMmVkZDQ3YzU1MWVlYjYwZTUxM2VmMjkzZjQwOTc0YjJhZjcyOWFkMDcxZjdkNmNkMzQxZjViMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZmMWU1ZDY5YmYxZWMyMGNiYWY1NjVhNjRlNGZjZWM5NGIxMWZjNzc0NmM1NzNhZDY2ODBiMDhjZDhjNThkOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L92-L92",
+          "version": "repo-lines-v1:sha256:ee58658226178d8ee61c58c4dc9cec9c1abc4d5c82f5f5d32c78c8c0dea781b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU1ODY1ODIyNjE3OGQ4ZWU2MWM1OGM0ZGM5Y2VjOWMxYWJjNGQ1YzgyZjVmNWQzMmM3OGM4YzBkZWE3ODFiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU1ODY1ODIyNjE3OGQ4ZWU2MWM1OGM0ZGM5Y2VjOWMxYWJjNGQ1YzgyZjVmNWQzMmM3OGM4YzBkZWE3ODFiOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGU0ZjA0NzAyZGI5NzZjMmQ1NjhiNTYxNWFiYTBjNTY1OGFiZDFjNDY5OTVlODJiMDJiZDllOWM4ZTlhYzNmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2ExYmNjYjYxODMwNjVkOGFlMjEyOTZmNWQ3NDcwZmM2ZTM3NjdiYTZkZDE4NWY4ZDMxYjUxMDhlOTc2NzViMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_775e45915bf34ed8a00303ab6faa4e12",
+      "statement": "Self-issued one-time tokens and client-side dialogs are rejected as approval stand-ins because they sit on the same addressable surface as the method they guard, bypass the deployment's configured ask/never policy, and produce no approval audit; a confirmation only the guarded code can check confirms nothing.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L99-L99",
+          "version": "repo-lines-v1:sha256:6b3c7eccd2fdb232f9936a18d35a3535b5881dae209862daa2b5f71ffbd67146:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIzYzdlY2NkMmZkYjIzMmY5OTM2YTE4ZDM1YTM1MzViNTg4MWRhZTIwOTg2MmRhYTJiNWY3MWZmYmQ2NzE0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ5ODI0ODYxYTkwZGQ1MjBhYzkzYjZhMDcxNTA4ZjVjOWE4NmE3MzBjYjAzMjBhNjFlNzNiYTNjMWMyNTEzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNmQ0OWM4OTc2ZWNhOWQ0NjE5MWJkMmUzMTc5MmY3ZDk3ZmI3MWM3YTAxNDkzNWE2OTVjOWJlMDJjYTk5MiJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L92-L92",
+          "version": "repo-lines-v1:sha256:ee58658226178d8ee61c58c4dc9cec9c1abc4d5c82f5f5d32c78c8c0dea781b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU1ODY1ODIyNjE3OGQ4ZWU2MWM1OGM0ZGM5Y2VjOWMxYWJjNGQ1YzgyZjVmNWQzMmM3OGM4YzBkZWE3ODFiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU1ODY1ODIyNjE3OGQ4ZWU2MWM1OGM0ZGM5Y2VjOWMxYWJjNGQ1YzgyZjVmNWQzMmM3OGM4YzBkZWE3ODFiOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGU0ZjA0NzAyZGI5NzZjMmQ1NjhiNTYxNWFiYTBjNTY1OGFiZDFjNDY5OTVlODJiMDJiZDllOWM4ZTlhYzNmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2ExYmNjYjYxODMwNjVkOGFlMjEyOTZmNWQ3NDcwZmM2ZTM3NjdiYTZkZDE4NWY4ZDMxYjUxMDhlOTc2NzViMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f9d19f6b6cc4bf39d55ee8f63e5b504",
+      "statement": "MemoService.readExternalPath reads external file text but is deliberately never decorated with @Remote: the capability is wanted while the confirmation point is absent, so nothing may reach it over the wire, and its method body carries no approval or permission check, which makes the missing wire name the entire boundary.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1591-L1624",
+          "version": "repo-lines-v1:sha256:722472863963da14b6095ce774fa2afd085bc81e32fdfc311fa965aead6f32f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1YTkyNDNhMzA3MDRiZjAzOWZlMDI1YzM4ODQyY2EwMzk4YmEzMWUzNGU2ZTA2ZTdlMmJmNjZhMTkwZmI1YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMWQ3Njk0MzY3OTFjZWY4NmNlZWQ0ZWE3YjU4ZWNkZDI5OGU0NGE1YjFlODI3YmMzMTg5Mjk1YTc2ZTg1OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a2038a806954e918b2b9df33f8269f3",
+      "statement": "external-path.spec.ts pins the absence as the contract: it derives the endpoint list with remoteMethods(memo) and asserts addEntry is present while readExternalPath is absent, with that positive control keeping the assertion from silently becoming an empty shell; a missing method means the endpoint does not exist rather than being restricted.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L98-L114",
+          "version": "repo-lines-v1:sha256:a60e0dcb2fd0eea39dd76d9019cbb211574da6a9afdf0aef621312ec43925e2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2FjZTRkNDE4NWQxNmQ1MjU4ODk5ZTQyNjljMDU1NTQ0YzI4MmUzMmNmNzQzZTJmODE1M2YxMWNiODk4NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhZjgzOTE4YzliYmU4ODM5NmM0ZjIwNDcwOGQ4OWI0OThmZjI1NmY0YTlkZGUxZjYxYTlkZGZhZWQyODVmZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMjcxMzk4ODg2NjFhMWJkM2YyYjk1ZGU4NjFmM2M4ZmMzOGQwMzlmMWNlMzdiNDIwNjBmMDg0ZmJjYjRlNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f37b36822fad4bc1a40c9843d9ab499d",
+      "statement": "A successful readExternalPath call mutates no memo week — the whole listWeeks snapshot is identical before and after — so the host-internal capability is read-only with respect to memo data.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L116-L135",
+          "version": "repo-lines-v1:sha256:21b9071478084dac2a634138e386446b65e43c0c3fbfec5e18745d12732c7819:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllYTI2YjU4NDg4NWJmYTYwMzQxM2IxODgyMDBkNTUyN2IwMmYzYmQzYjZkOGY2ZmZlNDBlYTZjNWEwMjFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2ZmNlMGY0YTVmOTA3ZTczYTJmOGYwNjI4YTY4NTg0YzdmNjVjMzMyNDQ2ODgwMTU3ZmZmMDBlZmExYTVkNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2MWM1M2UxNzA4NjliNmQ3OTY1Yjk4M2ZlODQ5NWRjZDk2MjNmYTNmODEwYmZhOTQ4ZjMyYWQ1ODY5Zjg2NjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_88cfd9991fb34559a340f86948b85fec",
+      "statement": "readExternalPath classifies failures by cause into path-not-found, path-not-text, path-too-large, approval-denied, fs-error and fs-unavailable, where approval-denied names a filesystem permission or sandbox refusal (FS_PERMISSION_DENIED, FS_SANDBOX_DENIED, EACCES, EPERM) rather than an approval decision, and the same business code is returned to the caller and recorded in telemetry.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L1993-L2024",
+          "version": "repo-lines-v1:sha256:223ed117596148602a545ba6e40b83ca5c002e09a8bf1744063b5ef2a4a87d89:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZDVhYmFjYTIyNjgwYWU5NTMzNjcwMGRmNzY2MzYxOTdhN2NiNmMwMDRmNGNkNzlhYzFiMWZkMmYwYWM0YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3Yzk1YjkwODJhNDY0ZTMzNjEyNDk5N2E3MTgxYzk3NTBiNjk4M2Q1YzQzZThhMTEzY2Y3YzAyODc0NTYyOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4NDRiMDMxODM3NGNjZTg4ZTEzMDk0NmFmMmI2OTg2MGZkNTc2MmY0YzZmOWRjZDE0ZTk3NTU5NWZiMTc2YTkifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/types.ts#L292-L302",
+          "version": "repo-lines-v1:sha256:f5b91c27763e0c8fd9c12e85bd903e8b7fb6f608591de00be50a3d0ca5a43ad9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMzNjZDVmMjU1MTliZTYwMzUxOTYxNDE0NjVmMjljOWY0NjBmNDZlZTQzZTMyNDA0MzQyNGE3MzcxYmQ5ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjYTFkZWZhNjQxNzY0NjQ0ZTc0ZDUyNTFjNGY0NzljY2M0MmY3MDljYjc4M2YzZTc3MDUwNTFhNWViZGVkM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NGU4NmM4Yjg3OGQ0YmY5NDhmMzI2NDk0NzQ5OWE5M2Q3ZWM4MjVjZGE0NTdmZTI4MzU5ODQ2Zjc1YjJlMTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNDliNzc5ZDFlYmM1ZjA3NjAzNWQ5ZmVhYTM3ZjQ5MmIyYjhhMWFhODlkZTFiY2VmZWFmNDhmMzRkMTM1MjYifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L148-L199",
+          "version": "repo-lines-v1:sha256:a6c55f79a95a4fd3c66d17521a1ab21819d6ec86b8cc4bf67ae84c11686bb7d8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNWYzNTcyMThlMjBjZTlhZDc2ZTljN2M3N2M3ODJlZDE4NWZkNGI4ZTQyZGI1OGI2ZjA3NTcwMWU0ZmExMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1Y2QzN2M3ZGQ4OGMwYWNlOTkwZDliYjg5NWE0NmNjYWVmM2NkNTIyYzI0ZDYwNzBmMGUxYWEwYmNhN2UwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYThmNjBmZTNjNTBiMGNmNTM0NzIyMTEzZmU5MGQ3MzQxNDM4N2NlOTJlNTk3OGM4MmNiZDgwMWNjMDUwMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_309e993d2b054a6684faa0e84f0362de",
+      "statement": "The github-issue intake path realizes the turn-time shape without calling ctx.approval itself: the @Remote dispatchIssue and runIntake endpoints only create a Session through the sessionController and queue the issue prompt via agents.get(id).agent.followup, so the sensitive work happens inside that Session's agent turn; routing through the controller instead of ctx.agents.create() also keeps the deployment's preset, workspace and publish policy intact, which is what makes the dispatched Session behave like one the user opened.",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md#L26-L32",
+          "version": "repo-lines-v1:sha256:1e3b18bbcf22c52edcc4ea3f20ce7a155c6daf48a9c9b88b57259bd88434b7ca:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU0MmQ2MTdhZTEzMTQzYjQ0ZTljZTI1YTU2OTc3NWY1MzBmODI0Yzg0MDIwYjhkNzAyMzlkNmI2NTYyMzU0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk5MWRkMDEyOGE3NGRmNGUyMDllOWE4ZmVjYzE1YWI0ZWRjYTU3YzBlNDViM2YxMTNjN2IwODRiODgxYmYxMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE0MzU3YTY3YjNlNjdmZDQ3MWQ1ZWU0ZTZjZjRkOTkzZWVlOTg5YWJlOWY3YmRhM2FlZmU0MDBmOWU0MmYxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTVkZDRkNDJiZTUyOGJjY2Y3ZGZmN2VjYWQzYzU5MWE5N2Y4YzY3ZDNhZjkwOTEzMWY4NjE1ZmY1NWY4YTNkZCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L611-L730",
+          "version": "repo-lines-v1:sha256:8625c8ce0aa1809032bad5359b625ecc33e26e07bc6a7fedf1565b7de4942277:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZjM1ZDk4NjYxNjc2MzNmZWI4YTVhMGFkYjRlMmY4ZWU0OGE5NWY4MmJlZGY3MjA4NWRjODM5N2Y3MjQ2NTBiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MTM0NTE4MDEwNWIwYzY2YTc3ZGFkNTFiYjM3OTAxYTM3MzJjOTY1NGJhNGRlMzk4MWY4MWUxODE3NTI0OGJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyOTk2OTRiNjlkNjdlNjA3NjEyNWQ3YTAzY2NkOTA2OTg5NDYyNTk4NzRhZDIxNDcwNjVhYTQwMjE4NzBhM2M0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5ZWQwODBlODZmZWE3ODlhZmFlNjQyMmNlMWZlNWE0YjMxMWNiMTQyYjY0ODY4N2NmNWMwMWFhYjU2NmU3MWNmIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_62d7d481242a44eb92bf842da1c537f2",
+      "statement": "Issue dispatch fails explicitly rather than degrading: a deployment without sessionController or agents returns session-unavailable, and a failed Session creation, a created Session with no live Agent, or a refused prompt each return dispatch-failed.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L365-L372",
+          "version": "repo-lines-v1:sha256:46a14f609fc495119b32f6a0a42fba44b84500020750555be8fedb64561d8308:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U3MmU5OWE4NDk5MGE3NmJhZDBjYjE1MzU0Nzg3OWU3NzQ2NDM3MTQ3NjNlNzBkMzJhZWViZWNkZjE2NDRlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA5MmU5Yzc5ZDY3NDllMjUxM2U5NmE5YzI2MjJkYzRhZDVkN2EwNjJhZjJhOTZlYWNhYWExMTQ5MjJiN2M5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTVjZmFjN2ZmMzJjNzdlZTYxYTNmNjdlYzFiMDg0MTdkMjJiMjNmMzQ2MTc2ZjE0YjJmNmYwMGQ3YWYwMzg2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkYzliNzU0MjkzMDk5OGNjZTUzYmM2OTQ4N2FlNGY5NzliYzJiZjZiMzZkOWE4YzMxNmUyOTkxZTU4Y2E3MiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L690-L729",
+          "version": "repo-lines-v1:sha256:5aec901b583b5ead23b81ec6459f2e5cfde7dbf1b0fb30e15c6f397156e8d105:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlZWY0ZmZhZGFmMDFmZWE2ZWI1YjMxZDk1YjllNTM0ZTkzMDJkMjZjZTY5OTYwMTA3YWQ0MTE5OWVkNjNhZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2MDQzM2RhOTA3YzQ1OTc3NmJkMjkyM2ZlMzRiMTI5OWFjZDk2Y2I4YzZiNWU0MjQ4ZGRmZmM4YzFiNWM0YzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzhjN2U2MmE4OGQ4OTU0OTU3NzkxNDA1YmI0MDQ2MDJiZWIxOThjZjBkYzQ2ZDY5YzUxZmM4ZThhZTlmMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODcwZWQxZjA2MjAyZGExMzEyYWNmMjBjZmFmZTIyMjE3MmQ1NmY1NjIzZjk0YmNiMmVlODk5ZWEwNDU5YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b462ef163bb84655824867c31bfd3e71",
+      "statement": "The rule has documented history in this repository: the 2026-10-21 design document revoked a requirement that readExternalPath prompt a consent dialog before the client call, on the ground that the boundary never existed in code and no caller could implement it, and a one-time confirmation token was deferred as unverifiable at the time and is now excluded by the rule outright.",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-10-21-memo-read-external-path-accuracy-design.md#L26-L28",
+          "version": "repo-lines-v1:sha256:4126a3d37f75cb59a1878103edd868c57bdd1d291067fd6f54a1f901efc1a5c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM5ZDJhZTFiYjQyMDkxNDJjMGYyOTkwMDQxZTZlN2RjZjRhZmRjYzI0ZmZjZmVhYmQxOTEwZjlhYTczOWVjMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTFmNjA1NjNkZTE2NjY2NDA1NWU4NzliZjRhZGJkZDZjODU1YmRlZGFmMjRiNDdhYjFlZmM1Nzc3NTdmZWM4ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJjMGJlODY2ZDRkMzlmN2UwZDdiMjJiNDQ2ZjUzNGJiNDRhNjMyNzEzYTNjMTc0NDEwOWY5NzE4MmVjMWIzMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2JmOGQyMTcyMWU3NTg4ZjNiODMxYmMwZTg3ZWFiNTZjMDk2NjE3ZjA0NDA2ZGRiN2Q0MDMyMzM2MzBiY2VjYyJ9"
+        },
+        {
+          "resource": "repo://docs/plans/2026-10-21-memo-read-external-path-accuracy-design.md#L3-L3",
+          "version": "repo-lines-v1:sha256:0c92dc114c86e61293db0eeb5758f30bbd4cbc9467079183ccc50eb84c6274d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM5MmRjMTE0Yzg2ZTYxMjkzZGIwZWViNTc1OGYzMGJiZDRjYmM5NDY3MDc5MTgzY2NjNTBlYjg0YzYyNzRkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM5MmRjMTE0Yzg2ZTYxMjkzZGIwZWViNTc1OGYzMGJiZDRjYmM5NDY3MDc5MTgzY2NjNTBlYjg0YzYyNzRkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzg1ODU2OGQ0OTFjODlmNmZkNmYzYmRkYTkyNzFmMjAxMmNkYmVkMDNkZDg4MTAwMTU4NmQ5NDVlOTUxZWE1YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTVhNWE4NTk4ODkyNzdjNTNjNTFlY2M2MGQ0Y2QyNWIyNzQwNGY3YjdhM2MzZGQ4NTViNGQ4NjNhM2JmYzZjYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a38d398afb80457f8ce6a873fe592f25",
+      "statement": "Host-decidable policy is a different axis from approval: the memo host refuses writes into an archived quarter with quarter-archived inside addEntry, updateEntry and deleteEntry — before touching the table — because any client can reach the same Remote methods and an archive can land while a dialog is already open; this needs no turn because the answer requires no human decision.",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.md#L112-L112",
+          "version": "repo-lines-v1:sha256:6bdd7043f96831a8b1c4b3a6751c2644e96b54755f11bf180f88bee3a8c2c662:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJkZDcwNDNmOTY4MzFhOGIxYzRiM2E2NzUxYzI2NDRlOTZiNTQ3NTVmMTFiZjE4MGY4OGJlZTNhOGMyYzY2MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJkZDcwNDNmOTY4MzFhOGIxYzRiM2E2NzUxYzI2NDRlOTZiNTQ3NTVmMTFiZjE4MGY4OGJlZTNhOGMyYzY2MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmExNGZkY2VjOWU2YWRmYzMzMDBlNzg0NTcwNGM4Mjk5MWNhNTJhNjg5ZDkyNDhkMTY1ZGEzZTcyYzE5NTRjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDcyZTg4NTI4ODBkNDgwZjI1NmM2M2Q3Y2ZjZjdlYjA2OGJhM2UxMWFhOTA4OThlNmZmZjlkZmE2Yjc0ODYxNyJ9"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L903-L925",
+          "version": "repo-lines-v1:sha256:3c38fd6e5a80e370b2171a8670d1e5667ce38b54d143f5691a53a97865c110cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhNDkyMjg5ODY5YWM4NDc0NjliZmY1ZDg0NzA5ODk2YTExYTBjODI4ZDNjYmRhZGE4OGZlOThiY2EwNDliM2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2228bd786f744408b200f7f347110ea2",
+      "statement": "A client dialog over the user's own data is not an approval device: the memo board's ConfirmDialog confirms deleting one card before calling the delete action, which confirms the user's intent about their data and neither consults the deployment's approval policy nor produces an audit.",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L587-L601",
+          "version": "repo-lines-v1:sha256:c498e162a9815b3bf79cfbb5c899439d71b124747b5abedba7abb389b25b1fa0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNjA0NWMzMjc1NDIxMDI5MzE5ZmE4NzI2OGQ3MmQ5MTA1ZTBkNjcxZTgzNDVkZDkwZDMwOTE2Mjk4Njg1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3YjUwOGQ4ZmI0YjM3NzlkMzhmNTMyOGFjNTAyM2Q4ODI0NWQxYmJhYmQzZjg5YzMyMDg1ODFlOWIwZDUzYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzNjdlNzgzMzJhNjI5MjQ2YTJkNDg2MjBmMjBiM2ViZGQzNTI3MTgwMzFhZjQxZGRkZTgwMzVjMTc2Yjk3ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4ZGZmYTFmNTkyYWZlM2NkNDg0MWQwNzg5MTBhODIyNjc4YThiNDRjZThlYTc3ZjE5NjY2ODVmYzc2MWZkNTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_10ec848d96504553b18e544c0902f9f9",
+      "statement": "OpenWikiVisualizeService.update is a @Remote endpoint that rewrites the profile's dependencies by spawning `dsh plugin --profile <profile> add <package>@latest`, and the panel reaches it from a single click with no confirmation step, so no approval point exists; the design document's stated 'only after an explicit confirmation from the UI' is not implemented in the current client, and the README's containment — the automatic check never installs, installing happens only when asked — separates the irreversible step from the automatic path without providing consent semantics.",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-10-16-openwiki-visualize-design.md#L76-L76",
+          "version": "repo-lines-v1:sha256:fccde1e65a96ab6bbc55491dd0ea175a33e5ada2931c72dfb54233466f8a8a27:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmNjZGUxZTY1YTk2YWI2YmJjNTU0OTFkZDBlYTE3NWEzM2U1YWRhMjkzMWM3MmRmYjU0MjMzNDY2ZjhhOGEyNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmNjZGUxZTY1YTk2YWI2YmJjNTU0OTFkZDBlYTE3NWEzM2U1YWRhMjkzMWM3MmRmYjU0MjMzNDY2ZjhhOGEyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmIyZGU4YjBhMTE1YzMyMTc5Zjk4NmRkNWNhMzNjZGFkNTRjMzc4MzQzMGNjNjVmMjBjYWFiMGFhYjZjNjZjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDNkNjAxYWZmNWFkM2ExMjAyZTllOWI2MTI4OTAxOWRlZDZmZDNhMTUyMzc2MTI5NTliYzNmNzgxZGZhNzU5MyJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/README.md#L83-L85",
+          "version": "repo-lines-v1:sha256:750c89018b97a14571601f5c91fe8661324bfc8ea1655020e6c49940d2060e8b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDMxNGEzMGZjNThjZTIxNmMzODdjNTYwNGZjNjdlNzczOTkyMWEwMzI3OTk1OGY3YzhmZDdjN2I5YjNkZDkwMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2Y0YjNmZjE0NTgxNjYwM2JhNDQ1Mjc3ZTEwMmYzNDEyNmQ0ZDI4MjUyZjQ0OTY2ZjQ2MmRmZTczZmZlZGIxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzRkZmFmMzc1MTYwNGFmMzk4ZTJiNmY5NmQ3ZTE0ODBkZjNlYTAyNGQxZTZmM2Y3MmFkYmRhZGVmMDZkNTlmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGM2OTUzYWUyYzJjNWZkMzMxNzg4ODk3YjI0NTk0YjkwMDg5OGFhOGZhZDg2MWJlMWRjYWE4YjhjNGEwNWRlMSJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/Pane.tsx#L90-L92",
+          "version": "repo-lines-v1:sha256:c9924c19308ddad8a93561cdd0f12ef28dea920c103e8aad2d0796e4253f5ccb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJmNmMyMTBiODNiZmJkOTEzNTM1NDRlNTdkNWNiMTQ1ZTFjNjllMDE0NjA4NjBhZjkzYjVmNTU0MTNlMDk3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2FkMWUzMTk4NDQ2M2E5Njc0OTRlZjVjYTM5NjgyNTFiZGU4MGIxMjIyODc3OTgwNjE3ZjI2ZTdmOGE5MzVjMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZlYzM0NDg3NzRjYjFmYTA2NDczMTA0ODY2OTQ1YmVlYTUxZDI2YWY0ZmQ1MDA1NzQxNTdjZTAzM2U5ODJmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q2OWIwNjNlOThiYWU2MzgxNzlhMjU4ZTc0Y2RmOTdkZGFmMWVlZjgxOTNmYjQxNjUxNWI4ZDQ4ZmY5ODYwNCJ9"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts#L213-L227",
+          "version": "repo-lines-v1:sha256:3621518b92032020ea4f1440d7c72b1d7c9934a850d28414eb0e90f7f414f594:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MTBlMWZhZDNjMTMyMjU1MTU4MzMxNDViNWRiNWYyMzk0ODliMjU2OTczMDg1YzIzODI1YWUxNjM3ZDQ4MzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxMGQxZmZiZDg0ZTY4NjFmZTI5MWI1ZmY1NjcwMDYyNmI4NDYwYThlODdmNzc2NzlkOTExNTJkMWEwYzU0MTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MTFjZDhjMDI4MWNkZThhNDc0OWMxODYzYTBlMzEyNTlhMGQ0MDIwN2ViMmFmYWI3MzUzMWMyMDE0ZDFmY2IifQ"
+        },
+        {
+          "resource": "repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts#L455-L486",
+          "version": "repo-lines-v1:sha256:659dd86a838389e8e06aa42b1027b1fe3ba6082321136cb22dd86ae7f5d4fd6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYjgyZDM2ZTM3M2Q1YjM3ODdmN2M0MWQ2ZTFhNjkwNTY3YzA1ZDhiYWRlMjEzZDdiYTJlMzkyYzA2ZTJmZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d188cdda8e849bda97f7d548d62cec6",
+      "statement": "No gate in the repository's gate suite checks approval boundaries, so the concrete readExternalPath case is guarded only by its endpoint-absence test: adding @Remote to that method fails the assertion, and no separate check would object.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L39-L50",
+          "version": "repo-lines-v1:sha256:00a652cb55e5ec366f185333da0c4d6a7655be0ce3f79bf9e8219e0ffa9214c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyZDM3N2FlMjZmM2MxZjkwMDVkMDFkMGU5MTdhODkzZTgxZWQzZjM1ZGQ3YWQ3Njc3YmI4NTU2N2RjNjBlODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMTE1Y2EwMmE3ZDA0MWVlYmViNWZhZDFmOWQ4ZTQ4ODQ1NWNmYTBiZjMwMmNhMjdmNGMxNzE4NjM0MThiYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiNGY1MzBlYjQ5YzNlMGI4NGU0NjFhNjU2YzA3ODhmZDVlYzdjOTNkNmExNDlkMmU2YmYxNGY0ZGEzMmZmZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ODBhMDNhYzZlNjBhODE0NGFhYTYxNjNhMTMxMjUzN2EzMzYzYTBjYjdmODUzODA1YTQwNDQwY2NlOGE0YjMifQ"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L98-L114",
+          "version": "repo-lines-v1:sha256:a60e0dcb2fd0eea39dd76d9019cbb211574da6a9afdf0aef621312ec43925e2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2FjZTRkNDE4NWQxNmQ1MjU4ODk5ZTQyNjljMDU1NTQ0YzI4MmUzMmNmNzQzZTJmODE1M2YxMWNiODk4NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhZjgzOTE4YzliYmU4ODM5NmM0ZjIwNDcwOGQ4OWI0OThmZjI1NmY0YTlkZGUxZjYxYTlkZGZhZWQyODVmZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMjcxMzk4ODg2NjFhMWJkM2YyYjk1ZGU4NjFmM2M4ZmMzOGQwMzlmMWNlMzdiNDIwNjBmMDg0ZmJjYjRlNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcfb868b36034caf861a8d0c6d1b3fe5",
+      "statement": "端点可达性由 Remote 描述决定，本仓库的包不发布 strict Remote 定义，网关因此从 @Remote 标记解析端点；而一份 strict 定义如果存在会优先于标记被解析，所以「某方法不可达」的准确条件是既没有标记也没有 strict 定义，补上任何一种都等于取掉边界。",
+      "evidence": [
+        {
+          "resource": "repo://packages/memo/dsh-memo/tests/external-path.spec.ts#L99-L114",
+          "version": "repo-lines-v1:sha256:cadba969a77b85dfaa3d564a9093c26a89f586c2db798e012f64429c4c466ef9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjNWEzMDY0Y2M2ZDEzN2Q4N2Y0ZjcwOGZjODI1OTU4YjY2NWFiODM4MjUyYjBkNmRjNjQ4M2RkNWM3MTA1N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjY1YzQyODhjZjc5ZTdkZTRlNjk0NWQzODdkY2ViZjhiYTUwOTE5ODVkZWMxYTI3M2YzYzVmNTdhYzBjNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzODI0NWZhNTA1MDM5NzU2OTJkMDk2NGVlOGM4ZmM1YTI0YzhkNWZiZWVhMGU2ODM3ODc0YTI1ZjQ4NTljMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMjcxMzk4ODg2NjFhMWJkM2YyYjk1ZGU4NjFmM2M4ZmMzOGQwMzlmMWNlMzdiNDIwNjBmMDg0ZmJjYjRlNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcce4a0655274a238ed43bba0b936527",
+      "statement": "@zhangj1164/dsh-github-issue 的 @Remote('createIssue') 直接用部署解析出的 GitHub 凭据调用 REST API 建真实 issue，请求里的 repoUrl 会覆盖配置仓库而宿主只校验 URL 形状，因此能调到该方法即可在凭据可写的任意仓库建单（API host 由部署的 apiBaseUrl 固定，不在请求面内）。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L67-L79",
+          "version": "repo-lines-v1:sha256:95715b87c75b915ff2fafa14df3b4d219b93c59da708c3f01dafa3b3fb5a1e3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlY2VlMTg0NzYyNGYzOTIxMGI5NDM4YzRkODRiMTdiOWFhNzBhOGI2YjVjODkyOTFkNWU0MmRkMDFlZGZhMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlMTcwZGQxMjkyMWM2YmEzYjllNDJiNWJhZGE4OWNhMWY3MDg0MmI2N2M3NDNlNzA0OTk4ZjFmZmJjOTQ3YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjOTAwNjdjMWEzZjUxYjg1YjgyY2U2NWM3ZmUzNmNlZjc3ZDc3NzNmMTlmY2ZiZWIwOGNmOGFhMGI1NTJiOGMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L96-L120",
+          "version": "repo-lines-v1:sha256:3eb184e3d7d47c9c7305739bcbe48c73ab816836038d2b8a5c7a666d169b5b42:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4NjI0OGZiNjYxNWYzNmU2NGRkMjY2YWQ1Y2ZhMzJkNDg0ZmM1Mjc1MTAzNjhhNjA1MWVlNDZhMGMwOTc1YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNzVlZWUyNjIzMzk1YWMzODk3YmIxZjEyYTg4ODJjOWRhZTBhMGJjZGU0MjQ3ZTdjYjg1OTdjYjRlNzBmOWYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L558-L588",
+          "version": "repo-lines-v1:sha256:d0589df623c1a4bf66f6f1d1b42c54c40bb56f0bbcacf9014e36062d0a6423cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViMWZhOGUxYTc5MDg3MDM0NjBhNmIxOGVhNmE4ZDc3YzZlZGRmYTcwNjRhODNlYWUyNTMwZDFjOWJmNTE5MWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L822-L834",
+          "version": "repo-lines-v1:sha256:914decd29b3e45ee0e082a19c641dba89b58c76a71be6347c420b2672ae284a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3Nzc3NjM4ZDQ0NDk3N2NkZmRjYjcwNzhjZDNhODdkYjY5OGU1YTMyNTBlZjM4MWVkOGQ0ODIzYzQyMzg5OWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7309586c2dd9498cb6eee912483b3a89",
+      "statement": "ui-memo 的建单路径没有任何中间确认：按钮回调直接调用 controller.createIssue()，控制器随即 callRemote 到主机器的 createIssue；这一步的设计目的就是替掉「预填 URL 仍要用户按下提交」的人工节点，因此留下的 telemetry 事件记录结果而不是一次同意。",
+      "evidence": [
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/MemoBoard.tsx#L200-L210",
+          "version": "repo-lines-v1:sha256:3e08f3f0e44da7f7c33f75284b4f7f4215a0abe18f2d5aeaf0a3615908c420f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3MWFlNGUzMjc3YmU3ZjgyYTZiNjViNTJmZGQyMzk5ZDJmMzBkMWFiZTllZWFkYzM5NmY3YjcxNzcxZWIyMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlYzE2OTdmNDM5MTI2MTExNmVjZTEzY2M2MDg1MmM3NmRjZmE0Y2ZjZmE5ZWQ4NmJkMTJlOTk5ZTRjOTZmMGYifQ"
+        },
+        {
+          "resource": "repo://packages/client/ui-memo/src/client/controller.ts#L1042-L1072",
+          "version": "repo-lines-v1:sha256:444b013710c417699ebe26026de6c3d36752794be92cb9e7a5d2fa2d44b47b2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzVkOTg2NjE2NzYzM2ZlYjhhNWEwYWRiNGUyZjhlZTQ4YTk1ZjgyYmVkZjcyMDg1ZGM4Mzk3ZjcyNDY1MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMzQ1MTgwMTA1YjBjNjZhNzdkYWQ1MWJiMzc5MDFhMzczMmM5NjU0YmE0ZGUzOTgxZjgxZTE4MTc1MjQ4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NTA4YjZjYjA1ODlhYmE3NTAzMjAyZGUyYzhmODdlZDliMTljZDU4NjUzZmQwMWEzZTY3NWUzYWI3YjU5NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZGRlYTI5N2YxZDlmMTBiOWY4MzI5MmNlYmU2NzZlOGRmYmE2YzZmNWI4MDk0YmIzZDRmZjBkMDU1MjU1ZTgifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/README.md#L80-L80",
+          "version": "repo-lines-v1:sha256:47c47829835622d50647567dc7109eff28dd8c781b6c2a8bd516a8d4de5aac8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjNDc4Mjk4MzU2MjJkNTA2NDc1NjdkYzcxMDllZmYyOGRkOGM3ODFiNmMyYThiZDUxNmE4ZDRkZTVhYWM4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjNDc4Mjk4MzU2MjJkNTA2NDc1NjdkYzcxMDllZmYyOGRkOGM3ODFiNmMyYThiZDUxNmE4ZDRkZTVhYWM4ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDliYWU2NWQ3ZDVhNmI5Yzg2NTcyNjRmZTA2ZjVmMzAyZjc2NjkyMWYzZjVjYWU1YjdhYWQ0NDA3MGQzNjYwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWQ3YTM2MmUwZjdmZmI3MGY4ZTJlNmE4N2VmMDU2NTk1NTRlMGY0NGRhOTZjMjU3NDA2MmM1MDdmZTRlOTllZSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-11-03T09:53:43.931Z"
+  }
+}

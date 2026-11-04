@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/host-client-remote-contract.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:bf9e29a5dcbf02a111f872a6d5eb82f80ee09855ee677c1d8000d3f771463bfa",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/architecture/overview.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:403828ad41b2e191ab095dabd784807ff4350585918e0ab3e16f353aa0ebd1ec",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/architecture/plugin-composition-and-bundles.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:b70b3af5f90945bfae90b14f88e5354a5f6486c713e948ad02335e3fac66a182",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/architecture/storage-and-persistence.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:d0f74def7a5bac737f3a4aeff5e63ab20504fb88fda6c7e3fe489c41ae3471cb",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/concepts/capability-and-approval-boundaries.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:048ef21c606e87c7ee31dd85c905ccbcf336685805d7d8d0f5712bd47ea81459",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/concepts/configuration-and-live-settings.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:b4d6542bde0a98c6d0d8719d6255417326cf2740332fcaa14ad566e09d58f422",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/concepts/llm-route-and-failure-facts.md": {
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9",
+      "pageVersion": "sha256:48b48a14d4ad5a63bd923b9fc282bafd9677d4e09df6894a203676c8669457b1",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f"
+    },
+    "/openwiki/concepts/period-calendar.md": {
+      "pageVersion": "sha256:79dacea89ec420a00130b7d0a367a3de88e05d04882711eb0d3f13febc0acda5",
+      "completedBy": "openwiki/0.7.2",
+      "completedRunId": "03d82c33-3f40-4953-8fb6-f46eaf9dcd5f",
+      "gitHead": "9d172f1095ad97d69a155930447c7886344ba4fb",
+      "sourceFingerprint": "sha256:70b13914b14307c21a4b61cc84fe38b1b93e00978e0ff58e7580a367ffebf7f9"
+    }
+  }
+}
