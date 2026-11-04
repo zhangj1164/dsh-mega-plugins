@@ -86,15 +86,14 @@ export function MemoSettingsSection(props: MemoSettingsSectionProps): React.Reac
     Object.entries(LANGUAGE_LABELS).map(([option, key]) => [option, t(key)]),
   )
   return (
-    <>
-      <SettingsSection
-        {...injected}
-        copy={copy}
-        fields={MEMO_SETTINGS_FIELDS}
-        groups={MEMO_SETTINGS_GROUPS}
-        selectLabels={selectLabels}
-        useView={useMemoSettings}
-      />
+    <SettingsSection
+      {...injected}
+      copy={copy}
+      fields={MEMO_SETTINGS_FIELDS}
+      groups={MEMO_SETTINGS_GROUPS}
+      selectLabels={selectLabels}
+      useView={useMemoSettings}
+    >
       {update === undefined ? null : (
         <UpdateCard
           t={t}
@@ -103,6 +102,6 @@ export function MemoSettingsSection(props: MemoSettingsSectionProps): React.Reac
           copyText={update.copyText}
         />
       )}
-    </>
+    </SettingsSection>
   )
 }

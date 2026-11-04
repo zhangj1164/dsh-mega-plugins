@@ -74,6 +74,8 @@ export interface SettingsSectionProps<F extends string, K extends string, V> ext
   readonly save: () => void
   /** Drop every staged field. */
   readonly discard: () => void
+  /** Extra page content rendered inside the page container, after the form. */
+  readonly children?: React.ReactNode
 }
 
 /** The DOM id a field's label points at. */
@@ -262,6 +264,8 @@ export function SettingsSection<F extends string, K extends string, V>(
           )}
         </footer>
       )}
+
+      {props.children}
     </div>
   )
 }
