@@ -99,4 +99,31 @@ export const CSS_TEXT = `
 .dsh-memo-settings-save:disabled { opacity: 0.5; cursor: not-allowed; }
 .dsh-memo-settings-actions { display: flex; align-items: center; gap: 12px; }
 .dsh-memo-settings-notice { color: var(--dsw-alias-text-2); font-size: 12px; }
+
+/* ── Version & updates card ── */
+.dsh-memo-update { display: flex; flex-direction: column; gap: 10px; }
+.dsh-memo-update-grid { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.dsh-memo-update-pair { display: flex; flex-direction: column; gap: 2px; }
+.dsh-memo-update-pair dt { font-size: 11px; color: var(--dsw-alias-text-3); }
+.dsh-memo-update-pair dd { margin: 0; font-size: 13px; color: var(--dsw-alias-text-1); }
+.dsh-memo-update-actions { display: flex; align-items: center; gap: 10px; }
+.dsh-memo-update-state { font-size: 12px; color: var(--dsw-alias-text-2); }
+.dsh-memo-update-state[data-available] { color: var(--dsw-alias-brand-primary); }
+.dsh-memo-update-command { display: flex; flex-direction: column; gap: 6px; }
+.dsh-memo-update-commandLabel { font-size: 11px; color: var(--dsw-alias-text-3); }
+.dsh-memo-update-commandRow { display: flex; align-items: flex-start; gap: 8px; }
+.dsh-memo-update-code {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-text-1);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.dsh-memo-update-error { color: var(--dsw-alias-brand-primary); font-size: 12px; margin: 0; }
 `

@@ -65,11 +65,12 @@ interface IntakeFace {
  * @param options - whether the namespaces are served and whether slots resolve.
  * @returns what the entry point registered, plus the two forms and a disposer.
  */
-function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
+function applyPlugin(options: { served?: boolean; slots?: boolean; connection?: boolean } = {}) {
   const sections: RegisteredSection[] = []
   const dictionaries: Record<string, Record<string, Record<string, string>>> = {}
   const effects: (() => void)[] = []
   const served: string[][] = []
+  const rpcCalls: { readonly endpoint: string }[] = []
   const memoForm = new FakeForm({ repoUrl: 'https://example.test/repo' })
   const intakeForm = new FakeForm({
     repoUrl: 'https://example.test/repo',
@@ -95,6 +96,25 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
       if (typeof disposer === 'function') effects.push(disposer)
     },
     slots: options.slots === false ? undefined : slots,
+    connection: options.connection === false ? undefined : {
+      rpc: {
+        async call(_channel: string, endpoint: string): Promise<unknown> {
+          rpcCalls.push({ endpoint })
+          const value = endpoint === 'memo/pluginInfo'
+            ? { currentVersion: '0.6.1', packageName: '@zhangj1164/dsh-memo', registryUrl: 'https://registry.npmjs.org/', profileName: 'web' }
+            : {
+                currentVersion: '0.6.1',
+                latestVersion: '0.7.0',
+                updateAvailable: true,
+                packageName: '@zhangj1164/dsh-memo',
+                registryUrl: 'https://registry.npmjs.org/',
+                manualCommand: 'dsh plugin --profile web add --save-exact @zhangj1164/dsh-memo@0.7.0 --registry=https://registry.npmjs.org/',
+                checkedAt: 1,
+              }
+          return { ok: true, value: { ok: true, value } }
+        },
+      },
+    },
     get(name: string): unknown {
       if (name !== 'slots' || options.slots === false) return undefined
       return slots
@@ -115,12 +135,12 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
   }
 
   apply(ctx as never)
-  return { sections, dictionaries, effects, served, memoForm, intakeForm }
+  return { sections, dictionaries, effects, served, memoForm, intakeForm, rpcCalls }
 }
 
 describe('ui-memo-settings client entry point', () => {
   it('declares exactly the services it reads', () => {
-    expect(inject).toEqual(['slots', 'locale', 'configForms'])
+    expect(inject).toEqual(['slots', 'locale', 'configForms', 'connection'])
   })
 
   it('waits for each namespace before registering its page', () => {
@@ -175,6 +195,23 @@ describe('ui-memo-settings client entry point', () => {
 
     face.discard()
     expect(draft.getSnapshot().drafts).toEqual({})
+  })
+
+  it('routes the update card through the memo Remote methods', async () => {
+    const { sections, rpcCalls } = applyPlugin()
+    const face = (sections[0]!.inject as () => {
+      readonly update?: {
+        readInfo(): Promise<unknown>
+        checkUpdate(): Promise<unknown>
+      }
+    })()
+    expect(face.update).toBeDefined()
+
+    await face.update!.readInfo()
+    expect(rpcCalls.map(call => call.endpoint)).toEqual(['memo/pluginInfo'])
+    const checked = await face.update!.checkUpdate() as { readonly latestVersion: string }
+    expect(checked.latestVersion).toBe('0.7.0')
+    expect(rpcCalls.map(call => call.endpoint)).toEqual(['memo/pluginInfo', 'memo/checkUpdate'])
   })
 
   it('hands the intake page a store over the github-issue form', async () => {

@@ -57,6 +57,12 @@
 
 不在本页的字段：`token`、`tokenEnv`、`tokenCommand`、`apiBaseUrl`、`requestTimeoutMs` 留在 `cordis.yml`——凭据和部署级传输设置不该出现在浏览器界面里。
 
+## 版本与检查更新
+
+表单下方，备忘页还会渲染一张版本卡片：挂载时读 `memo/pluginInfo`（只读本地事实，返回运行中的包版本与配置好的更新目标），只有按下「检查更新」才调用 `memo/checkUpdate`。因此打开页面不产生任何网络请求。
+
+检查通过备忘宿主读取 npm registry，报告已发布版本，并给出完整的 `dsh plugin --profile … add --save-exact …` 命令。它绝不安装：面板点击发生在轮次之外，那里 `ctx.approval.request()` 无法运行，所以真正会改变部署的那一步始终留给人工。registry 失败时以原因（`update-check-failed`）展示，运行版本仍留在屏幕上。包名、registry、profile 与超时都是宿主的 `update*` Config 字段，fork 或镜像无需改本包即可改指向。
+
 ## Bundle 层
 
 本包声明了 `dsh.bundle` 和自己的 `cordis.patch.yml`，只插入一行 `ui-memo-settings`。模块总会加载，但只为部署真正提供的命名空间注册页面：没装 `@zhangj1164/dsh-memo` 就没有备忘页，没装 `@zhangj1164/dsh-github-issue` 就没有接单页。

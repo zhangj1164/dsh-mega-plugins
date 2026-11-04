@@ -12,23 +12,32 @@
  */
 
 import * as React from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoSettingsDraft, type MemoSettingsView } from '../src/client/form.ts'
 import { MemoSettingsSection } from '../src/client/MemoSettingsSection.tsx'
+import type { MemoUpdateCheck, MemoUpdateInfo } from '../src/client/UpdateCard.tsx'
 import { zh, type MemoKey } from '../src/client/locales.ts'
 import { FakeForm } from './fake-form.ts'
 
 afterEach(cleanup)
+
+/** The update readers a test hands the page. */
+interface UpdateStub {
+  readonly readInfo: () => Promise<MemoUpdateInfo | { readonly error: string }>
+  readonly checkUpdate: () => Promise<MemoUpdateCheck | { readonly error: string }>
+  readonly copyText: (text: string) => Promise<void>
+}
 
 /**
  * Render the page over a draft, with the shell's hook emulated by
  * `useSyncExternalStore` — the same subscription contract the injected store
  * gets at runtime.
  * @param form - the Host form the page writes to.
+ * @param update - the version/update readers, when the test exercises that card.
  * @returns the rendered page and its draft.
  */
-function renderPage(form: FakeForm) {
+function renderPage(form: FakeForm, update?: UpdateStub) {
   const draft = new MemoSettingsDraft(form)
   const t = (key: MemoKey): string => zh[key]
 
@@ -48,6 +57,7 @@ function renderPage(form: FakeForm) {
       save={() => { void draft.save() }}
       discard={() => { draft.discard() }}
       close={() => {}}
+      {...(update === undefined ? {} : { update })}
     />,
   )
   return { view, draft }
@@ -171,5 +181,97 @@ describe('MemoSettingsSection', () => {
     expect(screen.getByText(zh.promptHint)).toBeTruthy()
     expect(zh.sourceTemplateHint).toContain('{sessionId}')
     expect(zh.promptHint).toContain('{maxChars}')
+  })
+
+  it('shows the running version without any registry lookup', async () => {
+    const checkUpdate = vi.fn()
+    renderPage(new FakeForm({}), {
+      readInfo: async () => ({
+        currentVersion: '0.6.1',
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        profileName: 'web',
+      }),
+      checkUpdate,
+      copyText: async () => {},
+    })
+
+    await waitFor(() => { expect(screen.getByText('0.6.1')).toBeTruthy() })
+    expect(screen.getByText(zh.updateGroup)).toBeTruthy()
+    expect(checkUpdate).not.toHaveBeenCalled()
+  })
+
+  it('reports a newer version with a copyable manual command', async () => {
+    const command = 'dsh plugin --profile web add --save-exact @zhangj1164/dsh-memo@0.7.0 --registry=https://registry.npmjs.org/'
+    const copyText = vi.fn(async () => {})
+    renderPage(new FakeForm({}), {
+      readInfo: async () => ({
+        currentVersion: '0.6.1',
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        profileName: 'web',
+      }),
+      checkUpdate: async () => ({
+        currentVersion: '0.6.1',
+        latestVersion: '0.7.0',
+        updateAvailable: true,
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        manualCommand: command,
+        checkedAt: 1,
+      }),
+      copyText,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByText(zh.updateAvailable)).toBeTruthy() })
+    expect(screen.getByText('0.7.0')).toBeTruthy()
+    expect(screen.getByText(command)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCopy }))
+    await waitFor(() => { expect(copyText).toHaveBeenCalledWith(command) })
+    await waitFor(() => { expect(screen.getByRole('button', { name: zh.updateCopied })).toBeTruthy() })
+  })
+
+  it('reports an up-to-date version and hides the command', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => ({
+        currentVersion: '0.6.1',
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        profileName: 'web',
+      }),
+      checkUpdate: async () => ({
+        currentVersion: '0.6.1',
+        latestVersion: '0.6.1',
+        updateAvailable: false,
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        manualCommand: 'unused',
+        checkedAt: 1,
+      }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByText(zh.updateUpToDate)).toBeTruthy() })
+    expect(screen.queryByText(zh.updateCommand)).toBeNull()
+  })
+
+  it('shows the registry failure without losing the running version', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => ({
+        currentVersion: '0.6.1',
+        packageName: '@zhangj1164/dsh-memo',
+        registryUrl: 'https://registry.npmjs.org/',
+        profileName: 'web',
+      }),
+      checkUpdate: async () => ({ error: 'registry responded with HTTP 503' }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toContain('503') })
+    expect(screen.getByText('0.6.1')).toBeTruthy()
   })
 })

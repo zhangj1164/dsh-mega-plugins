@@ -17,6 +17,7 @@ import {
   type MemoSettingsView,
 } from './form.ts'
 import { SettingsSection, type SettingsCopy } from './SettingsSection.tsx'
+import { UpdateCard, type MemoUpdateCheck, type MemoUpdateInfo } from './UpdateCard.tsx'
 import type { MemoKey } from './locales.ts'
 
 /** Dictionary keys for the three summary languages, in the picker's order. */
@@ -40,6 +41,20 @@ export interface MemoSettingsSectionProps extends SettingsSectionOwnerProps {
   readonly save: () => void
   /** Drop every staged field. */
   readonly discard: () => void
+  /**
+   * The version/update readers.
+   *
+   * Optional because an older Host may not serve `pluginInfo`/`checkUpdate`;
+   * the card is then absent rather than permanently failing.
+   */
+  readonly update?: {
+    /** Read the local running facts. */
+    readonly readInfo: () => Promise<MemoUpdateInfo | { readonly error: string }>
+    /** Ask the registry for the latest version. */
+    readonly checkUpdate: () => Promise<MemoUpdateCheck | { readonly error: string }>
+    /** Copy the manual command. */
+    readonly copyText: (text: string) => Promise<void>
+  }
 }
 
 /**
@@ -48,7 +63,7 @@ export interface MemoSettingsSectionProps extends SettingsSectionOwnerProps {
  * @returns the page.
  */
 export function MemoSettingsSection(props: MemoSettingsSectionProps): React.ReactElement {
-  const { t, useMemoSettings, ...injected } = props
+  const { t, useMemoSettings, update, ...injected } = props
   const copy: SettingsCopy<MemoKey> = {
     title: t('title'),
     description: t('description'),
@@ -71,13 +86,23 @@ export function MemoSettingsSection(props: MemoSettingsSectionProps): React.Reac
     Object.entries(LANGUAGE_LABELS).map(([option, key]) => [option, t(key)]),
   )
   return (
-    <SettingsSection
-      {...injected}
-      copy={copy}
-      fields={MEMO_SETTINGS_FIELDS}
-      groups={MEMO_SETTINGS_GROUPS}
-      selectLabels={selectLabels}
-      useView={useMemoSettings}
-    />
+    <>
+      <SettingsSection
+        {...injected}
+        copy={copy}
+        fields={MEMO_SETTINGS_FIELDS}
+        groups={MEMO_SETTINGS_GROUPS}
+        selectLabels={selectLabels}
+        useView={useMemoSettings}
+      />
+      {update === undefined ? null : (
+        <UpdateCard
+          t={t}
+          readInfo={update.readInfo}
+          checkUpdate={update.checkUpdate}
+          copyText={update.copyText}
+        />
+      )}
+    </>
   )
 }

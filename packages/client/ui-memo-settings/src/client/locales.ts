@@ -32,6 +32,10 @@ export type MemoKey =
   | 'sourceTemplateLabel' | 'sourceTemplateHint'
   | 'promptLabel' | 'promptHint'
   | 'repoLabel' | 'repoHint'
+  // Version and update card
+  | 'updateGroup' | 'updateHint' | 'updateCurrent' | 'updateLatest'
+  | 'updateCheck' | 'updateChecking' | 'updateAvailable' | 'updateUpToDate'
+  | 'updateCommand' | 'updateCopy' | 'updateCopied' | 'updateFailed'
   // Page-specific states
   | 'unavailable'
 
@@ -82,6 +86,18 @@ export const zh: Record<MemoKey | IntakeKey, string> = {
   promptHint: '作为 system 提示送给模型，支持 {language} 与 {maxChars} 占位符。',
   repoLabel: 'GitHub 仓库',
   repoHint: '从备忘生成 issue 时使用的仓库地址。',
+  updateGroup: '版本与更新',
+  updateHint: '只查询 npm 上的最新版本，不会自动安装；需要时复制命令手动执行并重启 DSH。',
+  updateCurrent: '运行版本',
+  updateLatest: '最新版本',
+  updateCheck: '检查更新',
+  updateChecking: '检查中…',
+  updateAvailable: '有新版本可用',
+  updateUpToDate: '已是最新',
+  updateCommand: '手工更新命令',
+  updateCopy: '复制命令',
+  updateCopied: '已复制',
+  updateFailed: '检查更新失败',
   save: '保存',
   saving: '保存中…',
   saved: '已保存',
@@ -149,6 +165,18 @@ export const en: Record<MemoKey | IntakeKey, string> = {
   promptHint: 'Sent to the model as the system prompt; supports the {language} and {maxChars} placeholders.',
   repoLabel: 'GitHub repository',
   repoHint: 'Repository used when an issue is generated from memos.',
+  updateGroup: 'Version & updates',
+  updateHint: 'Only looks up the latest published version; nothing is installed. Copy the command and run it yourself, then restart DSH.',
+  updateCurrent: 'Running version',
+  updateLatest: 'Latest version',
+  updateCheck: 'Check for updates',
+  updateChecking: 'Checking…',
+  updateAvailable: 'A newer version is available',
+  updateUpToDate: 'Up to date',
+  updateCommand: 'Manual update command',
+  updateCopy: 'Copy command',
+  updateCopied: 'Copied',
+  updateFailed: 'The update check failed',
   save: 'Save',
   saving: 'Saving…',
   saved: 'Saved',

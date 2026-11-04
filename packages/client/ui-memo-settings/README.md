@@ -57,6 +57,12 @@ The `github-issue` page edits the configuration of `@zhangj1164/dsh-github-issue
 
 Not on this page: `token`, `tokenEnv`, `tokenCommand`, `apiBaseUrl` and `requestTimeoutMs` stay in `cordis.yml` — credentials and deployment-level transport settings do not belong in a browser surface.
 
+## Version and update check
+
+Below the form, the memo page renders a version card. It reads `memo/pluginInfo` on mount — a local lookup that reports the running package version and the configured update target — and calls `memo/checkUpdate` only when 检查更新 is pressed. Opening the page therefore costs no network request.
+
+The check reads the npm registry through the memo Host and reports the published version plus the exact `dsh plugin --profile … add --save-exact …` command. It never installs: a panel click happens between turns, where `ctx.approval.request()` cannot run, so the capability that changes the deployment stays a human action. A registry failure is shown as a reason (`update-check-failed`) while the running version stays on screen. Package name, registry, profile, and timeout are the Host's `update*` Config fields, so a fork or mirror retargets the check without touching this package.
+
 ## Bundle layer
 
 This package declares `dsh.bundle` with its own `cordis.patch.yml`, which inserts one row, `ui-memo-settings`. The module always loads; it registers a page only for a namespace the deployment actually serves. Installed without `@zhangj1164/dsh-memo` it shows no memo page, and installed without `@zhangj1164/dsh-github-issue` it shows no intake page.
