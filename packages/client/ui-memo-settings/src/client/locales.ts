@@ -32,6 +32,12 @@ export type MemoKey =
   | 'sourceTemplateLabel' | 'sourceTemplateHint'
   | 'promptLabel' | 'promptHint'
   | 'repoLabel' | 'repoHint'
+  // Version and update dialog
+  | 'updateCheck' | 'updateTitle' | 'updateIntro' | 'updateCurrent' | 'updateLatest'
+  | 'updateChecking' | 'updateAvailable' | 'updateUpToDate' | 'updateProfile'
+  | 'updateManual' | 'updateManualHint' | 'updateCopy' | 'updateCopied'
+  | 'updateRecheck' | 'updateApply' | 'updateApplying' | 'updateApplied'
+  | 'updateNeedsRestart' | 'updateFailed' | 'updateInstallFailed' | 'updateClose'
   // Page-specific states
   | 'unavailable'
 
@@ -82,6 +88,27 @@ export const zh: Record<MemoKey | IntakeKey, string> = {
   promptHint: '作为 system 提示送给模型，支持 {language} 与 {maxChars} 占位符。',
   repoLabel: 'GitHub 仓库',
   repoHint: '从备忘生成 issue 时使用的仓库地址。',
+  updateCheck: '检查更新',
+  updateTitle: '备忘 更新',
+  updateIntro: '仅检查并更新当前插件，不会联动安装其他插件。',
+  updateCurrent: '运行版本',
+  updateLatest: '最新版本',
+  updateChecking: '检查中…',
+  updateAvailable: '发现新版本',
+  updateUpToDate: '已是最新版本',
+  updateProfile: '目标 profile',
+  updateManual: '手工更新',
+  updateManualHint: '自动更新失败时，可在当前 DSH 终端执行以下命令，完成后重启 DSH Web。',
+  updateCopy: '复制命令',
+  updateCopied: '已复制',
+  updateRecheck: '重新检查',
+  updateApply: '自动更新',
+  updateApplying: '正在更新…',
+  updateApplied: '更新完成',
+  updateNeedsRestart: '重启 DSH Web 后生效',
+  updateFailed: '检查更新失败',
+  updateInstallFailed: '自动更新失败',
+  updateClose: '关闭',
   save: '保存',
   saving: '保存中…',
   saved: '已保存',
@@ -149,6 +176,27 @@ export const en: Record<MemoKey | IntakeKey, string> = {
   promptHint: 'Sent to the model as the system prompt; supports the {language} and {maxChars} placeholders.',
   repoLabel: 'GitHub repository',
   repoHint: 'Repository used when an issue is generated from memos.',
+  updateCheck: 'Check for updates',
+  updateTitle: 'Memo update',
+  updateIntro: 'Checks and updates this plugin only; no other plugin is installed as a side effect.',
+  updateCurrent: 'Running version',
+  updateLatest: 'Latest version',
+  updateChecking: 'Checking…',
+  updateAvailable: 'New version found',
+  updateUpToDate: 'Already up to date',
+  updateProfile: 'Target profile',
+  updateManual: 'Manual update',
+  updateManualHint: 'If the automatic update fails, run this command in the current DSH terminal, then restart DSH Web.',
+  updateCopy: 'Copy command',
+  updateCopied: 'Copied',
+  updateRecheck: 'Check again',
+  updateApply: 'Update now',
+  updateApplying: 'Updating…',
+  updateApplied: 'Update complete',
+  updateNeedsRestart: 'Restart DSH Web to apply it',
+  updateFailed: 'The update check failed',
+  updateInstallFailed: 'The automatic update failed',
+  updateClose: 'Close',
   save: 'Save',
   saving: 'Saving…',
   saved: 'Saved',

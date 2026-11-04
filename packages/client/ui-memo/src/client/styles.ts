@@ -602,6 +602,108 @@ export const CSS_TEXT = `
   font-size: 11px;
   white-space: nowrap;
 }
+/* The filter row: one search box, the project and time selects, and refresh.
+   It wraps rather than shrinking the search box below a usable width. */
+.dsh-memo-sessionFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.dsh-memo-sessionSearch {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+.dsh-memo-sessionSelect {
+  font: inherit;
+  font-size: 12px;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 4px 6px;
+  max-width: 180px;
+}
+.dsh-memo-sessionSelect:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 1px;
+}
+
+/* One workspace bucket. The group's rows keep the list's own gap, so a group
+   reads as a heading plus its rows rather than a nested card. */
+.dsh-memo-sessionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dsh-memo-sessionGroupHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 2px;
+  position: sticky;
+  top: 0;
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
+  z-index: 1;
+}
+/* The heading is the expand/collapse control: the whole band is one button, so
+   the target is the row rather than a 12px chevron. */
+.dsh-memo-sessionGroupToggle {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dsh-memo-sessionGroupToggle:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.dsh-memo-sessionGroupChevron {
+  flex: 0 0 auto;
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dsw-alias-text-3);
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+}
+.dsh-memo-sessionGroupChevron[data-collapsed] { transform: rotate(-90deg); }
+.dsh-memo-sessionGroupCheck {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--dsw-alias-brand-primary);
+}
+.dsh-memo-sessionGroupTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dsw-alias-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-memo-sessionGroupCount {
+  font-size: 11px;
+  color: var(--dsw-alias-text-3);
+}
+.dsh-memo-sessionGroupBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* A chosen row reads as chosen even when its checkbox is scrolled out of view. */
+.dsh-memo-sessionRow[data-selected] {
+  border-color: var(--dsw-alias-brand-primary);
+  background: var(--dsw-alias-bg-layer-2);
+}
 .dsh-memo-failureList {
   margin: 0;
   padding-left: 18px;

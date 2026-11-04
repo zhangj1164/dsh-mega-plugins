@@ -23,6 +23,10 @@ DSH 本地按周组织的个人备忘服务，支持 AI 分析、报告导出、
 | `sessionSummaryMaxCharsLimit` | `2000` | 客户端可请求的字数上限（100–20000），宿主按它截断。 |
 | `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | 追加到每条生成总结末尾的文本。支持 `{sessionId}` 与 `{sessionTitle}` 占位符。 |
 | `sessionSummaryPrompt` | 内置 | 会话总结使用的系统提示词。支持 `{language}` 与 `{maxChars}` 占位符。 |
+| `updatePackageName` | `@zhangj1164/dsh-memo` | 设置页「检查更新」向 registry 查询的包名。 |
+| `updateRegistryUrl` | `https://registry.npmjs.org/` | 检查更新读取的 registry；使用镜像的部署可覆盖它。 |
+| `updateProfileName` | `web` | 生成的手工升级命令所指向的 profile。 |
+| `updateCheckTimeoutMs` | `10000` | 单次 registry 查询的超时（1000–60000 毫秒）。 |
 
 每个字段都是 `.volatile()`，因此设置面板可以在服务持续运行时就地改写：`cordis-plugin-loader` 刷新易变引用而不是重新挂载插件，每次调用都通过该引用读取当前值。看板用户会改的字段——`repoUrl`、`provider`、`model` 以及六个 `sessionSummary*` 文案开关——可以在 DSH Web 里通过 [`@zhangj1164/dsh-client-ui-memo-settings`](../../client/ui-memo-settings/README.zh.md) 编辑，它写的就是本表描述的那个设置服务；部署级开关（`logAnalysisPlugins`、`storageWriteRetries`、`storageWriteRetryDelayMs`、`sessionSummaryMaxCharsLimit`）仍留在 `cordis.yml`。那个页面以这些字段真的带 volatile 为前提：从别的分支残留的宿主 `lib/` 一个表单都投影不出来，页面因此静默消失而不是报错，只有重建本包并重启 DSH Web 才会回来——构建与排查顺序见设置页 README 的「本地开发与排查」一节。
 
@@ -79,8 +83,10 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 | `archiveQuarter(request)` | 按标签归档一个季度。任何不符合 `YYYY-Qn` 的标签都会以 `invalid-quarter-label` 被拒绝。 |
 | `unarchiveQuarter(request)` | 将某季度移出归档，并报告是否确实删除了记录。 |
 | `listArchivedQuarters(request)` | 列出已归档的季度，最早的在前，每条附带宿主解析出的周 id。 |
-| `listArchivedSessions(request)` | 列出 DSH 官方归档中的会话，最新的在前，附带标题和已总结过的周。子代理会话会被排除。 |
+| `listArchivedSessions(request)` | 列出 DSH 官方归档中的会话，最新的在前，附带标题、所属工作区与已总结过的周。子代理会话会被排除。标题优先来自宿主投影缓存，缓存答不上来的会话才去折叠日志。 |
 | `summarizeSession(request)` | 把请求的每个已归档会话分别总结并写入一个备忘周，输出语言与字数由请求指定。每个会话一条条目；`force: true` 会替换已有总结而不是重复添加。 |
+| `pluginInfo(request)` | 返回当前运行的包版本与配置好的更新目标，不发起网络请求。 |
+| `checkUpdate(request)` | 向配置的 npm registry 查询 `updatePackageName` 的最新版本，报告是否有新版，并渲染安装它的完整 `dsh plugin` 命令。不会安装任何东西；查询失败返回 `update-check-failed`。 |
 | `listModels(request)` | 上报 AI 调用将使用的路由，随后给出每个已注册 provider 及其公布的模型。不会失败：某个 provider 读不出来时只带它自己的 `error`，整个注册表读不出来时返回空列表并附 `catalogError`。 |
 
 上表列出调用方可以通过 Remote 面触及的方法。`readExternalPath` 故意不在其中：方法仍存在、仍返回文件文本，但没有 `@Remote` 注册就没有线上名字，任何请求都寻址不到它。
@@ -126,6 +132,14 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 **来源是记录下来的，不是猜出来的。** 每条生成的条目都带 `originSessionId`，`updateEntry` 会保留它；同一会话在同一周已有总结时，宿主以 `already-summarized` 拒绝第二次写入，除非传 `force: true`——那会替换该条目而不是新增一条。来源注记由宿主在模型返回之后按 `sessionSummarySourceTemplate` 渲染（支持 `{sessionId}` 与 `{sessionTitle}` 占位符）；模型看不到它，也无法伪造；如果放在浏览器里拼，其他客户端就看不到这段来源。
 
 **目标周与失败处理。** 请求上的 `weekId` 优先，否则用宿主的当前 ISO 周；客户端发送的是输入区使用的同一个目标周，因此「我正在看的那一周」在看板上只有一个含义。单个会话的失败（日志读不出、转写为空、模型失败）只留在该会话自己的结果里，一个坏会话不会丢弃其他已经成功的总结。目标周落在已归档季度时，会在任何写入之前以 `quarter-archived` 拒绝。
+
+**选择器又快又能筛。** `listArchivedSessions` 的标题优先取 `sessionProjectionCache.cachedSnapshot(header, ['title'])`，零 I/O；只有缓存答不上来的会话才去折叠日志——折叠一个标题要重放整份日志，这正是几十个归档会话要等上几秒的原因。每行还带上所属工作区（来自 registry 的同步投影），因此面板可以按项目分组，并按搜索词、项目、时间范围筛选，都不需要再往返宿主。子代理会话在任何标题读取之前就被剔除；刷新按钮就地重读归档，不用重开对话框。
+
+## 版本与检查更新
+
+设置页的更新按钮只在挂载时读一次 `pluginInfo`（只读本地事实），打开弹窗时才调用 `checkUpdate`。这个区分正是重点：打开设置不产生任何网络请求。`checkUpdate` 本身只读 registry，宿主也从不安装任何东西；它报告运行版本、已发布版本、是否有更新、目标 profile，以及完整的 `dsh plugin --profile … add --save-exact …` 命令。弹窗里可以触发的安装走部署自己的 `pluginManager/installBundle`，因此 profile 锁、兼容性检查与回滚都是平台的事，而不是本服务重新实现一遍。
+
+包名、registry、profile 与超时都是 Config 字段，fork 或镜像部署无需改代码即可改指向。
 
 ## 四维度周期
 

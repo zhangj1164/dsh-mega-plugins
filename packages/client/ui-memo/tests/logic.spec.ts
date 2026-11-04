@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
   cardsInPeriod,
+  filterArchivedSessions,
+  groupArchivedSessions,
+  groupSelection,
   labelMatches,
   periodDisplay,
   periodHasCards,
   readSelection,
   selectableYears,
+  sessionRangeStart,
   toCards,
   targetWeekId,
+  toggleGroupSelection,
+  UNGROUPED_SESSION_KEY,
   visiblePeriods,
   writeSelection,
   yearOf,
@@ -16,7 +22,7 @@ import {
   type MemoCard,
   type StorageLike,
 } from '../src/client/logic.ts'
-import type { MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
+import type { MemoArchivedSession, MemoArchivedWorkspace, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
 
 /** One stored week with the given entries; later weeks get later timestamps. */
 function week(weekId: string, contents: string[]): MemoWeek {
@@ -276,5 +282,133 @@ describe('selectableYears', () => {
 
   it('always offers the current year, even with nothing stored', () => {
     expect(selectableYears([entry('2026-W37', ['2026-W37'], true)], [], '2026')).toEqual(['2026'])
+  })
+})
+
+/** One archived session fixture. */
+function session(
+  sessionId: string,
+  title: string,
+  createdAt: number,
+  workspace?: { readonly id: string; readonly title: string; readonly path: string },
+): MemoArchivedSession {
+  return {
+    sessionId,
+    title,
+    createdAt,
+    ...(workspace === undefined
+      ? {}
+      : { workspaceId: workspace.id, workspaceTitle: workspace.title, workspacePath: workspace.path }),
+    summarizedWeekIds: [],
+  }
+}
+
+const WORKSPACE_A: MemoArchivedWorkspace = { id: 'ws-a', title: 'alpha', path: '/alpha' }
+const WORKSPACE_B: MemoArchivedWorkspace = { id: 'ws-b', title: 'beta', path: '/beta' }
+
+/** The clock the relative windows are measured from. */
+const NOW = new Date('2026-11-04T12:00:00+08:00')
+
+describe('filterArchivedSessions', () => {
+  const sessions = [
+    session('session-alpha-1', 'Fix CI pipeline', NOW.getTime() - 1_000, WORKSPACE_A),
+    session('session-beta-1', 'Refactor memo board', NOW.getTime() - 20 * 86_400_000, WORKSPACE_B),
+    session('session-loose-1', 'Scratch notes', NOW.getTime() - 200 * 86_400_000),
+  ]
+
+  it('returns everything for an empty filter', () => {
+    expect(filterArchivedSessions(sessions, { query: '', workspaceId: '', range: 'all' }, NOW))
+      .toHaveLength(3)
+  })
+
+  it('matches the title and the session id, case-insensitively', () => {
+    expect(filterArchivedSessions(sessions, { query: 'memo BOARD', workspaceId: '', range: 'all' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-beta-1'])
+    expect(filterArchivedSessions(sessions, { query: 'ALPHA', workspaceId: '', range: 'all' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-alpha-1'])
+  })
+
+  it('filters by workspace and by the ungrouped bucket', () => {
+    expect(filterArchivedSessions(sessions, { query: '', workspaceId: 'ws-b', range: 'all' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-beta-1'])
+    expect(filterArchivedSessions(sessions, { query: '', workspaceId: UNGROUPED_SESSION_KEY, range: 'all' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-loose-1'])
+  })
+
+  it('keeps only sessions inside the selected window', () => {
+    expect(filterArchivedSessions(sessions, { query: '', workspaceId: '', range: '7d' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-alpha-1'])
+    expect(filterArchivedSessions(sessions, { query: '', workspaceId: '', range: '30d' }, NOW)
+      .map(item => item.sessionId)).toEqual(['session-alpha-1', 'session-beta-1'])
+  })
+
+  it('measures "this year" from January 1 local time', () => {
+    expect(sessionRangeStart('year', NOW)).toBe(new Date(2026, 0, 1).getTime())
+    expect(sessionRangeStart('all', NOW)).toBeUndefined()
+  })
+})
+
+describe('groupArchivedSessions', () => {
+  it('orders groups by the host workspace order and puts ungrouped last', () => {
+    const sessions = [
+      session('s-a1', 'A one', 3, WORKSPACE_A),
+      session('s-b1', 'B one', 2, WORKSPACE_B),
+      session('s-loose', 'Loose', 1),
+      session('s-a2', 'A two', 0, WORKSPACE_A),
+    ]
+    const groups = groupArchivedSessions(sessions, [WORKSPACE_B, WORKSPACE_A])
+    expect(groups.map(group => group.key)).toEqual(['ws-b', 'ws-a', UNGROUPED_SESSION_KEY])
+    expect(groups[1]?.sessions.map(item => item.sessionId)).toEqual(['s-a1', 's-a2'])
+    expect(groups[2]?.sessions.map(item => item.sessionId)).toEqual(['s-loose'])
+  })
+
+  it('omits a workspace with no matching session and keeps an unlisted owner', () => {
+    const orphan = { id: 'ws-gone', title: 'gone', path: '/gone' }
+    const groups = groupArchivedSessions([session('s-1', 'one', 1, orphan)], [WORKSPACE_A])
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.key).toBe('ws-gone')
+    expect(groups[0]?.title).toBe('gone')
+  })
+})
+
+describe('groupSelection', () => {
+  it('reads none, some, and all from the selectable rows', () => {
+    expect(groupSelection([], ['a', 'b'])).toBe('none')
+    expect(groupSelection(['a'], ['a', 'b'])).toBe('some')
+    expect(groupSelection(['a', 'b'], ['a', 'b'])).toBe('all')
+  })
+
+  it('ignores ids outside the group and rows that cannot be chosen', () => {
+    // A session already summarized into the target week is not eligible, so a
+    // group whose every remaining row is done must not read as partly selected.
+    expect(groupSelection(['x'], ['a'])).toBe('none')
+    expect(groupSelection(['a'], ['a'])).toBe('all')
+    expect(groupSelection(['a', 'b'], [])).toBe('none')
+  })
+})
+
+describe('toggleGroupSelection', () => {
+  it('takes a whole group and clears it again', () => {
+    const taken = toggleGroupSelection([], ['a', 'b'], 5)
+    expect(taken).toEqual(['a', 'b'])
+    expect(toggleGroupSelection(taken, ['a', 'b'], 5)).toEqual([])
+  })
+
+  it('clears a partly selected group instead of adding to it', () => {
+    expect(toggleGroupSelection(['a'], ['a', 'b'], 5)).toEqual([])
+  })
+
+  it('stops at the host limit rather than overfilling the request', () => {
+    expect(toggleGroupSelection([], ['a', 'b', 'c'], 2)).toEqual(['a', 'b'])
+    expect(toggleGroupSelection([], ['a', 'b'], 0)).toEqual([])
+  })
+
+  it('leaves an already-full selection untouched', () => {
+    expect(toggleGroupSelection(['x', 'y'], ['a'], 2)).toEqual(['x', 'y'])
+  })
+
+  it('keeps selection order stable and never duplicates an id', () => {
+    expect(toggleGroupSelection(['c'], ['a', 'b', 'c'], 5)).toEqual([])
+    expect(toggleGroupSelection([], ['a', 'b'], 5)).toEqual(['a', 'b'])
   })
 })

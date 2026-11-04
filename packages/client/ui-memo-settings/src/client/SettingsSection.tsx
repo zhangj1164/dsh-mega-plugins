@@ -74,6 +74,14 @@ export interface SettingsSectionProps<F extends string, K extends string, V> ext
   readonly save: () => void
   /** Drop every staged field. */
   readonly discard: () => void
+  /**
+   * Page-specific entry rendered at the start of the action row.
+   *
+   * The row is the page's one persistent action surface, so a page-level tool
+   * belongs there rather than in a section of its own; the save pair stays at
+   * the right edge where the eye expects the commit action to be.
+   */
+  readonly footerLead?: React.ReactNode
 }
 
 /** The DOM id a field's label points at. */
@@ -236,22 +244,7 @@ export function SettingsSection<F extends string, K extends string, V>(
 
       {view.status === 'ready' && (
         <footer className="dsh-memo-settings-actions">
-          <button
-            type="button"
-            className="dsh-memo-settings-save"
-            disabled={!writable || busy || !dirty || hasInvalid}
-            onClick={() => { props.save() }}
-          >
-            {busy ? props.copy.saving : props.copy.save}
-          </button>
-          <button
-            type="button"
-            className="dsh-memo-settings-discard"
-            disabled={busy || !dirty}
-            onClick={() => { props.discard() }}
-          >
-            {props.copy.discard}
-          </button>
+          {props.footerLead}
           {view.notice !== null && (
             <span
               className={view.notice === 'saved' ? 'dsh-memo-settings-notice' : 'dsh-memo-settings-error'}
@@ -260,6 +253,24 @@ export function SettingsSection<F extends string, K extends string, V>(
               {view.notice === 'saved' ? props.copy.saved : props.copy.saveFailed}
             </span>
           )}
+          <div className="dsh-memo-settings-actionGroup">
+            <button
+              type="button"
+              className="dsh-memo-settings-discard"
+              disabled={busy || !dirty}
+              onClick={() => { props.discard() }}
+            >
+              {props.copy.discard}
+            </button>
+            <button
+              type="button"
+              className="dsh-memo-settings-save"
+              disabled={!writable || busy || !dirty || hasInvalid}
+              onClick={() => { props.save() }}
+            >
+              {busy ? props.copy.saving : props.copy.save}
+            </button>
+          </div>
         </footer>
       )}
     </div>

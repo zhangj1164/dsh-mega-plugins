@@ -18,12 +18,26 @@ import * as React from 'react'
 import type {
   MemoAnalysisType,
   MemoArchivedSession,
+  MemoArchivedWorkspace,
+  MemoListArchivedSessionsValue,
   MemoModelInfo,
   MemoModelProvider,
   MemoSessionSummaryOutcome,
 } from '@zhangj1164/dsh-memo/client'
 import type { MemoController, MemoViewState } from './controller.ts'
-import { PERIODS, periodDisplay, type MemoCard, type MemoModelChoice } from './logic.ts'
+import {
+  filterArchivedSessions,
+  groupArchivedSessions,
+  groupSelection,
+  PERIODS,
+  periodDisplay,
+  SESSION_RANGES,
+  toggleGroupSelection,
+  UNGROUPED_SESSION_KEY,
+  type MemoCard,
+  type MemoModelChoice,
+  type SessionRange,
+} from './logic.ts'
 import type { MemoKey } from './locales.ts'
 
 /** Translate function for this plugin's dictionary. */
@@ -976,6 +990,7 @@ function SessionSummaryDialog({
 }: SessionSummaryDialogProps): React.ReactElement {
   const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading')
   const [sessions, setSessions] = React.useState<readonly MemoArchivedSession[]>([])
+  const [workspaces, setWorkspaces] = React.useState<readonly MemoArchivedWorkspace[]>([])
   const [maxSessions, setMaxSessions] = React.useState(0)
   const [targetWeekId, setTargetWeekId] = React.useState('')
   const [maxChars, setMaxChars] = React.useState(0)
@@ -983,35 +998,72 @@ function SessionSummaryDialog({
   const [loadError, setLoadError] = React.useState<string | null>(null)
   const [selected, setSelected] = React.useState<readonly string[]>([])
   const [submitting, setSubmitting] = React.useState(false)
+  const [refreshing, setRefreshing] = React.useState(false)
   const [runError, setRunError] = React.useState<string | null>(null)
   const [written, setWritten] = React.useState(0)
   const [failures, setFailures] = React.useState<readonly MemoSessionSummaryOutcome[] | null>(null)
+  // The filters are a view of one already-loaded list, so typing or switching a
+  // project never re-reads the archive.
+  const [query, setQuery] = React.useState('')
+  const [workspaceId, setWorkspaceId] = React.useState('')
+  const [range, setRange] = React.useState<SessionRange>('all')
+  // Collapsed groups are held by key rather than by index: the filter changes
+  // which groups exist, and a re-render must not expand one the user closed.
+  const [collapsed, setCollapsed] = React.useState<readonly string[]>([])
 
-  React.useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      const result = await controller.loadArchivedSessions()
-      if (cancelled) return
-      if ('error' in result) {
-        setStatus('error')
-        setLoadError(result.error)
-        return
-      }
-      setSessions(result.sessions)
-      setMaxSessions(result.maxSessions)
-      setMaxChars(result.summaryMaxChars)
-      setMaxCharsLimit(result.summaryMaxCharsLimit)
-      setTargetWeekId(controller.targetWeek ?? result.currentWeekId)
-      setStatus('ready')
-    })()
-    return () => { cancelled = true }
+  const mounted = React.useRef(true)
+  React.useEffect(() => () => { mounted.current = false }, [])
+
+  /** Publish one successful list read. */
+  const applyList = React.useCallback((result: MemoListArchivedSessionsValue): void => {
+    setSessions(result.sessions)
+    setWorkspaces(result.workspaces ?? [])
+    setMaxSessions(result.maxSessions)
+    setMaxChars(result.summaryMaxChars)
+    setMaxCharsLimit(result.summaryMaxCharsLimit)
+    setTargetWeekId(controller.targetWeek ?? result.currentWeekId)
+    setStatus('ready')
   }, [controller])
+
+  /** Read the archive once, publishing either the list or why it failed. */
+  const load = React.useCallback(async (): Promise<boolean> => {
+    const result = await controller.loadArchivedSessions()
+    if (!mounted.current) return false
+    if ('error' in result) {
+      setStatus('error')
+      setLoadError(result.error)
+      return false
+    }
+    applyList(result)
+    return true
+  }, [applyList, controller])
+
+  React.useEffect(() => { void load() }, [load])
+
+  /** Re-read the archive in place, so an archive change needs no reopen. */
+  const refresh = async (): Promise<void> => {
+    if (refreshing) return
+    setRefreshing(true)
+    await load()
+    if (mounted.current) setRefreshing(false)
+  }
 
   /** A session already summarized into the week this request would write to. */
   const summarizedHere = (session: MemoArchivedSession): boolean =>
     targetWeekId.length > 0 && session.summarizedWeekIds.includes(targetWeekId)
 
-  const eligible = sessions.filter(session => !summarizedHere(session))
+  const filtered = React.useMemo(
+    () => filterArchivedSessions(sessions, { query, workspaceId, range }),
+    [sessions, query, workspaceId, range],
+  )
+  const groups = React.useMemo(
+    () => groupArchivedSessions(filtered, workspaces),
+    [filtered, workspaces],
+  )
+  /** Whether some archived session belongs to no workspace, so the filter offers that bucket. */
+  const offersUngrouped = sessions.some(session => session.workspaceId === undefined)
+
+  const eligible = filtered.filter(session => !summarizedHere(session))
 
   const toggle = (sessionId: string): void => {
     setSelected(current => current.includes(sessionId)
@@ -1021,6 +1073,21 @@ function SessionSummaryDialog({
 
   const selectAll = (): void => {
     setSelected(eligible.slice(0, maxSessions).map(session => session.sessionId))
+  }
+
+  /** Whether every visible group is collapsed, so one control can flip them all. */
+  const allCollapsed = groups.length > 0 && groups.every(group => collapsed.includes(group.key))
+
+  /** Flip one group's expanded state. */
+  const toggleGroupOpen = (key: string): void => {
+    setCollapsed(current => current.includes(key)
+      ? current.filter(entry => entry !== key)
+      : [...current, key])
+  }
+
+  /** Expand every group, or collapse them all when nothing is left open. */
+  const toggleAllGroups = (): void => {
+    setCollapsed(allCollapsed ? [] : groups.map(group => group.key))
   }
 
   const submit = async (): Promise<void> => {
@@ -1044,10 +1111,7 @@ function SessionSummaryDialog({
     // partial failure keeps the dialog open, and a stale list would invite a
     // second request the host would refuse as a duplicate.
     const reloaded = await controller.loadArchivedSessions()
-    if (!('error' in reloaded)) {
-      setSessions(reloaded.sessions)
-      setMaxSessions(reloaded.maxSessions)
-    }
+    if (!('error' in reloaded)) applyList(reloaded)
     // All succeeded: the board is already showing the target week, so the
     // dialog's work is done. Partial failures stay on screen with their reasons.
     if (failed.length === 0) {
@@ -1109,6 +1173,53 @@ function SessionSummaryDialog({
             sessions.length === 0
               ? React.createElement('div', { className: 'dsh-memo-empty' }, t('sessionSummaryEmpty'))
               : React.createElement(React.Fragment, null,
+                  React.createElement('div', { className: 'dsh-memo-sessionFilters' },
+                    React.createElement('input', {
+                      type: 'search',
+                      className: 'dsh-memo-input dsh-memo-sessionSearch',
+                      value: query,
+                      placeholder: t('sessionSummarySearch'),
+                      'aria-label': t('sessionSummarySearch'),
+                      disabled: submitting,
+                      onChange: event => setQuery(event.target.value),
+                    }),
+                    React.createElement('select', {
+                      className: 'dsh-memo-sessionSelect',
+                      value: workspaceId,
+                      'aria-label': t('sessionSummaryAllProjects'),
+                      disabled: submitting,
+                      onChange: event => setWorkspaceId(event.target.value),
+                    },
+                      React.createElement('option', { value: '' }, t('sessionSummaryAllProjects')),
+                      ...workspaces.map(workspace => React.createElement('option', {
+                        key: workspace.id,
+                        value: workspace.id,
+                      }, workspace.title)),
+                      offersUngrouped
+                        ? React.createElement('option', { value: UNGROUPED_SESSION_KEY }, t('sessionSummaryUngrouped'))
+                        : null),
+                    React.createElement('select', {
+                      className: 'dsh-memo-sessionSelect',
+                      value: range,
+                      'aria-label': t('sessionSummaryAllTime'),
+                      disabled: submitting,
+                      onChange: event => setRange(event.target.value as SessionRange),
+                    },
+                      ...SESSION_RANGES.map(entry => React.createElement('option', {
+                        key: entry,
+                        value: entry,
+                      }, t(sessionRangeKey(entry))))),
+                    React.createElement('button', {
+                      type: 'button',
+                      className: 'dsh-memo-btn',
+                      disabled: refreshing || submitting,
+                      onClick: () => void refresh(),
+                    }, refreshing ? t('sessionSummaryRefreshing') : t('sessionSummaryRefresh'))),
+                  React.createElement('div', { className: 'dsh-memo-sessionFacts' },
+                    React.createElement('span', null,
+                      `${t('sessionSummaryFiltered')}: ${filtered.length} / ${sessions.length}`),
+                    React.createElement('span', null,
+                      `${t('sessionSummarySelectedCount')}: ${selected.length} / ${maxSessions}`)),
                   React.createElement('div', { className: 'dsh-memo-actions' },
                     React.createElement('button', {
                       type: 'button',
@@ -1121,40 +1232,104 @@ function SessionSummaryDialog({
                       className: 'dsh-memo-btn',
                       disabled: submitting || selected.length === 0,
                       onClick: () => setSelected([]),
-                    }, t('sessionSummaryClearSelection'))),
-                  React.createElement('div', { className: 'dsh-memo-sessionList' },
-                    ...sessions.map(session => {
-                      const done = summarizedHere(session)
-                      const checked = selected.includes(session.sessionId)
-                      // The host caps one call, so the picker stops offering a
-                      // choice before the request can be refused for it.
-                      const disabled = submitting || targetArchived || done
-                        || (!checked && selected.length >= maxSessions)
-                      return React.createElement('label', {
-                        key: session.sessionId,
-                        className: 'dsh-memo-sessionRow',
-                        'data-summarized': done ? '' : undefined,
-                      },
-                        React.createElement('input', {
-                          type: 'checkbox',
-                          checked,
-                          disabled,
-                          'aria-label': session.title,
-                          onChange: () => toggle(session.sessionId),
-                        }),
-                        React.createElement('span', { className: 'dsh-memo-sessionMain' },
-                          React.createElement('span', { className: 'dsh-memo-sessionTitle' }, session.title),
-                          React.createElement('span', { className: 'dsh-memo-sessionMeta' },
-                            session.createdAt > 0
-                              ? `${new Date(session.createdAt).toLocaleDateString()} · `
-                              : '',
-                            session.sessionId.slice(0, 8))),
-                        done
-                          ? React.createElement('span', { className: 'dsh-memo-archivedTag' }, t('sessionSummaryAlready'))
-                          : session.summarizedWeekIds.length > 0
-                            ? React.createElement('span', { className: 'dsh-memo-sessionTag' }, t('sessionSummaryOtherWeek'))
-                            : null)
-                    }))),
+                    }, t('sessionSummaryClearSelection')),
+                    React.createElement('button', {
+                      type: 'button',
+                      className: 'dsh-memo-btn',
+                      disabled: submitting || groups.length === 0,
+                      onClick: toggleAllGroups,
+                    }, allCollapsed ? t('sessionSummaryExpandAll') : t('sessionSummaryCollapseAll'))),
+                  filtered.length === 0
+                    ? React.createElement('div', { className: 'dsh-memo-empty' }, t('sessionSummaryNoMatch'))
+                    : React.createElement('div', { className: 'dsh-memo-sessionList' },
+                        ...groups.map(group => {
+                          // Only rows the target week has not already summarized can be
+                          // chosen, so the group's own tri-state ignores the others.
+                          const groupEligible = group.sessions
+                            .filter(session => !summarizedHere(session))
+                            .map(session => session.sessionId)
+                          const state = groupSelection(selected, groupEligible)
+                          const title = group.key === UNGROUPED_SESSION_KEY
+                            ? t('sessionSummaryUngrouped')
+                            : group.title
+                          const open = !collapsed.includes(group.key)
+                          const bodyId = `dsh-memo-sessionGroup-${group.key}`
+                          return React.createElement('div', {
+                            key: group.key,
+                            className: 'dsh-memo-sessionGroup',
+                          },
+                            React.createElement('div', {
+                              className: 'dsh-memo-sessionGroupHead',
+                              title: group.path,
+                            },
+                              React.createElement('button', {
+                                type: 'button',
+                                className: 'dsh-memo-sessionGroupToggle',
+                                'aria-expanded': open,
+                                'aria-controls': bodyId,
+                                onClick: () => { toggleGroupOpen(group.key) },
+                              },
+                                React.createElement('span', {
+                                  className: 'dsh-memo-sessionGroupChevron',
+                                  'data-collapsed': open ? undefined : '',
+                                  'aria-hidden': 'true',
+                                }, '▾'),
+                                React.createElement('span', { className: 'dsh-memo-sessionGroupTitle' }, title),
+                                React.createElement('span', { className: 'dsh-memo-sessionGroupCount' },
+                                  String(group.sessions.length))),
+                              React.createElement('input', {
+                                type: 'checkbox',
+                                className: 'dsh-memo-sessionGroupCheck',
+                                checked: state === 'all',
+                                ref: (node: HTMLInputElement | null) => {
+                                  if (node !== null) node.indeterminate = state === 'some'
+                                },
+                                disabled: submitting || targetArchived || groupEligible.length === 0,
+                                'aria-label': `${t('sessionSummarySelectGroup')}: ${title}`,
+                                onChange: () => {
+                                  setSelected(current => toggleGroupSelection(current, groupEligible, maxSessions))
+                                },
+                              })),
+                            open
+                              ? React.createElement('div', {
+                                  className: 'dsh-memo-sessionGroupBody',
+                                  id: bodyId,
+                                },
+                                  ...group.sessions.map(session => {
+                                    const done = summarizedHere(session)
+                                    const checked = selected.includes(session.sessionId)
+                                    // The host caps one call, so the picker stops offering a
+                                    // choice before the request can be refused for it.
+                                    const disabled = submitting || targetArchived || done
+                                      || (!checked && selected.length >= maxSessions)
+                                    return React.createElement('label', {
+                                      key: session.sessionId,
+                                      className: 'dsh-memo-sessionRow',
+                                      'data-summarized': done ? '' : undefined,
+                                      'data-selected': checked ? '' : undefined,
+                                    },
+                                      React.createElement('input', {
+                                        type: 'checkbox',
+                                        checked,
+                                        disabled,
+                                        'aria-label': session.title,
+                                        onChange: () => toggle(session.sessionId),
+                                      }),
+                                      React.createElement('span', { className: 'dsh-memo-sessionMain' },
+                                        React.createElement('span', { className: 'dsh-memo-sessionTitle' }, session.title),
+                                        React.createElement('span', { className: 'dsh-memo-sessionMeta' },
+                                          session.createdAt > 0
+                                            ? `${new Date(session.createdAt).toLocaleDateString()} · `
+                                            : '',
+                                          session.sessionId.slice(0, 8))),
+                                      done
+                                        ? React.createElement('span', { className: 'dsh-memo-archivedTag' }, t('sessionSummaryAlready'))
+                                        : session.summarizedWeekIds.length > 0
+                                          ? React.createElement('span', { className: 'dsh-memo-sessionTag' }, t('sessionSummaryOtherWeek'))
+                                          : null)
+                                  }))
+                              : null)
+                        }))),
 
             runError !== null
               ? React.createElement('div', { className: 'dsh-memo-error', role: 'alert' }, runError)
@@ -1193,6 +1368,17 @@ function periodKey(period: string): MemoKey {
   if (period === 'month') return 'periodMonth'
   if (period === 'quarter') return 'periodQuarter'
   return 'periodYear'
+}
+
+/** Map a picker time window to its locale key. */
+function sessionRangeKey(range: SessionRange): MemoKey {
+  switch (range) {
+    case '7d': return 'sessionSummaryRange7d'
+    case '30d': return 'sessionSummaryRange30d'
+    case '90d': return 'sessionSummaryRange90d'
+    case 'year': return 'sessionSummaryRangeYear'
+    default: return 'sessionSummaryAllTime'
+  }
 }
 
 /**

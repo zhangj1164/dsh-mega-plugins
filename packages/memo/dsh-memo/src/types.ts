@@ -317,6 +317,8 @@ export type MemoMemoFailure =
   | { readonly code: 'session-empty'; readonly message: string; readonly sessionId: string }
   /** The target week already holds a summary of this session. */
   | { readonly code: 'already-summarized'; readonly message: string; readonly sessionId: string; readonly weekId: string; readonly entryId: string }
+  /** The npm registry could not be read, so no update status is known. */
+  | { readonly code: 'update-check-failed'; readonly message: string }
 
 /** ── Long-term memory (persistent JSON ledger in $DSH_HOME/memo/) ── */
 
@@ -528,12 +530,38 @@ export interface MemoArchivedSession {
   /** The directory the session ran in, when its header recorded one. */
   readonly cwd?: string
   /**
+   * The workspace the session is accounted to, when the registry lists one.
+   *
+   * Absent for a session that never belonged to a workspace, which the picker
+   * shows as the "ungrouped" bucket rather than inventing an owner.
+   */
+  readonly workspaceId?: string
+  /** Display title of that workspace, copied so the picker need not look it up. */
+  readonly workspaceTitle?: string
+  /** The workspace's directory, for a row tooltip. */
+  readonly workspacePath?: string
+  /**
    * Weeks that already hold a summary of this session, ascending.
    *
    * A caller uses this to mark "already summarized in the target week" and to
    * avoid offering a selection the host would refuse anyway.
    */
   readonly summarizedWeekIds: readonly string[]
+}
+
+/**
+ * One workspace offered as a picker filter.
+ *
+ * Only workspaces that currently account for at least one archived session are
+ * listed: a filter that can only ever produce an empty list is noise.
+ */
+export interface MemoArchivedWorkspace {
+  /** Registry identity of the workspace. */
+  readonly id: string
+  /** Display title. */
+  readonly title: string
+  /** Canonical directory. */
+  readonly path: string
 }
 
 /**
@@ -548,6 +576,13 @@ export interface MemoListArchivedSessionsRequest {}
 export interface MemoListArchivedSessionsValue {
   /** Archived sessions, newest first. */
   readonly sessions: readonly MemoArchivedSession[]
+  /**
+   * Workspaces accounting for at least one archived session, in registry order.
+   *
+   * Returned once so the picker's project filter does not have to re-derive the
+   * set from the rows it happens to be showing.
+   */
+  readonly workspaces: readonly MemoArchivedWorkspace[]
   /** How many sessions one `summarizeSession` call accepts. */
   readonly maxSessions: number
   /** The host's current ISO week id, used as the default write target. */
@@ -628,4 +663,67 @@ export interface MemoSummarizeSessionValue {
 /** Result of summarizing archived sessions. */
 export type MemoSummarizeSessionResult =
   | { readonly ok: true; readonly value: MemoSummarizeSessionValue }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/** ── Plugin update check ── */
+
+/**
+ * Request for `checkUpdate`.
+ *
+ * It carries no input, and it declares `request` because the Remote protocol
+ * binds arguments by name.
+ */
+export interface MemoCheckUpdateRequest {}
+
+/** One update check's result. */
+export interface MemoCheckUpdateValue {
+  /** Version of the memo package this host is running. */
+  readonly currentVersion: string
+  /** Latest version published on the configured registry. */
+  readonly latestVersion: string
+  /** Whether `latestVersion` is newer than `currentVersion`. */
+  readonly updateAvailable: boolean
+  /** The package the check asked about. */
+  readonly packageName: string
+  /** The registry the check read. */
+  readonly registryUrl: string
+  /**
+   * The exact command that installs `latestVersion`.
+   *
+   * Rendered by the host because the profile name, package name, and registry
+   * are deployment facts; the panel only displays and copies it.
+   */
+  readonly manualCommand: string
+  /** Epoch milliseconds of this check. */
+  readonly checkedAt: number
+}
+
+/** Result of checking the npm registry for a newer memo package. */
+export type MemoCheckUpdateResult =
+  | { readonly ok: true; readonly value: MemoCheckUpdateValue }
+  | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/**
+ * Request for `pluginInfo`.
+ *
+ * It carries no input, and it declares `request` because the Remote protocol
+ * binds arguments by name.
+ */
+export interface MemoPluginInfoRequest {}
+
+/** Local facts about the running memo package, without a network read. */
+export interface MemoPluginInfoValue {
+  /** Version of the memo package this host is running. */
+  readonly currentVersion: string
+  /** Package the update check would ask about. */
+  readonly packageName: string
+  /** Registry the update check would read. */
+  readonly registryUrl: string
+  /** Profile the generated manual command would target. */
+  readonly profileName: string
+}
+
+/** Result of reading the running package facts. */
+export type MemoPluginInfoResult =
+  | { readonly ok: true; readonly value: MemoPluginInfoValue }
   | { readonly ok: false; readonly error: MemoMemoFailure }

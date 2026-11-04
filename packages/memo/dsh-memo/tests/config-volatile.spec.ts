@@ -71,6 +71,10 @@ describe('memo Config volatility', () => {
       'sessionSummaryTranscriptMaxChars',
       'storageWriteRetries',
       'storageWriteRetryDelayMs',
+      'updateCheckTimeoutMs',
+      'updatePackageName',
+      'updateProfileName',
+      'updateRegistryUrl',
     ])
     const notVolatile = Object.entries(fields)
       .filter(([, node]) => node.meta?.volatile !== true)

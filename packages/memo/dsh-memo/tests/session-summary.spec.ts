@@ -43,17 +43,63 @@ interface MockSessionConfig {
   readonly headers?: readonly MockHeader[]
   /** Log-backed titles, by session id. */
   readonly titles?: Readonly<Record<string, string>>
+  /** Titles the mock projection cache already holds, by session id; `null` is a row without a title. */
+  readonly cachedTitles?: Readonly<Record<string, string | null>>
+  /** Workspaces the mock registry projects, with their session membership. */
+  readonly workspaces?: readonly {
+    readonly id: string
+    readonly title: string
+    readonly path: string
+    readonly sessionIds: readonly string[]
+  }[]
   /** Current surfaces, by session id. */
   readonly surfaces?: Readonly<Record<string, readonly SessionSurfaceEventLike[]>>
 }
 
-/** Mock `workspaceRegistry`: only the archive set is read by this feature. */
+/** Mock `workspaceRegistry`: the archive set plus the synchronous workspace projection. */
 class MockWorkspaceRegistry extends Service {
   readonly archivedSessionIds: readonly string[]
+  private readonly workspaces: readonly {
+    readonly id: string
+    readonly title: string
+    readonly path: string
+    readonly sessionIds: readonly string[]
+  }[]
 
   constructor(ctx: Context, config: MockSessionConfig) {
     super(ctx, 'workspaceRegistry')
     this.archivedSessionIds = [...config.archived]
+    this.workspaces = config.workspaces ?? []
+  }
+
+  list(): readonly {
+    readonly id: string
+    readonly title: string
+    readonly path: string
+    readonly sessionIds: readonly string[]
+  }[] {
+    return this.workspaces
+  }
+}
+
+/** Mock `sessionProjectionCache`: the zero-I/O title face the picker prefers. */
+class MockProjectionCache extends Service {
+  private readonly titles: Readonly<Record<string, string | null>>
+
+  constructor(ctx: Context, config: MockSessionConfig) {
+    super(ctx, 'sessionProjectionCache')
+    this.titles = config.cachedTitles ?? {}
+  }
+
+  cachedSnapshot(header: MockHeader, keys?: readonly string[]): { readonly values: Record<string, unknown> } | undefined {
+    void keys
+    if (!Object.hasOwn(this.titles, header.id)) return undefined
+    return { values: { title: this.titles[header.id] } }
+  }
+
+  cachedPredecessorTitle(header: MockHeader): { readonly values: Record<string, unknown> } | undefined {
+    if (!Object.hasOwn(this.titles, header.id)) return undefined
+    return { values: { title: this.titles[header.id] } }
   }
 }
 
@@ -62,6 +108,10 @@ class MockSessionQuery extends Service {
   private readonly headers: readonly MockHeader[]
   private readonly titles: Readonly<Record<string, string>>
   private readonly surfaces: Readonly<Record<string, readonly SessionSurfaceEventLike[]>>
+  /** How many times a batch title fold ran; the cache path must not call it. */
+  titleReads = 0
+  /** How many ids the batch title fold was asked for, summed. */
+  titleIdsRequested = 0
 
   constructor(ctx: Context, config: MockSessionConfig) {
     super(ctx, 'sessionQuery')
@@ -79,6 +129,8 @@ class MockSessionQuery extends Service {
     readonly status: 'fulfilled' | 'rejected'
     readonly value?: { readonly session?: MockHeader; readonly title?: { readonly title: string } }
   }[]> {
+    this.titleReads += 1
+    this.titleIdsRequested += sessionIds.length
     return sessionIds.map(sessionId => {
       const header = this.headers.find(candidate => candidate.id === sessionId)
       if (header === undefined) return { sessionId, status: 'rejected' as const }
@@ -168,6 +220,7 @@ async function sessionHarness(
     beforeMemo: async (ctx) => {
       await ctx.plugin(MockWorkspaceRegistry, config)
       await ctx.plugin(MockSessionQuery, config)
+      await ctx.plugin(MockProjectionCache, config)
     },
   })
 }
@@ -195,6 +248,71 @@ describe('listArchivedSessions', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error.code).toBe('session-service-unavailable')
+  })
+
+  it('maps archived sessions onto their workspace and lists only used workspaces', async () => {
+    const h = await sessionHarness({
+      ...FIXTURE,
+      workspaces: [
+        { id: 'ws-used', title: 'dsh-mega-plugins', path: 'E:\\work', sessionIds: ['session-a', 'session-active'] },
+        { id: 'ws-unused', title: 'other', path: 'E:\\other', sessionIds: ['session-active'] },
+      ],
+    })
+    const result = await h.ctx.memo.listArchivedSessions({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.workspaces).toEqual([
+      { id: 'ws-used', title: 'dsh-mega-plugins', path: 'E:\\work' },
+    ])
+    const byId = new Map(result.value.sessions.map(session => [session.sessionId, session]))
+    expect(byId.get('session-a')?.workspaceId).toBe('ws-used')
+    expect(byId.get('session-a')?.workspaceTitle).toBe('dsh-mega-plugins')
+    expect(byId.get('session-a')?.workspacePath).toBe('E:\\work')
+    // session-b is archived but belongs to no workspace, so it stays ungrouped.
+    expect(byId.get('session-b')?.workspaceId).toBeUndefined()
+  })
+
+  it('reads titles from the projection cache and folds only the uncached sessions', async () => {
+    const h = await sessionHarness({
+      ...FIXTURE,
+      cachedTitles: { 'session-a': 'Cached A' },
+      titles: { 'session-b': 'Folded B' },
+    })
+    const result = await h.ctx.memo.listArchivedSessions({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const byId = new Map(result.value.sessions.map(session => [session.sessionId, session]))
+    expect(byId.get('session-a')?.title).toBe('Cached A')
+    expect(byId.get('session-b')?.title).toBe('Folded B')
+    const query = h.ctx.get('sessionQuery') as MockSessionQuery
+    expect(query.titleReads).toBe(1)
+    expect(query.titleIdsRequested).toBe(1)
+  })
+
+  it('skips the log fold entirely when every archived title is cached', async () => {
+    const h = await sessionHarness({
+      ...FIXTURE,
+      cachedTitles: { 'session-a': 'Cached A', 'session-b': 'Cached B' },
+    })
+    const result = await h.ctx.memo.listArchivedSessions({})
+    expect(result.ok).toBe(true)
+    const query = h.ctx.get('sessionQuery') as MockSessionQuery
+    expect(query.titleReads).toBe(0)
+  })
+
+  it('treats a cached row without a title as answered and folds nothing', async () => {
+    const h = await sessionHarness({
+      archived: ['session-a'],
+      headers: [{ id: 'session-a', createdAt: 1_000 }],
+      cachedTitles: { 'session-a': null },
+      titles: { 'session-a': 'A title the cache has not seen' },
+    })
+    const result = await h.ctx.memo.listArchivedSessions({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.sessions[0]?.title).toBe('Session session-')
+    const query = h.ctx.get('sessionQuery') as MockSessionQuery
+    expect(query.titleReads).toBe(0)
   })
 })
 

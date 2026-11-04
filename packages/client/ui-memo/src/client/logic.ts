@@ -9,7 +9,14 @@
  * @module @zhangj1164/dsh-client-ui-memo/client/logic
  */
 
-import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
+import type {
+  MemoAnalysisPeriod,
+  MemoArchivedSession,
+  MemoArchivedWorkspace,
+  MemoEntry,
+  MemoPeriodEntry,
+  MemoWeek,
+} from '@zhangj1164/dsh-memo/client'
 
 /** One memo card: an entry plus the week it is stored in. */
 export interface MemoCard {
@@ -355,4 +362,178 @@ export function selectableYears(
     if (entry.current || periodHasCards(entry, withCards)) years.add(yearOf(entry.label))
   }
   return [...years].sort((a, b) => b.localeCompare(a))
+}
+
+/** ── Archived-session picker ── */
+
+/** Time windows the archived-session picker offers. */
+export type SessionRange = 'all' | '7d' | '30d' | '90d' | 'year'
+
+/** Every time window, in display order. */
+export const SESSION_RANGES: readonly SessionRange[] = ['all', '7d', '30d', '90d', 'year']
+
+/**
+ * Filter value selecting the sessions no workspace accounts for.
+ *
+ * A reserved sentinel rather than a real id: workspace ids are UUIDs, so this
+ * can never collide with one, and `''` stays free to mean "every workspace".
+ */
+export const UNGROUPED_SESSION_KEY = '::ungrouped::'
+
+/** The picker's three filters. */
+export interface ArchivedSessionFilters {
+  /** Free text matched against the title and the session id. */
+  readonly query: string
+  /** A workspace id, {@link UNGROUPED_SESSION_KEY}, or `''` for all. */
+  readonly workspaceId: string
+  /** The time window, relative to now. */
+  readonly range: SessionRange
+}
+
+/** One workspace bucket in the picker. */
+export interface ArchivedSessionGroup {
+  /** Workspace id, or {@link UNGROUPED_SESSION_KEY}. */
+  readonly key: string
+  /** Group heading text; the caller substitutes its own copy for the ungrouped key. */
+  readonly title: string
+  /** Workspace directory, when the group is a real workspace. */
+  readonly path?: string
+  /** The sessions in this bucket, newest first. */
+  readonly sessions: readonly MemoArchivedSession[]
+}
+
+/** One day in milliseconds. */
+const SESSION_RANGE_DAY_MS = 86_400_000
+
+/**
+ * The earliest creation time a range keeps.
+ * @param range - the selected window.
+ * @param now - the clock to measure relative windows from.
+ * @returns the inclusive lower bound, or `undefined` for "all time".
+ */
+export function sessionRangeStart(range: SessionRange, now: Date = new Date()): number | undefined {
+  if (range === 'all') return undefined
+  if (range === 'year') return new Date(now.getFullYear(), 0, 1).getTime()
+  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90
+  return now.getTime() - days * SESSION_RANGE_DAY_MS
+}
+
+/**
+ * Apply the picker's three filters.
+ *
+ * Pure and clock-injectable so the search/workspace/time rules are testable
+ * without a DOM; the dialog keeps the result in a memo so a keystroke never
+ * re-reads the archive.
+ * @param sessions - every archived session the host returned, newest first.
+ * @param filters - the current filter state.
+ * @param now - the clock relative windows are measured from.
+ * @returns the matching sessions, in the input order.
+ */
+export function filterArchivedSessions(
+  sessions: readonly MemoArchivedSession[],
+  filters: ArchivedSessionFilters,
+  now: Date = new Date(),
+): MemoArchivedSession[] {
+  const query = filters.query.trim().toLowerCase()
+  const start = sessionRangeStart(filters.range, now)
+  return sessions.filter(session => {
+    if (filters.workspaceId !== '') {
+      const owned = session.workspaceId ?? UNGROUPED_SESSION_KEY
+      if (owned !== filters.workspaceId) return false
+    }
+    if (start !== undefined && session.createdAt < start) return false
+    if (query.length === 0) return true
+    return session.title.toLowerCase().includes(query) || session.sessionId.toLowerCase().includes(query)
+  })
+}
+
+/**
+ * Bucket the filtered sessions by workspace.
+ *
+ * Group order follows the host's workspace order so the picker stays stable
+ * between reloads; a workspace the host no longer lists still surfaces through
+ * the row's own copied title, and the ungrouped bucket always sits last.
+ * @param sessions - the filtered sessions, newest first.
+ * @param workspaces - the workspaces the host reported, in registry order.
+ * @returns one group per workspace holding a match, then the ungrouped bucket.
+ */
+export function groupArchivedSessions(
+  sessions: readonly MemoArchivedSession[],
+  workspaces: readonly MemoArchivedWorkspace[],
+): ArchivedSessionGroup[] {
+  const buckets = new Map<string, MemoArchivedSession[]>()
+  const ungrouped: MemoArchivedSession[] = []
+  for (const session of sessions) {
+    if (session.workspaceId === undefined) {
+      ungrouped.push(session)
+      continue
+    }
+    const bucket = buckets.get(session.workspaceId) ?? []
+    bucket.push(session)
+    buckets.set(session.workspaceId, bucket)
+  }
+  const groups: ArchivedSessionGroup[] = []
+  for (const workspace of workspaces) {
+    const bucket = buckets.get(workspace.id)
+    if (bucket === undefined) continue
+    groups.push({ key: workspace.id, title: workspace.title, path: workspace.path, sessions: bucket })
+    buckets.delete(workspace.id)
+  }
+  for (const [id, bucket] of buckets) {
+    groups.push({ key: id, title: bucket[0]?.workspaceTitle ?? id, sessions: bucket })
+  }
+  if (ungrouped.length > 0) {
+    groups.push({ key: UNGROUPED_SESSION_KEY, title: '', sessions: ungrouped })
+  }
+  return groups
+}
+
+/** How one group's selectable rows stand against the current selection. */
+export type GroupSelection = 'none' | 'some' | 'all'
+
+/**
+ * Read one group's checkbox state.
+ *
+ * A session already summarized into the target week is not selectable, so it
+ * must not count towards "all": the group checkbox would otherwise sit at
+ * indeterminate forever on a workspace whose rows are all done.
+ * @param selected - the ids currently selected.
+ * @param eligible - the ids in this group that could still be selected.
+ * @returns whether none, some, or every eligible row is selected.
+ */
+export function groupSelection(
+  selected: readonly string[],
+  eligible: readonly string[],
+): GroupSelection {
+  if (eligible.length === 0) return 'none'
+  const chosen = eligible.filter(id => selected.includes(id)).length
+  if (chosen === 0) return 'none'
+  return chosen === eligible.length ? 'all' : 'some'
+}
+
+/**
+ * Toggle one whole group, respecting the host's per-call limit.
+ *
+ * A group that is fully or partly selected is cleared, because "click the box
+ * again to undo" is the affordance a checkbox promises. A group that is empty
+ * of selection takes as many of its rows as the remaining budget allows: the
+ * limit is the host's, so the picker stops offering a choice before the request
+ * could be refused for it.
+ * @param selected - the ids currently selected.
+ * @param eligible - the selectable ids of the group being toggled.
+ * @param maxSessions - the host's per-request limit.
+ * @returns the next selection.
+ */
+export function toggleGroupSelection(
+  selected: readonly string[],
+  eligible: readonly string[],
+  maxSessions: number,
+): string[] {
+  if (groupSelection(selected, eligible) !== 'none') {
+    return selected.filter(id => !eligible.includes(id))
+  }
+  const room = maxSessions - selected.length
+  if (room <= 0) return [...selected]
+  const added = eligible.filter(id => !selected.includes(id)).slice(0, room)
+  return [...selected, ...added]
 }

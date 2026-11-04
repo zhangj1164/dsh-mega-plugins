@@ -57,6 +57,16 @@ The `github-issue` page edits the configuration of `@zhangj1164/dsh-github-issue
 
 Not on this page: `token`, `tokenEnv`, `tokenCommand`, `apiBaseUrl` and `requestTimeoutMs` stay in `cordis.yml` — credentials and deployment-level transport settings do not belong in a browser surface.
 
+## Version and update dialog
+
+The action row carries a single update icon button at its leading edge, with 放弃修改 and 保存 pushed to the right edge and 保存 last. The button is inert until pressed: the page reads `memo/pluginInfo` once on mount — a local lookup of the running version, package, registry, and target profile — and opening the settings page therefore costs no network request.
+
+Pressing it opens a modal that reads the registry once, through `memo/checkUpdate`, and reports 运行版本, 最新版本 with the check's own answer beside it, and 目标 profile. Under a separator it prints the exact `dsh plugin --profile … add --save-exact …` command as one block with 复制命令 inside it, for the case where the automatic path cannot run. 重新检查 asks the registry again.
+
+自动更新 installs the version the check just reported, through `pluginManager/installBundle` — the same path `dsh plugin add` takes. That matters: the profile write lock, the DSH-compatibility check, the rollback on failure, and the restart-required outcome all belong to the platform, so this page only names `@zhangj1164/dsh-memo@<version>` and the registry that answered. It never assembles its own install command, and it never pretends to hold an approval it does not have. A deployment without `pluginManager` still gets the check and the manual command; the automatic button is then disabled, and a failed install reports the manager's own reason above the manual command rather than replacing it.
+
+Package name, registry, profile, and timeout are the Host's `update*` Config fields, so a fork or mirror retargets the check without touching this package.
+
 ## Bundle layer
 
 This package declares `dsh.bundle` with its own `cordis.patch.yml`, which inserts one row, `ui-memo-settings`. The module always loads; it registers a page only for a namespace the deployment actually serves. Installed without `@zhangj1164/dsh-memo` it shows no memo page, and installed without `@zhangj1164/dsh-github-issue` it shows no intake page.
@@ -69,7 +79,7 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 ## Tests
 
-`tests/form.spec.ts` drives the draft model against a stand-in Host form: staging without writing, save-only-the-edited-field, blank saving as an unset, a refusal that keeps the draft, the read-only and unavailable states, the four bounds, and the reconciliation that drops a draft once the Host agrees with it. `tests/MemoSettingsSection.spec.tsx` renders the page in jsdom over the real model and exercises every control, including the overridden badge and its reset, the invalid-number alert, and the discard path. `tests/entry.spec.tsx` applies the real browser half against a stand-in client context: the declared services, the single `settings.section` registration and its nav identity, the gate on the served namespace, the dictionaries, the injected store and actions, and the style disposal.
+`tests/form.spec.ts` drives the draft model against a stand-in Host form: staging without writing, save-only-the-edited-field, blank saving as an unset, a refusal that keeps the draft, the read-only and unavailable states, the four bounds, and the reconciliation that drops a draft once the Host agrees with it. `tests/MemoSettingsSection.spec.tsx` renders the page in jsdom over the real model and exercises every control, including the overridden badge and its reset, the invalid-number alert, the discard path, the action row order (update entry first, then discard, save last), and the whole update dialog: dormant until opened, both versions and the target profile, the copyable command, the recheck, the automatic install through the plugin manager with its restart notice, the disabled state when already current, and both failure paths. `tests/entry.spec.tsx` applies the real browser half against a stand-in client context: the declared services, the single `settings.section` registration and its nav identity, the gate on the served namespace, the dictionaries, the injected store and actions, the style disposal, and the version routed through `pluginManager/installBundle`.
 
 ## Local development with a linked install
 

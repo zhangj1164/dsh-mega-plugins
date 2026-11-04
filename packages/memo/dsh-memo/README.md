@@ -23,6 +23,10 @@ Local-only week-keyed personal memo service for DeepSeek Harness with AI analysi
 | `sessionSummaryMaxCharsLimit` | `2000` | Upper bound a client may request (100–20000); the host clamps to it. |
 | `sessionSummarySourceTemplate` | `\n\n来源会话：{sessionId}` | Text appended to every generated summary. Supports the `{sessionId}` and `{sessionTitle}` placeholders. |
 | `sessionSummaryPrompt` | built-in | System prompt for session summaries. Supports the `{language}` and `{maxChars}` placeholders. |
+| `updatePackageName` | `@zhangj1164/dsh-memo` | Package the Settings page's update check asks the registry about. |
+| `updateRegistryUrl` | `https://registry.npmjs.org/` | Registry the update check reads; a mirror deployment overrides it. |
+| `updateProfileName` | `web` | Profile the generated manual upgrade command targets. |
+| `updateCheckTimeoutMs` | `10000` | Timeout for one registry lookup (1000–60000 ms). |
 
 Every field is `.volatile()`, so a settings surface can rewrite one while the service keeps running: `cordis-plugin-loader` refreshes the volatile references in place instead of remounting the plugin, and each call reads the current value through the ref. The fields a board user would change — `repoUrl`, `provider`, `model` and the six `sessionSummary*` copy knobs — are editable in DSH Web through [`@zhangj1164/dsh-client-ui-memo-settings`](../../client/ui-memo-settings/README.md), which writes through the same settings service this table describes; the deployment knobs (`logAnalysisPlugins`, `storageWriteRetries`, `storageWriteRetryDelayMs`, `sessionSummaryMaxCharsLimit`) stay in `cordis.yml`. That page is gated on these fields really being volatile: a Host `lib/` left over from another branch projects no form at all, so the page disappears silently instead of failing, and it comes back only after rebuilding this package and restarting DSH Web — see the settings page README's local-development section for the build and diagnosis order.
 
@@ -79,8 +83,10 @@ Every method declares exactly one parameter named `request`, even when it carrie
 | `archiveQuarter(request)` | Archives one quarter by label. Anything that is not a `YYYY-Qn` label is rejected with `invalid-quarter-label`. |
 | `unarchiveQuarter(request)` | Removes a quarter from the archive and reports whether a row was actually removed. |
 | `listArchivedQuarters(request)` | Lists archived quarters, oldest first, each with the week ids the host resolved for it. |
-| `listArchivedSessions(request)` | Lists the sessions in DSH's official archive, newest first, with titles and the weeks already summarized. Subagent sessions are excluded. |
+| `listArchivedSessions(request)` | Lists the sessions in DSH's official archive, newest first, with titles, their workspace, and the weeks already summarized. Subagent sessions are excluded. Titles come from the host projection cache; only a session it cannot answer for folds its log. |
 | `summarizeSession(request)` | Summarizes each requested archived session into one memo week, in the language and at the length the request asks for. One entry per session; `force: true` replaces an existing summary instead of duplicating it. |
+| `pluginInfo(request)` | Reports the running package version and the configured update target, without a network read. |
+| `checkUpdate(request)` | Asks the configured npm registry for the latest `updatePackageName` version, reports whether it is newer, and renders the exact `dsh plugin` command that installs it. Never installs anything; a failed lookup is `update-check-failed`. |
 | `listModels(request)` | Reports the route AI calls would use, then every registered provider with the models it advertises. Never fails: a provider that cannot be listed keeps its own `error`, and an unreadable registry comes back empty with `catalogError`. |
 
 The table lists what a caller can reach over the Remote surface. `readExternalPath` is deliberately absent from it: the method still exists and still returns a file's text, but with no `@Remote` registration it has no wire name, so no request can address it.
@@ -126,6 +132,14 @@ Summaries come from DSH's own session archive: `workspaceRegistry.archivedSessio
 **Provenance is recorded, not inferred.** Every generated entry carries `originSessionId`, `updateEntry` preserves it, and the host refuses a second summary of the same session in the same week with `already-summarized` unless `force: true`, which replaces that entry instead of adding a duplicate. The source annotation is rendered on the host after the model returns, from `sessionSummarySourceTemplate` (the `{sessionId}` and `{sessionTitle}` placeholders); the model never sees it and cannot forge it, and an annotation added in the browser would be absent from every other client.
 
 **Target week and failures.** `weekId` on the request wins, otherwise the host's current ISO week; the client sends the same target week the composer uses, so "the week I am looking at" means one thing on the board. A per-session failure (unreadable log, empty transcript, model failure) stays inside that session's outcome, so one bad session does not discard the summaries that succeeded. A target week inside an archived quarter is refused with `quarter-archived` before any write.
+
+**The picker is fast and filterable.** `listArchivedSessions` answers titles from `sessionProjectionCache.cachedSnapshot(header, ['title'])` at zero I/O, and folds only the sessions the cache cannot answer for: folding one title replays that whole log, which is what made a few dozen archived sessions take seconds. Each row carries its workspace, resolved from the registry's synchronous projection, so the panel groups by project and filters by search text, project, and time window without another host round trip. Subagent children are dropped before any title work, and the refresh button re-reads the archive in place instead of requiring the dialog to be reopened.
+
+## Version and update check
+
+The Settings page's update button reads `pluginInfo` once on mount — local facts only — and opens a dialog that calls `checkUpdate` on open. That distinction is the point: opening settings costs no network request. `checkUpdate` itself is a read-only registry lookup and the host never installs anything; it reports the running and published versions, whether the published one is newer, the target profile, and the exact `dsh plugin --profile … add --save-exact …` command. The install the dialog can run on request goes through the deployment's own `pluginManager/installBundle`, so the profile lock, compatibility check, and rollback stay platform concerns rather than something this service re-implements.
+
+Package name, registry, profile, and timeout are Config fields so a fork or mirror can retarget the check without editing code.
 
 ## Four-dimension periods
 

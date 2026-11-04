@@ -12,23 +12,52 @@
  */
 
 import * as React from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoSettingsDraft, type MemoSettingsView } from '../src/client/form.ts'
 import { MemoSettingsSection } from '../src/client/MemoSettingsSection.tsx'
+import type { MemoUpdateCheck, MemoUpdateInfo, MemoUpdateInstallResult } from '../src/client/UpdateDialog.tsx'
 import { zh, type MemoKey } from '../src/client/locales.ts'
 import { FakeForm } from './fake-form.ts'
 
 afterEach(cleanup)
 
+/** The update readers a test hands the page. */
+interface UpdateStub {
+  readonly readInfo: () => Promise<MemoUpdateInfo | { readonly error: string }>
+  readonly checkUpdate: () => Promise<MemoUpdateCheck | { readonly error: string }>
+  readonly applyUpdate?: (check: MemoUpdateCheck) => Promise<MemoUpdateInstallResult>
+  readonly copyText: (text: string) => Promise<void>
+}
+
+/** The running facts every update test starts from. */
+const INFO: MemoUpdateInfo = {
+  currentVersion: '0.6.1',
+  packageName: '@zhangj1164/dsh-memo',
+  registryUrl: 'https://registry.npmjs.org/',
+  profileName: 'web',
+}
+
+/** A registry check offering `0.7.0` on top of the running `0.6.1`. */
+const CHECK: MemoUpdateCheck = {
+  currentVersion: '0.6.1',
+  latestVersion: '0.7.0',
+  updateAvailable: true,
+  packageName: '@zhangj1164/dsh-memo',
+  registryUrl: 'https://registry.npmjs.org/',
+  manualCommand: 'dsh plugin --profile web add --save-exact @zhangj1164/dsh-memo@0.7.0 --registry=https://registry.npmjs.org/',
+  checkedAt: 1,
+}
+
 /**
  * Render the page over a draft, with the shell's hook emulated by
- * `useSyncExternalStore` — the same subscription contract the injected store
+ * `useSyncExternalStore` 鈥?the same subscription contract the injected store
  * gets at runtime.
  * @param form - the Host form the page writes to.
+ * @param update - the version/update readers, when the test exercises that card.
  * @returns the rendered page and its draft.
  */
-function renderPage(form: FakeForm) {
+function renderPage(form: FakeForm, update?: UpdateStub) {
   const draft = new MemoSettingsDraft(form)
   const t = (key: MemoKey): string => zh[key]
 
@@ -48,6 +77,7 @@ function renderPage(form: FakeForm) {
       save={() => { void draft.save() }}
       discard={() => { draft.discard() }}
       close={() => {}}
+      {...(update === undefined ? {} : { update })}
     />,
   )
   return { view, draft }
@@ -171,5 +201,154 @@ describe('MemoSettingsSection', () => {
     expect(screen.getByText(zh.promptHint)).toBeTruthy()
     expect(zh.sourceTemplateHint).toContain('{sessionId}')
     expect(zh.promptHint).toContain('{maxChars}')
+  })
+
+  it('keeps the update entry dormant until its button is pressed', async () => {
+    const checkUpdate = vi.fn(async () => CHECK)
+    renderPage(new FakeForm({}), { readInfo: async () => INFO, checkUpdate, copyText: async () => {} })
+
+    // The page costs no registry request: the icon button only opens the dialog.
+    expect(checkUpdate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByRole('dialog')).toBeTruthy() })
+    expect(screen.getByText(zh.updateTitle)).toBeTruthy()
+    expect(screen.getByText(zh.updateIntro)).toBeTruthy()
+    await waitFor(() => { expect(checkUpdate).toHaveBeenCalledTimes(1) })
+    await waitFor(() => { expect(screen.getByText(`${zh.updateAvailable}: v0.7.0`)).toBeTruthy() })
+  })
+
+  it('reports both versions, the target profile, and a copyable command', async () => {
+    const copyText = vi.fn(async () => {})
+    renderPage(new FakeForm({}), { readInfo: async () => INFO, checkUpdate: async () => CHECK, copyText })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByText('v0.7.0')).toBeTruthy() })
+    expect(screen.getByText(zh.updateCurrent)).toBeTruthy()
+    expect(screen.getByText('v0.6.1')).toBeTruthy()
+    expect(screen.getByText(zh.updateLatest)).toBeTruthy()
+    expect(screen.getByText(zh.updateProfile)).toBeTruthy()
+    expect(screen.getByText('web')).toBeTruthy()
+    expect(screen.getByText(zh.updateManual)).toBeTruthy()
+    expect(screen.getByText(zh.updateManualHint)).toBeTruthy()
+    expect(screen.getByText(CHECK.manualCommand)).toBeTruthy()
+    // The answer sits beside the version it is about, in the same row.
+    const latestRow = screen.getByText('v0.7.0').closest('.dsh-memo-update-fact')
+    expect(latestRow?.querySelector('.dsh-memo-update-badge')?.textContent)
+      .toBe(`${zh.updateAvailable}: v0.7.0`)
+    expect(document.querySelector('.dsh-memo-update-divider')).toBeTruthy()
+    // Copy is part of the command block rather than a control next to it.
+    expect(screen.getByRole('button', { name: zh.updateCopy }).closest('.dsh-memo-update-commandCard'))
+      .toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCopy }))
+    await waitFor(() => { expect(copyText).toHaveBeenCalledWith(CHECK.manualCommand) })
+    await waitFor(() => { expect(screen.getByRole('button', { name: zh.updateCopied })).toBeTruthy() })
+  })
+
+  it('offers a recheck that asks the registry again', async () => {
+    const checkUpdate = vi.fn(async () => CHECK)
+    renderPage(new FakeForm({}), { readInfo: async () => INFO, checkUpdate, copyText: async () => {} })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(checkUpdate).toHaveBeenCalledTimes(1) })
+    await waitFor(() => { expect(screen.getByRole('button', { name: zh.updateRecheck })).toBeTruthy() })
+    fireEvent.click(screen.getByRole('button', { name: zh.updateRecheck }))
+    await waitFor(() => { expect(checkUpdate).toHaveBeenCalledTimes(2) })
+  })
+
+  it('installs the checked version through the plugin manager and says to restart', async () => {
+    const applyUpdate = vi.fn(async () => ({ ok: true, version: '0.7.0' }))
+    renderPage(new FakeForm({}), {
+      readInfo: async () => INFO,
+      checkUpdate: async () => CHECK,
+      applyUpdate,
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    const apply = await screen.findByRole('button', { name: zh.updateApply }) as HTMLButtonElement
+    expect(apply.disabled).toBe(false)
+    fireEvent.click(apply)
+
+    await waitFor(() => { expect(applyUpdate).toHaveBeenCalledWith(CHECK) })
+    await waitFor(() => { expect(screen.getByText(`${zh.updateApplied}: v0.7.0 · ${zh.updateNeedsRestart}`)).toBeTruthy() })
+  })
+
+  it('disables the automatic update when the version is current', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => INFO,
+      checkUpdate: async () => ({ ...CHECK, latestVersion: '0.6.1', updateAvailable: false }),
+      applyUpdate: async () => ({ ok: true }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByText(zh.updateUpToDate)).toBeTruthy() })
+    const apply = screen.getByRole('button', { name: zh.updateApply }) as HTMLButtonElement
+    expect(apply.disabled).toBe(true)
+  })
+
+  it('reports a failed install and keeps the manual command reachable', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => INFO,
+      checkUpdate: async () => CHECK,
+      applyUpdate: async () => ({ ok: false, reason: 'pnpm exited with code 1' }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    fireEvent.click(await screen.findByRole('button', { name: zh.updateApply }))
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('pnpm exited with code 1')
+    })
+    expect(screen.getByText(CHECK.manualCommand)).toBeTruthy()
+  })
+
+  it('reports a cancelled install with the failure label alone', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => INFO,
+      checkUpdate: async () => CHECK,
+      // A cancelled install changed nothing, so the manager has no reason to add.
+      applyUpdate: async () => ({ ok: false }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    fireEvent.click(await screen.findByRole('button', { name: zh.updateApply }))
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toBe(zh.updateInstallFailed)
+    })
+  })
+
+  it('shows the registry failure without losing the running version', async () => {
+    renderPage(new FakeForm({}), {
+      readInfo: async () => INFO,
+      checkUpdate: async () => ({ error: 'registry responded with HTTP 503' }),
+      copyText: async () => {},
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: zh.updateCheck }))
+    await waitFor(() => { expect(screen.getByRole('status').textContent).toContain('503') })
+    expect(screen.getByText('v0.6.1')).toBeTruthy()
+  })
+
+  it('puts the save pair at the right edge, save last', () => {
+    renderPage(new FakeForm({}), { readInfo: async () => INFO, checkUpdate: async () => CHECK, copyText: async () => {} })
+
+    const update = screen.getByRole('button', { name: zh.updateCheck })
+    const discard = screen.getByRole('button', { name: zh.discard })
+    const save = screen.getByRole('button', { name: zh.save })
+    const footer = save.closest('.dsh-memo-settings-actions') as HTMLElement
+    const group = save.closest('.dsh-memo-settings-actionGroup') as HTMLElement
+
+    expect(footer).toBeTruthy()
+    // The update entry leads the row; the commit pair trails it in its own group.
+    expect(update.closest('.dsh-memo-settings-actionGroup')).toBeNull()
+    expect(group.contains(discard)).toBe(true)
+    // Save is the last control of the page, so the right edge is the commit.
+    expect(discard.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(save.compareDocumentPosition(update) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
   })
 })

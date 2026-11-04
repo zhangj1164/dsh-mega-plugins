@@ -65,11 +65,14 @@ interface IntakeFace {
  * @param options - whether the namespaces are served and whether slots resolve.
  * @returns what the entry point registered, plus the two forms and a disposer.
  */
-function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
+function applyPlugin(
+  options: { served?: boolean; slots?: boolean; connection?: boolean; installReply?: unknown } = {},
+) {
   const sections: RegisteredSection[] = []
   const dictionaries: Record<string, Record<string, Record<string, string>>> = {}
   const effects: (() => void)[] = []
   const served: string[][] = []
+  const rpcCalls: { readonly endpoint: string }[] = []
   const memoForm = new FakeForm({ repoUrl: 'https://example.test/repo' })
   const intakeForm = new FakeForm({
     repoUrl: 'https://example.test/repo',
@@ -95,6 +98,33 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
       if (typeof disposer === 'function') effects.push(disposer)
     },
     slots: options.slots === false ? undefined : slots,
+    connection: options.connection === false ? undefined : {
+      rpc: {
+        async call(_channel: string, endpoint: string, payload?: unknown): Promise<unknown> {
+          rpcCalls.push({ endpoint, payload })
+          if (endpoint === 'pluginManager/installBundle') {
+            // The plugin manager answers with its ChangeResult directly, unlike a
+            // memo Remote that wraps its own business result.
+            return options.installReply ?? {
+              ok: true,
+              value: { changed: true, application: 'restart-required', stage: 'install', target: 'memo', version: '0.7.0' },
+            }
+          }
+          const value = endpoint === 'memo/pluginInfo'
+            ? { currentVersion: '0.6.1', packageName: '@zhangj1164/dsh-memo', registryUrl: 'https://registry.npmjs.org/', profileName: 'web' }
+            : {
+                currentVersion: '0.6.1',
+                latestVersion: '0.7.0',
+                updateAvailable: true,
+                packageName: '@zhangj1164/dsh-memo',
+                registryUrl: 'https://registry.npmjs.org/',
+                manualCommand: 'dsh plugin --profile web add --save-exact @zhangj1164/dsh-memo@0.7.0 --registry=https://registry.npmjs.org/',
+                checkedAt: 1,
+              }
+          return { ok: true, value: { ok: true, value } }
+        },
+      },
+    },
     get(name: string): unknown {
       if (name !== 'slots' || options.slots === false) return undefined
       return slots
@@ -115,12 +145,12 @@ function applyPlugin(options: { served?: boolean; slots?: boolean } = {}) {
   }
 
   apply(ctx as never)
-  return { sections, dictionaries, effects, served, memoForm, intakeForm }
+  return { sections, dictionaries, effects, served, memoForm, intakeForm, rpcCalls }
 }
 
 describe('ui-memo-settings client entry point', () => {
   it('declares exactly the services it reads', () => {
-    expect(inject).toEqual(['slots', 'locale', 'configForms'])
+    expect(inject).toEqual(['slots', 'locale', 'configForms', 'connection'])
   })
 
   it('waits for each namespace before registering its page', () => {
@@ -175,6 +205,87 @@ describe('ui-memo-settings client entry point', () => {
 
     face.discard()
     expect(draft.getSnapshot().drafts).toEqual({})
+  })
+
+  it('routes the update entry through the memo Remote methods', async () => {
+    const { sections, rpcCalls } = applyPlugin()
+    const face = (sections[0]!.inject as () => {
+      readonly update?: {
+        readInfo(): Promise<unknown>
+        checkUpdate(): Promise<unknown>
+        applyUpdate?: (check: unknown) => Promise<unknown>
+      }
+    })()
+    expect(face.update).toBeDefined()
+
+    await face.update!.readInfo()
+    expect(rpcCalls.map(call => call.endpoint)).toEqual(['memo/pluginInfo'])
+    const checked = await face.update!.checkUpdate() as { readonly latestVersion: string }
+    expect(checked.latestVersion).toBe('0.7.0')
+    expect(rpcCalls.map(call => call.endpoint)).toEqual(['memo/pluginInfo', 'memo/checkUpdate'])
+  })
+
+  it('installs the checked version through the plugin manager', async () => {
+    const { sections, rpcCalls } = applyPlugin()
+    const face = (sections[0]!.inject as () => {
+      readonly update: {
+        checkUpdate(): Promise<Record<string, unknown>>
+        applyUpdate(check: unknown): Promise<unknown>
+      }
+    })()
+    const checked = await face.update.checkUpdate()
+    const result = await face.update.applyUpdate(checked)
+
+    expect(result).toEqual({ ok: true, version: '0.7.0' })
+    expect(rpcCalls.map(call => call.endpoint)).toEqual(['memo/checkUpdate', 'pluginManager/installBundle'])
+    // The spec is the pinned version the check resolved, and the registry is the
+    // one that answered, so the automatic path installs exactly what was offered.
+    expect(rpcCalls[1]?.payload).toEqual({
+      args: {
+        spec: '@zhangj1164/dsh-memo@0.7.0',
+        options: { saveExact: true, registry: 'https://registry.npmjs.org/' },
+      },
+    })
+  })
+
+  it('reports the manager reason when the install fails', async () => {
+    const { sections } = applyPlugin({
+      installReply: {
+        ok: true,
+        value: {
+          changed: false,
+          application: 'failed',
+          stage: 'install',
+          target: 'memo',
+          error: { message: 'profile is read-only' },
+        },
+      },
+    })
+    const face = (sections[0]!.inject as () => {
+      readonly update: {
+        checkUpdate(): Promise<unknown>
+        applyUpdate(check: unknown): Promise<unknown>
+      }
+    })()
+    const checked = await face.update.checkUpdate()
+    expect(await face.update.applyUpdate(checked)).toEqual({ ok: false, reason: 'profile is read-only' })
+  })
+
+  it('treats a cancelled install as a failure with nothing else to report', async () => {
+    const { sections } = applyPlugin({
+      installReply: {
+        ok: true,
+        value: { changed: false, application: 'cancelled', stage: 'install', target: 'memo' },
+      },
+    })
+    const face = (sections[0]!.inject as () => {
+      readonly update: {
+        checkUpdate(): Promise<unknown>
+        applyUpdate(check: unknown): Promise<unknown>
+      }
+    })()
+    const checked = await face.update.checkUpdate()
+    expect(await face.update.applyUpdate(checked)).toEqual({ ok: false })
   })
 
   it('hands the intake page a store over the github-issue form', async () => {

@@ -29,6 +29,12 @@ export type MemoKey =
   | 'sessionSummaryEmpty' | 'sessionSummaryLoadFailed' | 'sessionSummaryStart'
   | 'sessionSummaryAlready' | 'sessionSummaryOtherWeek' | 'sessionSummaryWritten'
   | 'sessionSummaryFailed' | 'sessionSummaryArchivedWeek' | 'sessionSummaryNoSelection'
+  | 'sessionSummarySearch' | 'sessionSummaryAllProjects' | 'sessionSummaryUngrouped'
+  | 'sessionSummaryAllTime' | 'sessionSummaryRange7d' | 'sessionSummaryRange30d'
+  | 'sessionSummaryRange90d' | 'sessionSummaryRangeYear' | 'sessionSummaryFiltered'
+  | 'sessionSummaryNoMatch' | 'sessionSummaryRefresh' | 'sessionSummaryRefreshing'
+  | 'sessionSummarySelectedCount' | 'sessionSummarySelectGroup' | 'sessionSummaryExpandAll'
+  | 'sessionSummaryCollapseAll'
   // Result cards
   | 'collapse' | 'expand' | 'closeResult'
 
@@ -106,6 +112,22 @@ export const zh: Record<MemoKey, string> = {
   sessionSummaryFailed: '失败',
   sessionSummaryArchivedWeek: '目标周所在季度已归档，取消归档后才能写入',
   sessionSummaryNoSelection: '请至少选择一个会话',
+  sessionSummarySearch: '搜索标题或会话 ID',
+  sessionSummaryAllProjects: '全部项目',
+  sessionSummaryUngrouped: '未分组',
+  sessionSummaryAllTime: '全部时间',
+  sessionSummaryRange7d: '近 7 天',
+  sessionSummaryRange30d: '近 30 天',
+  sessionSummaryRange90d: '近 90 天',
+  sessionSummaryRangeYear: '今年',
+  sessionSummaryFiltered: '筛选结果',
+  sessionSummaryNoMatch: '没有符合筛选条件的会话',
+  sessionSummaryRefresh: '刷新列表',
+  sessionSummaryRefreshing: '刷新中…',
+  sessionSummarySelectedCount: '已选',
+  sessionSummarySelectGroup: '全选该组',
+  sessionSummaryExpandAll: '全部展开',
+  sessionSummaryCollapseAll: '全部收起',
   collapse: '折叠',
   expand: '展开',
   closeResult: '关闭此卡片',
@@ -185,6 +207,22 @@ export const en: Record<MemoKey, string> = {
   sessionSummaryFailed: 'Failed',
   sessionSummaryArchivedWeek: 'The target week is in an archived quarter; unarchive it before writing',
   sessionSummaryNoSelection: 'Select at least one session',
+  sessionSummarySearch: 'Search title or session id',
+  sessionSummaryAllProjects: 'All projects',
+  sessionSummaryUngrouped: 'Ungrouped',
+  sessionSummaryAllTime: 'All time',
+  sessionSummaryRange7d: 'Last 7 days',
+  sessionSummaryRange30d: 'Last 30 days',
+  sessionSummaryRange90d: 'Last 90 days',
+  sessionSummaryRangeYear: 'This year',
+  sessionSummaryFiltered: 'Matching',
+  sessionSummaryNoMatch: 'No sessions match these filters',
+  sessionSummaryRefresh: 'Refresh list',
+  sessionSummaryRefreshing: 'Refreshing…',
+  sessionSummarySelectedCount: 'Selected',
+  sessionSummarySelectGroup: 'Select this group',
+  sessionSummaryExpandAll: 'Expand all',
+  sessionSummaryCollapseAll: 'Collapse all',
   collapse: 'Collapse',
   expand: 'Expand',
   closeResult: 'Close this card',
