@@ -78,11 +78,13 @@ export interface UpdateEntryProps {
   readonly copyText: (text: string) => Promise<void>
 }
 
-/** Render one label/value pair of the dialog's fact grid. */
-function pair(label: string, value: string): React.ReactElement {
-  return React.createElement('div', { className: 'dsh-memo-update-pair' },
+/** Render one row of the dialog's fact table: label, value, and a trailing note. */
+function fact(label: string, value: string, note?: React.ReactNode): React.ReactElement {
+  return React.createElement('div', { className: 'dsh-memo-update-fact' },
     React.createElement('dt', null, label),
-    React.createElement('dd', null, value))
+    React.createElement('dd', null,
+      React.createElement('span', { className: 'dsh-memo-update-value' }, value),
+      note === undefined ? null : note))
 }
 
 /** The circular-arrow glyph of the update button. */
@@ -254,32 +256,30 @@ function UpdateDialog({
         }, '×')),
       React.createElement('p', { className: 'dsh-memo-update-intro' }, t('updateIntro')),
 
-      React.createElement('dl', { className: 'dsh-memo-update-grid' },
-        pair(t('updateCurrent'), version(currentVersion)),
-        pair(t('updateLatest'), version(latestVersion))),
+      React.createElement('dl', { className: 'dsh-memo-update-facts' },
+        fact(t('updateCurrent'), version(currentVersion)),
+        fact(t('updateLatest'), version(latestVersion), React.createElement('span', {
+          className: 'dsh-memo-update-badge',
+          role: 'status',
+          'data-available': checked?.updateAvailable === true ? '' : undefined,
+          'data-error': checkError === null ? undefined : '',
+        }, checkError !== null
+          ? `${t('updateFailed')}: ${checkError}`
+          : checking || checked === null
+            ? t('updateChecking')
+            : status)),
+        fact(t('updateProfile'), profileName.length === 0 ? '—' : profileName)),
 
-      React.createElement('p', {
-        className: 'dsh-memo-update-status',
-        role: 'status',
-        'data-available': checked?.updateAvailable === true ? '' : undefined,
-        'data-error': checkError === null ? undefined : '',
-      }, checkError !== null
-        ? `${t('updateFailed')}: ${checkError}`
-        : checking || checked === null
-          ? t('updateChecking')
-          : status),
-
-      React.createElement('dl', { className: 'dsh-memo-update-grid' },
-        pair(t('updateProfile'), profileName.length === 0 ? '—' : profileName)),
+      React.createElement('hr', { className: 'dsh-memo-update-divider' }),
 
       React.createElement('section', { className: 'dsh-memo-update-manual' },
         React.createElement('h4', { className: 'dsh-memo-update-manualTitle' }, t('updateManual')),
         React.createElement('p', { className: 'dsh-memo-update-manualHint' }, t('updateManualHint')),
-        React.createElement('div', { className: 'dsh-memo-update-commandRow' },
+        React.createElement('div', { className: 'dsh-memo-update-commandCard' },
           React.createElement('code', { className: 'dsh-memo-update-code' }, command.length === 0 ? '—' : command),
           React.createElement('button', {
             type: 'button',
-            className: 'dsh-memo-update-button',
+            className: 'dsh-memo-update-button dsh-memo-update-copyButton',
             disabled: command.length === 0,
             onClick: () => { void copy() },
           }, copied ? t('updateCopied') : t('updateCopy')))),

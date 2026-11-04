@@ -233,6 +233,14 @@ describe('MemoSettingsSection', () => {
     expect(screen.getByText(zh.updateManual)).toBeTruthy()
     expect(screen.getByText(zh.updateManualHint)).toBeTruthy()
     expect(screen.getByText(CHECK.manualCommand)).toBeTruthy()
+    // The answer sits beside the version it is about, in the same row.
+    const latestRow = screen.getByText('v0.7.0').closest('.dsh-memo-update-fact')
+    expect(latestRow?.querySelector('.dsh-memo-update-badge')?.textContent)
+      .toBe(`${zh.updateAvailable}: v0.7.0`)
+    expect(document.querySelector('.dsh-memo-update-divider')).toBeTruthy()
+    // Copy is part of the command block rather than a control next to it.
+    expect(screen.getByRole('button', { name: zh.updateCopy }).closest('.dsh-memo-update-commandCard'))
+      .toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: zh.updateCopy }))
     await waitFor(() => { expect(copyText).toHaveBeenCalledWith(CHECK.manualCommand) })

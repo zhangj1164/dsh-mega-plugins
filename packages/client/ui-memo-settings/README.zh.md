@@ -61,7 +61,7 @@
 
 操作行最左侧只有一个更新图标按钮，放弃修改与保存被推到最右，保存排最后。按钮在按下之前什么也不做：页面挂载时读一次 `memo/pluginInfo`（本地事实：运行版本、包名、registry、目标 profile），因此打开设置页不产生网络请求。
 
-按下后打开弹窗，通过 `memo/checkUpdate` 读取一次 registry，报告运行版本、最新版本、是否存在新版本以及目标 profile。事实下方给出完整的 `dsh plugin --profile … add --save-exact …` 命令和「复制命令」，供自动通道不可用时使用。「重新检查」会再读一次。
+按下后打开弹窗，通过 `memo/checkUpdate` 读取一次 registry：显示运行版本、最新版本（检查结论就贴在版本号旁边）以及目标 profile。分隔线以下给出完整的 `dsh plugin --profile … add --save-exact …` 命令，命令块内自带「复制命令」，供自动通道不可用时使用。「重新检查」会再读一次。
 
 「自动更新」安装的正是这次检查报告的版本，走 `pluginManager/installBundle`——也就是 `dsh plugin add` 走的同一条路。这一点很关键：profile 写锁、DSH 兼容性检查、失败回滚、以及「需重启才生效」的结论都属于平台，本页只提供 `@zhangj1164/dsh-memo@<版本>` 和应答的那个 registry。它不自己拼装安装命令，也不假装握有并不存在的审批。没有 `pluginManager` 的部署仍然可以检查并拿到手工命令，此时自动按钮禁用；安装失败时，管理器的原因显示在手工命令上方而不是替换它。
 
