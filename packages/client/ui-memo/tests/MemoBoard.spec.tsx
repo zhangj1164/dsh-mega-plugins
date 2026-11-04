@@ -1025,4 +1025,59 @@ describe('MemoBoard session summary', () => {
     const second = within(dialog).getByLabelText('Second')
     expect(second instanceof HTMLInputElement && second.disabled).toBe(true)
   })
+
+  it('groups the archive by workspace and filters it by search, project, and time', async () => {
+    const now = Date.now()
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [
+        { sessionId: 's1', title: 'Fix CI', createdAt: now, workspaceId: 'ws-a', workspaceTitle: 'alpha' },
+        { sessionId: 's2', title: 'Write docs', createdAt: now - 40 * 86_400_000, workspaceId: 'ws-b', workspaceTitle: 'beta' },
+        { sessionId: 's3', title: 'Scratch notes', createdAt: now - 200 * 86_400_000 },
+      ],
+      workspaces: [
+        { id: 'ws-a', title: 'alpha', path: '/alpha' },
+        { id: 'ws-b', title: 'beta', path: '/beta' },
+      ],
+    })
+
+    const groupTitles = (): (string | null)[] =>
+      [...dialog.querySelectorAll('.dsh-memo-sessionGroupTitle')].map(node => node.textContent)
+    expect(groupTitles()).toEqual(['alpha', 'beta', zh.sessionSummaryUngrouped])
+    expect(dialog.textContent).toContain(`${zh.sessionSummaryFiltered}: 3 / 3`)
+
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummarySearch), { target: { value: 'DOCS' } })
+    expect(groupTitles()).toEqual(['beta'])
+    expect(within(dialog).queryByText('Fix CI')).toBeNull()
+    expect(dialog.textContent).toContain(`${zh.sessionSummaryFiltered}: 1 / 3`)
+
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummarySearch), { target: { value: '' } })
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummaryAllProjects), { target: { value: 'ws-a' } })
+    expect(groupTitles()).toEqual(['alpha'])
+
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummaryAllProjects), { target: { value: '' } })
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummaryAllTime), { target: { value: '7d' } })
+    expect(groupTitles()).toEqual(['alpha'])
+    expect(within(dialog).queryByText('Write docs')).toBeNull()
+  })
+
+  it('reports when no session matches the filters instead of an empty archive', async () => {
+    const { dialog } = await openSessionSummary({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI', createdAt: Date.now() }],
+    })
+    fireEvent.change(within(dialog).getByLabelText(zh.sessionSummarySearch), { target: { value: 'nothing matches' } })
+    expect(within(dialog).getByText(zh.sessionSummaryNoMatch)).toBeTruthy()
+    expect(within(dialog).queryByText(zh.sessionSummaryEmpty)).toBeNull()
+  })
+
+  it('re-reads the archive from the refresh button without reopening the dialog', async () => {
+    const { rpc, dialog } = await openSessionSummary({
+      archivedSessions: [{ sessionId: 's1', title: 'Fix CI' }],
+    })
+    const reads = (): number => rpc.calls.filter(call => call.endpoint === 'memo/listArchivedSessions').length
+    expect(reads()).toBe(1)
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.sessionSummaryRefresh }))
+    await waitFor(() => { expect(reads()).toBe(2) })
+    expect(within(dialog).getByText('Fix CI')).toBeTruthy()
+  })
 })

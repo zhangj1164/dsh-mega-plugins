@@ -602,6 +602,62 @@ export const CSS_TEXT = `
   font-size: 11px;
   white-space: nowrap;
 }
+/* The filter row: one search box, the project and time selects, and refresh.
+   It wraps rather than shrinking the search box below a usable width. */
+.dsh-memo-sessionFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.dsh-memo-sessionSearch {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+.dsh-memo-sessionSelect {
+  font: inherit;
+  font-size: 12px;
+  color: var(--dsw-alias-text-1);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 4px 6px;
+  max-width: 180px;
+}
+.dsh-memo-sessionSelect:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 1px;
+}
+
+/* One workspace bucket. The group's rows keep the list's own gap, so a group
+   reads as a heading plus its rows rather than a nested card. */
+.dsh-memo-sessionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dsh-memo-sessionGroupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 2px 0;
+  position: sticky;
+  top: 0;
+  background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-1));
+  z-index: 1;
+}
+.dsh-memo-sessionGroupTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dsw-alias-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-memo-sessionGroupCount {
+  font-size: 11px;
+  color: var(--dsw-alias-text-3);
+}
 .dsh-memo-failureList {
   margin: 0;
   padding-left: 18px;

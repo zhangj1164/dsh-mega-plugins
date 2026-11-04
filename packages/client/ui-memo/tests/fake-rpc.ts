@@ -66,6 +66,15 @@ export interface FakeRpcOptions {
     readonly title: string
     readonly createdAt?: number
     readonly summarizedWeekIds?: readonly string[]
+    readonly workspaceId?: string
+    readonly workspaceTitle?: string
+    readonly workspacePath?: string
+  }[]
+  /** Workspaces `memo/listArchivedSessions` reports, in registry order. */
+  readonly workspaces?: readonly {
+    readonly id: string
+    readonly title: string
+    readonly path: string
   }[]
   /** Per-call session limit `memo/listArchivedSessions` reports; defaults to 5. */
   readonly maxSessions?: number
@@ -302,11 +311,19 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
           sessionId: session.sessionId,
           title: session.title,
           createdAt: session.createdAt ?? 0,
+          ...(session.workspaceId === undefined
+            ? {}
+            : {
+                workspaceId: session.workspaceId,
+                workspaceTitle: session.workspaceTitle ?? session.workspaceId,
+                ...(session.workspacePath === undefined ? {} : { workspacePath: session.workspacePath }),
+              }),
           summarizedWeekIds: [...new Set([
             ...(session.summarizedWeekIds ?? []),
             ...(written.get(session.sessionId) ?? []),
           ])],
         })),
+        workspaces: options.workspaces ?? [],
         maxSessions: options.maxSessions ?? 5,
         currentWeekId,
         summaryMaxChars: options.summaryMaxChars ?? 300,
