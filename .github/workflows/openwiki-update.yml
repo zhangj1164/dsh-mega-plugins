@@ -4,10 +4,38 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 8 * * *"
+  # Regenerate the wiki when main moves in a way that can change what it
+  # documents. main is the default branch: merges land there, the scheduled run
+  # above runs there too, and master receives the same pages through its
+  # periodic "merge main into master" sync, so watching master as well would
+  # only produce a second copy of openwiki/** that can never flow back.
+  # openwiki/** is deliberately absent from the paths, and AGENTS.md/CLAUDE.md
+  # are negated: the update pull request this workflow opens only touches those
+  # paths, so without that narrowing merging it would push to main, start
+  # another run, and open another pull request — forever.
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "scripts/**"
+      - "docs/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "*.md"
+      - "!AGENTS.md"
+      - "!CLAUDE.md"
 
 permissions:
   contents: write
   pull-requests: write
+
+# A push-triggered run can overlap the scheduled one at 08:00 UTC, and both
+# publish to the same openwiki/update branch; serialize them so the second waits
+# instead of overwriting the first mid-flight.
+concurrency:
+  group: openwiki-update
+  cancel-in-progress: false
 
 jobs:
   update:
