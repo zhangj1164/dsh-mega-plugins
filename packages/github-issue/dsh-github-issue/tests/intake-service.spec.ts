@@ -132,6 +132,33 @@ describe('runIntake', () => {
     expect(mounted.storage?.rows.get('intake')).toBeUndefined()
   })
 
+  it('waits for the Agent registry to publish the Session before queueing the prompt', async () => {
+    const mounted = await harness({ unpublishedAgentLookups: 3 })
+    stubFetch([issue(7)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([{ number: 7, sessionId: 'session-1' }])
+    expect(result.value.failures).toEqual([])
+    expect(mounted.agents?.followups).toHaveLength(1)
+  })
+
+  it('leaves the day unchecked when every dispatch failed', async () => {
+    const mounted = await harness({ withoutSessionServices: true })
+    stubFetch([issue(1)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([])
+    expect(mounted.storage?.rows.get('intake')).toBeUndefined()
+    expect(mounted.telemetry.errors.map(event => event.action)).toContain('runIntake')
+  })
+
+  it('records a failure event when the durable state cannot be opened', async () => {
+    const mounted = await harness({ storageOpenFails: true })
+    expect(mounted.telemetry.errors.some(event => event.action === 'openIntakeState')).toBe(true)
+  })
+
   it('keeps a dispatch failure instead of inventing a Session', async () => {
     const mounted = await harness({ withoutSessionServices: true })
     stubFetch([issue(1)])
@@ -177,6 +204,22 @@ describe('first-startup check', () => {
     })
     await vi.waitFor(() => expect(mounted.agents?.followups).toHaveLength(1), { timeout: 2000 })
     expect(mounted.agents?.followups[0]?.text).toContain('#9')
+  })
+
+  it('reports a startup pass whose dispatch failed instead of a silent success', async () => {
+    stubFetch([issue(4)])
+    const mounted = await harness({
+      autopilotEnabled: true,
+      initialState: { lastCheckedDay: '2000-01-01', dispatched: [] },
+      withoutSessionServices: true,
+    })
+    await vi.waitFor(
+      () => expect(mounted.telemetry.errors.some(event => event.action === 'startupIntake')).toBe(true),
+      { timeout: 2000 },
+    )
+    expect(mounted.telemetry.tracks.some(event => event.action === 'startupIntake' && event.result === 'success')).toBe(false)
+    const row = mounted.storage?.rows.get('intake') as { lastCheckedDay: string } | undefined
+    expect(row?.lastCheckedDay).toBe('2000-01-01')
   })
 
   it('stays off without durable state so it cannot dispatch twice', async () => {
