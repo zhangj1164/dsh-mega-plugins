@@ -115,16 +115,6 @@ export interface Config {
   /** Deadline for one GitHub REST request, in milliseconds. */
   readonly requestTimeoutMs: number
   /**
-   * How long one dispatch waits for its Session's Agent to be published, in
-   * milliseconds.
-   *
-   * The Session controller returns as soon as the Session exists, and the Agent
-   * registry publishes the live Agent on a later tick; a dispatch that read the
-   * handle in between failed with "the issue prompt was refused". Nothing
-   * announces that hand-over, so the wait is a bounded poll.
-   */
-  readonly dispatchReadyTimeoutMs: number
-  /**
    * Label that marks an issue claimable by the intake loop. The repository's
    * triage vocabulary owns the value; this field only names which label counts.
    */
@@ -170,7 +160,6 @@ export const Config: s<Config> = s.object({
   tokenCommandTimeoutMs: s.number().step(1).min(1000).max(120000).default(10000),
   apiBaseUrl: s.string().default('https://api.github.com'),
   requestTimeoutMs: s.number().step(1).min(1000).max(180000).default(15000),
-  dispatchReadyTimeoutMs: s.number().step(1).min(0).max(60000).default(5000),
   claimLabel: s.string().default('ready-for-agent').volatile(),
   maxIssuesPerRun: s.number().step(1).min(1).max(20).default(3).volatile(),
   autopilotEnabled: s.boolean().default(false).volatile(),
@@ -328,25 +317,18 @@ interface GithubStorageDomain {
 interface GithubSessionController {
   /** Create one ordinary Session for a new conversation. */
   create(request: { cwd?: string; agentPreset?: string }): Promise<{ sessionId: string }>
+  /** Admit one prompt on a Session's Agent, the durable path the Web prompt uses. */
+  prompt(
+    request: {
+      requestId: string
+      sessionId: string
+      mode: 'queue' | 'steer'
+      content: readonly { readonly type: 'text'; readonly text: string }[]
+    },
+    signal: AbortSignal,
+  ): Promise<unknown>
   /** Give one Session a readable title; optional because a deployment may mount no title service. */
   rename?(request: { sessionId: string; title: string }): Promise<unknown>
-}
-
-/** One live Agent's inbox entry point. */
-interface GithubAgentHandle {
-  /** Queue a next-turn prompt and wake the driver. */
-  readonly agent: {
-    followup(input: {
-      content: readonly { readonly type: 'text'; readonly text: string }[]
-      source: { readonly kind: string }
-    }): void
-  }
-}
-
-/** The Agent registry dispatch reads a published handle from. */
-interface GithubAgents {
-  /** Find one live Agent by its Session id. */
-  get(sessionId: string): GithubAgentHandle | undefined
 }
 
 /** The empty intake state used before the first pass and without storage. */
@@ -364,9 +346,6 @@ const EMPTY_INTAKE_STATE: IntakeStateRow = Object.freeze({
  */
 const MAX_DISPATCH_HISTORY = 500
 
-/** How often a dispatch rechecks the Agent registry while it waits for one. */
-const DISPATCH_READY_POLL_MS = 25
-
 /** The failure returned when a report cannot become a GitHub issue at all. */
 const INVALID_ISSUE_REQUEST = {
   ok: false,
@@ -381,7 +360,7 @@ const SESSION_UNAVAILABLE = {
   ok: false,
   error: {
     code: 'session-unavailable',
-    message: 'this deployment mounts no Session controller or Agent registry, so no issue can be dispatched',
+    message: 'this deployment mounts no Session controller with prompt admission, so no issue can be dispatched',
   },
 } as const
 
@@ -411,8 +390,6 @@ export class GithubIssueService extends TypertRemoteService {
   private readonly tokenCommandTimeoutMs: number
   private readonly apiBaseUrl: string
   private readonly requestTimeoutMs: number
-  /** How long one dispatch waits for its Session's Agent to be published. */
-  private readonly dispatchReadyTimeoutMs: number
   /** The persisted state, or the empty state when this deployment has no storage. */
   private intakeState: IntakeStateRow = EMPTY_INTAKE_STATE
   /** The durable table, absent when this deployment mounts no storage domain. */
@@ -443,7 +420,6 @@ export class GithubIssueService extends TypertRemoteService {
     this.tokenCommandTimeoutMs = config.tokenCommandTimeoutMs
     this.apiBaseUrl = config.apiBaseUrl
     this.requestTimeoutMs = config.requestTimeoutMs
-    this.dispatchReadyTimeoutMs = config.dispatchReadyTimeoutMs
   }
 
   /**
@@ -715,19 +691,20 @@ export class GithubIssueService extends TypertRemoteService {
   /**
    * Create one Session, queue the issue prompt, and name the Session.
    *
-   * The Session is created through the Session controller rather than the Agent
-   * registry directly: the controller applies the deployment's preset and
-   * workspace policy, so the dispatched Session behaves like one the user
-   * opened from the Web. The prompt is queued with the Agent's followup, which
-   * wakes the driver without waiting for a turn to be open elsewhere.
+   * Both steps go through the Session controller rather than the Agent registry
+   * directly: the controller applies the deployment's preset and workspace
+   * policy, and its prompt admission is the durable path the Web uses — it
+   * resolves the Session's Agent (resuming it when needed), records the message
+   * with a user source, and queues it on the Agent's inbox. Reading the registry
+   * by hand instead got the Agent object where a handle was expected, so every
+   * dispatch created a Session and then failed to queue anything.
    *
    * @param request - the issue and optional Session placement.
    * @returns the created Session, or a stable failure.
    */
   private async dispatch(request: GithubIssueDispatchRequest): Promise<GithubIssueDispatchResult> {
     const controller = optionalService<GithubSessionController>(this.ctx, 'sessionController')
-    const agents = optionalService<GithubAgents>(this.ctx, 'agents')
-    if (controller === undefined || agents === undefined) return SESSION_UNAVAILABLE
+    if (controller === undefined || typeof controller.prompt !== 'function') return SESSION_UNAVAILABLE
     const cwd = firstNonBlank(request.cwd, this.config.autopilotCwd.get())
     const agentPreset = firstNonBlank(request.agentPreset, this.config.autopilotPreset.get())
     let sessionId: string
@@ -740,21 +717,16 @@ export class GithubIssueService extends TypertRemoteService {
     } catch (error) {
       return { ok: false, error: { code: 'dispatch-failed', message: 'the Session could not be created: ' + describeError(error) } }
     }
-    const handle = await this.waitForAgent(agents, sessionId)
-    if (handle === undefined) {
-      return {
-        ok: false,
-        error: {
-          code: 'dispatch-failed',
-          message: 'Session "' + sessionId + '" was created but its Agent was not published within ' + this.dispatchReadyTimeoutMs + 'ms',
-        },
-      }
-    }
     try {
-      handle.agent.followup({
-        content: [{ type: 'text', text: renderDispatchPrompt(this.config.autopilotPrompt.get(), request.issue) }],
-        source: { kind: 'github-issue' },
-      })
+      await controller.prompt(
+        {
+          requestId: 'github-issue:' + request.issue.number + ':' + sessionId,
+          sessionId,
+          mode: 'queue',
+          content: [{ type: 'text', text: renderDispatchPrompt(this.config.autopilotPrompt.get(), request.issue) }],
+        },
+        new AbortController().signal,
+      )
     } catch (error) {
       return {
         ok: false,
@@ -767,30 +739,6 @@ export class GithubIssueService extends TypertRemoteService {
     void this.renameSession(controller, sessionId, 'Issue #' + request.issue.number + ': ' + request.issue.title)
     this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId })
     return { ok: true, value: Object.freeze({ sessionId }) }
-  }
-
-  /**
-   * Wait for a Session's Agent to appear in the registry.
-   *
-   * The Session controller answers as soon as the Session record exists, but the
-   * registry publishes the live Agent a moment later — and reliably later while
-   * the host is still starting, which is exactly when the startup check
-   * dispatches. Reading the handle once raced that hand-over: the dispatch
-   * created a Session, found no Agent on it, and reported the prompt as refused.
-   *
-   * @param agents - the Agent registry the Session was created through.
-   * @param sessionId - the Session the dispatch just created.
-   * @returns the published handle, or `undefined` when the configured wait expired.
-   */
-  private async waitForAgent(agents: GithubAgents, sessionId: string): Promise<GithubAgentHandle | undefined> {
-    const deadline = Date.now() + this.dispatchReadyTimeoutMs
-    for (;;) {
-      const handle = agents.get(sessionId)
-      if (handle !== undefined && handle.agent !== undefined) return handle
-      const left = deadline - Date.now()
-      if (left <= 0) return undefined
-      await new Promise<void>(resolve => setTimeout(resolve, Math.min(DISPATCH_READY_POLL_MS, left)))
-    }
   }
 
   /**
@@ -1188,9 +1136,9 @@ function buildPrefillUrl(repoUrl: string, report: GithubIssueReport, maxLength: 
  * Read one optional host service by its Cordis key.
  *
  * The intake loop works with services this package does not depend on: a
- * deployment may mount no storage, no Session controller, or no Agent registry.
- * Reading them by key keeps those features optional without turning the plugin
- * into a hard dependency of the whole Web composition.
+ * deployment may mount no storage or no Session controller. Reading them by key
+ * keeps those features optional without turning the plugin into a hard
+ * dependency of the whole Web composition.
  *
  * @param ctx - the host context.
  * @param name - the service key.
