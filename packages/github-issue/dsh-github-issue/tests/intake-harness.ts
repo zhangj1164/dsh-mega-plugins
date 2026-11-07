@@ -17,63 +17,51 @@ class MockLlmService extends Service {
   }
 }
 
-/** One followup this harness's Agent mock received. */
-export interface RecordedFollowup {
-  /** Session the prompt was queued on. */
+/** One prompt this harness's Session controller mock admitted. */
+export interface RecordedPrompt {
+  /** Client-minted identity recorded on the message. */
+  readonly requestId: string
+  /** Session the prompt was admitted on. */
   readonly sessionId: string
+  /** Delivery mode. */
+  readonly mode: string
   /** Rendered prompt text. */
   readonly text: string
-  /** Message source kind. */
-  readonly source: string
 }
 
-/** Mock Session controller that records creation and renaming. */
+/** Mock Session controller that records creation, prompt admission, and renaming. */
 class MockSessionController extends Service {
   /** Every create request, in order. */
   readonly creates: { cwd?: string; agentPreset?: string }[] = []
+  /** Every prompt admission, in order. */
+  readonly prompts: RecordedPrompt[] = []
   /** Every rename request, in order. */
   readonly renames: { sessionId: string; title: string }[] = []
+  /** Whether prompt admission fails the way a disposed Agent does. */
+  private readonly promptFails: boolean
   private index = 0
-  constructor(ctx: Context) {
+  constructor(ctx: Context, config?: { promptFails?: boolean }) {
     super(ctx, 'sessionController')
+    this.promptFails = config?.promptFails ?? false
   }
   async create(request: { cwd?: string; agentPreset?: string }) {
     this.creates.push(request)
     this.index += 1
     return { sessionId: 'session-' + this.index }
   }
+  async prompt(request: { requestId: string; sessionId: string; mode: string; content: readonly { text: string }[] }) {
+    if (this.promptFails) throw new Error('the Agent is not accepting prompts')
+    this.prompts.push({
+      requestId: request.requestId,
+      sessionId: request.sessionId,
+      mode: request.mode,
+      text: request.content.map(part => part.text).join(''),
+    })
+    return { accepted: true }
+  }
   async rename(request: { sessionId: string; title: string }) {
     this.renames.push(request)
     return { title: request.title }
-  }
-}
-
-/** Mock Agent registry whose handles record every queued prompt. */
-class MockAgents extends Service {
-  /** Every followup, in order. */
-  readonly followups: RecordedFollowup[] = []
-  /** How many lookups answer before the Agent counts as published. */
-  private readonly unpublishedLookups: number
-  private lookups = 0
-  constructor(ctx: Context, config?: { unpublishedLookups?: number }) {
-    super(ctx, 'agents')
-    this.unpublishedLookups = config?.unpublishedLookups ?? 0
-  }
-  get(sessionId: string) {
-    this.lookups += 1
-    if (this.lookups <= this.unpublishedLookups) return { agent: undefined }
-    const followups = this.followups
-    return {
-      agent: {
-        followup(input: { content: readonly { text: string }[]; source: { kind: string } }) {
-          followups.push({
-            sessionId,
-            text: input.content.map(part => part.text).join(''),
-            source: input.source.kind,
-          })
-        },
-      },
-    }
   }
 }
 
@@ -136,7 +124,7 @@ class MockTelemetry extends Service {
 
 /** Options one intake harness accepts. */
 export interface IntakeHarnessOptions {
-  /** Mount no Session controller and no Agent registry. */
+  /** Mount no Session controller. */
   readonly withoutSessionServices?: boolean
   /** Mount no storage domain. */
   readonly withoutStorage?: boolean
@@ -158,8 +146,8 @@ export interface IntakeHarnessOptions {
   readonly maxIssuesPerRun?: number
   /** Token to hand the service; `null` means no credential at all. */
   readonly token?: string | null
-  /** How many Agent lookups answer before the Session's Agent counts as published. */
-  readonly unpublishedAgentLookups?: number
+  /** Make prompt admission fail the way a disposed Agent does. */
+  readonly promptFails?: boolean
   /** Make opening the intake state fail the way a corrupt state file does. */
   readonly storageOpenFails?: boolean
 }
@@ -172,8 +160,6 @@ export interface IntakeHarness {
   readonly service: GithubIssueService
   /** Session controller mock, absent when not mounted. */
   readonly sessions: MockSessionController | undefined
-  /** Agent registry mock, absent when not mounted. */
-  readonly agents: MockAgents | undefined
   /** Storage mock, absent when not mounted. */
   readonly storage: MockStorageDomain | undefined
   /** Telemetry mock that records every event. */
@@ -196,10 +182,9 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
     ? undefined
     : await ctx.plugin(MockStorageDomain, { failingOpen: options.storageOpenFails === true }).then(() => ctx.get('storageDomain') as MockStorageDomain)
   if (storage !== undefined && options.initialState !== undefined) storage.rows.set('intake', options.initialState)
-  const sessions = options.withoutSessionServices === true ? undefined : await ctx.plugin(MockSessionController).then(() => ctx.get('sessionController') as MockSessionController)
-  const agents = options.withoutSessionServices === true
+  const sessions = options.withoutSessionServices === true
     ? undefined
-    : await ctx.plugin(MockAgents, { unpublishedLookups: options.unpublishedAgentLookups ?? 0 }).then(() => ctx.get('agents') as MockAgents)
+    : await ctx.plugin(MockSessionController, { promptFails: options.promptFails === true }).then(() => ctx.get('sessionController') as MockSessionController)
   const token = options.token ?? 'test-token'
   await ctx.plugin(GithubIssueService, {
     repoUrl: 'https://github.com/test/repo',
@@ -217,7 +202,6 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
     ctx,
     service: ctx.get('githubIssue') as GithubIssueService,
     sessions,
-    agents,
     storage,
     telemetry,
     async dispose() {

@@ -84,8 +84,8 @@ describe('runIntake', () => {
     expect(first.value.dispatched).toEqual([{ number: 1, sessionId: 'session-1' }])
     expect(first.value.skipped).toEqual([])
     expect(mounted.sessions?.creates).toHaveLength(1)
-    expect(mounted.agents?.followups).toHaveLength(1)
-    expect(mounted.agents?.followups[0]?.text).toContain('#1')
+    expect(mounted.sessions?.prompts).toHaveLength(1)
+    expect(mounted.sessions?.prompts[0]?.text).toContain('#1')
     await vi.waitFor(() => expect(mounted.sessions?.renames).toHaveLength(1))
     expect(mounted.sessions?.renames[0]?.title).toContain('Issue #1')
 
@@ -121,7 +121,7 @@ describe('runIntake', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:\\repo', agentPreset: 'standard' }])
-    expect(mounted.agents?.followups[0]?.text).toBe('TASK 1: Issue 1')
+    expect(mounted.sessions?.prompts[0]?.text).toBe('TASK 1: Issue 1')
   })
 
   it('does not remember a day whose listing failed', async () => {
@@ -132,15 +132,28 @@ describe('runIntake', () => {
     expect(mounted.storage?.rows.get('intake')).toBeUndefined()
   })
 
-  it('waits for the Agent registry to publish the Session before queueing the prompt', async () => {
-    const mounted = await harness({ unpublishedAgentLookups: 3 })
+  it('admits the prompt through the Session controller, not the Agent registry', async () => {
+    const mounted = await harness()
     stubFetch([issue(7)])
     const result = await mounted.service.runIntake({})
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.dispatched).toEqual([{ number: 7, sessionId: 'session-1' }])
     expect(result.value.failures).toEqual([])
-    expect(mounted.agents?.followups).toHaveLength(1)
+    expect(mounted.sessions?.prompts).toEqual([
+      { requestId: 'github-issue:7:session-1', sessionId: 'session-1', mode: 'queue', text: expect.stringContaining('#7') },
+    ])
+  })
+
+  it('reports a refused prompt as a dispatch failure without committing the day', async () => {
+    const mounted = await harness({ promptFails: true })
+    stubFetch([issue(8)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([])
+    expect(result.value.failures[0]?.code).toBe('dispatch-failed')
+    expect(mounted.storage?.rows.get('intake')).toBeUndefined()
   })
 
   it('leaves the day unchecked when every dispatch failed', async () => {
@@ -202,8 +215,8 @@ describe('first-startup check', () => {
       autopilotEnabled: true,
       initialState: { lastCheckedDay: '2000-01-01', dispatched: [] },
     })
-    await vi.waitFor(() => expect(mounted.agents?.followups).toHaveLength(1), { timeout: 2000 })
-    expect(mounted.agents?.followups[0]?.text).toContain('#9')
+    await vi.waitFor(() => expect(mounted.sessions?.prompts).toHaveLength(1), { timeout: 2000 })
+    expect(mounted.sessions?.prompts[0]?.text).toContain('#9')
   })
 
   it('reports a startup pass whose dispatch failed instead of a silent success', async () => {

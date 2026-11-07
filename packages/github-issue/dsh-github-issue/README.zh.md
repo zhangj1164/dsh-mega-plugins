@@ -21,7 +21,6 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `tokenCommandTimeoutMs` | `10000` | `tokenCommand` 的超时（毫秒）。 |
 | `apiBaseUrl` | `https://api.github.com` | GitHub REST 源。GitHub Enterprise 部署设置自己的 `https://host/api/v3`。 |
 | `requestTimeoutMs` | `15000` | 单次 GitHub REST 请求的超时（毫秒）。 |
-| `dispatchReadyTimeoutMs` | `5000` | 一次派发等待新会话的 Agent 发布出来的时长（毫秒）。Session 控制器先返回，Agent 注册表稍后才发布；在 handle 尚未就绪时排提示词，正是被报成「issue 提示词被拒绝」的那次失败。 |
 | `claimLabel` | `ready-for-agent` | 标记「可接单」的标签。取值的归属是仓库的分诊词汇表；本字段只决定哪个标签算数。 |
 | `maxIssuesPerRun` | `3` | 一次接单最多派发的 issue 数。 |
 | `autopilotEnabled` | `false` | 是否在本地日期首次启动时检查可接单 issue。默认关闭：未经请求就打开会话是部署决定，而不是插件安装时替用户做的决定。 |
@@ -80,7 +79,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 闭环有三步，本插件负责后两步。用户用自然语言描述问题，`optimizeIssue` 把它变成固定模板的报告，`createIssue` 直接建单。这一步替换掉闭环原本停住的地方：预填 URL 仍然要用户打开表单并按下提交，任何东西都无法自动接住这个 issue。
 
-`runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话。派发走 Session 控制器而不是直接走 Agent 注册表，这样派发出来的会话与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略；提示词经 Agent 的 `followup` 排入，它会唤醒驱动，而不需要别处已经有一个打开的 turn。控制器返回时注册表还没发布新会话的 Agent，因此派发会等待这个 handle 至多 `dispatchReadyTimeoutMs`，等不到就以 `dispatch-failed` 报错。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
+`runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话。派发走 Session 控制器而不是直接走 Agent 注册表：派发出来的会话与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略，提示词则经控制器的 `prompt` 排入——这正是 Web 端发提示词走的同一条持久路径，它把消息以用户来源记录下来，再排进会话 Agent 的收件箱，不需要别处已经有一个打开的 turn。反过来绕过控制器去读 Agent 注册表时，拿到的是 Agent 本身而不是预期中的 handle，于是每次派发都建出会话却排不进任何提示词；控制器会自己解析出活的 Agent，必要时先恢复它。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
 
 凭据每个进程只解析一次，顺序是 `token`、`tokenEnv`、`tokenCommand`。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志。
 
