@@ -115,6 +115,16 @@ export interface Config {
   /** Deadline for one GitHub REST request, in milliseconds. */
   readonly requestTimeoutMs: number
   /**
+   * How long one dispatch waits for its Session's Agent to be published, in
+   * milliseconds.
+   *
+   * The Session controller returns as soon as the Session exists, and the Agent
+   * registry publishes the live Agent on a later tick; a dispatch that read the
+   * handle in between failed with "the issue prompt was refused". Nothing
+   * announces that hand-over, so the wait is a bounded poll.
+   */
+  readonly dispatchReadyTimeoutMs: number
+  /**
    * Label that marks an issue claimable by the intake loop. The repository's
    * triage vocabulary owns the value; this field only names which label counts.
    */
@@ -160,6 +170,7 @@ export const Config: s<Config> = s.object({
   tokenCommandTimeoutMs: s.number().step(1).min(1000).max(120000).default(10000),
   apiBaseUrl: s.string().default('https://api.github.com'),
   requestTimeoutMs: s.number().step(1).min(1000).max(180000).default(15000),
+  dispatchReadyTimeoutMs: s.number().step(1).min(0).max(60000).default(5000),
   claimLabel: s.string().default('ready-for-agent').volatile(),
   maxIssuesPerRun: s.number().step(1).min(1).max(20).default(3).volatile(),
   autopilotEnabled: s.boolean().default(false).volatile(),
@@ -353,6 +364,9 @@ const EMPTY_INTAKE_STATE: IntakeStateRow = Object.freeze({
  */
 const MAX_DISPATCH_HISTORY = 500
 
+/** How often a dispatch rechecks the Agent registry while it waits for one. */
+const DISPATCH_READY_POLL_MS = 25
+
 /** The failure returned when a report cannot become a GitHub issue at all. */
 const INVALID_ISSUE_REQUEST = {
   ok: false,
@@ -397,6 +411,8 @@ export class GithubIssueService extends TypertRemoteService {
   private readonly tokenCommandTimeoutMs: number
   private readonly apiBaseUrl: string
   private readonly requestTimeoutMs: number
+  /** How long one dispatch waits for its Session's Agent to be published. */
+  private readonly dispatchReadyTimeoutMs: number
   /** The persisted state, or the empty state when this deployment has no storage. */
   private intakeState: IntakeStateRow = EMPTY_INTAKE_STATE
   /** The durable table, absent when this deployment mounts no storage domain. */
@@ -427,6 +443,7 @@ export class GithubIssueService extends TypertRemoteService {
     this.tokenCommandTimeoutMs = config.tokenCommandTimeoutMs
     this.apiBaseUrl = config.apiBaseUrl
     this.requestTimeoutMs = config.requestTimeoutMs
+    this.dispatchReadyTimeoutMs = config.dispatchReadyTimeoutMs
   }
 
   /**
@@ -460,6 +477,11 @@ export class GithubIssueService extends TypertRemoteService {
     await this.openIntakeState()
     if (!this.config.autopilotEnabled.get()) return
     if (!this.intakePersistent) {
+      this.trackError('startupIntake', {
+        code: 'state-unavailable',
+        message: 'autopilot is enabled but no durable intake state is available',
+        featureCodeRef: this.featureCode('startupIntake'),
+      })
       this.warn('autopilot is enabled but no durable intake state is available; skipping the startup check so it cannot dispatch the same issue twice')
       return
     }
@@ -661,7 +683,22 @@ export class GithubIssueService extends TypertRemoteService {
       failures.push({ number: issue.number, code: result.error.code, message: result.error.message })
     }
     const checkedAt = Date.now()
-    await this.commitIntakeState(localDayKey(checkedAt, this.intakeTimeZone()), dispatched)
+    const day = localDayKey(checkedAt, this.intakeTimeZone())
+    if (dispatched.length === 0 && failures.length > 0) {
+      // Nothing reached a Session, so the day is left unchecked: a later start
+      // retries instead of a silent pass being remembered as done.
+      this.trackError(
+        'runIntake',
+        {
+          code: 'dispatch-failed',
+          message: 'no issue was dispatched and ' + failures.length + ' failed: ' + failures.map(entry => '#' + entry.number + ' ' + entry.code).join(', '),
+          featureCodeRef: this.featureCode('runIntake'),
+        },
+        { claimable: listed.value.length, failed: failures.map(entry => entry.number) },
+      )
+    } else {
+      await this.commitIntakeState(day, dispatched)
+    }
     return {
       ok: true,
       value: Object.freeze({
@@ -703,11 +740,14 @@ export class GithubIssueService extends TypertRemoteService {
     } catch (error) {
       return { ok: false, error: { code: 'dispatch-failed', message: 'the Session could not be created: ' + describeError(error) } }
     }
-    const handle = agents.get(sessionId)
+    const handle = await this.waitForAgent(agents, sessionId)
     if (handle === undefined) {
       return {
         ok: false,
-        error: { code: 'dispatch-failed', message: 'Session "' + sessionId + '" was created but no live Agent was published for it' },
+        error: {
+          code: 'dispatch-failed',
+          message: 'Session "' + sessionId + '" was created but its Agent was not published within ' + this.dispatchReadyTimeoutMs + 'ms',
+        },
       }
     }
     try {
@@ -727,6 +767,30 @@ export class GithubIssueService extends TypertRemoteService {
     void this.renameSession(controller, sessionId, 'Issue #' + request.issue.number + ': ' + request.issue.title)
     this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId })
     return { ok: true, value: Object.freeze({ sessionId }) }
+  }
+
+  /**
+   * Wait for a Session's Agent to appear in the registry.
+   *
+   * The Session controller answers as soon as the Session record exists, but the
+   * registry publishes the live Agent a moment later — and reliably later while
+   * the host is still starting, which is exactly when the startup check
+   * dispatches. Reading the handle once raced that hand-over: the dispatch
+   * created a Session, found no Agent on it, and reported the prompt as refused.
+   *
+   * @param agents - the Agent registry the Session was created through.
+   * @param sessionId - the Session the dispatch just created.
+   * @returns the published handle, or `undefined` when the configured wait expired.
+   */
+  private async waitForAgent(agents: GithubAgents, sessionId: string): Promise<GithubAgentHandle | undefined> {
+    const deadline = Date.now() + this.dispatchReadyTimeoutMs
+    for (;;) {
+      const handle = agents.get(sessionId)
+      if (handle !== undefined && handle.agent !== undefined) return handle
+      const left = deadline - Date.now()
+      if (left <= 0) return undefined
+      await new Promise<void>(resolve => setTimeout(resolve, Math.min(DISPATCH_READY_POLL_MS, left)))
+    }
   }
 
   /**
@@ -760,7 +824,26 @@ export class GithubIssueService extends TypertRemoteService {
       if (this.intakeState.lastCheckedDay === today) return
       const result = await this.runIntake({})
       if (!result.ok) {
+        this.trackError('startupIntake', {
+          code: result.error.code,
+          message: result.error.message,
+          featureCodeRef: this.featureCode('startupIntake'),
+        })
         this.warn('issue intake did not complete: ' + result.error.code + ': ' + result.error.message)
+        return
+      }
+      if (result.value.failures.length > 0) {
+        const detail = result.value.failures.map(entry => '#' + entry.number + ' ' + entry.code).join(', ')
+        this.trackError(
+          'startupIntake',
+          {
+            code: 'dispatch-failed',
+            message: 'dispatched ' + result.value.dispatched.length + ' issue(s); failed: ' + detail,
+            featureCodeRef: this.featureCode('startupIntake'),
+          },
+          { dispatched: result.value.dispatched.length, failed: result.value.failures.map(entry => entry.number) },
+        )
+        this.warn('issue intake dispatched ' + result.value.dispatched.length + ' issue(s) and failed ' + result.value.failures.length + ': ' + detail)
         return
       }
       this.track('startupIntake', 'success', { dispatched: result.value.dispatched.length })
@@ -789,6 +872,11 @@ export class GithubIssueService extends TypertRemoteService {
       this.intakeState = table.get(INTAKE_STATE_KEY) ?? EMPTY_INTAKE_STATE
       this.intakePersistent = true
     } catch (error) {
+      this.trackError('openIntakeState', {
+        code: 'state-unavailable',
+        message: describeError(error),
+        featureCodeRef: this.featureCode('openIntakeState'),
+      })
       this.warn('intake state is unavailable: ' + describeError(error))
     }
   }

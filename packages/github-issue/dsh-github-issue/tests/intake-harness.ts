@@ -52,10 +52,16 @@ class MockSessionController extends Service {
 class MockAgents extends Service {
   /** Every followup, in order. */
   readonly followups: RecordedFollowup[] = []
-  constructor(ctx: Context) {
+  /** How many lookups answer before the Agent counts as published. */
+  private readonly unpublishedLookups: number
+  private lookups = 0
+  constructor(ctx: Context, config?: { unpublishedLookups?: number }) {
     super(ctx, 'agents')
+    this.unpublishedLookups = config?.unpublishedLookups ?? 0
   }
   get(sessionId: string) {
+    this.lookups += 1
+    if (this.lookups <= this.unpublishedLookups) return { agent: undefined }
     const followups = this.followups
     return {
       agent: {
@@ -77,10 +83,14 @@ class MockStorageDomain extends Service {
   readonly opened: string[] = []
   /** The one table's rows. */
   readonly rows = new Map<string, unknown>()
-  constructor(ctx: Context) {
+  /** Whether opening the domain fails the way a corrupt state file does. */
+  private readonly failingOpen: boolean
+  constructor(ctx: Context, config?: { failingOpen?: boolean }) {
     super(ctx, 'storageDomain')
+    this.failingOpen = config?.failingOpen ?? false
   }
   async open(spec: { name: string }) {
+    if (this.failingOpen) throw new Error('the intake state is not valid JSON')
     this.opened.push(spec.name)
     const rows = this.rows
     return {
@@ -92,6 +102,35 @@ class MockStorageDomain extends Service {
       }),
       close: async () => {},
     }
+  }
+}
+
+/** One telemetry event a test can assert on. */
+export interface RecordedTelemetryEvent {
+  /** Plugin the event belongs to. */
+  readonly pluginId: string
+  /** Method the event describes. */
+  readonly action: string
+  /** Whether the event is a success; absent on failure events. */
+  readonly result?: string
+  /** Failure facts, on failure events. */
+  readonly error?: { readonly code: string; readonly message: string }
+}
+
+/** Mock telemetry sink that records what the service reports. */
+class MockTelemetry extends Service {
+  /** Every success event, in order. */
+  readonly tracks: RecordedTelemetryEvent[] = []
+  /** Every failure event, in order. */
+  readonly errors: RecordedTelemetryEvent[] = []
+  constructor(ctx: Context) {
+    super(ctx, 'telemetry')
+  }
+  track(event: RecordedTelemetryEvent): void {
+    this.tracks.push(event)
+  }
+  trackError(event: RecordedTelemetryEvent): void {
+    this.errors.push(event)
   }
 }
 
@@ -119,6 +158,10 @@ export interface IntakeHarnessOptions {
   readonly maxIssuesPerRun?: number
   /** Token to hand the service; `null` means no credential at all. */
   readonly token?: string | null
+  /** How many Agent lookups answer before the Session's Agent counts as published. */
+  readonly unpublishedAgentLookups?: number
+  /** Make opening the intake state fail the way a corrupt state file does. */
+  readonly storageOpenFails?: boolean
 }
 
 /** The mounted intake harness. */
@@ -133,6 +176,8 @@ export interface IntakeHarness {
   readonly agents: MockAgents | undefined
   /** Storage mock, absent when not mounted. */
   readonly storage: MockStorageDomain | undefined
+  /** Telemetry mock that records every event. */
+  readonly telemetry: MockTelemetry
   /** Release the context. */
   dispose(): Promise<void>
 }
@@ -145,10 +190,16 @@ export interface IntakeHarness {
 export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Promise<IntakeHarness> {
   const ctx = new Context()
   await ctx.plugin(MockLlmService)
-  const storage = options.withoutStorage === true ? undefined : await ctx.plugin(MockStorageDomain).then(() => ctx.get('storageDomain') as MockStorageDomain)
+  await ctx.plugin(MockTelemetry)
+  const telemetry = ctx.get('telemetry') as MockTelemetry
+  const storage = options.withoutStorage === true
+    ? undefined
+    : await ctx.plugin(MockStorageDomain, { failingOpen: options.storageOpenFails === true }).then(() => ctx.get('storageDomain') as MockStorageDomain)
   if (storage !== undefined && options.initialState !== undefined) storage.rows.set('intake', options.initialState)
   const sessions = options.withoutSessionServices === true ? undefined : await ctx.plugin(MockSessionController).then(() => ctx.get('sessionController') as MockSessionController)
-  const agents = options.withoutSessionServices === true ? undefined : await ctx.plugin(MockAgents).then(() => ctx.get('agents') as MockAgents)
+  const agents = options.withoutSessionServices === true
+    ? undefined
+    : await ctx.plugin(MockAgents, { unpublishedLookups: options.unpublishedAgentLookups ?? 0 }).then(() => ctx.get('agents') as MockAgents)
   const token = options.token ?? 'test-token'
   await ctx.plugin(GithubIssueService, {
     repoUrl: 'https://github.com/test/repo',
@@ -168,6 +219,7 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
     sessions,
     agents,
     storage,
+    telemetry,
     async dispose() {
       await ctx.fiber.dispose()
     },
