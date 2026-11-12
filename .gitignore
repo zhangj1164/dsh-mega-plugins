@@ -28,3 +28,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local tool caches
+.chatcode/
+.dsh-mattskillsdeck-cache/
+.pnpm-store/
