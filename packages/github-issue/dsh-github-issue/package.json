@@ -1,7 +1,7 @@
 {
   "name": "@zhangj1164/dsh-github-issue",
   "description": "GitHub issue generation, filing, and intake service for DeepSeek Harness: structured reports from telemetry analysis, AI-optimized descriptions, direct issue creation, and first-startup dispatch of claimable issues to new Sessions",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
