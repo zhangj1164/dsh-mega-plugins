@@ -105,7 +105,7 @@ describe('github-issue Config volatility', () => {
     expect(result.value.dispatched.map(item => item.number)).toEqual([1])
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('labels=agent-take')
     expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:/elsewhere' }])
-    expect(mounted.sessions?.prompts[0]?.text).toBe('TASK 1')
+    expect(mounted.schedule?.created[0]?.prompt).toBe('TASK 1')
   })
 
   it('falls back to the host zone instead of throwing on an invalid zone', async () => {

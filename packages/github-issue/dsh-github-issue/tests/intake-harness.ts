@@ -65,6 +65,42 @@ class MockSessionController extends Service {
   }
 }
 
+/** One automation task this harness's Schedule mock registered. */
+export interface RecordedTask {
+  /** Session the task delivers into. */
+  readonly sessionId: string
+  /** Rendered prompt the task carries. */
+  readonly prompt: string
+  /** Task name shown on the automation board. */
+  readonly title: string
+  /** Delay between registration and delivery. */
+  readonly afterSeconds: number
+}
+
+/** Mock Schedule service that records registered automation tasks. */
+class MockSchedule extends Service {
+  /** Every create request, in order. */
+  readonly created: RecordedTask[] = []
+  /** Whether registering a task fails the way an unavailable store does. */
+  private readonly createFails: boolean
+  private index = 0
+  constructor(ctx: Context, config?: { createFails?: boolean }) {
+    super(ctx, 'schedule')
+    this.createFails = config?.createFails ?? false
+  }
+  async create(sessionId: string, request: { prompt: string; title: string; after_seconds: number }) {
+    if (this.createFails) throw new Error('the schedule store is not available')
+    this.index += 1
+    this.created.push({
+      sessionId,
+      prompt: request.prompt,
+      title: request.title,
+      afterSeconds: request.after_seconds,
+    })
+    return { id: 'schedule-' + this.index }
+  }
+}
+
 /** Mock storage domain serving one in-memory table. */
 class MockStorageDomain extends Service {
   /** Every opened domain name. */
@@ -148,6 +184,10 @@ export interface IntakeHarnessOptions {
   readonly token?: string | null
   /** Make prompt admission fail the way a disposed Agent does. */
   readonly promptFails?: boolean
+  /** Mount no Schedule service, the way a non-Web composition does. */
+  readonly withoutSchedule?: boolean
+  /** Make automation-task registration fail the way an unavailable store does. */
+  readonly scheduleCreateFails?: boolean
   /** Make opening the intake state fail the way a corrupt state file does. */
   readonly storageOpenFails?: boolean
 }
@@ -160,6 +200,8 @@ export interface IntakeHarness {
   readonly service: GithubIssueService
   /** Session controller mock, absent when not mounted. */
   readonly sessions: MockSessionController | undefined
+  /** Schedule mock, absent when not mounted. */
+  readonly schedule: MockSchedule | undefined
   /** Storage mock, absent when not mounted. */
   readonly storage: MockStorageDomain | undefined
   /** Telemetry mock that records every event. */
@@ -185,6 +227,9 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
   const sessions = options.withoutSessionServices === true
     ? undefined
     : await ctx.plugin(MockSessionController, { promptFails: options.promptFails === true }).then(() => ctx.get('sessionController') as MockSessionController)
+  const schedule = options.withoutSchedule === true
+    ? undefined
+    : await ctx.plugin(MockSchedule, { createFails: options.scheduleCreateFails === true }).then(() => ctx.get('schedule') as MockSchedule)
   const token = options.token ?? 'test-token'
   await ctx.plugin(GithubIssueService, {
     repoUrl: 'https://github.com/test/repo',
@@ -202,6 +247,7 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
     ctx,
     service: ctx.get('githubIssue') as GithubIssueService,
     sessions,
+    schedule,
     storage,
     telemetry,
     async dispose() {

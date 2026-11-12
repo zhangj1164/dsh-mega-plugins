@@ -28,6 +28,7 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `autopilotPreset` | empty | Agent preset the dispatched Sessions run. Empty follows the deployment default. |
 | `autopilotTimeZone` | empty | IANA zone "today" is measured in. Empty follows the host's own zone, so the user's local midnight starts a new day. |
 | `autopilotPrompt` | the built-in template | Prompt handed to every dispatched Session. Placeholders `{number}`, `{title}`, `{url}`, `{body}`, and `{labels}` are replaced; an unknown placeholder stays visible. |
+| `dispatchTaskDelaySeconds` | `1` | Seconds between registering a dispatch's automation task and its delivery, 1–3600. The Schedule service refuses a non-positive delay, so this cannot be `0`. |
 
 **Settings-editable fields.** Eight of these fields — `repoUrl`, `claimLabel`, `maxIssuesPerRun`, `autopilotEnabled`, `autopilotCwd`, `autopilotPreset`, `autopilotTimeZone`, and `autopilotPrompt` — are declared `.volatile()`, which is what lets `@zhangj1164/dsh-client-ui-memo-settings` expose them in the Settings panel: `dsh-settings` projects only volatile fields, an accepted write lands in the profile's user layer, and the service reads each value where it is used instead of copying it at construction, so the change reaches the running process without a restart. `autopilotEnabled` is read by the `Service.init` startup check, so flipping it applies from the next host start. The remaining fields stay deployment-only.
 
@@ -40,7 +41,7 @@ GitHub issue generation and optimization service for DeepSeek Harness. Builds st
 | `optimizeIssue(request)` | Rewrites a natural-language description into a structured issue following a pinned Markdown template. Returns `empty-input` for blank descriptions, `route-missing` when no route resolves, `llm-failure` when the model call failed. |
 | `createIssue(request)` | Files the report through the GitHub REST API and returns the created issue's `{ number, url }`. The body is filed without its leading `## title` heading, because GitHub takes the title as its own field. |
 | `listClaimableIssues(request)` | Lists the open issues carrying the claim label, excluding pull requests, which GitHub's issue endpoints also return. |
-| `dispatchIssue(request)` | Creates one Session through the Session controller, queues the rendered prompt on its Agent, names the Session, and returns its `sessionId`. |
+| `dispatchIssue(request)` | Creates one Session through the Session controller, names it, and registers the rendered prompt as a one-shot automation task on the Schedule service, which delivers it into that Session; returns its `sessionId`. A deployment that mounts no Schedule service admits the prompt directly instead. |
 | `runIntake(request)` | Runs one pass: lists the claimable issues, skips those an earlier pass already dispatched, dispatches the rest, and records the local day durably. |
 
 The intake methods report one stable failure code instead of a raw `fetch` error: `auth-missing`, `auth-failure`, `rate-limited`, `invalid-repo`, `invalid-request`, `http-failure`, `network-failure`, `session-unavailable`, or `dispatch-failed`. `auth-missing` is separate from `auth-failure` because no credential and a rejected credential are different deployment problems with different fixes.
@@ -79,7 +80,7 @@ Both `generateReport` and `optimizeIssue` use built-in system prompts that pin a
 
 The loop has three steps, and this plugin owns the last two. The user describes a problem in natural language, `optimizeIssue` turns it into the pinned report, and `createIssue` files it. That replaces the point where the loop used to stop: a pre-filled URL still required the user to open the form and press Submit, so nothing could pick the issue up automatically.
 
-`runIntake` then reads the issues that carry `claimLabel` and hands each one to a fresh Session. Dispatch goes through the Session controller rather than the Agent registry directly: the dispatched Session gets the same preset and workspace policy as one the user opened in the Web, and the prompt is admitted with the controller's `prompt` — the same durable path the Web prompt uses, which records the message with a user source and queues it on the Session's Agent without waiting for a turn to be open elsewhere. Reaching into the Agent registry by hand instead returned the Agent where a handle was expected, so every dispatch created a Session and then failed to queue anything; the controller resolves the live Agent itself, resuming it when needed. Naming the Session is best-effort: a deployment that mounts no title service still gets a working Session.
+`runIntake` then reads the issues that carry `claimLabel` and hands each one to a fresh Session, registered as a one-shot automation task. The Session is created through the Session controller, so it gets the same preset and workspace policy as one the user opened in the Web. The work is handed over as a task on the Schedule service — the same board the Web's **Automation tasks** page lists — and that service delivers the rendered prompt into the Session when the task comes due. A task always belongs to an existing Session, so the Session is created first; a deployment that mounts no Schedule service (a non-Web composition) admits the prompt directly with the controller's `prompt` instead, which is the same durable path the Web prompt uses: it records the message with a user source and queues it on the Session's Agent, resolving (and resuming) that Agent itself. Naming the Session is best-effort: a deployment that mounts no title service still gets a working Session.
 
 The credential is resolved once per process, in this order: `token`, then `tokenEnv`, then `tokenCommand`. The default command is `gh auth token`, so a machine already logged in to GitHub needs no extra secret; a deployment that manages secrets itself sets `token` and disables the command with an empty string. The token is never logged.
 
@@ -103,7 +104,21 @@ The check needs durable state and refuses to run without one: without a memory o
         claimLabel: ready-for-agent
 ```
 
-The host must be running for the check to happen at all; a day with no startup is a day with no check. That is the intended behavior — the check is a startup hook, not a scheduler — and the Automation tasks page remains the place to inspect or manage reminders the Session itself creates.
+The host must be running for the check to happen at all; a day with no startup is a day with no check. That is the intended behavior — the check is a startup hook, not a scheduler — and the Automation tasks page now lists each dispatch as the one-shot task it registers, with the delivered ones showing as ended.
+
+A dispatched Session runs the repository workflow itself, and that workflow starts with `git fetch`. Under the default `workspace-write` sandbox a network command is blocked and raises an approval prompt that an unattended dispatch cannot answer, so a deployment that wants the loop to run on its own should pin the permission preset to `danger-full-access` in its own patch layer:
+
+```yaml
+- id: permission
+  config:
+    presets:
+      read-only: { sandbox: read-only, approval: ask }
+      workspace-write: { sandbox: workspace-write, approval: ask }
+      danger-full-access: { sandbox: danger-full-access, approval: never }
+    defaultPreset: danger-full-access
+```
+
+That is a deployment-wide choice: it applies to every new Session the host creates, not only to dispatched ones.
 
 ## Requirement mapping
 
@@ -166,5 +181,5 @@ Every subpath resolves to the flat `lib/*.js` layout tsdown emits.
 
 - **Model dependency** — `inject: ['llm']` means the service will not activate without an LLM provider.
 - **No browser UI of its own** — this package registers no model tool and ships no browser UI. Installing it on its own gives a deployment `ctx.get('githubIssue')` and nothing a user can see or click; the visible entry point is `@zhangj1164/dsh-client-ui-memo`'s issue editor, whose "File on GitHub" button and log-analysis action reach it over Remote. Treat it as a backend that a UI plugin consumes, not as a standalone feature.
-- **Dispatch needs the Web composition** — `dispatchIssue` and `runIntake` read `ctx.get('sessionController')` and `ctx.get('agents')`. A headless or SDK-only composition that mounts neither reports `session-unavailable` and files or lists issues only.
+- **Dispatch needs the Web composition** — `dispatchIssue` and `runIntake` read `ctx.get('sessionController')` and, when it exists, `ctx.get('schedule')`. A headless or SDK-only composition that mounts no Session controller reports `session-unavailable` and files or lists issues only; one that mounts a controller but no Schedule service still dispatches, admitting the prompt directly.
 - **The first-startup check is a startup hook, not a scheduler** — it runs only when the host starts. A deployment that keeps the host running across midnight gets the check on the next start, not at midnight.

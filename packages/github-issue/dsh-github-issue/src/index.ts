@@ -145,6 +145,16 @@ export interface Config {
    * location and points at the repository workflow.
    */
   readonly autopilotPrompt: Volatile<string>
+  /**
+   * Seconds between registering a dispatch's automation task and its delivery.
+   *
+   * The Schedule service refuses a non-positive delay, so this is at least one
+   * second. It stays a deployment-level value instead of a constant because a
+   * deployment may want the task to sit visibly on the board before it fires,
+   * and it stays out of the settings surface: it times a dispatch, it does not
+   * describe one.
+   */
+  readonly dispatchTaskDelaySeconds: number
 }
 
 /** Schemastery configuration for the GitHub-issue service. */
@@ -167,6 +177,7 @@ export const Config: s<Config> = s.object({
   autopilotPreset: s.string().default('').volatile(),
   autopilotTimeZone: s.string().default('').volatile(),
   autopilotPrompt: s.string().default(DEFAULT_DISPATCH_PROMPT).volatile(),
+  dispatchTaskDelaySeconds: s.number().step(1).min(1).max(3600).default(1),
 })
 
 declare module '@deepseek-ai/cordis' {
@@ -331,6 +342,28 @@ interface GithubSessionController {
   rename?(request: { sessionId: string; title: string }): Promise<unknown>
 }
 
+/**
+ * The Schedule service methods registering an automation task needs.
+ *
+ * Declared structurally and read with `ctx.get`, deliberately **not** from
+ * `static inject`: only a composition that mounts the Web app carries the
+ * Schedule service, and a diagnostic feature must never be the reason a
+ * deployment cannot start. A missing service falls back to direct prompt
+ * admission, so the dispatch path stays usable everywhere.
+ */
+interface GithubScheduleService {
+  /**
+   * Register one task bound to a Session.
+   *
+   * The task is delivered into that Session when it becomes due, which is why
+   * the Session must exist first; the delay is a positive number of seconds.
+   */
+  create(
+    sessionId: string,
+    request: { prompt: string; title: string; after_seconds: number },
+  ): Promise<{ id: string }>
+}
+
 /** The empty intake state used before the first pass and without storage. */
 const EMPTY_INTAKE_STATE: IntakeStateRow = Object.freeze({
   lastCheckedDay: '',
@@ -363,6 +396,30 @@ const SESSION_UNAVAILABLE = {
     message: 'this deployment mounts no Session controller with prompt admission, so no issue can be dispatched',
   },
 } as const
+
+/**
+ * The longest title the Session and Schedule services accept.
+ *
+ * Both truncate or reject beyond this length, and the Schedule service rejects
+ * with `invalid_prompt`, which would fail a dispatch that otherwise succeeded.
+ * The number is that service's protocol limit, not a deployment knob, so it
+ * lives here as a constant rather than in `Config`.
+ */
+const MAX_TITLE_LENGTH = 120
+
+/**
+ * Build the title a dispatch gives its Session and its automation task.
+ *
+ * The issue title is cut by code point rather than by UTF-16 unit: slicing a
+ * string at a surrogate boundary would keep the length the service accepts but
+ * leave a reader with half a character.
+ * @param issue - the issue being dispatched.
+ * @returns a title naming the issue, at most {@link MAX_TITLE_LENGTH} code points.
+ */
+function dispatchTitle(issue: GithubIssueTask): string {
+  const title = 'Issue #' + issue.number + ': ' + issue.title
+  return title.length <= MAX_TITLE_LENGTH ? title : [...title].slice(0, MAX_TITLE_LENGTH).join('')
+}
 
 /** Promise-based `exec`, used only for the configured token command. */
 const execAsync = promisify(exec)
@@ -689,15 +746,21 @@ export class GithubIssueService extends TypertRemoteService {
   }
 
   /**
-   * Create one Session, queue the issue prompt, and name the Session.
+   * Create one Session, register its automation task, and name the Session.
    *
-   * Both steps go through the Session controller rather than the Agent registry
-   * directly: the controller applies the deployment's preset and workspace
-   * policy, and its prompt admission is the durable path the Web uses — it
-   * resolves the Session's Agent (resuming it when needed), records the message
-   * with a user source, and queues it on the Agent's inbox. Reading the registry
-   * by hand instead got the Agent object where a handle was expected, so every
-   * dispatch created a Session and then failed to queue anything.
+   * A dispatch is two steps. The Session is created through the controller, so
+   * the deployment's preset and workspace policy apply. The work is then handed
+   * over as a one-shot automation task on the Schedule service: the task shows
+   * up in the Web's automation board, and the service delivers its prompt into
+   * that Session when the task becomes due. A task is always bound to an
+   * existing Session — the board never opens one by itself — so the Session has
+   * to exist first, and registering the task is what makes the dispatch visible
+   * beyond the sidebar.
+   *
+   * A deployment that mounts no Schedule service (a non-Web composition) falls
+   * back to admitting the prompt directly, the same durable admission the Web
+   * prompt uses. Both paths fail the dispatch when the host refuses, so a
+   * refusal never leaves the day marked as checked.
    *
    * @param request - the issue and optional Session placement.
    * @returns the created Session, or a stable failure.
@@ -717,13 +780,37 @@ export class GithubIssueService extends TypertRemoteService {
     } catch (error) {
       return { ok: false, error: { code: 'dispatch-failed', message: 'the Session could not be created: ' + describeError(error) } }
     }
+    const prompt = renderDispatchPrompt(this.config.autopilotPrompt.get(), request.issue)
+    const schedule = optionalService<GithubScheduleService>(this.ctx, 'schedule')
+    if (schedule !== undefined && typeof schedule.create === 'function') {
+      let taskId: string
+      try {
+        const task = await schedule.create(sessionId, {
+          prompt,
+          title: dispatchTitle(request.issue),
+          after_seconds: this.config.dispatchTaskDelaySeconds,
+        })
+        taskId = task.id
+      } catch (error) {
+        return {
+          ok: false,
+          error: {
+            code: 'dispatch-failed',
+            message: 'Session "' + sessionId + '" was created but its automation task was refused: ' + describeError(error),
+          },
+        }
+      }
+      void this.renameSession(controller, sessionId, dispatchTitle(request.issue))
+      this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId, taskId })
+      return { ok: true, value: Object.freeze({ sessionId }) }
+    }
     try {
       await controller.prompt(
         {
           requestId: 'github-issue:' + request.issue.number + ':' + sessionId,
           sessionId,
           mode: 'queue',
-          content: [{ type: 'text', text: renderDispatchPrompt(this.config.autopilotPrompt.get(), request.issue) }],
+          content: [{ type: 'text', text: prompt }],
         },
         new AbortController().signal,
       )
@@ -736,7 +823,7 @@ export class GithubIssueService extends TypertRemoteService {
         },
       }
     }
-    void this.renameSession(controller, sessionId, 'Issue #' + request.issue.number + ': ' + request.issue.title)
+    void this.renameSession(controller, sessionId, dispatchTitle(request.issue))
     this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId })
     return { ok: true, value: Object.freeze({ sessionId }) }
   }

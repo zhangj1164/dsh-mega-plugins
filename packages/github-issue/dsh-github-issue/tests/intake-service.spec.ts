@@ -84,8 +84,9 @@ describe('runIntake', () => {
     expect(first.value.dispatched).toEqual([{ number: 1, sessionId: 'session-1' }])
     expect(first.value.skipped).toEqual([])
     expect(mounted.sessions?.creates).toHaveLength(1)
-    expect(mounted.sessions?.prompts).toHaveLength(1)
-    expect(mounted.sessions?.prompts[0]?.text).toContain('#1')
+    expect(mounted.schedule?.created).toEqual([
+      { sessionId: 'session-1', prompt: expect.stringContaining('#1'), title: 'Issue #1: Issue 1', afterSeconds: 1 },
+    ])
     await vi.waitFor(() => expect(mounted.sessions?.renames).toHaveLength(1))
     expect(mounted.sessions?.renames[0]?.title).toContain('Issue #1')
 
@@ -121,7 +122,7 @@ describe('runIntake', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:\\repo', agentPreset: 'standard' }])
-    expect(mounted.sessions?.prompts[0]?.text).toBe('TASK 1: Issue 1')
+    expect(mounted.schedule?.created[0]?.prompt).toBe('TASK 1: Issue 1')
   })
 
   it('does not remember a day whose listing failed', async () => {
@@ -132,7 +133,7 @@ describe('runIntake', () => {
     expect(mounted.storage?.rows.get('intake')).toBeUndefined()
   })
 
-  it('admits the prompt through the Session controller, not the Agent registry', async () => {
+  it('registers the dispatch as a delayed automation task instead of prompting directly', async () => {
     const mounted = await harness()
     stubFetch([issue(7)])
     const result = await mounted.service.runIntake({})
@@ -140,14 +141,38 @@ describe('runIntake', () => {
     if (!result.ok) return
     expect(result.value.dispatched).toEqual([{ number: 7, sessionId: 'session-1' }])
     expect(result.value.failures).toEqual([])
+    expect(mounted.schedule?.created).toEqual([
+      { sessionId: 'session-1', prompt: expect.stringContaining('#7'), title: 'Issue #7: Issue 7', afterSeconds: 1 },
+    ])
+    expect(mounted.sessions?.prompts).toEqual([])
+  })
+
+  it('falls back to direct prompt admission without a Schedule service', async () => {
+    const mounted = await harness({ withoutSchedule: true })
+    stubFetch([issue(3)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([{ number: 3, sessionId: 'session-1' }])
     expect(mounted.sessions?.prompts).toEqual([
-      { requestId: 'github-issue:7:session-1', sessionId: 'session-1', mode: 'queue', text: expect.stringContaining('#7') },
+      { requestId: 'github-issue:3:session-1', sessionId: 'session-1', mode: 'queue', text: expect.stringContaining('#3') },
     ])
   })
 
-  it('reports a refused prompt as a dispatch failure without committing the day', async () => {
-    const mounted = await harness({ promptFails: true })
+  it('reports a refused automation task as a dispatch failure without committing the day', async () => {
+    const mounted = await harness({ scheduleCreateFails: true })
     stubFetch([issue(8)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.dispatched).toEqual([])
+    expect(result.value.failures[0]?.code).toBe('dispatch-failed')
+    expect(mounted.storage?.rows.get('intake')).toBeUndefined()
+  })
+
+  it('reports a refused fallback prompt as a dispatch failure without committing the day', async () => {
+    const mounted = await harness({ withoutSchedule: true, promptFails: true })
+    stubFetch([issue(9)])
     const result = await mounted.service.runIntake({})
     expect(result.ok).toBe(true)
     if (!result.ok) return
@@ -215,8 +240,8 @@ describe('first-startup check', () => {
       autopilotEnabled: true,
       initialState: { lastCheckedDay: '2000-01-01', dispatched: [] },
     })
-    await vi.waitFor(() => expect(mounted.sessions?.prompts).toHaveLength(1), { timeout: 2000 })
-    expect(mounted.sessions?.prompts[0]?.text).toContain('#9')
+    await vi.waitFor(() => expect(mounted.schedule?.created).toHaveLength(1), { timeout: 2000 })
+    expect(mounted.schedule?.created[0]?.prompt).toContain('#9')
   })
 
   it('reports a startup pass whose dispatch failed instead of a silent success', async () => {

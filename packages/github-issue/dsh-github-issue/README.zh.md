@@ -28,6 +28,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `autopilotPreset` | 空 | 派发会话使用的 agent preset。空值跟随部署默认。 |
 | `autopilotTimeZone` | 空 | 判定「今天」所用的 IANA 时区。空值跟随宿主自身时区，因此用户的本地午夜才是新一天的开始。 |
 | `autopilotPrompt` | 内置模板 | 交给每个派发会话的提示词模板。占位符 `{number}`、`{title}`、`{url}`、`{body}`、`{labels}` 会被替换；未知占位符保留原样可见。 |
+| `dispatchTaskDelaySeconds` | `1` | 派发时登记的自动化任务从登记到送达的秒数，1–3600。Schedule 服务拒绝非正数延迟，所以不能是 `0`。 |
 
 **可在设置页编辑的字段。** 其中八个——`repoUrl`、`claimLabel`、`maxIssuesPerRun`、`autopilotEnabled`、`autopilotCwd`、`autopilotPreset`、`autopilotTimeZone`、`autopilotPrompt`——声明了 `.volatile()`，这正是 `@zhangj1164/dsh-client-ui-memo-settings` 能把它们放进设置面板的原因：`dsh-settings` 只投影易变字段，被接受的写入落进 profile 的用户层，而服务在用到的位置读取每个值、不在构造时拷贝，因此改动无需重启就能到达运行中的进程。`autopilotEnabled` 由 `Service.init` 的启动检查读取，拨动它从下一次宿主启动生效。其余字段仍只属于部署层。
 
@@ -40,7 +41,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，无路由可解析时返回 `route-missing`，模型调用失败返回 `llm-failure`。 |
 | `createIssue(request)` | 经 GitHub REST API 直接建单，返回新 issue 的 `{ number, url }`。正文写入时会去掉首行的 `## 标题`，因为 GitHub 把标题作为独立字段。 |
 | `listClaimableIssues(request)` | 列出带接单标签的 open issue，并排除 PR——GitHub 的 issue 端点也会返回 PR。 |
-| `dispatchIssue(request)` | 经 Session 控制器新建一个会话，把渲染后的提示词排进它的 Agent，并给会话命名；返回 `sessionId`。 |
+| `dispatchIssue(request)` | 经 Session 控制器新建一个会话并命名，把渲染后的提示词登记为该会话上的一次性自动化任务，由 Schedule 服务送达；返回 `sessionId`。没有挂载 Schedule 服务的部署改为直接排入提示词。 |
 | `runIntake(request)` | 执行一次接单：列出可接单 issue，跳过此前已派发的，派发其余，并把本地日期持久化。 |
 
 接单方法只报一个稳定的失败码，而不是原始的 `fetch` 错误：`auth-missing`、`auth-failure`、`rate-limited`、`invalid-repo`、`invalid-request`、`http-failure`、`network-failure`、`session-unavailable`、`dispatch-failed`。`auth-missing` 与 `auth-failure` 分开，是因为「没有凭据」和「凭据被拒绝」是两种部署问题，修法不同。
@@ -79,7 +80,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 闭环有三步，本插件负责后两步。用户用自然语言描述问题，`optimizeIssue` 把它变成固定模板的报告，`createIssue` 直接建单。这一步替换掉闭环原本停住的地方：预填 URL 仍然要用户打开表单并按下提交，任何东西都无法自动接住这个 issue。
 
-`runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话。派发走 Session 控制器而不是直接走 Agent 注册表：派发出来的会话与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略，提示词则经控制器的 `prompt` 排入——这正是 Web 端发提示词走的同一条持久路径，它把消息以用户来源记录下来，再排进会话 Agent 的收件箱，不需要别处已经有一个打开的 turn。反过来绕过控制器去读 Agent 注册表时，拿到的是 Agent 本身而不是预期中的 handle，于是每次派发都建出会话却排不进任何提示词；控制器会自己解析出活的 Agent，必要时先恢复它。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
+`runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话，同时登记为一次性自动化任务。会话经 Session 控制器创建，因此与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略；工作本身以任务的形式交给 Schedule 服务——也就是 Web「自动化任务」页面列出的那块面板——由它在任务到点时把渲染好的提示词送进该会话。任务永远绑定一个已存在的会话，所以会话先建；没有挂载 Schedule 服务的部署（非 Web 组合）改为用控制器的 `prompt` 直接排入提示词，那正是 Web 端发提示词走的同一条持久路径：把消息以用户来源记录下来，排进会话 Agent 的收件箱，由控制器自己解析（必要时先恢复）那个 Agent。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
 
 凭据每个进程只解析一次，顺序是 `token`、`tokenEnv`、`tokenCommand`。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志。
 
@@ -103,7 +104,21 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
         claimLabel: ready-for-agent
 ```
 
-宿主必须在运行，检查才可能发生；没有启动的一天就没有检查。这是有意的行为——检查是启动钩子，不是调度器——Automation tasks 页面仍然是查看和管理会话自身创建的提醒的地方。
+宿主必须在运行，检查才可能发生；没有启动的一天就没有检查。这是有意的行为——检查是启动钩子，不是调度器——而「自动化任务」页面现在会列出每次派发登记的那条一次性任务，已送达的显示为已结束。
+
+派发出来的会话要自己跑仓库流程，第一步就是 `git fetch`。默认的 `workspace-write` 沙箱会拦住联网命令并弹出审批，而无人值守的派发无法回答它；因此想让闭环自己跑起来的部署，应在自己的 patch 层把权限预设固定为 `danger-full-access`：
+
+```yaml
+- id: permission
+  config:
+    presets:
+      read-only: { sandbox: read-only, approval: ask }
+      workspace-write: { sandbox: workspace-write, approval: ask }
+      danger-full-access: { sandbox: danger-full-access, approval: never }
+    defaultPreset: danger-full-access
+```
+
+这是部署级取舍：它对宿主新建的每个会话生效，而不只是派发的会话。
 
 ## 需求映射
 
@@ -166,5 +181,5 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 
 - **模型依赖** — `inject: ['llm']` 意味着服务在没有 LLM 提供方时不会激活。
 - **自身没有浏览器界面** — 本包不注册模型工具，也不附带浏览器 UI。单独安装只会给部署带来 `ctx.get('githubIssue')`，用户看不到也点不到任何东西；可见的入口是 `@zhangj1164/dsh-client-ui-memo` 的 issue 编辑器（其「直接提交到 GitHub」按钮）与日志分析动作，它们经 Remote 调用本服务。请把它当作供 UI 插件消费的后端，而不是一个能独立使用的功能。
-- **派发需要 Web 组合** — `dispatchIssue` 与 `runIntake` 读取 `ctx.get('sessionController')` 与 `ctx.get('agents')`。两者都没挂载的 headless 或纯 SDK 组合会返回 `session-unavailable`，只能建单和列取。
+- **派发需要 Web 组合** — `dispatchIssue` 与 `runIntake` 读取 `ctx.get('sessionController')`，存在时再读 `ctx.get('schedule')`。没有 Session 控制器的 headless 或纯 SDK 组合会返回 `session-unavailable`，只能建单和列取；有控制器但没有 Schedule 服务的组合仍能派发，只是改为直接排入提示词。
 - **首次启动检查是启动钩子，不是调度器** — 它只在宿主启动时运行。跨过午夜仍保持运行的部署会在下一次启动时检查，而不是在午夜检查。
