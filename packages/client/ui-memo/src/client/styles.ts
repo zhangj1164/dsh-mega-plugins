@@ -712,4 +712,29 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-2);
   overflow-wrap: anywhere;
 }
+
+/* ── First-use guide ── */
+/* Narrower than the ordinary dialog: the guide is one short page at a time, and
+   a 560px measure would leave the text as a thin column. */
+.dsh-memo-guide { width: min(520px, 100%); }
+.dsh-memo-guideHead { display: flex; align-items: baseline; gap: 8px; }
+.dsh-memo-guideCounter {
+  margin-left: auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-text-3);
+  white-space: nowrap;
+}
+.dsh-memo-guideBody { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 4px; }
+.dsh-memo-guideStep { margin: 0; font-size: 14px; font-weight: 600; color: var(--dsw-alias-text-1); }
+.dsh-memo-guideText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--dsw-alias-text-2);
+  overflow-wrap: anywhere;
+}
+/* Forward and Back stay on the right, where the eye already looks for the
+   primary action in the board's other dialogs. */
+.dsh-memo-guideActions { justify-content: flex-end; }
 `

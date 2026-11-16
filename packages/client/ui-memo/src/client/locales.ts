@@ -35,6 +35,11 @@ export type MemoKey =
   | 'sessionSummaryNoMatch' | 'sessionSummaryRefresh' | 'sessionSummaryRefreshing'
   | 'sessionSummarySelectedCount' | 'sessionSummarySelectGroup' | 'sessionSummaryExpandAll'
   | 'sessionSummaryCollapseAll'
+  // First-use guide
+  | 'guideOpen' | 'guideTitle' | 'guideWriteTitle' | 'guideWriteBody'
+  | 'guideArchiveTitle' | 'guideArchiveBody' | 'guideAnalyzeTitle' | 'guideAnalyzeBody'
+  | 'guideSessionsTitle' | 'guideSessionsBody'
+  | 'guidePrevious' | 'guideNext' | 'guideSkip' | 'guideStart'
   // Result cards
   | 'collapse' | 'expand' | 'closeResult'
 
@@ -128,6 +133,20 @@ export const zh: Record<MemoKey, string> = {
   sessionSummarySelectGroup: '全选该组',
   sessionSummaryExpandAll: '全部展开',
   sessionSummaryCollapseAll: '全部收起',
+  guideOpen: '使用引导',
+  guideTitle: '备忘使用引导',
+  guideWriteTitle: '记录第一条备忘',
+  guideWriteBody: '在顶部输入框写下内容，点「添加备忘」即可归入当前周。用「周 / 月 / 季度 / 年」四个维度回看，年份切换器能带你回到更早的记录。',
+  guideArchiveTitle: '整理与归档',
+  guideArchiveBody: '每张卡片都能查看、编辑、复制和删除。一个季度结束后可以归档，归档后的卡片在所有维度下只读；随时取消归档即可继续写入。',
+  guideAnalyzeTitle: 'AI 分析与导出',
+  guideAnalyzeBody: '选择「梳理 / 总结 / 分析」让模型处理当前周期，分析按钮右侧可以选择部署提供的模型；「导出报告」会把结果保存为 Markdown 文件。',
+  guideSessionsTitle: '会话总结与 Issue',
+  guideSessionsBody: '「总结会话」把官方归档的会话写成备忘；「日志分析」和「添加 Issue」借助 GitHub issue 服务整理描述，并可直接建单或打开预填页。',
+  guidePrevious: '上一步',
+  guideNext: '下一步',
+  guideSkip: '跳过',
+  guideStart: '开始使用',
   collapse: '折叠',
   expand: '展开',
   closeResult: '关闭此卡片',
@@ -223,6 +242,20 @@ export const en: Record<MemoKey, string> = {
   sessionSummarySelectGroup: 'Select this group',
   sessionSummaryExpandAll: 'Expand all',
   sessionSummaryCollapseAll: 'Collapse all',
+  guideOpen: 'Guide',
+  guideTitle: 'Memo guide',
+  guideWriteTitle: 'Write your first memo',
+  guideWriteBody: 'Type in the box at the top and press "Add memo"; it lands in the current week. Switch between Week, Month, Quarter, and Year to look back, and the year picker reaches older records.',
+  guideArchiveTitle: 'Organize and archive',
+  guideArchiveBody: 'Every card can be viewed, edited, duplicated, or deleted. When a quarter ends you can archive it: its cards become read-only in every dimension, and unarchiving releases the quarter again.',
+  guideAnalyzeTitle: 'AI analysis and export',
+  guideAnalyzeBody: 'Pick Organize, Summarize, or Analyze to run the model over the current period; the caret beside the button chooses among the models the deployment offers. Export Report saves the result as Markdown.',
+  guideSessionsTitle: 'Session summaries and issues',
+  guideSessionsBody: '"Summarize Sessions" turns officially archived sessions into memos. "Analyze Logs" and "Add Issue" use the GitHub issue service to shape a description, then file it or open a pre-filled page.',
+  guidePrevious: 'Back',
+  guideNext: 'Next',
+  guideSkip: 'Skip',
+  guideStart: 'Get started',
   collapse: 'Collapse',
   expand: 'Expand',
   closeResult: 'Close this card',

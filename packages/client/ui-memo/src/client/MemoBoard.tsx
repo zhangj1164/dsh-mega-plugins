@@ -29,15 +29,20 @@ import {
   filterArchivedSessions,
   groupArchivedSessions,
   groupSelection,
+  GUIDE_STEPS,
+  GUIDE_VERSION,
+  pendingGuideSteps,
   PERIODS,
   periodDisplay,
   SESSION_RANGES,
   toggleGroupSelection,
   UNGROUPED_SESSION_KEY,
   type MemoCard,
+  type MemoGuideStep,
   type MemoModelChoice,
   type SessionRange,
 } from './logic.ts'
+import { MemoGuide } from './MemoGuide.tsx'
 import type { MemoKey } from './locales.ts'
 
 /** Translate function for this plugin's dictionary. */
@@ -91,6 +96,7 @@ const ICON = {
   expand: 'M4 6l4 4 4-4',
   archive: 'M2.5 3.5h11v2.5h-11zM3.5 6v6.5h9V6M6.5 8.5h3',
   unarchive: 'M2.5 3.5h11v2.5h-11zM3.5 6v6.5h9V6M8 12V7.5M6.25 9.25L8 7.5l1.75 1.75',
+  guide: 'M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1.5 1.5 0 0 0-1.5-1.5h-4zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1.5 1.5 0 0 1 1.5-1.5h4z',
 } as const
 
 /** One inline icon. */
@@ -176,6 +182,19 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
    * only, so it stays in the component instead of in the controller or storage.
    */
   const [collapsedResults, setCollapsedResults] = React.useState<readonly string[]>([])
+  /**
+   * The guide pages this board should show right now, or `null` when no guide
+   * is open.
+   *
+   * The initial value is decided once, from the stored version: a browser that
+   * has read the current content gets nothing, a first visit gets every page,
+   * and a later version bump gives only the pages added since. Reading it once
+   * also keeps the guide from reopening on every state change after dismissal.
+   */
+  const [guideSteps, setGuideSteps] = React.useState<readonly MemoGuideStep[] | null>(() => {
+    const pending = pendingGuideSteps(GUIDE_STEPS, controller.guideSeenVersion())
+    return pending.length > 0 ? pending : null
+  })
 
   React.useEffect(() => {
     if (view.status === 'cold') void controller.refresh()
@@ -271,12 +290,32 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
       current.includes(name) ? current.filter(entry => entry !== name) : [...current, name])
   }
 
+  /**
+   * Dismiss the guide and remember that its content has been read.
+   *
+   * The version is recorded whichever page the user stopped on: skipping and
+   * finishing both mean "this browser has seen this update". Writing it only on
+   * the last page would reopen a skipped first-run guide on every visit.
+   */
+  const closeGuide = (): void => {
+    controller.markGuideSeen(GUIDE_VERSION)
+    setGuideSteps(null)
+  }
+
   return React.createElement('section', { className: 'dsh-memo', 'aria-label': t('panelTitle') },
-    // ── Board header: title, then Add Issue / Analyze Logs / Close, each with
-    //    an icon and its label, Close rightmost ──
+    // ── Board header: title, then Guide / Add Issue / Analyze Logs /
+    //    Summarize Sessions / Close, each with an icon and its label, Close
+    //    rightmost ──
     React.createElement('header', { className: 'dsh-memo-head' },
       React.createElement('h2', { className: 'dsh-memo-title' }, t('panelTitle')),
       React.createElement('div', { className: 'dsh-memo-headActions' },
+        // The guide is local UI, so it stays available even while a host call
+        // is in flight; the tour explains the board rather than changing it.
+        React.createElement('button', {
+          type: 'button',
+          className: 'dsh-memo-headBtn',
+          onClick: () => setGuideSteps(GUIDE_STEPS),
+        }, React.createElement(Icon, { path: ICON.guide }), t('guideOpen')),
         React.createElement('button', {
           type: 'button',
           className: 'dsh-memo-headBtn',
@@ -612,6 +651,13 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
             void controller.deleteCard(target)
           },
         })
+      : null,
+
+    // ── First-use guide ──
+    // Last, so an automatically opened guide sits above whatever the board was
+    // already showing rather than behind it.
+    guideSteps !== null
+      ? React.createElement(MemoGuide, { t, steps: guideSteps, onClose: closeGuide })
       : null,
   )
 }

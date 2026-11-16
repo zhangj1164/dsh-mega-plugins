@@ -17,6 +17,7 @@ import type {
   MemoPeriodEntry,
   MemoWeek,
 } from '@zhangj1164/dsh-memo/client'
+import type { MemoKey } from './locales.ts'
 
 /** One memo card: an entry plus the week it is stored in. */
 export interface MemoCard {
@@ -536,4 +537,93 @@ export function toggleGroupSelection(
   if (room <= 0) return [...selected]
   const added = eligible.filter(id => !selected.includes(id)).slice(0, room)
   return [...selected, ...added]
+}
+
+// ── First-use guide ────────────────────────────────────────────────────────
+
+/** Storage key for the guide content version this browser has already read. */
+export const GUIDE_STORAGE_KEY = 'dsh-memo:guide'
+
+/** One page of the board's first-use guide. */
+export interface MemoGuideStep {
+  /** Stable identity; never reuse an id for different copy. */
+  readonly id: string
+  /** Locale key of the step heading. */
+  readonly title: MemoKey
+  /** Locale key of the step body. */
+  readonly body: MemoKey
+  /** The guide content version that introduced this step. */
+  readonly introducedIn: number
+}
+
+/**
+ * The guide content version the board currently ships.
+ *
+ * Bump this whenever a step is added (or its copy changes materially) and give
+ * the new step that version. A browser that already read the guide is then
+ * shown only what is new, which is how a later plugin update introduces an
+ * important feature without replaying the whole first-run tour; the stored
+ * value is the version, so the record of "what this browser has read" cannot
+ * drift from the copy.
+ */
+export const GUIDE_VERSION = 1
+
+/** Every guide page, in display order. */
+export const GUIDE_STEPS: readonly MemoGuideStep[] = [
+  { id: 'write', title: 'guideWriteTitle', body: 'guideWriteBody', introducedIn: 1 },
+  { id: 'archive', title: 'guideArchiveTitle', body: 'guideArchiveBody', introducedIn: 1 },
+  { id: 'analyze', title: 'guideAnalyzeTitle', body: 'guideAnalyzeBody', introducedIn: 1 },
+  { id: 'sessions', title: 'guideSessionsTitle', body: 'guideSessionsBody', introducedIn: 1 },
+]
+
+/**
+ * Read the guide content version this browser has already read.
+ *
+ * A missing, unreadable, or malformed value reads as 0 — "nothing read yet" —
+ * because that is the only answer that guarantees a new user sees the guide.
+ * @param storage - the storage to read, or `undefined` when the environment has none.
+ * @returns the read version, or 0 when nothing valid is stored.
+ */
+export function readGuideSeen(storage: StorageLike | undefined): number {
+  if (storage === undefined) return 0
+  try {
+    const raw = storage.getItem(GUIDE_STORAGE_KEY)
+    if (raw === null || !/^\d+$/u.test(raw)) return 0
+    const seen = Number.parseInt(raw, 10)
+    return Number.isSafeInteger(seen) ? seen : 0
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * Record that the guide content up to `version` has been read.
+ *
+ * A blocked or full storage must not break the board; the guide simply
+ * reappears on the next visit, which is the safe direction to fail.
+ * @param storage - the storage to write, or `undefined` when the environment has none.
+ * @param version - the guide content version the user just finished or skipped.
+ */
+export function writeGuideSeen(storage: StorageLike | undefined, version: number): void {
+  if (storage === undefined) return
+  try {
+    storage.setItem(GUIDE_STORAGE_KEY, String(version))
+  } catch {
+    // Storage is an optimization, not the source of truth: a full or blocked
+    // storage means the guide shows again, never that the board breaks.
+  }
+}
+
+/**
+ * The guide pages a browser that has read `seen` still has to see.
+ *
+ * This is the whole update mechanism: a first visit (`seen` 0) gets every page,
+ * a browser that read the current version gets none, and a future version bump
+ * that adds a step shows only that step.
+ * @param steps - every page this build knows, in display order.
+ * @param seen - the guide content version already read.
+ * @returns the pages introduced after `seen`, in display order.
+ */
+export function pendingGuideSteps(steps: readonly MemoGuideStep[], seen: number): MemoGuideStep[] {
+  return steps.filter(step => step.introducedIn > seen)
 }

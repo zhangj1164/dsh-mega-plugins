@@ -44,12 +44,14 @@ import type {
 import type { GithubIssueReport } from '@zhangj1164/dsh-github-issue/client'
 import {
   cardsInPeriod,
+  readGuideSeen,
   readModelChoice,
   readSelection,
   selectableYears,
   toCards,
   targetWeekId,
   visiblePeriods,
+  writeGuideSeen,
   writeModelChoice,
   writeSelection,
   yearOf,
@@ -1109,6 +1111,25 @@ export class MemoController {
   /** Dismiss the log analysis result. */
   clearLogAnalysis(): void {
     this.set({ logAnalysis: null })
+  }
+
+  /**
+   * The guide content version this browser has already read.
+   *
+   * The storage object stays private to the controller, so the board asks for a
+   * version rather than for a storage handle it would have to validate itself.
+   * @returns the stored version, or 0 when the guide was never dismissed.
+   */
+  guideSeenVersion(): number {
+    return readGuideSeen(this.storage)
+  }
+
+  /**
+   * Record that the guide content up to `version` has been read.
+   * @param version - the guide content version the user just finished or skipped.
+   */
+  markGuideSeen(version: number): void {
+    writeGuideSeen(this.storage, version)
   }
 
   /** Stop publishing state. */
