@@ -4,9 +4,14 @@ import {
   filterArchivedSessions,
   groupArchivedSessions,
   groupSelection,
+  GUIDE_STEPS,
+  GUIDE_VERSION,
+  GUIDE_STORAGE_KEY,
   labelMatches,
+  pendingGuideSteps,
   periodDisplay,
   periodHasCards,
+  readGuideSeen,
   readSelection,
   selectableYears,
   sessionRangeStart,
@@ -15,11 +20,13 @@ import {
   toggleGroupSelection,
   UNGROUPED_SESSION_KEY,
   visiblePeriods,
+  writeGuideSeen,
   writeSelection,
   yearOf,
   PERIOD_TAG_LIMIT,
   PERIODS,
   type MemoCard,
+  type MemoGuideStep,
   type StorageLike,
 } from '../src/client/logic.ts'
 import type { MemoArchivedSession, MemoArchivedWorkspace, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
@@ -410,5 +417,53 @@ describe('toggleGroupSelection', () => {
   it('keeps selection order stable and never duplicates an id', () => {
     expect(toggleGroupSelection(['c'], ['a', 'b', 'c'], 5)).toEqual([])
     expect(toggleGroupSelection([], ['a', 'b'], 5)).toEqual(['a', 'b'])
+  })
+})
+
+describe('first-use guide', () => {
+  it('reads nothing as never seen, for a missing or malformed value alike', () => {
+    expect(readGuideSeen(undefined)).toBe(0)
+    expect(readGuideSeen(fakeStorage())).toBe(0)
+    expect(readGuideSeen(fakeStorage({ [GUIDE_STORAGE_KEY]: 'later' }))).toBe(0)
+    expect(readGuideSeen(fakeStorage({ [GUIDE_STORAGE_KEY]: '-3' }))).toBe(0)
+  })
+
+  it('round-trips the read version', () => {
+    const storage = fakeStorage()
+    writeGuideSeen(storage, 3)
+    expect(storage.data[GUIDE_STORAGE_KEY]).toBe('3')
+    expect(readGuideSeen(storage)).toBe(3)
+  })
+
+  it('treats an unreadable storage as never seen instead of breaking the board', () => {
+    const failing: StorageLike = {
+      getItem: () => { throw new Error('blocked') },
+      setItem: () => { throw new Error('blocked') },
+    }
+    expect(readGuideSeen(failing)).toBe(0)
+    expect(() => { writeGuideSeen(failing, GUIDE_VERSION) }).not.toThrow()
+  })
+
+  it('ships a non-empty guide whose version is the newest step version', () => {
+    expect(GUIDE_STEPS.length).toBeGreaterThan(0)
+    expect(GUIDE_VERSION).toBe(Math.max(...GUIDE_STEPS.map(step => step.introducedIn)))
+    expect(new Set(GUIDE_STEPS.map(step => step.id)).size).toBe(GUIDE_STEPS.length)
+  })
+
+  it('opens every page on a first visit and only the new page after an update', () => {
+    expect(pendingGuideSteps(GUIDE_STEPS, 0)).toEqual([...GUIDE_STEPS])
+    expect(pendingGuideSteps(GUIDE_STEPS, GUIDE_VERSION)).toEqual([])
+
+    // A future important update adds one page at the next version; the pages
+    // the browser already read stay dismissed.
+    const added: MemoGuideStep = {
+      id: 'future-update',
+      title: GUIDE_STEPS[0]!.title,
+      body: GUIDE_STEPS[0]!.body,
+      introducedIn: GUIDE_VERSION + 1,
+    }
+    const updated = [...GUIDE_STEPS, added]
+    expect(pendingGuideSteps(updated, GUIDE_VERSION).map(step => step.id)).toEqual(['future-update'])
+    expect(pendingGuideSteps(updated, GUIDE_VERSION + 1)).toEqual([])
   })
 })

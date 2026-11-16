@@ -6,7 +6,7 @@ import { MemoBoard } from '../src/client/MemoBoard.tsx'
 import { MemoController } from '../src/client/controller.ts'
 import { zh, type MemoKey } from '../src/client/locales.ts'
 import { createFakeRpc, isoWeekId, issueReport, type FakeRpcOptions } from './fake-rpc.ts'
-import type { StorageLike } from '../src/client/logic.ts'
+import { GUIDE_STEPS, GUIDE_VERSION, GUIDE_STORAGE_KEY, type StorageLike } from '../src/client/logic.ts'
 
 afterEach(cleanup)
 
@@ -29,21 +29,32 @@ function boardProps(controller: MemoController) {
   }
 }
 
+/** Storage for a browser that already read the current guide content. */
+function seenGuideStorage(): StorageLike {
+  const storage = fakeStorage()
+  storage.setItem(GUIDE_STORAGE_KEY, String(GUIDE_VERSION))
+  return storage
+}
+
 /**
  * Render the board and wait for its first load to settle.
  *
  * The element goes through `React.createElement`: calling the component
  * directly would run its hooks outside a render and throw "Invalid hook call".
+ *
+ * By default the browser has already read the current guide, so the guide
+ * overlay does not cover the surface a test is about; a guide test passes its
+ * own empty storage instead.
  */
-async function renderBoard(options: FakeRpcOptions = {}) {
+async function renderBoard(options: FakeRpcOptions = {}, storage: StorageLike = seenGuideStorage()) {
   const rpc = createFakeRpc(options)
   // The board sends issues to the repository the controller is configured with,
   // and the controller hands it to the github-issue service.
-  const controller = new MemoController({ rpc: { call: rpc.call }, repoUrl: REPO_URL, storage: fakeStorage() })
+  const controller = new MemoController({ rpc: { call: rpc.call }, repoUrl: REPO_URL, storage })
   const props = boardProps(controller)
   render(React.createElement(MemoBoard, props))
   await waitFor(() => { expect(controller.getSnapshot().status).toBe('ready') })
-  return { rpc, controller, openUrl: props.openUrl, close: props.close, copyText: props.copyText }
+  return { rpc, controller, storage, openUrl: props.openUrl, close: props.close, copyText: props.copyText }
 }
 
 /** The rendered memo cards. Result panels are sections, so they cannot leak in. */
@@ -1171,5 +1182,74 @@ describe('MemoBoard session summary', () => {
     expect((within(dialog).getByLabelText('Write docs') as HTMLInputElement).checked).toBe(false)
     // One of two chosen is "some", so the group box reports the partial state.
     expect((within(dialog).getByLabelText(`${zh.sessionSummarySelectGroup}: alpha`) as HTMLInputElement).checked).toBe(false)
+  })
+})
+
+describe('first-use guide', () => {
+  it('opens on the first page when the browser has never seen it', async () => {
+    await renderBoard({}, fakeStorage())
+
+    const dialog = screen.getByRole('dialog', { name: zh.guideTitle })
+    expect(within(dialog).getByText(zh.guideWriteTitle)).toBeTruthy()
+    expect(within(dialog).getByText(`1 / ${GUIDE_STEPS.length}`)).toBeTruthy()
+    // The guide is an overlay: the board is still mounted behind it.
+    expect(screen.getByRole('heading', { name: zh.panelTitle })).toBeTruthy()
+  })
+
+  it('walks the pages with Next and Back and keeps the counter honest', async () => {
+    await renderBoard({}, fakeStorage())
+    const dialog = screen.getByRole('dialog', { name: zh.guideTitle })
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.guideNext }))
+    expect(within(dialog).getByText(zh.guideArchiveTitle)).toBeTruthy()
+    expect(within(dialog).getByText(`2 / ${GUIDE_STEPS.length}`)).toBeTruthy()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.guidePrevious }))
+    expect(within(dialog).getByText(zh.guideWriteTitle)).toBeTruthy()
+    expect(within(dialog).getByText(`1 / ${GUIDE_STEPS.length}`)).toBeTruthy()
+  })
+
+  it('reaches the last page and records it as read on Get started', async () => {
+    const storage = fakeStorage()
+    await renderBoard({}, storage)
+    const dialog = screen.getByRole('dialog', { name: zh.guideTitle })
+
+    // Two buttons share the forward role: Next until the end, then Start.
+    for (let index = 1; index < GUIDE_STEPS.length; index += 1) {
+      fireEvent.click(within(dialog).getByRole('button', { name: zh.guideNext }))
+    }
+    expect(within(dialog).queryByRole('button', { name: zh.guideNext })).toBeNull()
+    expect(within(dialog).getByText(`${GUIDE_STEPS.length} / ${GUIDE_STEPS.length}`)).toBeTruthy()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.guideStart }))
+    expect(screen.queryByRole('dialog', { name: zh.guideTitle })).toBeNull()
+    expect(storage.getItem(GUIDE_STORAGE_KEY)).toBe(String(GUIDE_VERSION))
+  })
+
+  it('records Skip too, so the next visit stays quiet', async () => {
+    const storage = fakeStorage()
+    await renderBoard({}, storage)
+
+    const dialog = screen.getByRole('dialog', { name: zh.guideTitle })
+    fireEvent.click(within(dialog).getByRole('button', { name: zh.guideSkip }))
+    expect(screen.queryByRole('dialog', { name: zh.guideTitle })).toBeNull()
+    expect(storage.getItem(GUIDE_STORAGE_KEY)).toBe(String(GUIDE_VERSION))
+
+    // A remount on the same browser is a returning visit, not a first run.
+    cleanup()
+    await renderBoard({}, storage)
+    expect(screen.queryByRole('dialog', { name: zh.guideTitle })).toBeNull()
+  })
+
+  it('reopens every page from the header button without touching storage', async () => {
+    const { storage } = await renderBoard({})
+    expect(screen.queryByRole('dialog', { name: zh.guideTitle })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: zh.guideOpen }))
+    const dialog = screen.getByRole('dialog', { name: zh.guideTitle })
+    expect(within(dialog).getByText(zh.guideWriteTitle)).toBeTruthy()
+    expect(within(dialog).getByText(`1 / ${GUIDE_STEPS.length}`)).toBeTruthy()
+    // Reopening rereads the guide; the stored version is unchanged until dismissed.
+    expect(storage.getItem(GUIDE_STORAGE_KEY)).toBe(String(GUIDE_VERSION))
   })
 })
