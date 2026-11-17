@@ -58,6 +58,24 @@ jobs:
         # mermaid + jsdom are optional; they add high-fidelity validation of Mermaid diagrams. Remove if your wiki has none.
         run: npm install --global openwiki@0.7.3 mermaid@11.16.0 jsdom@29.1.1
 
+      - name: Probe model gateway connectivity
+        # Temporary diagnostic on a throwaway branch: is the configured gateway
+        # reachable from a GitHub-hosted runner at all?
+        run: |
+          set -x
+          getent hosts app.chinaunicom.cn || echo "getent: no answer"
+          curl -sS -m 25 -o /dev/null -w 'curl status=%{http_code} remote_ip=%{remote_ip}\n' --http1.1 https://app.chinaunicom.cn/ai-api/deepseek/v1/models || echo "curl failed rc=$?"
+          curl -sSv -m 25 --http1.1 https://app.chinaunicom.cn/ai-api/deepseek/v1/models 2>&1 | tail -40 || true
+          node --input-type=module -e "
+            const url = 'https://app.chinaunicom.cn/ai-api/deepseek/v1/models';
+            try {
+              const res = await fetch(url, { signal: AbortSignal.timeout(25000) });
+              console.log('node fetch status', res.status);
+            } catch (error) {
+              console.log('node fetch error:', error.name, error.message, error.cause?.code ?? '', error.cause?.message ?? '');
+            }
+          " || true
+
       - name: Run OpenWiki
         id: openwiki
         continue-on-error: true
