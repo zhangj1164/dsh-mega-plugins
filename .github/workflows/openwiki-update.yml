@@ -75,7 +75,11 @@ jobs:
           # Optional: also trace this workflow's own OpenWiki run to LangSmith.
           LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
           LANGCHAIN_PROJECT: openwiki
-          LANGCHAIN_TRACING_V2: "true"
+          # Tracing only works with a real key. Enabled without one, the LangSmith
+          # exporter posts to the multipart ingestion endpoint unauthenticated and
+          # the resulting 401 fails the run before any page is written. Typical log:
+          # Failed to send multipart request. Received status [401]: Unauthorized.
+          LANGCHAIN_TRACING_V2: ${{ secrets.LANGSMITH_API_KEY != '' }}
 
       - name: Remove transient OpenWiki run state
         if: ${{ !cancelled() }}
