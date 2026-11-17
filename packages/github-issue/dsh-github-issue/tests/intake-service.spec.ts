@@ -125,6 +125,64 @@ describe('runIntake', () => {
     expect(mounted.schedule?.created[0]?.prompt).toBe('TASK 1: Issue 1')
   })
 
+  it('joins the Workspace registered for the configured dispatch directory', async () => {
+    const mounted = await harness({
+      autopilotCwd: 'E:/repo',
+      autopilotPreset: 'standard',
+      workspaces: [{ id: 'workspace-1', path: 'E:\\repo' }],
+    })
+    stubFetch([issue(4)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(mounted.sessions?.creates).toEqual([{ workspaceId: 'workspace-1', agentPreset: 'standard' }])
+    expect(mounted.schedule?.created[0]?.sessionId).toBe('session-1')
+  })
+
+  it('matches a Workspace whose separators and trailing separator differ', async () => {
+    const mounted = await harness({
+      autopilotCwd: 'E:/repo/',
+      workspaces: [{ id: 'workspace-1', path: 'E:\\repo' }],
+    })
+    stubFetch([issue(5)])
+    await mounted.service.runIntake({})
+    expect(mounted.sessions?.creates).toEqual([{ workspaceId: 'workspace-1' }])
+  })
+
+  it('compares a Workspace path case the way the host filesystem does', async () => {
+    const caseInsensitive = process.platform === 'win32' || process.platform === 'darwin'
+    const mounted = await harness({
+      autopilotCwd: 'E:/REPO',
+      workspaces: [{ id: 'workspace-1', path: 'E:\\repo' }],
+    })
+    stubFetch([issue(6)])
+    await mounted.service.runIntake({})
+    expect(mounted.sessions?.creates).toEqual([
+      caseInsensitive ? { workspaceId: 'workspace-1' } : { cwd: 'E:/REPO' },
+    ])
+  })
+
+  it('creates the Session by directory when no Workspace owns the configured directory', async () => {
+    const mounted = await harness({
+      autopilotCwd: 'E:/repo',
+      workspaces: [{ id: 'workspace-1', path: 'E:\\elsewhere' }],
+    })
+    stubFetch([issue(7)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:/repo' }])
+  })
+
+  it('creates the Session by directory when the Workspace registry cannot be read', async () => {
+    const mounted = await harness({ autopilotCwd: 'E:/repo', workspaceListFails: true })
+    stubFetch([issue(8)])
+    const result = await mounted.service.runIntake({})
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(mounted.sessions?.creates).toEqual([{ cwd: 'E:/repo' }])
+  })
+
   it('does not remember a day whose listing failed', async () => {
     const mounted = await harness()
     stubFetch({ message: 'server error' }, 500)
@@ -209,6 +267,17 @@ describe('runIntake', () => {
 })
 
 describe('dispatchIssue', () => {
+  it('places the Session in the Workspace registered for the requested directory', async () => {
+    const mounted = await harness({ workspaces: [{ id: 'workspace-9', path: 'E:\\repo' }] })
+    const result = await mounted.service.dispatchIssue({
+      issue: { number: 1, title: 't', body: 'b', url: 'u', labels: [] },
+      cwd: 'E:/repo',
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(mounted.sessions?.creates).toEqual([{ workspaceId: 'workspace-9' }])
+  })
+
   it('refuses when the deployment mounts no Session router', async () => {
     const mounted = await harness({ withoutSessionServices: true })
     const result = await mounted.service.dispatchIssue({

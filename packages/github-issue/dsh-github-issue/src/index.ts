@@ -130,8 +130,12 @@ export interface Config {
   /**
    * Working directory the dispatched Sessions own. Empty follows the host's
    * default directory, which is the deployment's current working directory.
-   */
-  readonly autopilotCwd: Volatile<string>
+   *
+   * The directory also decides which Workspace a dispatch joins: a Session the
+   * controller creates for a bare directory belongs to no Workspace, so the
+   * directory is matched against the registered Workspaces and a match places
+   * the Session there. A directory that matches none leaves the Session
+   * ungrouped in the sidebar.
   /** Agent preset the dispatched Sessions run; empty follows the deployment default. */
   readonly autopilotPreset: Volatile<string>
   /**
@@ -326,8 +330,14 @@ interface GithubStorageDomain {
 
 /** The Session controller methods dispatching a Session needs. */
 interface GithubSessionController {
-  /** Create one ordinary Session for a new conversation. */
-  create(request: { cwd?: string; agentPreset?: string }): Promise<{ sessionId: string }>
+  /**
+   * Create one ordinary Session for a new conversation.
+   *
+   * `workspaceId` and `cwd` are mutually exclusive: the controller rejects a
+   * request carrying both. Only a Workspace places the new Session in a sidebar
+   * group; a bare `cwd` creates the directory but leaves the Session ungrouped.
+   */
+  create(request: { cwd?: string; workspaceId?: string; agentPreset?: string }): Promise<{ sessionId: string }>
   /** Admit one prompt on a Session's Agent, the durable path the Web prompt uses. */
   prompt(
     request: {
@@ -362,6 +372,26 @@ interface GithubScheduleService {
     sessionId: string,
     request: { prompt: string; title: string; after_seconds: number },
   ): Promise<{ id: string }>
+}
+
+/**
+ * The Workspace registry methods placing a dispatched Session needs.
+ *
+ * Declared structurally and read with `ctx.get`, like the Schedule service:
+ * a composition without the Workspace layer must still dispatch, so a missing
+ * registry falls back to creating the Session by directory.
+ */
+interface GithubWorkspaceRegistry {
+  /** Every registered Workspace, in the order the sidebar shows them. */
+  list(): readonly GithubWorkspace[]
+}
+
+/** One registered Workspace, as far as placement needs it. */
+interface GithubWorkspace {
+  /** The Workspace's stable id. */
+  readonly id: string
+  /** The directory the Workspace owns, as the registry recorded it. */
+  readonly path: string
 }
 
 /** The empty intake state used before the first pass and without storage. */
@@ -770,10 +800,11 @@ export class GithubIssueService extends TypertRemoteService {
     if (controller === undefined || typeof controller.prompt !== 'function') return SESSION_UNAVAILABLE
     const cwd = firstNonBlank(request.cwd, this.config.autopilotCwd.get())
     const agentPreset = firstNonBlank(request.agentPreset, this.config.autopilotPreset.get())
+    const placement = this.workspacePlacement(cwd)
     let sessionId: string
     try {
       const created = await controller.create({
-        ...(cwd === undefined ? {} : { cwd }),
+        ...placement,
         ...(agentPreset === undefined ? {} : { agentPreset }),
       })
       sessionId = created.sessionId
@@ -826,6 +857,43 @@ export class GithubIssueService extends TypertRemoteService {
     void this.renameSession(controller, sessionId, dispatchTitle(request.issue))
     this.track('dispatchIssue', 'success', { issue: request.issue.number, sessionId })
     return { ok: true, value: Object.freeze({ sessionId }) }
+  }
+
+  /**
+   * Resolve the Session placement request for a configured directory.
+   *
+   * The controller creates a Session for a directory but never adds it to a
+   * Workspace, so that Session shows up under the sidebar's ungrouped heading
+   * even when the directory is a registered project. Passing the Workspace
+   * instead is the only path that files it under the project: the controller
+   * then derives the directory from the Workspace's own path and attaches the
+   * Session to it. The configured directory is matched against the registry by
+   * normalized spelling, because a deployment writes `E:/repo` where the
+   * registry recorded `E:\repo`.
+   *
+   * A directory that matches no Workspace, a deployment without the Workspace
+   * layer, and a registry read that fails all fall back to creating by
+   * directory: the dispatch still runs, it just stays ungrouped.
+   *
+   * @param cwd - the configured dispatch directory, when any.
+   * @returns the placement fields for the create request.
+   */
+  private workspacePlacement(cwd: string | undefined): { workspaceId: string } | { cwd: string } | Record<string, never> {
+    if (cwd === undefined) return {}
+    const registry = optionalService<GithubWorkspaceRegistry>(this.ctx, 'workspaceRegistry')
+    if (registry === undefined || typeof registry.list !== 'function') return { cwd }
+    let workspaces: readonly GithubWorkspace[]
+    try {
+      workspaces = registry.list()
+    } catch (error) {
+      this.warn('the Workspace registry could not be read, so the dispatched Session is created without a Workspace: ' + describeError(error))
+      return { cwd }
+    }
+    const target = normalizeWorkspacePath(cwd)
+    const match = workspaces.find(workspace => normalizeWorkspacePath(workspace.path) === target)
+    if (match !== undefined) return { workspaceId: match.id }
+    this.warn('no Workspace is registered for "' + cwd + '", so the dispatched Session is created without a Workspace')
+    return { cwd }
   }
 
   /**
@@ -1118,6 +1186,29 @@ function firstNonBlank(...values: readonly (string | undefined)[]): string | und
     if (typeof value === 'string' && value.trim().length > 0) return value.trim()
   }
   return undefined
+}
+
+/** Whether the host filesystem treats a path's case as insignificant. */
+const CASE_INSENSITIVE_PATHS = process.platform === 'win32' || process.platform === 'darwin'
+
+/**
+ * Reduce a directory spelling to the form two configurations compare equal in.
+ *
+ * A deployment configures a directory the way its author prefers it, so the
+ * Workspace registry and the plugin config can name one directory with
+ * different separators, a trailing separator, or different capitalization on a
+ * host whose filesystem ignores case. None of that changes which directory is
+ * meant, so comparison normalizes it away: separators unify to `/`, repeated
+ * and trailing separators collapse, and case folds only where the platform
+ * ignores it. The result is for comparison, not for display or for use as a
+ * path.
+ *
+ * @param path - the directory spelling.
+ * @returns the comparable form.
+ */
+function normalizeWorkspacePath(path: string): string {
+  const unified = path.trim().replace(/\\/g, '/').replace(/\/{2,}/g, '/').replace(/\/+$/, '')
+  return CASE_INSENSITIVE_PATHS ? unified.toLowerCase() : unified
 }
 
 /**

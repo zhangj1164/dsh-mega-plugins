@@ -32,7 +32,7 @@ export interface RecordedPrompt {
 /** Mock Session controller that records creation, prompt admission, and renaming. */
 class MockSessionController extends Service {
   /** Every create request, in order. */
-  readonly creates: { cwd?: string; agentPreset?: string }[] = []
+  readonly creates: { cwd?: string; workspaceId?: string; agentPreset?: string }[] = []
   /** Every prompt admission, in order. */
   readonly prompts: RecordedPrompt[] = []
   /** Every rename request, in order. */
@@ -44,7 +44,10 @@ class MockSessionController extends Service {
     super(ctx, 'sessionController')
     this.promptFails = config?.promptFails ?? false
   }
-  async create(request: { cwd?: string; agentPreset?: string }) {
+  async create(request: { cwd?: string; workspaceId?: string; agentPreset?: string }) {
+    if (request.workspaceId !== undefined && request.cwd !== undefined) {
+      throw new Error('session.create accepts workspaceId or cwd, not both')
+    }
     this.creates.push(request)
     this.index += 1
     return { sessionId: 'session-' + this.index }
@@ -98,6 +101,31 @@ class MockSchedule extends Service {
       afterSeconds: request.after_seconds,
     })
     return { id: 'schedule-' + this.index }
+  }
+}
+
+/** One Workspace this harness's registry serves. */
+export interface RecordedWorkspace {
+  /** Workspace id the Session joins. */
+  readonly id: string
+  /** Directory the Workspace owns, as the registry recorded it. */
+  readonly path: string
+}
+
+/** Mock Workspace registry that serves a fixed snapshot. */
+class MockWorkspaceRegistry extends Service {
+  /** The registered Workspaces. */
+  readonly workspaces: readonly RecordedWorkspace[]
+  /** Whether reading the registry fails the way an unreadable store does. */
+  private readonly listFails: boolean
+  constructor(ctx: Context, config?: { workspaces?: readonly RecordedWorkspace[]; listFails?: boolean }) {
+    super(ctx, 'workspaceRegistry')
+    this.workspaces = config?.workspaces ?? []
+    this.listFails = config?.listFails ?? false
+  }
+  list(): readonly RecordedWorkspace[] {
+    if (this.listFails) throw new Error('the workspace store could not be read')
+    return this.workspaces
   }
 }
 
@@ -188,6 +216,10 @@ export interface IntakeHarnessOptions {
   readonly withoutSchedule?: boolean
   /** Make automation-task registration fail the way an unavailable store does. */
   readonly scheduleCreateFails?: boolean
+  /** Mount a Workspace registry serving these Workspaces. */
+  readonly workspaces?: readonly RecordedWorkspace[]
+  /** Make reading the Workspace registry fail the way an unreadable store does. */
+  readonly workspaceListFails?: boolean
   /** Make opening the intake state fail the way a corrupt state file does. */
   readonly storageOpenFails?: boolean
 }
@@ -202,6 +234,8 @@ export interface IntakeHarness {
   readonly sessions: MockSessionController | undefined
   /** Schedule mock, absent when not mounted. */
   readonly schedule: MockSchedule | undefined
+  /** Workspace registry mock, absent when not mounted. */
+  readonly workspaceRegistry: MockWorkspaceRegistry | undefined
   /** Storage mock, absent when not mounted. */
   readonly storage: MockStorageDomain | undefined
   /** Telemetry mock that records every event. */
@@ -230,6 +264,12 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
   const schedule = options.withoutSchedule === true
     ? undefined
     : await ctx.plugin(MockSchedule, { createFails: options.scheduleCreateFails === true }).then(() => ctx.get('schedule') as MockSchedule)
+  const workspaceRegistry = options.workspaces === undefined && options.workspaceListFails !== true
+    ? undefined
+    : await ctx.plugin(MockWorkspaceRegistry, {
+        ...(options.workspaces === undefined ? {} : { workspaces: options.workspaces }),
+        listFails: options.workspaceListFails === true,
+      }).then(() => ctx.get('workspaceRegistry') as MockWorkspaceRegistry)
   const token = options.token ?? 'test-token'
   await ctx.plugin(GithubIssueService, {
     repoUrl: 'https://github.com/test/repo',
@@ -248,6 +288,7 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
     service: ctx.get('githubIssue') as GithubIssueService,
     sessions,
     schedule,
+    workspaceRegistry,
     storage,
     telemetry,
     async dispose() {

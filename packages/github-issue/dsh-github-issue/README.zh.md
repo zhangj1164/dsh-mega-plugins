@@ -24,7 +24,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `claimLabel` | `ready-for-agent` | 标记「可接单」的标签。取值的归属是仓库的分诊词汇表；本字段只决定哪个标签算数。 |
 | `maxIssuesPerRun` | `3` | 一次接单最多派发的 issue 数。 |
 | `autopilotEnabled` | `false` | 是否在本地日期首次启动时检查可接单 issue。默认关闭：未经请求就打开会话是部署决定，而不是插件安装时替用户做的决定。 |
-| `autopilotCwd` | 空 | 派发会话的工作目录。空值跟随宿主默认目录。 |
+| `autopilotCwd` | 空 | 派发会话的工作目录。空值跟随宿主默认目录。目录若已注册为某个工作区，派发会话会归入该工作区的侧边栏分组；匹配不到任何工作区则留在「未分组」。 |
 | `autopilotPreset` | 空 | 派发会话使用的 agent preset。空值跟随部署默认。 |
 | `autopilotTimeZone` | 空 | 判定「今天」所用的 IANA 时区。空值跟随宿主自身时区，因此用户的本地午夜才是新一天的开始。 |
 | `autopilotPrompt` | 内置模板 | 交给每个派发会话的提示词模板。占位符 `{number}`、`{title}`、`{url}`、`{body}`、`{labels}` 会被替换；未知占位符保留原样可见。 |
@@ -41,7 +41,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `optimizeIssue(request)` | 将自然语言描述重写为按固定 Markdown 模板组织的 issue。空描述返回 `empty-input`，无路由可解析时返回 `route-missing`，模型调用失败返回 `llm-failure`。 |
 | `createIssue(request)` | 经 GitHub REST API 直接建单，返回新 issue 的 `{ number, url }`。正文写入时会去掉首行的 `## 标题`，因为 GitHub 把标题作为独立字段。 |
 | `listClaimableIssues(request)` | 列出带接单标签的 open issue，并排除 PR——GitHub 的 issue 端点也会返回 PR。 |
-| `dispatchIssue(request)` | 经 Session 控制器新建一个会话并命名，把渲染后的提示词登记为该会话上的一次性自动化任务，由 Schedule 服务送达；返回 `sessionId`。没有挂载 Schedule 服务的部署改为直接排入提示词。 |
+| `dispatchIssue(request)` | 经 Session 控制器新建一个会话并命名，把渲染后的提示词登记为该会话上的一次性自动化任务，由 Schedule 服务送达，并尽量把会话归入配置目录对应的项目工作区；返回 `sessionId`。没有挂载 Schedule 服务的部署改为直接排入提示词。 |
 | `runIntake(request)` | 执行一次接单：列出可接单 issue，跳过此前已派发的，派发其余，并把本地日期持久化。 |
 
 接单方法只报一个稳定的失败码，而不是原始的 `fetch` 错误：`auth-missing`、`auth-failure`、`rate-limited`、`invalid-repo`、`invalid-request`、`http-failure`、`network-failure`、`session-unavailable`、`dispatch-failed`。`auth-missing` 与 `auth-failure` 分开，是因为「没有凭据」和「凭据被拒绝」是两种部署问题，修法不同。
@@ -105,6 +105,8 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 ```
 
 宿主必须在运行，检查才可能发生；没有启动的一天就没有检查。这是有意的行为——检查是启动钩子，不是调度器——而「自动化任务」页面现在会列出每次派发登记的那条一次性任务，已送达的显示为已结束。
+
+`autopilotCwd` 同时决定派发会话归入哪个工作区。控制器只凭一个目录建会话时不会把它加进任何工作区，而不属于任何工作区的会话，在侧边栏里就显示在「未分组」标题下。因此派发会把目录拿到工作区注册表里查一遍——分隔符与结尾分隔符先归一，大小写只在宿主文件系统忽略大小写时才折叠——命中就把该工作区的 id 传给控制器，而不是传目录。创建请求只能给 `workspaceId` 或 `cwd` 其中之一，所以只会发送一个。没有工作区层、注册表读取失败、或目录匹配不到任何已注册工作区，这三种情况都退回「按目录创建」：派发照常运行，只是会话留在未分组，并有一条警告指出哪个目录没匹配上。
 
 派发出来的会话要自己跑仓库流程，第一步就是 `git fetch`。默认的 `workspace-write` 沙箱会拦住联网命令并弹出审批，而无人值守的派发无法回答它；因此想让闭环自己跑起来的部署，应在自己的 patch 层把权限预设固定为 `danger-full-access`：
 
@@ -183,3 +185,4 @@ dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-is
 - **自身没有浏览器界面** — 本包不注册模型工具，也不附带浏览器 UI。单独安装只会给部署带来 `ctx.get('githubIssue')`，用户看不到也点不到任何东西；可见的入口是 `@zhangj1164/dsh-client-ui-memo` 的 issue 编辑器（其「直接提交到 GitHub」按钮）与日志分析动作，它们经 Remote 调用本服务。请把它当作供 UI 插件消费的后端，而不是一个能独立使用的功能。
 - **派发需要 Web 组合** — `dispatchIssue` 与 `runIntake` 读取 `ctx.get('sessionController')`，存在时再读 `ctx.get('schedule')`。没有 Session 控制器的 headless 或纯 SDK 组合会返回 `session-unavailable`，只能建单和列取；有控制器但没有 Schedule 服务的组合仍能派发，只是改为直接排入提示词。
 - **首次启动检查是启动钩子，不是调度器** — 它只在宿主启动时运行。跨过午夜仍保持运行的部署会在下一次启动时检查，而不是在午夜检查。
+- **工作区归组依赖目录拼写** — 只有 `autopilotCwd` 恰好是该工作区注册的目录（分隔符与大小写之外完全一致）时，派发会话才会归入该工作区。工作区的子目录、相对路径或符号链接写法的目录都匹配不到：会话按目录创建并留在未分组，同时有一条警告。插件不会自行创建工作区，因为那会改动用户的侧边栏。
