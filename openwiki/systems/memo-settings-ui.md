@@ -3,9 +3,6 @@ type: 系统
 title: 备忘设置页 UI（浏览器）
 description: 备忘套件的 Settings 页包：两个由 `configForms.whileServed` 门控的 `settings.section` 注册（`memo` 与 `github-issue`）、共享的暂存草稿状态机、字段与分组声明表及复述的边界，以及一次保存如何成为带 revision 栅栏的热配置写入而不是重启。
 tags: [memo, settings-ui, browser-client, draft-state-machine, config-forms, field-specs, while-served]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-3f00c444f0520fae7905bc6e
     resource: repo://docs/plans/2026-10-29-memo-settings-panel-design.md

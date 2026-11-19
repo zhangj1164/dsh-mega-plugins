@@ -3,9 +3,6 @@ type: 工作流
 title: 已归档会话 → 备忘周条目：资格、转写预算、每会话一次模型调用与来源标注
 description: 「总结会话」这条路线怎么走：官方归档集合决定资格、header/标题只做表现层补全、子会话在宿主侧被过滤、对话按「只留人可见文本」提取并压进字符预算（保留首尾）、每个会话各一次模型调用、来源标注在宿主侧渲染、`originSessionId` 只能由这条路径写入，以及顶层闸门与七种单会话失败码如何让部分成功可用。
 tags: [memo, workflow, session-summary, transcript-budget, provenance, llm-route, workspace-registry, failure-taxonomy]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-a028fd3f0a07adb5259e637a
     resource: repo://packages/client/ui-memo/src/client/controller.ts

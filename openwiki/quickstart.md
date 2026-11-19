@@ -1,11 +1,8 @@
 ---
 type: quickstart
-title: 快速上手：这个仓库是什么，从哪里开始
+title: 快速上手：仓库地图与任务路由
 description: 一屏看懂六个包的宿主/浏览器半边、服务键与组合入口 id，记住分支 → 门禁 → PR 的强制流程与四条不可破的约束，再按任务类型路由到对应的架构、系统、流程、运维或测试页面。
 tags: [quickstart, onboarding, monorepo, plugins, workflow, gates, routing]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -13,8 +10,6 @@ sources:
     resource: repo://package.json
   - id: openwiki-source-fed036ced61bb76f51f30732
     resource: repo://packages/client/ui-memo-settings/cordis.patch.yml
-  - id: openwiki-source-992aa3da48ec406bbff3de9c
-    resource: repo://packages/client/ui-memo-settings/package.json
   - id: openwiki-source-3677926fe619a6aaf798c3c2
     resource: repo://packages/client/ui-memo-settings/src/client/index.ts
   - id: openwiki-source-a028fd3f0a07adb5259e637a
@@ -25,14 +20,22 @@ sources:
     resource: repo://packages/github-issue/dsh-github-issue/src/index.ts
   - id: openwiki-source-c35c5828e4c603df9a0ad665
     resource: repo://packages/memo/dsh-memo/cordis.patch.yml
-  - id: openwiki-source-c6503affb5065087aa8c04fc
-    resource: repo://packages/memo/dsh-memo/package.json
+  - id: openwiki-source-af6070efd617d3968568cd0e
+    resource: repo://packages/memo/dsh-memo/src/client.ts
   - id: openwiki-source-3a7480327133dfa38c0836e5
     resource: repo://packages/memo/dsh-memo/src/index.ts
   - id: openwiki-source-7a2a2ebeaef9b7c69c6f895c
     resource: repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml
+  - id: openwiki-source-7bdef7e571c1e06b4acd10b8
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/package.json
+  - id: openwiki-source-b11e3901bd5bff9dc393c323
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/src/client/controller.ts
+  - id: openwiki-source-98feb3974b2830432c6dc106
+    resource: repo://packages/openwiki/dsh-openwiki-visualize/src/index.ts
   - id: openwiki-source-efc0ee33e7d2925732bca665
     resource: repo://packages/telemetry/dsh-telemetry/cordis.patch.yml
+  - id: openwiki-source-ab1b1c67ce5f3096942f7ea4
+    resource: repo://packages/telemetry/dsh-telemetry/src/index.ts
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
   - id: openwiki-source-9fc8af81932d30b3430691b6
@@ -41,10 +44,13 @@ sources:
     resource: repo://scripts/run-gates.ts
   - id: openwiki-source-fbadcd8591b65031efaaedce
     resource: repo://vitest.config.ts
-generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
+generated: { by: "openwiki/0.7.3", at: "2026-11-19T17:15:50.699Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-19T17:15:50.699Z
 ---
 
-# 快速上手：这个仓库是什么，从哪里开始
+# 快速上手：仓库地图与任务路由
 
 `zhangj1164/dsh-mega-plugins` 是一个 pnpm monorepo，交付两条产品线上的六个 DSH 插件：一条本地优先的个人备忘套件（`telemetry`、`githubIssue`、`memo` 三个宿主服务，加备忘看板与 Settings 页两个浏览器面），以及 Web 右 Sidebar 里的 OpenWiki 预览。`pnpm-workspace.yaml` 的 `packages:` 只有一行 `packages/*/*`，根 `package.json` 是 private 的聚合脚本入口：`pnpm run build`、`pnpm run test`、`pnpm run gates`。
 
@@ -59,11 +65,11 @@ generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 | `@zhangj1164/dsh-memo` | `packages/memo/dsh-memo` | 宿主（浏览器半边在别的包） | `TypertRemoteService` `memo` | `memo` **和** `ui-memo` |
 | `@zhangj1164/dsh-client-ui-memo` | `packages/client/ui-memo` | 仅浏览器 | 空 `apply()` | 无自有 bundle，`ui-memo` 行由 `dsh-memo` 的 patch 插入 |
 | `@zhangj1164/dsh-client-ui-memo-settings` | `packages/client/ui-memo-settings` | 仅浏览器，但自带 bundle | 空 `apply()` | `ui-memo-settings` |
-| `@zhangj1164/dsh-openwiki-visualize` | `packages/openwiki/dsh-openwiki-visualize` | 同一个包两半都有 | `TypertRemoteService` `openwikiVisualize` | `openwiki-visualize` |
+| `@zhangj1164/dsh-openwiki-visualize` | `packages/openwiki/dsh-openwiki-visualize` | 同一个包两半都有（宿主 `lib/index.js` + 同 manifest 的 `dsh.client` → `lib/client.js`） | `TypertRemoteService` `openwikiVisualize` | `openwiki-visualize`（一行同时带上两半） |
 
-三个宿主包里有两条依赖边值得先知道：`memo` 的静态 `inject` 是 `['storageDomain', 'telemetry', 'githubIssue']`，所以单独装 `dsh-memo` 启动不了（profile 的 `autoInstallPeers: false` 让安装只带来命令点名的包）；`githubIssue` 只静态 inject `llm`，对 `telemetry` 用 `ctx.get()` 可选读取，缺席时照常工作、只是不留日志。
+三个宿主包里有两条依赖边值得先知道：`MemoService` 的静态 `inject` 是 `['storageDomain', 'telemetry', 'githubIssue']`，所以单独装 `dsh-memo` 启动不了（profile 的 `autoInstallPeers: false` 让安装只带来命令点名的包）；`GithubIssueService` 只静态 inject `llm`，对 `telemetry`、`storageDomain`、`sessionController` 等用 `ctx.get()` 可选读取，缺席时照常工作（只是不留日志、不落 intake 状态）。`TelemetryService` 只静态 inject `storageDomain`。
 
-最容易踩的一处命名巧合：`telemetry`、`github-issue`、`memo` 三个包都导出 `./client`，内容是一句 `export type *`——那是给客户端复用的类型投影，运行时解析只会得到空模块；真正的浏览器半边是 manifest 里的 `dsh.client`，宿主按包名取回 `lib/client.js`。为什么这样拆、两侧的 `inject` 各管什么，见 [插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md)。
+最容易踩的一处命名巧合：`telemetry`、`github-issue`、`memo` 三个包都导出 `./client`，内容是一句 `export type * from './types.ts'`——那是给客户端复用的类型投影，运行时解析只会得到空模块；真正的浏览器半边是 manifest 里的 `dsh.client`，宿主按包名取回 `lib/client.js`。所以根 `vitest.config.ts` 把这三个包（连同 `/client`、`/types`）精确别名回 TypeScript 源码，测试跑的是源码而非构建产物。为什么这样拆、两侧的 `inject` 各管什么，见 [插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md)。
 
 ```mermaid
 flowchart LR
@@ -99,7 +105,7 @@ flowchart LR
   GHI --> ISS
 ```
 
-箭头方向就是调用、注入或写入的方向；浏览器侧只有四条边——三个 Remote 命名空间加一条 `configForms`，没有跨包的浏览器半边引用。OpenWiki 预览的叶子是 workspace 里的 `openwiki/` 目录与一个被监督的子进程，图中省略。
+箭头方向就是调用、注入或写入的方向；浏览器侧只有四条边——`memo` 与 `githubIssue` 两个 Remote 命名空间（看板都经同一个 `callRemote` 包装）、`openwikiVisualize` 一个 Remote 命名空间，加设置页对 `configForms` 两个命名空间的读写，没有跨包的浏览器半边引用。OpenWiki 预览的叶子是 workspace 里的 `openwiki/` 目录与一个被监督的子进程，图中省略。
 
 ## 第一次进仓库
 
@@ -129,7 +135,7 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 1. **从 `main` 切分支，走 PR。** 见上一节；这是流程约束，也是评审要拦的第一件事。
 2. **`pnpm run gates` 必须在本地全绿。** 门禁不是建议，是提交前的门槛。
 3. **发布只用 `pnpm publish`，绝不用 `npm publish`。** npm 会把 `workspace:` 协议原样写进发布清单（`@zhangj1164/dsh-memo@0.1.0` 就这样把 `"@zhangj1164/dsh-telemetry": "workspace:^"` 当成 peer range 发了出去，npm 用户安装直接 `EUNSUPPORTEDPROTOCOL`），而 `pnpm publish` 会在打包时把每个 `workspace:` range 替换成对端真实版本。现在每个带 `workspace:` range 的包都以 `prepublishOnly` 跑 `scripts/publish-guard.mjs`：packer 不是 pnpm 就在打包前中止，认不出 packer 也一律拒绝（fail closed）；`pnpm run verify-publish-guard` 负责保证这条接线不被悄悄摘掉。发布后复核：`npm view <pkg>@<version> peerDependencies` 里不能有 `workspace:`，干净的 `npm install <pkg>@<version>` 必须成功。
-4. **不新增硬编码的部署可变值。** URL、端点、端口、阈值、提示词片段、存储路径都必须是校验过的 schemastery `Config` 字段，由 `cordis.patch.yml` / `dsh.profile` 覆盖；只有协议常量、外部规范与安全不变量保持固定。要让部署在 Settings 里改，还得把它放在 `.volatile()` 节点下并在用点读 getter，否则设置页保存成功而服务仍用旧值。`DEFAULT_*` 常量与测试钩子不算可配置性。
+4. **不新增硬编码的部署可变值。** URL、端点、端口、阈值、提示词片段、存储路径都必须是校验过的 schemastery `Config` 字段，由 `cordis.patch.yml` / `dsh.profile` 覆盖；只有协议常量、外部规范与安全不变量保持固定。要让部署在 Settings 里改，还得把它放在 `.volatile()` 节点下并在用点读 getter，否则设置页保存成功而服务仍用旧值——`memo` 的 `Config` 因此整份都是 `.volatile()`，而 `openwiki-visualize` 的 `Config` 没有 volatile 字段，也就没有设置页。`DEFAULT_*` 常量与测试钩子不算可配置性。
 
 还有一条容易被忽略、但会直接决定设计形状的边界：面板发起的 Remote 调用落在 turn 之间，`ctx.approval.request()` 需要 open turn 与 `agent`，所以「用户点击 → 宿主执行敏感操作」拿不到人工确认。这类能力只有两种合规形态——不注册 `@Remote`（如 `readExternalPath`），或包装成 turn 内 tool。详见[能力与审批边界](concepts/capability-and-approval-boundaries.md)。
 
@@ -138,8 +144,8 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 | 你要做的事 | 先读 | 你会拿到什么 |
 |---|---|---|
 | 建立全局模型：谁在宿主、谁在浏览器、状态落在哪 | [系统总览](architecture/overview.md) | 六包合并表、装配四步顺序、失败定位表、五类改动的落点 |
-| 加一个宿主能力（新服务、新包、新配置字段） | [备忘服务](systems/memo-service.md) | 一个 `TypertRemoteService` 的完整样本：18 个方法的请求/结果信封、失败码、写守卫、inject 与可选服务 |
-| 在浏览器加一块面（面板、Sidebar tab、Settings section） | [备忘看板 UI](systems/memo-board-ui.md)、[备忘设置页](systems/memo-settings-ui.md) | slot 注册与 key 约定、controller 与 RPC 包装、草稿状态机与 `configForms` 守卫 |
+| 加一个宿主能力（新服务、新包、新配置字段） | [备忘服务](systems/memo-service.md) | 一个 `TypertRemoteService` 的完整样本：按周/时间线、归档、会话、AI、日志与自更新分组的方法面、三条失败通道、写守卫、inject 与可选服务 |
+| 在浏览器加一块面（面板、Sidebar tab、Settings section） | [备忘看板 UI](systems/memo-board-ui.md)、[备忘设置页](systems/memo-settings-ui.md)、[OpenWiki 预览](systems/openwiki-visualize.md) | slot 注册与 key 约定、controller 与 RPC 包装、草稿状态机与 `configForms` 守卫、自持右栏 tab 的形态 |
 | 加或改一个 Remote 方法 | [宿主 ⇄ 浏览器 Remote 契约](architecture/host-client-remote-contract.md) | `@Remote` 命名、唯一 `request` 参数、`{ args: { request } }` 线上的双层信封，以及守住它的门禁 |
 | 加持久状态、改行 schema、处理迁移 | [存储与持久化](architecture/storage-and-persistence.md) | 四个域声明 + 一个 JSON 账本的行 schema、开/关生命周期、写重试、坏行在启动时的症状 |
 | 让某个值可从 `cordis.yml` 覆盖，或从 Settings 免重启改 | [配置与实时设置](concepts/configuration-and-live-settings.md) | schemastery `Config` 契约、`.volatile()` ref 如何被 Loader 就地提交、按版本围栏的写入、仍需要重启的改动 |
@@ -150,7 +156,7 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 | 改模型调用、路由解析或失败语义 | [LLM 路由与失败事实](concepts/llm-route-and-failure-facts.md) | `request → Config → agentDefaultModel` 的解析顺序、共享流式助手、保留的失败码/消息/状态 |
 | 改周/月/季/年标签或周 id | [四维周期日历](concepts/period-calendar.md) | 标签形状、周一起始的 ISO 周与周四规则、宿主唯一的 enumerate/contains 对 |
 | 用宿主服务（`llm`、`fs`、`sessionQuery`、`storageDomain`、`configForms`…） | [DSH 宿主服务](integrations/dsh-host-services.md) | 结构化声明而非 import 的宿主契约，以及让「部分安装」仍可启动的可选读取规则 |
-| 触到 GitHub 侧（建 issue、列可认领 issue、凭据） | [GitHub REST 集成](integrations/github-rest.md)、[GitHub issue 服务](systems/github-issue-service.md) | URL 解析、两个受支持的操作、token 解析顺序、超时与稳定失败码 |
+| 触到 GitHub 侧（建 issue、列可认领 issue、凭据） | [GitHub REST 集成](integrations/github-rest.md)、[GitHub issue 服务](systems/github-issue-service.md) | URL 解析、调用的端点与请求成形、token 解析顺序、超时与稳定失败码 |
 | 改遥测写入/读取或日志分析 | [遥测服务](systems/telemetry-service.md)、[日志分析到 issue 报告](workflows/log-analysis-to-issue.md) | 带序号的写入链与脱敏、读时再脱敏、按 `featureCodeRef` 分组，以及跨插件诊断管线 |
 | 改 OpenWiki 预览 | [OpenWiki 预览](systems/openwiki-visualize.md) | 环境探测、wiki 检测、被监督子进程与端口解析、版本检查与显式自更新、右栏 tab 与 iframe |
 | 改一条端到端流程 | [分析与导出](workflows/analyze-and-export.md)、[issue 派发](workflows/issue-intake-autopilot.md)、[季度归档与只读](workflows/quarter-archive-and-read-only.md)、[会话总结成周记](workflows/session-summary-to-week.md) | 每个流程的调用链、失败分支、持久副作用，以及哪些守卫在方法内部强制 |

@@ -2,9 +2,6 @@
 type: "参考"
 title: "OpenWiki 预览（宿主服务 + 浏览器半边）"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-7a2a2ebeaef9b7c69c6f895c
     resource: repo://packages/openwiki/dsh-openwiki-visualize/cordis.patch.yml

@@ -3,9 +3,6 @@ type: overview
 title: 系统总览：六个插件与宿主/浏览器两侧
 description: 仓库全局地图：六个包各属宿主还是浏览器半边、暴露哪个 Cordis 服务、占用哪个组合入口 id、状态落到哪个持久域叶子，以及四类新增改动（宿主能力 / 浏览器面 / 持久状态 / Remote 方法）分别落在哪里。
 tags: [architecture, monorepo, plugins, cordis, host-client, bundles, storage]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-04T06:11:45.203Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

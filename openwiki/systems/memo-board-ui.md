@@ -3,9 +3,6 @@ type: 系统
 title: 备忘看板 UI（浏览器）
 description: 备忘套件的浏览器半边：侧栏 panellist 与键控 main 面板的注册分工、MemoController 的不可变视图状态与 args.request 线上形状、logic.ts 的四维时间线与卡片模型、localStorage 选中项与模型选择，以及分析、导出、会话总结、归档与 issue 编辑器分别调用的宿主方法。
 tags: [memo, browser-client, ui-panel, controller-view-state, remote-rpc, four-dimension, archived-readonly, session-summary]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-3677926fe619a6aaf798c3c2
     resource: repo://packages/client/ui-memo-settings/src/client/index.ts

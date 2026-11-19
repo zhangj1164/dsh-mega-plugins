@@ -3,9 +3,6 @@ type: 工作流
 title: 分析与导出：一次备忘分析的端到端路径
 description: 从看板点一次「分析」到账本落一条记忆的完整请求序列：类型选择留在浏览器、条目由宿主重读、路由三级解析、模型调用失败如何折成业务结果、成功时遥测与账本两条副作用，以及兄弟端点 exportReport 为何只返回 Markdown 而不写账本。
 tags: [memo, workflow, analyze, export-report, ledger, telemetry, model-catalog]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-31c27daaabf681cbea29e33d
     resource: repo://docs/plans/2026-09-15-ui-memo-model-menu-design.md

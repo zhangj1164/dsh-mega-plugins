@@ -3,9 +3,6 @@ type: architecture
 title: 存储与持久化：域、schema 与写重试
 description: 本套件四个 storage-domain 域（memo.weeks、memo_archive.quarters、memo_telemetry.events、github_issue_intake.state）与 $DSH_HOME/memo/ledger.json 的键形状、zod 行 schema、打开失败语义、EPERM/EBUSY 写重试与降级策略，以及"坏行会拦住启动""新增字段必须可选"两条事故结论。
 tags: [storage, persistence, schema, zod, storage-domain, ledger, retry, durability]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-e2b359735a8b78c5620256a1
     resource: repo://packages/github-issue/dsh-github-issue/src/index.ts

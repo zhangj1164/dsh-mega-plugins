@@ -2,9 +2,6 @@
 type: "参考"
 title: "宿主 ⇄ 浏览器 Remote 契约"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

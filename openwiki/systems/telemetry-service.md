@@ -3,9 +3,6 @@ type: system
 title: 遥测服务（宿主）
 description: 说明 telemetry 这个 Cordis 宿主服务：写路径如何分配序列号并把脱敏后的事件排进存储域写链、读路径为何是同步全表扫描、listEvents 与 analyzeForPlugin 的排序与分组契约、写时与读时两遍脱敏的边界，以及它为什么不是 Remote 服务。
 tags: [telemetry, cordis-service, storage-domain, redaction, failure-analysis, ordering]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-e2b359735a8b78c5620256a1
     resource: repo://packages/github-issue/dsh-github-issue/src/index.ts

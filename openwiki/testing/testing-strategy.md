@@ -3,9 +3,6 @@ type: 测试
 title: 测试策略与测试接缝
 description: 本仓库如何测试：根 vitest 的两条发现规则与源码别名、React/jsdom 钉版与装饰器降级，宿主 harness（真实存储域 + mock llm + 注入式 flaky JSON 后端）、浏览器半边的 fake RPC 与 FakeForm 替身、可视化插件的子进程与文件系统接缝，以及钉契约的测试、门禁 spec 与 node --test 策略套件的分工。
 tags: [testing, vitest, test-harness, test-doubles, jsdom, flaky-storage, contract-tests, node-test]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-2dc031d4cf27c295b7ab047a
     resource: repo://.github/issue-management/policy.test.mjs

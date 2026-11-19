@@ -3,9 +3,6 @@ type: 运维
 title: CI、issue 策略与仓库自动化
 description: GitHub 侧自动化的全景：ci.yml 如何把 gates 搬进 CI、issue-policy 与 issue-lifecycle 两个 workflow 如何以 policy.mjs 的 pr/issue/lifecycle 三个子命令强制 issue 与 PR 规则、Project Status 为什么只在仓库变量加 classic PAT 时生效、翻译配对 workflow 与定时提交 PR 的 OpenWiki 更新。
 tags: [ci, github-actions, issue-policy, project-board, automation, dependabot, openwiki]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-65aa4446196c54f769b75014
     resource: repo://.github/AGENTS.md
