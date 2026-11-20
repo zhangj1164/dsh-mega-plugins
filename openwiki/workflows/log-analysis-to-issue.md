@@ -1,7 +1,7 @@
 ---
 type: workflow
 title: 从遥测日志分析到 GitHub Issue 报告
-description: 追溯 memo.analyzeLogs 逐插件读取遥测、合并失败组、交给 github-issue 生成报告与预填 URL 的完整链路，并说明报告只允许主张哪些事实、脱敏白名单的边界，以及「无数据 / 模型调用失败 / URL 构建失败」三个失败面各自的业务码。
+description: 追溯看板点「日志分析」后 memo.analyzeLogs 逐插件读取遥测、合并失败组、交给 github-issue generateReport 与 prefilledIssueUrl 的完整链路，说明两段宿主服务的责任分界、每一跳失败时用户看到什么，以及报告只允许主张哪些事实。
 tags: [workflow, telemetry, log-analysis, github-issue, memo, report-fidelity]
 sources:
   - id: openwiki-source-4332843a6ceeeefbbb30e6ca
@@ -28,60 +28,69 @@ sources:
     resource: repo://packages/telemetry/dsh-telemetry/tests/redaction.spec.ts
   - id: openwiki-source-b6b6d9b18e5f55cecb715a87
     resource: repo://packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts
-generated: { by: "openwiki/0.7.3", at: "2026-11-19T17:15:50.699Z" }
+generated: { by: "openwiki/0.9.0", at: "2026-11-20T08:03:00.940Z" }
 verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-19T17:15:50.699Z
+  - by: openwiki/0.9.0
+    at: 2026-11-20T08:03:00.940Z
 ---
 
 # 从遥测日志分析到 GitHub Issue 报告
 
 这条链路只有一个目的：把本机遥测里的失败事件，变成一份**能自己说明时间与路由**的 GitHub issue 报告，再加一个预填好的新建 issue 链接。它不是「让模型解释日志」，而是「让模型复述分析已经确定的事实」——两者的差别决定了整条链路的形状：事实在遥测服务里提炼，`dsh-memo` 只负责搬运与合并，`dsh-github-issue` 只负责排版与拼 URL，模型不接触原始事件。
 
-唯一的编排者是 `memo/analyzeLogs`。看板点「分析日志」时，浏览器发的是一个空请求，插件清单、模型路由、仓库地址全部由宿主侧的配置解析（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1077-L1092)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1951-L2000)）。
+编排者是 `memo/analyzeLogs`。看板点「日志分析」时，浏览器发的是一个空请求 `{}`，插件清单、模型路由、仓库地址全部由宿主侧的配置解析（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1077-L1092)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1951-L2000)）。
+
+## 一次调用跨两个宿主服务，责任在边界处切换
+
+这条链路上的四跳分属两个宿主服务，不能当成一个服务看：**前三跳（读遥测、合并、投影成报告请求）属于 memo 宿主**，`telemetry` 是它读的只读依赖；**后两跳（生成报告、拼预填 URL）属于 githubIssue 宿主**，模型调用与 URL 预算都在那边。两个宿主之间唯一的协议就是 `generateReport` 与 `prefilledIssueUrl` 这两个 Remote 方法——`dsh-memo` 依赖 `dsh-github-issue`，反过来不成立（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L36-L40)、[llm-text.ts](../../packages/github-issue/dsh-github-issue/src/llm-text.ts#L1-L26)）。
 
 ```mermaid
 sequenceDiagram
   participant Board as ui-memo 控制器
-  participant Memo as dsh-memo
-  participant Telemetry as telemetry
-  participant Issue as github-issue
-  participant Llm as llm
+  participant Memo as memo 宿主 analyzeLogs
+  participant Telemetry as telemetry analyzeForPlugin
+  participant Issue as githubIssue 宿主
+  participant Llm as llm 服务
   Board->>Memo: memo/analyzeLogs 空请求
-  Memo->>Memo: 解析 pluginIds 与模型路由
-  alt 插件列表为空
+  Note over Memo: 以下三跳属于 memo 宿主
+  alt telemetry 或 githubIssue 未挂载
+    Memo-->>Board: github-issue-failure
+  else 插件清单为空
     Memo-->>Board: no-plugins-configured
   else 有插件
     loop 每个 pluginId 一次
       Memo->>Telemetry: analyzeForPlugin
-      Telemetry-->>Memo: 窗口 计数 失败组
+      Telemetry-->>Memo: 计数 窗口 失败组
     end
-    Memo->>Memo: mergeAnalyses 总数相加 窗口取并 组拼接排序
-    Memo->>Issue: generateReport 事实投影
-    alt 解析不出路由
-      Issue-->>Memo: route-missing 且不发起调用
-    else 模型调用失败
-      Issue-->>Memo: llm-failure
-    else 生成成功
-      Issue->>Llm: 系统提示词加事实行
-      Llm-->>Issue: 报告正文
-      Issue-->>Memo: title body labels
-    end
-    Memo->>Issue: prefilledIssueUrl 合成并按预算截断
-    Issue-->>Memo: issueUrl 或 invalid-url
-    Memo-->>Board: report issueUrl analysis
+    Memo->>Memo: mergeAnalyses 与事实投影
   end
+  Note over Issue: 以下两跳属于 githubIssue 宿主
+  Memo->>Issue: generateReport 报告请求
+  alt 解析不出路由
+    Issue-->>Memo: route-missing 且不发起模型调用
+  else 模型调用失败
+    Issue->>Llm: 系统提示词加事实行
+    Llm-->>Issue: 终态失败码与状态
+    Issue-->>Memo: llm-failure
+  else 生成成功
+    Issue->>Llm: 系统提示词加事实行
+    Llm-->>Issue: 报告正文
+    Issue-->>Memo: title body labels
+  end
+  Memo->>Issue: prefilledIssueUrl 合成并按预算截断
+  Issue-->>Memo: issueUrl 或 invalid-url
+  Memo-->>Board: report issueUrl analysis
 ```
 
-图：一次日志分析从点击到看板拿到报告的调用顺序，以及两个可能提前结束的失败分支。
+图：一次日志分析从点击到看板拿到报告的调用顺序、两个宿主服务的责任分界，以及可能提前结束的失败分支。
+
+前两跳的前置检查在 memo 宿主里同步完成：`telemetry` 或 `githubIssue` 任一没挂载，返回 `github-issue-failure` 并说明缺的是哪一个服务；插件清单为空则在**模型调用之前**就拒绝为 `no-plugins-configured`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1951-L1969)、[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L431-L438)）。
 
 ## 覆盖范围由配置决定，而不是由遥测发现
 
-遥测没有枚举 API：它不知道部署里有哪些插件，只能回答「这个 `pluginId` 的事件是什么」。所以**分析覆盖哪些包是一个部署决策**，落在 `dsh-memo` 的 `Config.logAnalysisPlugins` 上，默认 `['memo', 'github-issue']`，按配置顺序逐个读取；单次请求可以用 `pluginIds` 覆盖它（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L145-L166)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L230-L231)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1961-L1968)、[types.ts](../../packages/memo/dsh-memo/src/types.ts#L209-L221)）。
+遥测没有枚举 API：它不知道部署里有哪些插件，只能回答「这个 `pluginId` 的事件是什么」（[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L264-L268)）。所以**分析覆盖哪些包是一个部署决策**，落在 `dsh-memo` 的 `Config.logAnalysisPlugins` 上，默认 `['memo', 'github-issue']`，按配置顺序逐个读取；单次请求可以用 `pluginIds` 覆盖它（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L145-L166)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L306-L306)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1961-L1968)、[types.ts](../../packages/memo/dsh-memo/src/types.ts#L209-L221)）。
 
-默认值是「这一套包一起装」，不是「当前插件自己」。理由写在请求类型里：一套包通常一起安装、一起坏、一起修，而只覆盖 `memo` 的报告无法提到破坏这个面板 issue 编辑器的 `github-issue` 失败——那正是当时真实漏掉的那条（[types.ts](../../packages/github-issue/dsh-github-issue/src/types.ts#L14-L28)）。
-
-空清单不会被当成「一套什么都没记录的套件」发出去，而是直接失败为 `no-plugins-configured`，并提示去设置 `logAnalysisPlugins` 或传 `pluginIds`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1961-L1969)、[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L431-L438)）。这是本链路唯一一个**在模型调用之前**就拒绝的失败面。
+默认值是「这一套包一起装」，不是「当前插件自己」。理由写在请求类型里：一套包通常一起安装、一起坏、一起修，而只覆盖 `memo` 的报告无法提到破坏这个面板 issue 编辑器的 `github-issue` 失败——那正是当时真实漏掉的那条（[types.ts](../../packages/github-issue/dsh-github-issue/src/types.ts#L14-L28)）。测试把这三件事都钉住了：默认读两个包、部署可以裁成 `['memo']`、调用方可以点名 `['github-issue']`（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L395-L420)）。
 
 ## 合并是一步显式决策，不是逐插件报告的拼接
 
@@ -115,7 +124,7 @@ sequenceDiagram
 | `errorCodes`（复数） | **不透传** | — | 只出现在返回给看板的摘要里 |
 | `latest.error.stack` | **不透传** | — | 从不进入提示词 |
 
-一个真实的提示词因此长这样（与 `github-issue.spec.ts` 的断言同形）：
+一个真实的提示词因此长这样（与 `github-issue.spec.ts` 的断言同形，`Plugins:` 行也断言了报告必须点名它读了哪些包，否则读者无从判断哪些包被略过）：
 
 ```text
 Plugins: memo, github-issue
@@ -151,10 +160,10 @@ Failure groups:
 
 `attemptsAfterLastFailure` 的口径比名字严格，读错会直接把「当前缺陷」看成「旧账」（[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L248-L321)、[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L462-L486)）：
 
-- **按 action 计，不按全部事件计。** 只有组内记录过的那些 `action` 的后续事件才计数；无关的读（`listWeeks` 之类）不参与，否则一条旧失败会被繁忙期吹成「之后跑了很多次」（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L237-L255)）。
+- **按 action 计，不按全部事件计。** 只有组内记录过的那些 `action` 的后续事件才计数；无关的读（`listWeeks` 之类）不参与，否则一条旧失败会被繁忙期吹成「之后跑了很多次」（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L237-L255)）。一个组可以聚合多个入口点：失败事件按 `featureCodeRef` 归组，组内记录过的每个 `action` 都计入尝试数。
 - **「之后」是写序，不是时间戳序。** `Date.now()` 只有毫秒精度，一次与失败同一毫秒发出的重试按时间戳会算成「不晚于」，于是报告说「0 次尝试」——这正是把一个正在发生的缺陷读成旧账的机制。`seq` 定序、时间戳只在没有序列号的旧行上兜底，三个调用点（选 `latest`、算尝试数、`listEvents` 排序）共用同一个 `compareOrder`（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L302-L322)）。
 - **不跨插件。** 只统计同一 `pluginId` 的事件；别的包的 `analyze` 不会计入 `memo:analyze` 的尝试数。
-- **`latest` 也是写序最晚的那条**，因此它的错误码、消息与路由就是报告会引用的那一条；同一毫秒内的两条失败，取后写的那条是刻意行为（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L324-L354)）。
+- **`latest` 也是写序最晚的那条**，因此它的错误码、消息与路由就是报告会引用的那一条；同一毫秒内的两条失败，取后写的那条是刻意行为，且后一条失败本身不算作「之后又试了一次」的尝试（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L324-L354)）。
 
 ## 脱敏边界：只有白名单路由与被脱敏的自由文本离开存储
 
@@ -169,7 +178,7 @@ Failure groups:
 
 白名单字段还必须能在脱敏后存活：`deepseek-cu`、`glm-5-2-260617` 这类值不匹配 email、凭据、路径、IP、十六进制块、base64 中任何一条规则。这不是巧合，而是被两条测试同时钉住的事实——一条断言 `route` 恰好只有三个键、注入的 `apiKey` 不出现，另一条把「provider 与 model 的写法」作为控制样本放进默认规则集的逐样本表（[telemetry.spec.ts](../../packages/telemetry/dsh-telemetry/tests/telemetry.spec.ts#L257-L273)、[redaction.spec.ts](../../packages/telemetry/dsh-telemetry/tests/redaction.spec.ts#L106-L112)）。将来某次规则收紧若把它们清空，报告里的路由会静默消失，而这两条测试就是那条防线。
 
-`redact: false` 时写入与读出两遍都不跑，事件逐字存储；这是调试自己规则集的部署需要的行为，也正因此那些记录不适合贴进 issue（[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L55-L109)）。
+`redact: false` 时规则集被编译成空表，写入与读出两遍都不跑，事件逐字存储；这是调试自己规则集的部署需要的行为，也正因此那些记录不适合贴进 issue（[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L55-L109)、[index.ts](../../packages/telemetry/dsh-telemetry/src/index.ts#L153-L157)）。
 
 ## 三个失败面，不能混成一个
 
@@ -180,15 +189,18 @@ Failure groups:
 | 遥测无数据 | 分析阶段 | —（不是失败） | 无（照常 `ok: true`） | 会记 `generateReport` 成功 |
 | 插件清单为空 | 分析之前 | — | `no-plugins-configured` | 不记 |
 | 遥测服务缺失 | 分析之前 | — | `github-issue-failure`（message 说明是 telemetry） | 不记 |
+| github-issue 服务缺失 | 报告之前 | — | `github-issue-failure` | 不记 |
 | 模型路由解析不出 | 报告阶段 | `route-missing`，**不发起调用** | `github-issue-failure` | 记 `github-issue:generateReport` 错误事件，`NO_MODEL_ROUTE` |
 | 模型调用失败 | 报告阶段 | `llm-failure`（消息里带 DSH 码与状态） | `github-issue-failure` | 记 `github-issue:generateReport` 错误事件，带 `provider` / `model` / `status` |
 | URL / 报告构建失败 | 预填阶段 | `invalid-url` | `github-issue-failure` | **不记** |
 
 ```mermaid
 flowchart TD
-  A["analyzeLogs 请求"] --> B{"pluginIds 为空"}
-  B -- 是 --> C["no-plugins-configured"]
-  B -- 否 --> D["逐插件分析并合并"]
+  A["analyzeLogs 请求"] --> B{"telemetry 与 githubIssue 都已挂载"}
+  B -- 否 --> Q
+  B -- 是 --> C{"pluginIds 为空"}
+  C -- 是 --> C1["no-plugins-configured"]
+  C -- 否 --> D["逐插件分析并合并"]
   D --> E["generateReport 事实投影"]
   E --> F{"路由可解析"}
   F -- 否 --> G["route-missing 不发起调用"]
@@ -202,13 +214,13 @@ flowchart TD
   M -- 是 --> O["截断正文并追加 prefillTruncationNote"]
   O --> N
   N --> P["返回 report issueUrl analysis"]
-  C --> Q["memo 统一折成 github-issue-failure"]
+  C1 --> Q["memo 统一折成 github-issue-failure"]
   G --> Q
   I --> Q
   L --> Q
 ```
 
-图：三个失败面在代码里的位置。注意「零事件」不在这张图的失败分支里——它会走完整条成功路径。
+图：失败面在代码里的位置。注意「零事件」不在这张图的失败分支里——它会走完整条成功路径。
 
 三点必须分开记住：
 
@@ -220,21 +232,31 @@ flowchart TD
 
 ## 预填 URL：预算按合成后的 URL 计算
 
-报告生成之后，`analyzeLogs` 立刻调 `prefilledIssueUrl`，仓库地址取请求里的 `repoUrl` 覆盖，否则取 `Config.repoUrl`。这一步是同步的，失败只有一个码：`repoUrl` 必须匹配 `^https://github\.com/[^/]+/[^/]+$`，否则 `invalid-url`——企业部署能用 `apiBaseUrl` 建单，却拿不到预填链接，因为预填链接是给浏览器打开的 github.com 表单（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L601-L619)）。
+报告生成之后，`analyzeLogs` 立刻调 `prefilledIssueUrl`，仓库地址取请求里的 `repoUrl` 覆盖，否则取 `Config.repoUrl`。这一步是同步的，失败只有一个码：`repoUrl` 必须匹配 `^https://github\.com/[^/]+/[^/]+$`，否则 `invalid-url`——企业部署能用 `apiBaseUrl` 建单，却拿不到预填链接，因为预填链接是给浏览器打开的 github.com 表单（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L601-L619)）。注意 `memo` 只在自己配置的 `repoUrl` 上用 `??` 兜底：空字符串不会被当成「未提供」而回落到 github-issue 的默认值，而是直接进正则、失败为 `invalid-url`。
 
-长度预算由 `dsh-github-issue` 的 `maxPrefillUrlLength`（默认 7000）持有，检查的是**合成后的 URL**而不是正文长度：标题、标签与百分号编码花的是同一笔预算，按正文长度定的规则依然会产出 GitHub 拒收的链接。超限时每轮按当前溢出量从正文尾部多切一点并重新合成，直到装得下，末尾追加 `prefillTruncationNote` 说明正文已被截短；标记本身都超限时，正文退化成只剩标记。完整规则与测试见 [GitHub issue 服务](../systems/github-issue-service.md)（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1262-L1310)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L150-L170)）。
+长度预算由 `dsh-github-issue` 的 `maxPrefillUrlLength`（默认 7000）持有，检查的是**合成后的 URL**而不是正文长度：标题、标签与百分号编码花的是同一笔预算，按正文长度定的规则依然会产出 GitHub 拒收的链接；`0` 或负数关闭截断。超限时每轮按当前溢出量从正文尾部多切一点并重新合成，最多 32 轮，末尾追加 `prefillTruncationNote` 说明正文已被截短；标记本身都超限时，正文退化成只剩标记。完整规则与测试见 [GitHub issue 服务](../systems/github-issue-service.md)（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1262-L1310)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L150-L170)、[github-issue.spec.ts](../../packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L56-L117)）。
 
 这条链路对截断的处理是配套的：看板展示的是内存里的完整 `report.body`，不展示 URL 里的副本；「复制完整正文」按钮拷的是同一个完整 body（不含标题行），所以用户在表单里可以补上被 URL 截掉的部分。默认的截断文案点名了「备忘面板的『复制完整正文』」，而按承诺放置这颗按钮的地方正是日志分析这张卡片（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L257-L279)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L534-L556)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L150-L170)）。
+
+## 浏览器侧：每一步失败用户看到什么
+
+浏览器侧的行为很薄，但失败时看到的东西取决于失败发生在哪一层。
+
+1. **点按钮即清空上一次结果。** `analyzeLogs()` 先把 `busy` 置真、`error` 与 `logAnalysis` 都清空——上一次的报告与上一次的错误不会与新结果并排出现，避免把旧报告当成新报告读（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1077-L1079)）。头部按钮在 `busy` 期间禁用（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L321-L331)）。
+2. **宿主返回业务失败时**，把 `error.message` 写进错误条（`role="alert"`，带「忽略」按钮），错误条只有一行文字——因为 memo 已把下游失败折成 `github-issue-failure`，用户只能读到那句话本身，例如 URL 构建失败时的 `repoUrl "…" is not a valid GitHub repository URL`，或模型失败时那句带 provider、model 与 DSH 码的完整描述（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1080-L1087)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L336-L343)）。
+3. **宿主返回成功但值为空时**，错误条写的是固定文案 `log analysis returned no report`——这是协议层的兜底分支（`ok` 为真却没有 `value`），不是业务失败分支。
+4. **传输层抛异常时**（RPC 不可达、宿主进程已退出），错误条写的是异常的 `message`，同样只有一行。
+5. **成功时**把整个 `{ report, issueUrl }` 存进视图状态 `logAnalysis`；卡片渲染完整正文、一个「打开预填 issue」链接（直接 `openUrl(issueUrl)`）和一个「复制完整正文」按钮，关闭卡片只是本地清空，不触达宿主（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L174-L176)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1111-L1114)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L534-L556)）。
+
+因此有一个用户可见的缺口：**预填 URL 失败时，报告已经生成却无法显示**。`analyzeLogs` 在 `prefilledIssueUrl` 失败后直接返回失败，不返回 `report`，而控制器的失败分支只会写错误条——用户拿不到那份正文，也拿不到「复制完整正文」的入口，只能重跑一次或去改 `repoUrl`。链路上「报告阶段成功、预填阶段失败」这一格，是唯一会丢掉已生成产物的格子。
+
+**看板上没有「把这份日志分析报告直接建成 issue」的按钮。** 直接建单的 `createIssue` 是存在的（`github-issue` 的 Remote 方法，在宿主侧解析凭据并调 GitHub REST），但 `ui-memo` 的 `createIssue()` 读的是 `issueReport`——issue 编辑器里那份优化过的报告，不是 `logAnalysis`。所以日志分析报告在当前装配下只有两条出路：打开预填表单由用户提交，或者由别的调用方把 `report` 传给 `createIssue`。把这两份报告混为一谈会让「复制正文」和「直接建单」指向不同的对象（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1042-L1072)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1074-L1087)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L200-L228)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L574-L595)）。
 
 ## 返回给看板的不等于喂给模型的
 
 成功的返回是一个冻结对象 `{ report, issueUrl, analysis }`，其中 `analysis` 是**合并后分析的再次投影**：有 `pluginIds`、`totalEvents`、`totalFailures`、可选的 `window`、以及每组的 `featureCodeRef` / `count` / `errorCodes` / `lastFailureAt` / `attemptsAfterLastFailure` / `route`。与喂给模型的那份相比，它少了 `errorMessage`，多了 `errorCodes`（[types.ts](../../packages/memo/dsh-memo/src/types.ts#L229-L267)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1999-L2021)）。
 
-于是同一批事实有三个可见度不同的副本：遥测持有全部（含原始 `metadata`），报告请求持有脱敏后的单条消息与白名单路由，看板摘要持有计数、码、时间与路由但没有消息。改动任何一个字段都要同时想清楚这三处。
-
-浏览器侧的行为很薄：`controller.analyzeLogs()` 发空请求、置 `busy`、成功时把整个 `{ report, issueUrl }` 存进视图状态 `logAnalysis`（因此 `analysis` 摘要其实不过线），失败时把 `error.message` 写进错误条；卡片据此渲染正文、一个「打开预填 issue」链接和一个「复制完整正文」按钮（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L174-L176)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1077-L1092)）。
-
-**看板上没有「把这份日志分析报告直接建成 issue」的按钮。** 直接建单的 `createIssue` 是存在的（`github-issue` 的 Remote 方法，在宿主侧解析凭据并调 GitHub REST），但 `ui-memo` 的 `createIssue()` 读的是 `issueReport`——issue 编辑器里那份优化过的报告，不是 `logAnalysis`。所以日志分析报告在当前装配下只有两条出路：打开预填表单由用户提交，或者由别的调用方把 `report` 传给 `createIssue`。把这两份报告混为一谈会让「复制正文」和「直接建单」指向不同的对象（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1042-L1072)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L1074-L1087)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L200-L228)）。
+于是同一批事实有三个可见度不同的副本：遥测持有全部（含原始 `metadata`），报告请求持有脱敏后的单条消息与白名单路由，看板摘要持有计数、码、时间与路由但没有消息。浏览器只把 `{ report, issueUrl }` 放进视图状态，`analysis` 摘要其实不过线——它存在是为了让抓取 RPC 的测试与将来可能的调用方能核对「报告是根据哪些事实生成的」。改动任何一个字段都要同时想清楚这三处。
 
 ## 测试锚点
 
@@ -252,11 +274,12 @@ flowchart TD
 4. **尝试数按 action、按写序。** 改成按全部事件或按时间戳，都会把「刚刚又失败了」读成「早就没再发生」。
 5. **窗口可以缺席，不能造假。** 所有插件都无事件时省略 `window`，而不是给出 `0 .. 0`；空的失败组写 `(none)`，而不是编一段「无失败」的分析。
 6. **失败面保持可区分。** 如果将来要拆开 `github-issue-failure`，改的是 `MemoMemoFailure` 联合与 `analyzeLogs` 的返回分支；不要只改消息文案，因为消息是当前唯一的区分手段。
+7. **宿主边界不要挪。** 合并与投影留在 memo 宿主，模型调用与 URL 预算留在 githubIssue 宿主：`dsh-github-issue` 是下层包，让它在报告请求里再碰遥测，就把「谁决定覆盖哪些插件」拆成了两处。
 
 ## 相关页面
 
 - [遥测服务（宿主）](../systems/telemetry-service.md) —— `analyzeForPlugin` 的分组口径、两遍脱敏与写序定序
 - [GitHub issue 服务](../systems/github-issue-service.md) —— 报告提示词、预填 URL 预算、直接建单与认领派发
 - [模型路由与失败事实保全](../concepts/llm-route-and-failure-facts.md) —— `provider` / `model` / `status` 为什么必须逐字保全
-- [备忘服务](../systems/memo-service.md) —— `analyzeLogs` 在服务方法面中的位置与依赖
+- [备忘服务的日志分析入口](../systems/memo-service.md) —— `analyzeLogs` 在服务方法面中的位置与依赖
 - [宿主的 Remote 服务契约](../architecture/host-client-remote-contract.md) —— 空请求与 `{ ok, value }` 信封如何过线

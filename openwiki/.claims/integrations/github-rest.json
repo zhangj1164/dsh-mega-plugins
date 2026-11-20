@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d2396be35123ac122c7ce4f2806a9c044b94dd9fda109b09eaa21325eb11c418",
+  "pageVersion": "sha256:968e2fc442d4047a17fa999306c782d5a9bec4717c47d3203d0c407e1ed58101",
   "claims": [
     {
       "id": "claim_bb16319b6d5b47b192cf468ddb03fb42",
@@ -274,7 +274,7 @@
     },
     {
       "id": "claim_e2de30b54c7e4179be4f17a6ed6ad213",
-      "statement": "凭据与传输字段（`token`、`tokenEnv`、`tokenCommand`、`tokenCommandTimeoutMs`、`apiBaseUrl`、`requestTimeoutMs`）没有 `.volatile()`，在构造函数里被拷成实例字段，因此是部署级配置、只在挂载时取值，不进设置页；自带 bundle patch 只插入一行 `github-issue` 且只覆盖 `repoUrl`，企业部署须在自己的 patch 里覆盖 `apiBaseUrl`。",
+      "statement": "凭据、传输与预填预算字段（`token`、`tokenEnv`、`tokenCommand`、`tokenCommandTimeoutMs`、`apiBaseUrl`、`requestTimeoutMs`、`maxPrefillUrlLength`、`prefillTruncationNote`）没有 `.volatile()`，在构造函数里被拷成实例字段，因此是部署级配置、只在挂载时取值，不进设置页；自带 bundle patch 只插入一行 `github-issue` 且只覆盖 `repoUrl`，企业部署须在自己的 patch 里覆盖 `apiBaseUrl`。",
       "evidence": [
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/cordis.patch.yml#L26-L30",
@@ -292,17 +292,107 @@
     },
     {
       "id": "claim_c12449ddbe104ce7b29fd0537d93a8ae",
-      "statement": "`tests/github.spec.ts` 用注入的假 `fetch` 覆盖仓库解析（含尾斜杠与非 URL）、`createIssue` 的请求形状与 Bearer 头、缺凭据不发请求、401/403+0/422/500 四类分类、transport 抛错成 `network-failure`、`listClaimable` 的标签过滤与 PR 排除（大小写不敏感）以及非 JSON 响应体归为 `http-failure`；`apiBaseUrl` 拼接、`user-agent`/`x-github-api-version`/`content-type` 头、超时、无 rate-limit 头的 403、成功响应缺 `number`/`html_url`、标题为空、`listClaimable` 非数组响应等边界尚未覆盖。",
+      "statement": "`tests/github.spec.ts` 用注入的假 `fetch` 以 8 个用例覆盖仓库解析（含尾斜杠与非 URL）、`createIssue` 的请求形状与 Bearer 头、缺凭据不发请求、401/403+0/422/500 四类分类、transport 抛错成 `network-failure`、`listClaimable` 的标签过滤与 PR 排除（大小写不敏感）以及非 JSON 响应体归为 `http-failure`；`apiBaseUrl` 拼接、`user-agent`/`x-github-api-version`/`content-type` 头、超时、无 rate-limit 头的 403、成功响应缺 `number`/`html_url`、标题为空、`listClaimable` 非数组响应等边界尚未覆盖。",
       "evidence": [
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L13-L112",
           "version": "repo-lines-v1:sha256:804f25cfb5486d684fefa0d6c85cbef40349265d2618ef7080edbb70943fc170:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiMjM1MjU4OWMzNGQzYzYwNjg1OTMxYjZlY2M0ZDUwOTkxYTdjNTZjOGZiYTI4OTQxMTQ2NTc2OTAyNzJjYWMzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2OTkyZDBjYjcyMDFkMDM2MmFlNDZhOWQzMTYzOTBkYzAxM2RiZjMwZWQyOGJmMTkxYmUyNDkwZmQ4MGRhODk3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyYzU4YjBmMmIwOTQ5NDRkMjhmMWVkMjFlMTcwNTFmYzIxOTIxNmNjMGNhMGNiMTJlOTQzMWQ0MzQ0OTM3YjZiIn0"
         }
       ]
+    },
+    {
+      "id": "claim_d6b73a803b4f4cb98649897f3db1a716",
+      "statement": "这个包对 GitHub 有两条互斥的路径：`createIssue`/`listClaimableIssues`（以及经由它们的 `runIntake`）通过 `GithubIssueClient` 发 REST 请求并需要凭据，而 `prefilledIssueUrl` 是同步的纯字符串拼装，只产出给浏览器打开的 github.com `issues/new` 链接，不发任何请求也不需要凭据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L111-L116",
+          "version": "repo-lines-v1:sha256:a0b70c43ce01f0a018bb9e07349a9a0cedd71a576d7daab3af08fad0555dc49a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODUxNmU1OTIyM2E3YjEzODU3YjcyMTQwZTI0Y2Q0OTE3ZWU0YTc4YTBlYzIwMjEyZDcyZjA3MGQ2NDk3Mzc1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJkYjg3MmQ0MjE1OTE4M2ZlYmQ0N2I1MjdmOTU3OTc4NWY3YTMzNGIwNjQ5ODUxMWIyZWIwYWMwZmFhYTk3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDUyZTIyMTEyMjEyMmYwMzYzMDJkMTA1YWZiNjVlZmY5Y2NjNjBjMGY0NzNiNjEzYmE1MjM4ZjAzZTI5MzIzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJmMDBlYzE1ZWIwOGFiMzBjZTBjZWZiYjYzNWNhODIyNGY4NzA0YmZmMTQ0YzgyNjVkNDAzZTFhZWY4MWZjOSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1286-L1300",
+          "version": "repo-lines-v1:sha256:5344920015ff3de6076c0c8f1ee3ec5b8d4ba14676d67723e14bd11f499d1ce2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTk5ZTM1YmRjMmEyMmVhZDE0OGU0N2JiYTY4N2M1ODgxOTY3Y2JjM2EwYzU1ODk4NGRiNzJmYWIxZWM3MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhYzU0OWJhZWM3YzI3NTMyZDBkYzRjNTMyMDZjZjcwNjRkOWVkOGY5MTcyN2E3YTIzZDY0Y2YyNWQ1ZWU0OTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhZDFkNGNmMmM3ZGI5OTBmNjczYzQyZGZkNmQ1YjE3NjZmMjE0NzNmOTI1NDVhOGE2ZjkwYmYyZDczMzc3YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2NjcwYWE3YzdiMzY3YjFkYmZjZTdjYTQ2YjZmY2M2OGZlNTkzNGE5N2Y3OWIxMDIyNWM4NDc0ZTYwNDAzZWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L601-L619",
+          "version": "repo-lines-v1:sha256:7930c5a09ccf8a30f4310f893c7a856adea965fdcd25695b7173b13553615d48:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2Njc3OTg0ZTI4YmJiMTVkYWM5NDZiZDE3YjcwMmYyZTA1ZDBkNWJiZjZjM2JjOWU3OWVjYzRhYjA5N2Q2MDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmOWEzYmJjOTc4YTM5OGU4NzY0OGMzOGYzNDg2YjM2OGRjNTk0YmNlYTZlZmQyNmYyYTZiYmIwMzNjOTlhNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMGQwMWQ2NGFhNGJjMDE1MGQxNzA0NzI0Mjk0ZTNlM2RkZTYxYjMwZjg2MTkzNTBmZTVlOTgzMDFlZTkyMDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_df4ec7b74239460ab9f4d51555d3f3d1",
+      "statement": "`prefilledIssueUrl` 的仓库校验比传输层更窄：空串 `repoUrl` 回落到 `Config.repoUrl`，然后必须匹配 `^https://github\\.com/[^/]+/[^/]+$`，否则返回 `invalid-url`；因此能靠 `apiBaseUrl` 建单的 Enterprise 部署拿不到预填链接。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L67-L79",
+          "version": "repo-lines-v1:sha256:e82c2de7f6dbc5c5ff2125bf1260c0e91f949d5bd389e518cbd758e57e3735f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmOGJhMDY3NTU1YTgwZDI0MjZjYTk3M2E2YzhjNGZkNWU0MjIzZDVmYjU0ZGIwNjYyOTFkMzUzMjdmZjAwOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5NjIxNTg2MTIwYjkyMzI5YjZhZjRiY2MzNTA5MzJmODYzZWQxYTYxNzMyNzRhNWM4NTE3ODY5OTI0YzUwMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkM2E0ODZmNDZkNDUxYmY2NTQ4NWQxNmEyZDkwYzgzMjc4ZjBhNjJhNGY3ZDc2MTU1NTJkOGJiNTQ0YWIyZTYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L608-L619",
+          "version": "repo-lines-v1:sha256:8a175b590d4af5f225451a697426c9f6c28fe0c935099c7d28754caf0903a31d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2NWM1YTg1YjMyYzA4ODVkMmRjNDI5NmVlMGE3OTQ5Mzk0ZmMzYzRjMmIxZmNkNzNjMDE2Nzg1NWZmYTM1ZjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmZGQ2YTIxZGI4MmRjZGYzZjE2NWY0MjZkZDQ4ZmU2ZmFhYTI4NjliNWFiOWQxZjYzODU4MGNkZDhkNWI5MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMGQwMWQ2NGFhNGJjMDE1MGQxNzA0NzI0Mjk0ZTNlM2RkZTYxYjMwZjg2MTkzNTBmZTVlOTgzMDFlZTkyMDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3124536461d14b45804ebf42c0d31435",
+      "statement": "预填 URL 的长度预算是按百分号编码后的最终 URL 长度（`compose(...).length` 对比 `maxPrefillUrlLength`，默认 7000）判定的，而不是按正文长度：标题与标签花同一份额度，字符编码成 `%XX` 会膨胀，所以「正文不超过 N」的规则仍会产出 GitHub 拒收的 URL。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1262-L1300",
+          "version": "repo-lines-v1:sha256:ace0f6e15e74740aee4d1d6a0eea215d088de663796d79481551422b1996bebc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhYzU0OWJhZWM3YzI3NTMyZDBkYzRjNTMyMDZjZjcwNjRkOWVkOGY5MTcyN2E3YTIzZDY0Y2YyNWQ1ZWU0OTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NDQzYWI4YjZmNzA3YjZhNTk2NGJkZDljM2U3YjE3YjNkZTE5MjExYTI1ZGFlMjkxOTNiN2NhNjI1OGVjYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2NjcwYWE3YzdiMzY3YjFkYmZjZTdjYTQ2YjZmY2M2OGZlNTkzNGE5N2Y3OWIxMDIyNWM4NDc0ZTYwNDAzZWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L63-L75",
+          "version": "repo-lines-v1:sha256:053946b0f6f7a00484be6dab7718c2734fbf1224f29ebcde553a08353ff19e65:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmMmEyZjk5NmYwOGU2ODBiZDI5MjEzNWE2ZmE0OTc4YmRhMjZlNjAyZDg0ZjMzY2IxZDU5NDc3NWQ0MzA0YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlNzExMjdmN2Y1ZjE3MTdiOTZlN2U5NzY5MGE3ZDE4MWE1MDcyMzdmY2FkMTg4NDBiYmIwOTM0MDIyYTkyMGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyM2I1MTk3ZWY3MmFjMzFhNGNkYzg3Y2I0OTdmNzFiMmQ5MWMzZTE5NzIzMzE1ZWUyMzg5ZjUxNmM2YjA1YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExNzA2NDliOTkxNjk3ZDBhMjNlYjc4Yjk3ODdmZTFmNTBlMjAzN2U1YmYwZTlhODVkYjNlZDEyNzhjODYzMzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2591d7c9fbdd4cddaaf748597faa7fd0",
+      "statement": "超预算时 `buildPrefillUrl` 用有界减法收敛：每轮把 `keep` 减去当前 URL 的溢出字符数（至少 1）后重新拼装并追加 `prefillTruncationNote`，最多 `MAX_PREFILL_TRUNCATION_PASSES = 32` 轮；仍超预算（备注本身太长）时退回只含备注的正文，`maxPrefillUrlLength <= 0` 则完全关闭缩短。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1262-L1320",
+          "version": "repo-lines-v1:sha256:9fce77a387908a114a88fb76af14212092a1e6ddcd1924181095390d0cd5adbc:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NDQzYWI4YjZmNzA3YjZhNTk2NGJkZDljM2U3YjE3YjNkZTE5MjExYTI1ZGFlMjkxOTNiN2NhNjI1OGVjYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmYzU3MDkyMDc2ZTBmNTcxZTc4ZDJlNzk1ZjZhZmUyZGFmZjAzNzFiZDM4ZmE0ZDNjMDNlMzVjNDI0NDQ0MTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4fb7f145296047f7ad781e800ca99abd",
+      "statement": "`tests/github-issue.spec.ts` 钉住了预填预算的关键行为：缩短后正文仍是原正文的前缀（追加备注）、标题与标签与正文共用预算（80 字标题 + 40 字标签 + 2000 字正文仍 ≤ 400）、标题本身超预算时正文缩到只剩备注、以及 `maxPrefillUrlLength: 0` 关闭缩短并原样保留正文。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L56-L112",
+          "version": "repo-lines-v1:sha256:d6fca7b5d550fbbfcb50632757601bbf5d51f9d03e039bbf772c8f9281aab9c0:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NzVlOTRhOTA0YWM0OWIzMTU0ZDQ2NzJhNjZlODYyOWI4NmRhYzc0ZTNlMjkzN2JlNjkyN2FlM2RhMTFjNTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYmU0NTMwMzA1ZDY5NjU5NWY2ZjJkNjg5MGYyZWEwNTQ3YmFlMTY0OTkwNWM1MDI4MDJkZTY1NWUyYjgyZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZGQ0OWMxZThjMmM4ZTRkMjczNDJiOGUxYWM4MjcxMzdhMzQzMGVkMjE0MWZiZWFhMGIxM2M5YzkzYTJlYTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c2f594b4192f416cb321c9265b5d7605",
+      "statement": "建单前服务层先归一化报告：`issueBody` 剥掉 optimizer 重复写在正文首行的 `## 标题`，标签先 trim 再丢掉空项，标题 trim 后为空直接返回本地 `invalid-request`；客户端只发送归一化后的字符串。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L652-L662",
+          "version": "repo-lines-v1:sha256:e70dcbf55cdeaa9a8ee19b71d74d8ea6ba6b3e02477e77018cdd3decf49ec093:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlNzExMjdmN2Y1ZjE3MTdiOTZlN2U5NzY5MGE3ZDE4MWE1MDcyMzdmY2FkMTg4NDBiYmIwOTM0MDIyYTkyMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3NjgwY2Q3NTgyOGZhNmRhMmFjNDIyYjNjZjI4MzMwYjAyNmY1YjZmMzVmMTRiNzczODhjNGY2MzVlOTZkODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhMjM3YzY3OTU1NDVmOTFjN2MzMmI5NTczZTdmN2JkMjExMjg4M2U1ZmZhMTI3ODY4MzgwNTM5Mjg0OGMwNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YzVhMTU3MWJjZjZhYTY4Zjk3ZGEyODgxODA1OTAxODliNzg2ODdjMDRiZDFjZWNjZjdjMzIwM2E2YjI4YmMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L36-L52",
+          "version": "repo-lines-v1:sha256:dedde83805133fb1ea81f28a468ead9fec109b69f121be08200a584571f4717a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3MWRiYmI0ZTlkODg0YTNkOTE3OTBmNGQwMGVlYmYxN2Q0NjI4NGM4MWViMmNmNmRhOWVlM2EzMmYzYjc3OTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0YmZjYjE2YzMyZTJlNDcyYzAyYjc3MzUwNjQyNDhiYTIxYWU5OGZjNTBlZmU0MzQxMTZlNDRlMTdjMDVhMmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb0ad1f454b94573a1ad353b1a008961",
+      "statement": "由于凭据每进程只解析一次且结果共用，同一进程内的所有客户端——包括请求里 `repoUrl` 覆盖指向的其他仓库——使用的都是同一份 token。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1018-L1044",
+          "version": "repo-lines-v1:sha256:879fee3aac460f7967c43519e6a61b8d61a0e5e15228f8202ab9d9aa7c461f02:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyYTZjODJhYTI2Y2I1ODM5ZGYxOGI1OGFkNmZjYTFmZWU4NzhiMWViM2I1ODMyN2UxNDE2YTYxYjEzMzQ4YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjkyYjRiMGQ5ZGRjZGY0ZjNiOTJiNDJlMGM4NGNhMGMxODE5MTFmODg5NjUxNGRiNDFkYjBmZGQxNWEwMDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMDFhMjQ2OWY1YmZkNmU1M2ZlMTU1N2M2NzU1YjdhYWFkZGNjODFiNWVhMmFkZTE0MzdlNmViOWVlMDBjMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZDFlZjRhZjIzMTFhODcwMjdmYWIzZDk4ZjRkMWVjNTM4NThmMDJhNjQyN2VjNjYzOTcwOGVlNzVkMGYxM2EifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-20T08:03:00.940Z"
   }
 }
