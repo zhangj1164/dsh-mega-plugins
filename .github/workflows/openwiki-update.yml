@@ -3,42 +3,79 @@ name: OpenWiki Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 8 * * *"
-  # Regenerate the wiki when main moves in a way that can change what it
-  # documents. main is the default branch: merges land there, the scheduled run
-  # above runs there too, and master receives the same pages through its
-  # periodic "merge main into master" sync, so watching master as well would
-  # only produce a second copy of openwiki/** that can never flow back.
-  # openwiki/** is deliberately absent from the paths, and AGENTS.md/CLAUDE.md
-  # are negated: the update pull request this workflow opens only touches those
-  # paths, so without that narrowing merging it would push to main, start
-  # another run, and open another pull request — forever.
-  push:
-    branches: [main]
-    paths:
-      - "packages/**"
-      - "scripts/**"
-      - "docs/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "*.md"
-      - "!AGENTS.md"
-      - "!CLAUDE.md"
+    # The only automatic trigger is the nightly window: 16:00-21:59 UTC is
+    # 00:00-05:59 Asia/Shanghai. GitHub runs cron on the default branch only.
+    - cron: "0 16-21 * * *"
+  # There is no push trigger on purpose. Merging ordinary pull requests to main
+  # is the normal way work lands, and triggering on every such merge would spend
+  # LLM tokens on a wiki refresh each time; the nightly run picks the changes up
+  # instead. openwiki/** must never trigger a run either: the update pull
+  # request this workflow opens only touches those paths, so a trigger there
+  # would merge, push to main, start another run and open another pull request
+  # — forever.
 
 permissions:
+  actions: read
   contents: write
   pull-requests: write
 
-# A push-triggered run can overlap the scheduled one at 08:00 UTC, and both
-# publish to the same openwiki/update branch; serialize them so the second waits
-# instead of overwriting the first mid-flight.
+# A manual run can overlap the scheduled one, and both publish to the same
+# openwiki/update branch; serialize them so the second waits instead of
+# overwriting the first mid-flight.
 concurrency:
   group: openwiki-update
   cancel-in-progress: false
 
 jobs:
+  # GitHub queues scheduled runs and can deliver them hours late (observed: a run
+  # scheduled for 08:00 UTC started at 17:08 UTC), so the cron hour alone cannot
+  # keep the refresh in the night window. This gate rejects a delayed run that
+  # arrives outside 00:00-05:59 Asia/Shanghai, and rejects a run that lands
+  # within six hours of the previous one. A manual dispatch skips both checks: a
+  # maintainer asking for a refresh gets one.
+  window:
+    name: Check the update window
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.decide.outputs.allowed }}
+    steps:
+      - name: Decide whether this run may update the wiki
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          TRIGGER: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          if [ "$TRIGGER" = "workflow_dispatch" ]; then
+            echo "Manual run: the night-window check does not apply."
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          hour=$(date -u +%H)
+          if [ "$hour" -lt 16 ] || [ "$hour" -gt 21 ]; then
+            echo "Outside 16:00-21:59 UTC (now $(date -u +%H:%M UTC)), skipping this run."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          recent=$(gh api "repos/${{ github.repository }}/actions/workflows/openwiki-update.yml/runs?per_page=30" \
+            --jq "[.workflow_runs[] | select(.id != $RUN_ID) | select((.created_at | fromdateiso8601) > (now - 21600))] | length")
+          echo "Runs in the last six hours: $recent"
+          if [ "$recent" -gt 0 ]; then
+            echo "Another run happened within the last six hours, skipping this run."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
   update:
+    name: Update the wiki
+    needs: window
+    if: needs.window.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -56,7 +93,7 @@ jobs:
 
       - name: Install OpenWiki
         # mermaid + jsdom are optional; they add high-fidelity validation of Mermaid diagrams. Remove if your wiki has none.
-        run: npm install --global openwiki@0.7.3 mermaid@11.16.0 jsdom@29.1.1
+        run: npm install --global openwiki@0.9.0 mermaid@11.16.0 jsdom@29.1.1
 
       - name: Run OpenWiki
         id: openwiki
