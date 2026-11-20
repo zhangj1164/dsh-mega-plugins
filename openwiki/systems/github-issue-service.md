@@ -4,8 +4,8 @@ title: "GitHub issue 服务（宿主）"
 description: "GithubIssueService 的七个 Remote 端点：模型路径、纯预填 URL 构造与四条 GitHub 接单路径的请求形状、失败码、本地先拒顺序，以及只 inject llm 而其余协作者全部可选读取的理由。"
 tags: [github-issue, remote-service, cordis, dispatch, prefill-url]
 verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-19T17:15:50.699Z
+  - by: openwiki/0.9.0
+    at: 2026-11-20T08:03:00.940Z
 sources:
   - id: openwiki-source-a028fd3f0a07adb5259e637a
     resource: repo://packages/client/ui-memo/src/client/controller.ts
@@ -21,6 +21,8 @@ sources:
     resource: repo://packages/github-issue/dsh-github-issue/src/intake.ts
   - id: openwiki-source-1e28de25e2dd31ef73988cfe
     resource: repo://packages/github-issue/dsh-github-issue/src/invariant.ts
+  - id: openwiki-source-6d173199b0b88502bd10af05
+    resource: repo://packages/github-issue/dsh-github-issue/src/llm-text.ts
   - id: openwiki-source-46cc8de5ca5730112d9646a2
     resource: repo://packages/github-issue/dsh-github-issue/src/spec.ts
   - id: openwiki-source-ba93057bf0798a8b81a2cc44
@@ -37,7 +39,7 @@ sources:
     resource: repo://packages/memo/dsh-memo/src/index.ts
   - id: openwiki-source-b3d62e1ae641becbc8087f6a
     resource: repo://packages/memo/dsh-memo/tests/remote-signatures.spec.ts
-generated: { by: "openwiki/0.7.3", at: "2026-11-19T17:15:50.699Z" }
+generated: { by: "openwiki/0.9.0", at: "2026-11-20T08:03:00.940Z" }
 ---
 
 # GitHub issue 服务（宿主）
@@ -87,6 +89,21 @@ export class GithubIssueService extends TypertRemoteService {
 
 `runIntake` 与 `listClaimableIssues` 的 `request` 带默认值 `{}`，所以「什么都不指定、全用配置」是一次合法调用；其余五个方法要求真正的请求体（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L634-L638)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L673-L677)）。数量参数统一经 `clampCount` 收敛到 1..100 的整数，所以请求里传超过 20 的值仍然被接受——`maxIssuesPerRun` 的 schema 上界 20 只约束配置，不约束一次调用的 `max`（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1329-L1334)）。
 
+## 纯函数层与服务层的分工
+
+这个包把「可以用输入完全决定的行为」全部推到两个无宿主依赖的模块，服务方法只负责编排、失败分类与状态。改动时先确认一件事属于哪一层，能少写很多分支：
+
+| 纯函数 | 所在模块 | 职责 | 谁调用它 |
+|---|---|---|---|
+| `issueBody(report)` | `intake.ts` | 删掉首行 `## 标题`、其后空行、归一 CRLF、trim 末尾 | `createIssue` |
+| `renderDispatchPrompt(template, issue)` | `intake.ts` | 替换 `{number}`/`{title}`/`{url}`/`{body}`/`{labels}`，未知占位符原样保留 | `dispatch` |
+| `localDayKey(now, tz)` | `intake.ts` | 把时刻格式化成 IANA 时区下的 `YYYY-MM-DD` | `runIntake`、`startupIntake` |
+| `isValidTimeZone(tz)` | `intake.ts` | 空串合法，其余用 `Intl.DateTimeFormat` 试构造 | `intakeTimeZone` |
+| `parseRepository(repoUrl)` | `github.ts` | 拆 owner/repo，容忍一个尾斜杠，接受任意 host | `GithubIssueClient` 构造 |
+| `streamLlmText(llm, route, system, user)` | `llm-text.ts` | 收集文本并把终块失败事实保留成 `LlmTextFailure` | 两条模型方法 |
+
+`firstNonBlank`、`clampCount`、`normalizeWorkspacePath`、`buildReportUserPrompt`、`extractTitle`、`buildPrefillUrl`、`optionalService`、`describeError` 属于服务侧私有的模块级函数，只被本文件使用（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1207-L1334)）。`buildPrefillUrl` 虽然是纯函数，但它是 `prefilledIssueUrl` 端点唯一的规则来源，下面单独展开。`llm-text.ts` 与 `dsh-memo` 的同名模块刻意保持结构一致，因为 `dsh-github-issue` 是下层、`dsh-memo` 依赖它而不是反过来（[llm-text.ts](../../packages/github-issue/dsh-github-issue/src/llm-text.ts#L1-L22)）。
+
 ## 模型路径：路由与失败事实
 
 两条模型方法的骨架相同：先解析路由，解析不出就**不发起调用**，直接返回 `route-missing`；解析出来才走 `streamLlmText`，失败时把 DSH 的码、消息与 HTTP 状态拼进 `llm-failure` 的消息里。区别只在**先后**：`optimizeIssue` 先判空描述（`empty-input`）再解析路由，`generateReport` 没有输入校验。标题从模型输出的第一个 `## ` 标题取，取不到时 `generateReport` 回落到 `Telemetry failures in <pluginIds>`、`optimizeIssue` 回落到 `New issue`；两个结果对象都冻结（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L581-L613)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1038-L1046)）。
@@ -132,21 +149,60 @@ export class GithubIssueService extends TypertRemoteService {
 
 提示词由 `renderDispatchPrompt` 用 `{number}`/`{title}`/`{url}`/`{body}`/`{labels}` 渲染配置模板，未知占位符**原样保留**，让模板里的笔误看得见（[intake.ts](../../packages/github-issue/dsh-github-issue/src/intake.ts#L53-L73)、[intake.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L27-L43)）。会话落在哪个项目由 `workspacePlacement` 决定：把 `cwd` 与 `workspaceRegistry` 记录的目录按分隔符归一化后比对（只在大小写不敏感的文件系统上折叠大小写），命中就改传 `workspaceId`，否则按目录创建并在侧栏留作未分组——`create` 的 `workspaceId` 与 `cwd` 互斥，所以两者只发一个（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L856-L889)）。
 
-`runIntake` 在派发之前先做去重：已派发过的 issue 号进 `skipped`，新面孔进 `fresh`，再截到 `max` 条按顺序派发；派发失败的条目进 `failures` 而整个 pass 仍然 `ok: true`（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L710-L740)）。哪个分支提交本地日、哪个分支留给下次启动重试，见 [Issue 自动接单循环](../workflows/issue-intake-autopilot.md)。
+`runIntake` 在派发之前先做去重：已派发过的 issue 号进 `skipped`，新面孔进 `fresh`，再截到 `max` 条按顺序派发；派发失败的条目进 `failures` 而整个 pass 仍然 `ok: true`（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L710-L740)）。
+
+### 本地日只在一次成功的 pass 之后才提交
+
+`runIntake` 的提交规则是一个「全或无」的判断，值得单独记住，因为它决定了坏掉的一天是「被记住」还是「下次重试」（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L740-L770)）：
+
+```ts
+const day = localDayKey(checkedAt, this.intakeTimeZone())
+if (dispatched.length === 0 && failures.length > 0) {
+  // 一个 issue 都没进会话：这一天不算检查过
+  this.trackError('runIntake', { code: 'dispatch-failed', ... })
+} else {
+  await this.commitIntakeState(day, dispatched)
+}
+```
+
+三个分支的含义各不相同：
+
+| 这一轮的结果 | `commitIntakeState` | 后果 |
+|---|---|---|
+| 列单就失败（`listed.ok === false`） | 不调用 | 结果**原样**返回客户端码，不写状态，下次启动重试 |
+| 至少派发成功一条（或本来就没有可派的 issue） | 调用，写入 `lastCheckedDay` 与新记录 | 这一天算完成，同日重启不再检查 |
+| 一条也没派发、但存在失败 | 不调用，但记一条 `runIntake` 的 `dispatch-failed` 错误事件 | 日期保持旧值，下次启动重试 |
+
+第二条分支里「本来就没有可派的 issue」和「全部已派发过」同样落进 `commit` 分支——没有失败就说明没有坏掉的东西，把这一天记为完成是对的。把「全部派发失败」也记为完成，是让一次失败的开机看起来像「今天没事可做」的写法，所以代码显式排除了它；测试分别钉住列单失败不写状态、Schedule 被拒与 fallback prompt 被拒都不提交日期、以及全部派发失败时 `lastCheckedDay` 保持原值（[intake-service.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L183-L190)、[intake-service.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L224-L268)）。
+
+「今天」按 IANA 时区算，`localDayKey` 用 `Intl.DateTimeFormat` 取年月日，空时区跟随宿主；`autopilotTimeZone` 每次使用都重读，非法值回落到宿主时区并对每个新值只 warn 一次，不让一个拼错的时区把启动检查或派发打断（[intake.ts](../../packages/github-issue/dsh-github-issue/src/intake.ts#L75-L115)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L432-L448)）。测试同时钉住跨时区语义（`2026-11-01T16:30Z` 在上海是 11-02）与非法时区的回落（[intake.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L45-L63)、[config-volatile.spec.ts](../../packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts#L111-L118)）。
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle
+  Idle --> Listing: runIntake / startupIntake
+  Listing --> Idle: 列单失败，返回客户端码，日期不变
+  Listing --> Dedup: 列单成功
+  Dedup --> Dispatching: fresh 截到 max
+  Dispatching --> Committed: 至少一条成功，或 failures 为空
+  Dispatching --> Uncommitted: 全部失败
+  Committed --> Idle: lastCheckedDay = 今天
+  Uncommitted --> Idle: 记 runIntake dispatch-failed，日期保持旧值
+```
+
+图：一次 pass 的四种出口。只有「列单成功且不全是失败」才写本地日；其余出口都留给下一次启动重试。
 
 ## 状态与生命周期
 
 接单状态只有一行：最后完成的那一天，以及已经派发出去的 issue 记录。它声明为一个 storage-domain 域 `github_issue_intake`（版本 0，单表 `state`，键 `intake`），整体在运行时用 zod 校验；`@deepseek-ai/dsh-storage-domain` 是可选 peer，所以 `createIntakeDomain` 用动态 import，缺包时丢的是「每日检查」而不是整个插件（[spec.ts](../../packages/github-issue/dsh-github-issue/src/spec.ts#L34-L69)、[package.json](../../packages/github-issue/dsh-github-issue/package.json#L55-L66)）。没有存储时状态是冻结的空行，`intakePersistent` 保持 false（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L341-L354)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L940-L966)）。
 
-`[Service.init]` 的顺序值得记住：先开状态，`autopilotEnabled` 为假直接返回，没有持久状态则记一条 `state-unavailable` 并跳过检查（没有「已派发过什么」的记忆，重启就会给同一个 issue 开第二个会话），否则 `void this.startupIntake()`——**不 await**，GitHub 慢或不可达不该拖住宿主开机，失败只 warn，下一次启动重试（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L466-L485)、[intake-service.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L292-L340)）。
+`[Service.init]` 的顺序值得记住：先开状态，`autopilotEnabled` 为假直接返回，没有持久状态则记一条 `state-unavailable` 并跳过检查（没有「已派发过什么」的记忆，重启就会给同一个 issue 开第二个会话），否则 `void this.startupIntake()`——**不 await**，GitHub 慢或不可达不该拖住宿主开机，失败只 warn，下一次启动重试（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L466-L485)、[intake-service.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L292-L340)）。注意 `startupIntake` 自己会先读本地日、发现今天就返回，所以「同日第二次启动不做任何事」在钩子层再加一道闸，而不只靠 `runIntake` 的提交。
 
 提交时**先更新内存，再落盘**：durable 写失败只 warn 并说明后果（「后续 pass 可能重复派发同一个 issue」），而不是假装写成功；同进程的下一次 pass 看到的仍是已派发状态。历史记录只保留最近 `MAX_DISPATCH_HISTORY = 500` 条，纯粹防止单个 JSON 文档无限增长（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L968-L990)）。
 
-「今天」按 IANA 时区算，`localDayKey` 用 `Intl.DateTimeFormat` 取年月日，空时区跟随宿主；`autopilotTimeZone` 每次使用都重读，非法值回落到宿主时区并对每个新值只 warn 一次，不让一个拼错的时区把启动检查或派发打断（[intake.ts](../../packages/github-issue/dsh-github-issue/src/intake.ts#L75-L115)、[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L432-L448)）。测试同时钉住跨时区语义（`2026-11-01T16:30Z` 在上海是 11-02）与非法时区的回落（[intake.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake.spec.ts#L45-L63)、[config-volatile.spec.ts](../../packages/github-issue/dsh-github-issue/tests/config-volatile.spec.ts#L111-L118)）。
-
 ## 遥测：成功也带路由
 
-事件都记在插件 id `github-issue` 下，feature 锚点由 `featureCode(action)` 拼成 `github-issue:<action>`。成功事件由 `track` 写：`generateReport` 额外带被分析的 `pluginIds`，`optimizeIssue` 带路由，`createIssue` 带 issue 号，`dispatchIssue` 带 issue 号与会话 id，`startupIntake` 带派发条数。失败事件由 `trackError` 写：`createIssue`、`listClaimableIssues`、两条模型方法的 `llmFailure` 与 `routeMissing`、以及 `startupIntake` / `runIntake` / `openIntakeState` 的失败（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1140-L1196)）。
+事件都记在插件 id `github-issue` 下，feature 锚点由 `featureCode(action)` 拼成 `github-issue:<action>`。成功事件由 `track` 写：`generateReport` 额外带被分析的 `pluginIds`，`optimizeIssue` 带路由，`createIssue` 带 issue 号，`dispatchIssue` 带 issue 号与会话 id（走 Schedule 时还带任务 id），`startupIntake` 带派发条数。失败事件由 `trackError` 写：`createIssue`、`listClaimableIssues`、两条模型方法的 `llmFailure` 与 `routeMissing`、以及 `startupIntake` / `runIntake` / `openIntakeState` 的失败（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L1140-L1196)）。
 
 三处设计判断值得抄：
 
@@ -235,5 +291,6 @@ sequenceDiagram
 - **新的失败要么复用 `GithubIssueFailureCode`，要么自成一条纯路径的码。** 别用一个码覆盖「没有凭据」和「凭据被拒」这类修法不同的情况。
 - **派发的合规形态是「把工作交给 turn」，不要改成宿主自己动手。** `dispatchIssue` / `runIntake` 只建会话并登记任务（或排一句提示词），真正动代码、跑工具、开 PR 的是那个会话的 agent turn，审批在那里才有 open turn 可用；`createIssue` 则属于尚未收口的「turn 之间的宿主副作用」，补一个对话框不算收口，详见 [敏感能力与审批边界](../concepts/capability-and-approval-boundaries.md)。
 - **派发有两个交付分支，改一个要同时改另一个。** `schedule` 存在时登记任务、缺失时退回 `controller.prompt`，两条都在失败时返回 `dispatch-failed` 并且都不提交本地日；只保留一条会让非 Web 组合失去派发能力，或让 Web 组合的派发在工作区面板上不可见（[intake-service.spec.ts](../../packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L194-L240)）。
+- **别把提交本地日的条件放宽成「pass 跑完就写」。** 现在的判据是 `dispatched.length === 0 && failures.length > 0` 才不写，把任何一种失败也算成完成，会让一次坏掉的开机被记为「今天没事」，而它本该在下次启动重试（[index.ts](../../packages/github-issue/dsh-github-issue/src/index.ts#L740-L770)）。
 - **没有运行时不变式可依赖。** `invariant.ts` 只注册一个空安装函数并 `inject: ['githubIssue']`，理由是模型调用与 URL 构造都由本服务独占、不存在第二个权威；所以这里的约定全部靠测试而不是靠 invariants 兜底（[invariant.ts](../../packages/github-issue/dsh-github-issue/src/invariant.ts#L1-L27)）。
 - **状态行只有一行。** 想改 `IntakeStateRow` 的形状就得同时改 zod schema 与域版本；往 `dispatched` 里塞别的东西会连带改变去重语义（去重判据是 issue 号集合）。

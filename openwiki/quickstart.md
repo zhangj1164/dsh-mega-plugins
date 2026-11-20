@@ -3,7 +3,12 @@ type: quickstart
 title: 快速上手：仓库地图与任务路由
 description: 一屏看懂六个包的宿主/浏览器半边、服务键与组合入口 id，记住分支 → 门禁 → PR 的强制流程与四条不可破的约束，再按任务类型路由到对应的架构、系统、流程、运维或测试页面。
 tags: [quickstart, onboarding, monorepo, plugins, workflow, gates, routing]
+verified:
+  - by: openwiki/0.9.0
+    at: 2026-11-20T08:03:00.940Z
 sources:
+  - id: openwiki-source-6d4b4e707b8d60b6ccfa3425
+    resource: repo://.github/workflows/openwiki-update.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -16,10 +21,16 @@ sources:
     resource: repo://packages/client/ui-memo/src/client/controller.ts
   - id: openwiki-source-68c8e82de81aaa387a403192
     resource: repo://packages/github-issue/dsh-github-issue/cordis.patch.yml
+  - id: openwiki-source-b27a5428b6cc463b1d8c1b63
+    resource: repo://packages/github-issue/dsh-github-issue/src/github.ts
   - id: openwiki-source-e2b359735a8b78c5620256a1
     resource: repo://packages/github-issue/dsh-github-issue/src/index.ts
+  - id: openwiki-source-ef098934fa286896171d6d7c
+    resource: repo://packages/github-issue/dsh-github-issue/src/intake.ts
   - id: openwiki-source-c35c5828e4c603df9a0ad665
     resource: repo://packages/memo/dsh-memo/cordis.patch.yml
+  - id: openwiki-source-1eb0179a98e86bf3b2f12749
+    resource: repo://packages/memo/dsh-memo/README.zh.md
   - id: openwiki-source-af6070efd617d3968568cd0e
     resource: repo://packages/memo/dsh-memo/src/client.ts
   - id: openwiki-source-3a7480327133dfa38c0836e5
@@ -44,17 +55,14 @@ sources:
     resource: repo://scripts/run-gates.ts
   - id: openwiki-source-fbadcd8591b65031efaaedce
     resource: repo://vitest.config.ts
-generated: { by: "openwiki/0.7.3", at: "2026-11-19T17:15:50.699Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-19T17:15:50.699Z
+generated: { by: "openwiki/0.9.0", at: "2026-11-20T08:03:00.940Z" }
 ---
 
 # 快速上手：仓库地图与任务路由
 
 `zhangj1164/dsh-mega-plugins` 是一个 pnpm monorepo，交付两条产品线上的六个 DSH 插件：一条本地优先的个人备忘套件（`telemetry`、`githubIssue`、`memo` 三个宿主服务，加备忘看板与 Settings 页两个浏览器面），以及 Web 右 Sidebar 里的 OpenWiki 预览。`pnpm-workspace.yaml` 的 `packages:` 只有一行 `packages/*/*`，根 `package.json` 是 private 的聚合脚本入口：`pnpm run build`、`pnpm run test`、`pnpm run gates`。
 
-这一页不重复系统总览，只做两件事：把值得先建立的地图压缩到一屏，然后把「你手上这类改动」路由到该读的那一页。工作流程的唯一权威是 [AGENTS.md](../AGENTS.md)；本 wiki 是按需检索的上下文——手上有源码时先读源码与测试，它们是事实来源。
+这一页不重复系统总览，只做两件事：把值得先建立的地图压缩到一屏，然后把「你手上这类改动」路由到该读的那一页。工作流程的唯一权威是 [AGENTS.md](../AGENTS.md)；本 wiki 是按需检索的上下文，不是启动读物——只有当你确实不熟这块架构、或读源码后仍有疑问时才查它，而**源码与测试始终是事实来源**，wiki 与代码冲突时以代码为准。
 
 ## 一屏地图：六个包、两侧、入口 id
 
@@ -67,9 +75,17 @@ verified:
 | `@zhangj1164/dsh-client-ui-memo-settings` | `packages/client/ui-memo-settings` | 仅浏览器，但自带 bundle | 空 `apply()` | `ui-memo-settings` |
 | `@zhangj1164/dsh-openwiki-visualize` | `packages/openwiki/dsh-openwiki-visualize` | 同一个包两半都有（宿主 `lib/index.js` + 同 manifest 的 `dsh.client` → `lib/client.js`） | `TypertRemoteService` `openwikiVisualize` | `openwiki-visualize`（一行同时带上两半） |
 
-三个宿主包里有两条依赖边值得先知道：`MemoService` 的静态 `inject` 是 `['storageDomain', 'telemetry', 'githubIssue']`，所以单独装 `dsh-memo` 启动不了（profile 的 `autoInstallPeers: false` 让安装只带来命令点名的包）；`GithubIssueService` 只静态 inject `llm`，对 `telemetry`、`storageDomain`、`sessionController` 等用 `ctx.get()` 可选读取，缺席时照常工作（只是不留日志、不落 intake 状态）。`TelemetryService` 只静态 inject `storageDomain`。
+三个宿主包里有两条依赖边值得先知道：`MemoService` 的静态 `inject` 是 `['storageDomain', 'telemetry', 'githubIssue']`，所以单独装 `dsh-memo` 启动不了；`GithubIssueService` 只静态 inject `llm`，对 `telemetry`、`storageDomain`、`sessionController`、`workspaceRegistry`、`schedule` 都用 `ctx.get()` 可选读取，缺席时照常工作（只是不留日志、不落接单状态、不派发）。`TelemetryService` 只静态 inject `storageDomain`。
 
-最容易踩的一处命名巧合：`telemetry`、`github-issue`、`memo` 三个包都导出 `./client`，内容是一句 `export type * from './types.ts'`——那是给客户端复用的类型投影，运行时解析只会得到空模块；真正的浏览器半边是 manifest 里的 `dsh.client`，宿主按包名取回 `lib/client.js`。所以根 `vitest.config.ts` 把这三个包（连同 `/client`、`/types`）精确别名回 TypeScript 源码，测试跑的是源码而非构建产物。为什么这样拆、两侧的 `inject` 各管什么，见 [插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md)。
+安装套件时这条依赖边会变成一条具体规则：profile 的 `autoInstallPeers: false` 让安装只带来命令行点名的包，而 `dsh-memo` 的服务依赖 `telemetry`、`githubIssue` 两个服务，它的 patch 又插入了指向 `@zhangj1164/dsh-client-ui-memo` 的 `ui-memo` 行——所以**备忘套件必须点名五个包**才装得全：
+
+```sh
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings
+```
+
+只装 `dsh-memo` 会让 `github-issue` 与 `ui-memo` 两行解析不到，loader 直接让启动失败；装 `ui-memo-settings` 却缺备忘套件时不会报错，只是页面永不注册（由 `configForms.whileServed` 按命名空间守门）。安装清单、git 安装的 `path:` 语法与三种安装路线的取舍见[插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md)。
+
+最容易踩的一处命名巧合：`telemetry`、`github-issue`、`memo` 三个包都导出 `./client`，内容是一句 `export type * from './types.ts'`——那是给客户端复用的类型投影，运行时解析只会得到空模块；真正的浏览器半边是 manifest 里的 `dsh.client`，宿主按包名取回 `lib/client.js`。所以根 `vitest.config.ts` 把这三个包（连同 `/client`、`/types`）精确别名回 TypeScript 源码，测试跑的是源码而非构建产物。
 
 ```mermaid
 flowchart LR
@@ -114,7 +130,7 @@ pnpm install
 pnpm run gates        # check-all：11 个门禁，含 test、build、产物、卫生、文档同步与 issue 策略
 ```
 
-先让 `pnpm run gates` 跑绿，把这次运行当作基线；它红了就先定位，别在红的基线上改代码。门禁内部顺序并非随意：`package-exports` 与 `client-bundle-id` 读的是构建产物，所以声明 `needs: ['build']`；本地三种聚合都把并发夹到 4 个 worker（多个文档门禁各自构建完整 `ts.Program`），可用 `DSH_GATE_CONCURRENCY` 覆盖。只想快速循环时用窄聚合：`pnpm run gates:hygiene`（导出 JSDoc）、`pnpm run gates:doc-sync`（双语配对 + Markdown 链接 + 段落不硬换行）。完整图见[构建、测试与门禁套件](operations/build-test-and-gates.md)。
+先让 `pnpm run gates` 跑绿，把这次运行当作基线；它红了就先定位，别在红的基线上改代码。门禁内部顺序并非随意：`package-exports` 与 `client-bundle-id` 读的是构建产物，所以声明 `needs: ['build']`；其余（`bundle-entries`、`publish-guard`、`export-jsdoc`、三条 doc-sync、`issue-policy`）读源码，彼此可并发。本地三种聚合都把并发夹到 4 个 worker（多个文档门禁各自构建完整 `ts.Program`），可用 `DSH_GATE_CONCURRENCY` 覆盖。只想快速循环时用窄聚合：`pnpm run gates:hygiene`（导出 JSDoc）、`pnpm run gates:doc-sync`（双语配对 + Markdown 链接 + 段落不硬换行）。完整图见[构建、测试与门禁套件](operations/build-test-and-gates.md)。
 
 ## 强制工作流：分支 → 门禁 → PR
 
@@ -143,26 +159,31 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 
 | 你要做的事 | 先读 | 你会拿到什么 |
 |---|---|---|
-| 建立全局模型：谁在宿主、谁在浏览器、状态落在哪 | [系统总览](architecture/overview.md) | 六包合并表、装配四步顺序、失败定位表、五类改动的落点 |
+| 建立全局模型：谁在宿主、谁在浏览器、状态落在哪 | [系统总览](architecture/overview.md) | 六包合并表、装配四步顺序、失败定位表、四类改动的落点 |
 | 加一个宿主能力（新服务、新包、新配置字段） | [备忘服务](systems/memo-service.md) | 一个 `TypertRemoteService` 的完整样本：按周/时间线、归档、会话、AI、日志与自更新分组的方法面、三条失败通道、写守卫、inject 与可选服务 |
 | 在浏览器加一块面（面板、Sidebar tab、Settings section） | [备忘看板 UI](systems/memo-board-ui.md)、[备忘设置页](systems/memo-settings-ui.md)、[OpenWiki 预览](systems/openwiki-visualize.md) | slot 注册与 key 约定、controller 与 RPC 包装、草稿状态机与 `configForms` 守卫、自持右栏 tab 的形态 |
-| 加或改一个 Remote 方法 | [宿主 ⇄ 浏览器 Remote 契约](architecture/host-client-remote-contract.md) | `@Remote` 命名、唯一 `request` 参数、`{ args: { request } }` 线上的双层信封，以及守住它的门禁 |
+| 加或改一个 Remote 方法，或改浏览器侧的调用 | [宿主 ⇄ 浏览器 Remote 契约](architecture/host-client-remote-contract.md) | `@Remote` 命名、唯一 `request` 参数、`{ args: { request } }` 与 `{ ok, value: { ok, value } }` 的信封形状、`<service>/<method>` 端点的拼法，以及守住它的门禁 |
 | 加持久状态、改行 schema、处理迁移 | [存储与持久化](architecture/storage-and-persistence.md) | 四个域声明 + 一个 JSON 账本的行 schema、开/关生命周期、写重试、坏行在启动时的症状 |
 | 让某个值可从 `cordis.yml` 覆盖，或从 Settings 免重启改 | [配置与实时设置](concepts/configuration-and-live-settings.md) | schemastery `Config` 契约、`.volatile()` ref 如何被 Loader 就地提交、按版本围栏的写入、仍需要重启的改动 |
 | 改 bundle patch、入口 id、安装清单、git 安装 | [插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md) | 有序 patch 模型、一个 id 一个 owner、「装子集也干净」的三条安装路线、守门门禁 |
 | 发布新版本，或改自更新路径 | [发布与打包](operations/release-and-publishing.md) | `pnpm publish` 契约、publish guard 与它的接线门禁、每个 manifest 发什么、发布后复核 |
 | 改门禁、构建产物、测试运行环境 | [构建、测试与门禁套件](operations/build-test-and-gates.md)、[测试策略](testing/testing-strategy.md) | tsdown 与共享 client preset、根 vitest 的别名/装饰器/jsdom 配置、11 条门禁的依赖图 |
 | 改 CI、Issue/PR 策略、Project 自动化 | [CI、Issue 策略与仓库自动化](operations/ci-and-issue-policy.md) | 工作流如何调门禁、`policy.mjs issue`/`pr` 的标签与正文规则、需要 PAT 的 Project 开关 |
+| 改 issue 生成、优化、预填 URL 或直建 issue | [GitHub issue 服务](systems/github-issue-service.md)、[GitHub REST 集成](integrations/github-rest.md) | 一个 issue 从报告 → 预填 URL → 落地的生成面、它的 Config、失败码；URL 解析、调用的端点与请求成形、token 解析顺序 |
+| 改 issue 自动接单：可认领列表、派发、工作区摆放 | [Issue 自动接单与派发](workflows/issue-intake-autopilot.md) | 每日一次的门控、跳过已派发、创建 Session 时按 workspace 摆放（缺席时的回退路径），以及 `github_issue_intake.state` 的持久语义 |
 | 改模型调用、路由解析或失败语义 | [LLM 路由与失败事实](concepts/llm-route-and-failure-facts.md) | `request → Config → agentDefaultModel` 的解析顺序、共享流式助手、保留的失败码/消息/状态 |
 | 改周/月/季/年标签或周 id | [四维周期日历](concepts/period-calendar.md) | 标签形状、周一起始的 ISO 周与周四规则、宿主唯一的 enumerate/contains 对 |
 | 用宿主服务（`llm`、`fs`、`sessionQuery`、`storageDomain`、`configForms`…） | [DSH 宿主服务](integrations/dsh-host-services.md) | 结构化声明而非 import 的宿主契约，以及让「部分安装」仍可启动的可选读取规则 |
-| 触到 GitHub 侧（建 issue、列可认领 issue、凭据） | [GitHub REST 集成](integrations/github-rest.md)、[GitHub issue 服务](systems/github-issue-service.md) | URL 解析、调用的端点与请求成形、token 解析顺序、超时与稳定失败码 |
+| 触到 GitHub 凭据或限流 | [GitHub REST 集成](integrations/github-rest.md) | 凭据/token 解析顺序、超时、REST 错误到稳定失败码的映射 |
 | 改遥测写入/读取或日志分析 | [遥测服务](systems/telemetry-service.md)、[日志分析到 issue 报告](workflows/log-analysis-to-issue.md) | 带序号的写入链与脱敏、读时再脱敏、按 `featureCodeRef` 分组，以及跨插件诊断管线 |
 | 改 OpenWiki 预览 | [OpenWiki 预览](systems/openwiki-visualize.md) | 环境探测、wiki 检测、被监督子进程与端口解析、版本检查与显式自更新、右栏 tab 与 iframe |
 | 改一条端到端流程 | [分析与导出](workflows/analyze-and-export.md)、[issue 派发](workflows/issue-intake-autopilot.md)、[季度归档与只读](workflows/quarter-archive-and-read-only.md)、[会话总结成周记](workflows/session-summary-to-week.md) | 每个流程的调用链、失败分支、持久副作用，以及哪些守卫在方法内部强制 |
+| 更新或调整这套 wiki 本身 | [CI、Issue 策略与仓库自动化](operations/ci-and-issue-policy.md) | `openwiki-update.yml` 的夜间窗口判定、`openwiki code --update` 的 PR 落地方式，以及「生成页面不手改」的约定 |
 
 ## 读完之后
 
 地图部分只需要四页就能补齐：[系统总览](architecture/overview.md) 给整体与失败定位，[插件组合与 bundle 层](architecture/plugin-composition-and-bundles.md) 给装配与安装，[宿主 ⇄ 浏览器 Remote 契约](architecture/host-client-remote-contract.md) 给唯一的调用通道，[存储与持久化](architecture/storage-and-persistence.md) 给状态叶子。剩下的页面都是这四页的展开，按上表挑一行进去即可。
+
+`openwiki/` 下的页面由 `.github/workflows/openwiki-update.yml` 生成：`schedule` 每晚 `16`–`21` 时 UTC（Asia/Shanghai 的 `00:00`–`05:59`）跑，另可 `workflow_dispatch` 手动触发；`window` job 会拒掉窗口外的迟到定时运行、以及距上一次运行不足六小时的运行，手动触发则跳过这两项判定。生成结果经 `peter-evans/create-pull-request` 提到分支 `openwiki/update`，`add-paths` 一并包含 `openwiki`、`AGENTS.md` 与 workflow 文件本身。它刻意没有 `push` 触发（每次合并都烧 LLM token），也不因 `openwiki/**` 的改动触发（否则会无限自我循环）。所以**不要手改生成的页面**——改源码或仓库文档，让下一次运行重新生成；源码先变、README 跟上、wiki 稍后由这条 PR 对齐，是这里的正常节奏。
 
 改动要落纸时，`docs/plans/` 放经过验证的设计（按日期、每批改动一份）；Issue 跟踪与技能配置在 `docs/agents/`。双语文档是一对一对的：改完任一侧 README 后用 `pnpm run verify-translation-pairing --write --all` 重新对账，否则 `gates:doc-sync` 会红。

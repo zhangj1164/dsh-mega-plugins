@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ab47577f36929bc5c83f24fde54ba001a66fc0a309a5aee0af01fd13efe87a43",
+  "pageVersion": "sha256:ddd3c5f28ced8722645d810646b549cb45d5249fb91a4ece5e08d8cfe9149d2f",
   "claims": [
     {
       "id": "claim_642077e64c6f4858bd0815df486c7f41",
@@ -351,10 +351,78 @@
           "version": "repo-lines-v1:sha256:2ee99459c923b213ff705733f5fe5efb4b8de5fa27347d136feece1963b3bf4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjY2ZDE0ZmUzZDk4MGNlZjljNDMzZjk0ZTMwNzU4NzYyYjBiMTIwYmUwNTU0ZDYxNjMzNmNhNDhjNDJiMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMzUyNTg5YzM0ZDNjNjA2ODU5MzFiNmVjYzRkNTA5OTFhN2M1NmM4ZmJhMjg5NDExNDY1NzY5MDI3MmNhYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhZmRjMmJkZWRkM2RlNzEwZTQwMjM0NGNhOTg4NmIzN2RiMDQ1YTk1MzUwM2JlOWMxYjI0ZDY4ZTdlMjdjZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_1e7072a10bb748c48639b4a22875174b",
+      "statement": "github-issue 把可完全由输入决定的行为集中在两个无宿主依赖的模块：`src/intake.ts`（`issueBody`、`renderDispatchPrompt`、`localDayKey`、`isValidTimeZone`）与 `src/github.ts`（`parseRepository` 及 `GithubIssueClient` 的请求构造与状态分类），`src/llm-text.ts` 负责单次模型文本调用与失败事实保留；服务类只做编排、路由解析、失败分类与状态提交，各端点的规则由这些纯函数承载。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L1-L130",
+          "version": "repo-lines-v1:sha256:eccd654ccfa738d8350c2418f2ac2bdd42943f3c936d8f55eecd16ff99f45946:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiOTc4ZTI1MDNiOGNmMzdhMDZmN2Q2ZjBhM2E2YjZmZTM1NjkxZmJjYWI1MGI4Nzc1Y2FiNmZhYmM3MWM1OTJiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiYjcxODUyZGE2MzdjZmUwYTMwNTlmZmY4Y2YwYTdjYTc2ZWI2YmE1MzM4YmE1YTEwMjBiZjQyOTg4OTFmYWZjIn0"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L1-L115",
+          "version": "repo-lines-v1:sha256:b3b85c18963e87e4c6989bebee5a7beb1c37eb3cc104b4f2297e097368fd548b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/llm-text.ts#L1-L134",
+          "version": "repo-lines-v1:sha256:98a10336f257a2220405b4b881894b2995d42169bd95c17d14b2b2fa3da37e12:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_b56c52c04483407386fa08e2de43b581",
+      "statement": "七个 Remote 端点中只有 `prefilledIssueUrl` 完全不产生外部副作用（同步计算 URL、不碰模型与 GitHub）；`generateReport`、`optimizeIssue`、`createIssue`、`listClaimableIssues`、`dispatchIssue`、`runIntake` 都会调用模型或 GitHub 或创建持久记录，其中 `runIntake` 还会写入接单状态。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L581-L760",
+          "version": "repo-lines-v1:sha256:aa3cfd3a0934beef0c8469e7ced162d0a38e626f615b881389d791b4421ce3a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlZTcxMTI3ZjdmNWYxNzE3Yjk2ZTdlOTc2OTBhN2QxODFhNTA3MjM3ZmNhZDE4ODQwYmJiMDkzNDAyMmE5MjBiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ZjNkZjQ4NjNlMDYzNmRiYzc5YTNlYjMzNmNmZDEwMmZlMjhmOGZhZTFmOTA5MDdiN2JhYmQ2YTVkYmM4NDI1IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiNTJiNGIwZDg0ODhkNTNmMmIxZTI3NjEyOWRiMjI2MDUyMzEyM2E1YThmMzdkMDk2NmMwMjFjOGI5MGM2OTliIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZGY5YjIyMTIxNjUyOWM3NTgzYTc2ODY3MmVmYWU4ZDhiY2YzMzkzZWYwOGQwYmRmYjNjYWUzNTg1OGRkNzYzIn0"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L968-L990",
+          "version": "repo-lines-v1:sha256:d5cfbdce6c7282aaab55e26ee5953ec36c738fd23039b9390b41f283cfd782a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExZGY4N2E0NzMxNmM3MDhjNTUwMjA5OGU5YWY2YzQ0NTM0ZWI4MGJlYWRjZjYwNjMwMjhlZmNhODU5MzdhYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDI5OTYxNGE3MDY3YWM0ZDVlNmJhODM4ZTQ0YTI2MWJlMmIxYzUyNTFkN2Q2MmUyYTE2ZDc1ZGNmYzc4MGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5ODcyYzc1MTI1MzMyYzM0MWJiYmFmYTdmNmU5MGQwMTM5ZTM1M2EyODZiZGE2MDI2NTYzZjYzYTRiNmU4OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2NDc3ODczMjkxNDFmZGZmMzRlOTMxZTg3NGVlZjJhNDY5ZjVmZmY5NDRjOWQwMTZjY2I0YWRmNzUzNWM1MTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_59be8bf354c945ff82cf71210f78a2c7",
+      "statement": "`runIntake` 只在「列单成功 且 不全是失败」时调用 `commitIntakeState` 写入本地日：列单失败直接原样返回客户端失败码且不写状态；`dispatched.length === 0 && failures.length > 0` 时改为记录一条 `runIntake` 的 `dispatch-failed` 遥测错误并保留旧日期，使下一次启动重试；至少派发成功一条、或本轮没有任何失败（含无可派 issue、全部已派发过）时提交日期。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L740-L770",
+          "version": "repo-lines-v1:sha256:b21f79377cd38a7f0e1df63b33a9dbd7f5bc333179adafd7578e76013fc04e0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NzQ5YWM1YWYzNzRmOTgwY2MyMDQ1OTkzZDViZDI5ZTE2NjliYzYzMGM2ZjQ1ZjkxZGYwNzkxNzAyYzEyZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NTA5ZDhjNjczNWFhYmIxODA5MTNiN2Y5ZWQzODAyN2RhYmQzZGZlNDBlZmE3MGY1YzkxZjRjMjViZjc4ZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZTQ1OTA1MTg2OTEyZjBmZDk2ZTNiOGVmYjQ3YzE3NmU0YmYyNjZkNGRmMDFjNWIxM2VhNGJjYzkzMjM3MmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxZmE5YWJhYjY1ZDMyOGQ5ZTMwMzc5YmQyNGNlOThhN2YzN2ExOTVhMThmOTNlMmI1ZmU4N2JjZGQ2MWZmZmQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L183-L190",
+          "version": "repo-lines-v1:sha256:cb6e5299a86c4619e1587a3759858f0158c444a6dff013d6520279cc679a92fe:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2FlODhhYTcwMmJlMWUzYTc4M2EzN2QyOGMzNWVlMDAxY2I5ZmY4YzE4M2IyMTJlYTAxODg1NzlhM2Q0MWVkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmY1ZDlmYWE4NGJlNTcyODI5ZTUwYjQyNTc3YTg3OTUzNThjNDVkNTc4MTZmNDkzNTFlZmM4ZjJhNDliOGM5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjliNjcyMGQ0NWRhODYwNjViYzA1Y2ViYmU0YjM1ZTg0MmYzYTI5NWEwNjE4MmMwZDYzNzZmMWFiMTVkYzJjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2IyNGY5Mjc3ZjQ4ZjhlN2VmMjkzODBmNTk0YTkzYWY5Mjc2ODhhZjI4MTZiMmJjMzFhZmIxNDZlOWIwM2MwMCJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L224-L268",
+          "version": "repo-lines-v1:sha256:191641d98209af40f91c0f55d6de28b0365f6cb2b0faa024737b5c5aefedd2c7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NzBlNzhhMDZkNDhkYTk4N2NlN2EwNzRiODc0MWU2ZDNhYWNiODNmNWI3OGNjZDYyYTgwMzc3ZTIzMGE5YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2NmVjZDBlNjU5ODM5NmI4YTVhZmMzYWQ2YmRmNDUxZDEzYWVlYmM1MjhhYmVmMTg3ZGFiNTY1NjExY2FiODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlZWZhZTcxMGI1N2VmOWE0NjE4YjkwN2RmNjJkZDM3YmIxMGUxOTA2MzQ4M2RkY2Y0OTMzMWM5YzkxMGJmODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f56040d6d964f4cb8900ca59f2c1cc4",
+      "statement": "接单状态是 storage-domain 域 `github_issue_intake`（版本 0、单表 `state`、键 `intake`）中的单行 `IntakeStateRow`：`lastCheckedDay` 加按 issue 号去重的 `dispatched` 记录，写入时只保留最近 500 条以防止单个 JSON 文档无限增长；去重判据即 `dispatched` 中 issue 号的集合。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L356-L362",
+          "version": "repo-lines-v1:sha256:2ec09f1eb13088c0595371f98c7c5be2f792edbb0b4965ea1684aa254267c9fc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTNkOGY0NDBjOTg5NTdiYWIxMGIyNmY4ZmFjYmJhYThkNGVlNmYxMmE3ZmFlODc1YjVhZTNhNWJjYTI3NDQ2YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmIzYjM1Y2VjNWMxNzAyNDZjZTg3ZTcyZjhkYTY2NTQ5ZGI3YjQ2NDMwOTk5ZWZiZTlkMWZjNDg3MTczNDRlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzc5MjllOTFlMGY5OWMzZTgyNWRlNjliNDM1ZmI2NDg0ZDFiMGExZGYyZjQ2NTYxYWJmMWEyOWYwNDE4OGI4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjViZTg5ZTY4Nzg4ZTc0OTI4YmFkOTRkYWJmNWFiY2FjYjQzMDJlNTJjYzg4NWUwMTg5YTc1N2Y4ZjVjMjQ3NiJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L983-L990",
+          "version": "repo-lines-v1:sha256:08ca4bca74e123ef777d1c285b3e29d7e3398b236ca23f1a7ba728b494b27a2c:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWMxZmU5ZTM5ZmU1N2Q1MzU5NWU5MDgzNjBlNzYwNTQxOWZiM2QzNGQ2NjhiYmZhOTAxMzFkYWQ1MTg3YzEwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwMjk5NjE0YTcwNjdhYzRkNWU2YmE4MzhlNDRhMjYxYmUyYjFjNTI1MWQ3ZDYyZTJhMTZkNzVkY2ZjNzgwYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjlkYWY5ZDNiYWJiOTI5NTRmNGJhZDZhNDgzOGIxNzJiNjQyMTk3NzM3MGQ1ZjE1MmYzNGY3ZmJkOTcwNDhiOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzY0Nzc4NzMyOTE0MWZkZmYzNGU5MzFlODc0ZWVmMmE0NjlmNWZmZjk0NGM5ZDAxNmNjYjRhZGY3NTM1YzUxNSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/spec.ts#L13-L34",
+          "version": "repo-lines-v1:sha256:8b2d4a8ff7ceeef3a54a75f51b327fd2ed3e58473c9d00e8bb8a0d05ea0299bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxNjFkMmU1MzQwNjM5NGYwYjg4N2NlNjBmMDY5YzdkMTc2OTg4YmY5ZWRjMDVmNjgwNzQ2OWUxMTg1OGI0OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlMGZiOWNmNzk5MDNlMzNiNDY1ODM0OTIyNGYwNGE1MDRkYTkyOWY2MzEyODBmMDFlOTA1NDZjYjA1OWU4MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhZWM1MDg4OTg2YjYxMzM4MDcxODFjNTI1ODBhOWFmODkyOTlmZThhMzkzZDEwZTdlYjJhMTEzOWY3NGUyNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1Y2I3OGUyMDVmMzE3YzRjMDVlYjNjM2E0MmU1ZWIyYWY3NDNiYTdhYmU1NjBhMzNkMTEzNGQxMjMzYjRjZjIifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-20T08:03:00.940Z"
   }
 }

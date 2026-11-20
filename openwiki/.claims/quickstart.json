@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:7b23ea23b5f03856c653dcf7b933240b1a7ffcfac8b575315ed719f47759c6e3",
+  "pageVersion": "sha256:82bbf60263c70bc736ab7c9487e95b41d4990c3fd13184a5ff5daea3512bf29b",
   "claims": [
     {
       "id": "claim_0df6b926d2da4c04a0d103da7baf46ff",
@@ -193,10 +193,120 @@
           "version": "repo-lines-v1:sha256:e2e1258169218c33e404c82159aa26d44e7082091c458095eb70a7205257ebdc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3MDI5YzU0MWQ2NmFkMDk3MDg3Mjc2YmRlNjFhZTZhNTViNGFjMDA1YzNjODE0ZDQ2ZWFiYWVhZmVkZjdkMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGVlYThmMWY0ZGEyNmUzYjMzMWY3NDYyMWUyZWNmMzRhYWRhNjEyODhiZDJkYTk3Y2ZjZDAxYWJjNWE1OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiYmYxZjk3YjNlMjBiNTczOTBlZmFjYmE3ZDljMWZmYzI3YmNjMzhjMTc2YmUxN2NjYTZlZTI2MGQ5MzhjN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkZTllNDdjNDlkYjhjMmM5ZTIzN2M5ZmE4ZGY4OGM1Y2NmNDA2ZDA5YWY1NWEzMjY2NDZjYzM5OGQwZWFmMjkifQ"
         }
       ]
+    },
+    {
+      "id": "claim_632bfafe90e546448173bd9ff71df613",
+      "statement": "备忘套件必须用一条 `dsh plugin --profile web add` 命令点名五个包（telemetry、github-issue、memo、ui-memo、ui-memo-settings）才装得全：profile 的 autoInstallPeers: false 让安装只带来点名的包，而 dsh-memo 的静态 inject 需要 telemetry 与 githubIssue 两个服务、其 patch 又插入指向 @zhangj1164/dsh-client-ui-memo 的 ui-memo 行，只装 dsh-memo 会让这两行解析不到并导致 loader 启动失败。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:ffb9ad50df0d4593e6e800bb09a03b9f6bdbe007a855256f84221a6b6de8068a"
+        },
+        {
+          "resource": "repo://README.md",
+          "version": "repo-file-v1:sha256:6d3e68a0872dbf8c3e536611750d5fa8aafda83a8d9f8df8db967619404480b4"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/README.zh.md",
+          "version": "repo-file-v1:sha256:339632450e8b2c86b2d69e1dc42f81f4e3ffbb4ab9acc808afcdf48baa4126dd"
+        },
+        {
+          "resource": "repo://packages/memo/dsh-memo/src/index.ts#L734-L734",
+          "version": "repo-lines-v1:sha256:8f92a253614e4b994b7feaf1037b0d9d975d5d419f35aa0d34794bcff4e80c4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY5MmEyNTM2MTRlNGI5OTRiN2ZlYWYxMDM3YjBkOWQ5NzVkNWQ0MTlmMzVhYTBkMzQ3OTRiY2ZmNGU4MGM0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY5MmEyNTM2MTRlNGI5OTRiN2ZlYWYxMDM3YjBkOWQ5NzVkNWQ0MTlmMzVhYTBkMzQ3OTRiY2ZmNGU4MGM0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTUzNWE0YmUzNjZhNjQxYjhlNGY1MjBmZTcwOGU0ZDY0YmIzMDRmNjY2NDAyNjc0OTU3ZWYzZjU2MGQyYzVmZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGFkYzkxNTNkZjc4YzJiMGUwMTNiNjM4MjUwMDkzNjEyYTA3ZDAzZTkyODBkZDYyYjIyOGY1ZGFiYmRiMmFmOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6551e3683978463997da03c734ded46d",
+      "statement": "scripts/run-gates.ts 的 check-all 聚合里只有 package-exports 与 client-bundle-id 两个门禁声明 needs: ['build']（它们读构建产物），其余门禁读源码因此可并发；本地三种聚合默认把 worker 夹到 4 个并用 DSH_GATE_CONCURRENCY 覆盖。",
+      "evidence": [
+        {
+          "resource": "repo://package.json",
+          "version": "repo-file-v1:sha256:6f29a2a748106398c43f9892c7929783a6a14119ba81c5d5fa14a4a2f5d68fbb"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L103-L115",
+          "version": "repo-lines-v1:sha256:ddb74123890367b631d64025c50fcc61a8327cb86275dc56d6a574fb17c77e4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzMmQ4NWNhNjQ0NDM3OTEyZWFlMTU0NWM1YTdjYWI3MjMwY2Y5NmQwZDAxOTk5ZGVhZmY5Yzg2OTE1M2MzYzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0NTYxNWEwMzI3YTJmMTNmYTU4YTI4ZGUzOGI2MjZmMGYwOGM5YWJjNDZmMmZjOWQwNzg5NzZhZWM5OGYyN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NWFlMmZhM2I1MmMxMTM3NWIwNmQxZDg0YjQ3ZWZhZjI4MzUxMGM2N2IyYzdiZGVkNjZlZDE0MWMxNzMzYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViNjE3MzdiMjQxODdhZWIwMTkwOGM1YmNkMTVmYTM4ZWEzYjk5OTg3OGVkNDk0YzYwZDllZjYxMGEyNGQwMDgifQ"
+        },
+        {
+          "resource": "repo://scripts/run-gates.ts#L141-L200",
+          "version": "repo-lines-v1:sha256:c6b004bbf1c8d53608a9990a25724e32f8db23a79412e708d0aebc9b15b55d07:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2OTZhMTc0ZTI3M2Q1ZGQ5MzJhYjA1YWYwNGIwOGI2NjM1Nzk3MjIwNjhlN2IwYjg0MTFiMDU0MjUwMzE3YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNjkzYTBlZWI5NzJjMjViMmNlMTc2MTQ4ZmRmNjYwZjM4OTQ4MThmNzRjZmU3ZDFiMjdhZjQ5MjAyYTBmZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwYzU5MjU3YWFiMWQ0ZDE2OThiNGI1YTY1ZThlN2EzMDAwNTEwNDFlMGFjZWM4YWE2OGI2MDcyNmYwMzQwM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a42aef6f99344a0956deca286962daa",
+      "statement": "仓库对「何时可信任本 wiki」的立场是：openwiki/ 只是可选的按需上下文，不在任务开始时枚举或预加载，而在遇到不熟悉的架构/依赖行为或源码检视仍留关键疑问时检索，并始终以源码与测试为权威。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:ffb9ad50df0d4593e6e800bb09a03b9f6bdbe007a855256f84221a6b6de8068a"
+        },
+        {
+          "resource": "repo://README.md",
+          "version": "repo-file-v1:sha256:6d3e68a0872dbf8c3e536611750d5fa8aafda83a8d9f8df8db967619404480b4"
+        }
+      ]
+    },
+    {
+      "id": "claim_67234b009cce4e74b1f8f2ddf676c31f",
+      "statement": "OpenWiki 页面由 .github/workflows/openwiki-update.yml 生成：schedule 为 16-21 UTC（Asia/Shanghai 00:00-05:59）的每小时 cron 加 workflow_dispatch，window job 拒绝窗口外的迟到定时运行与距上次不足六小时的运行（手动触发跳过两项判定），结果由 create-pull-request 提到 openwiki/update 分支，add-paths 含 openwiki、AGENTS.md 与 workflow 文件本身。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L1-L40",
+          "version": "repo-lines-v1:sha256:15017e79e4b7b2696d7049c504286f31680036947d72ec696d9ed1860402a931:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDI3ODdhZjZkY2MwODM0ZGUxMjFjYmIxY2I5NWY5NDU5YjcyMWVhYjAzNDlmMTA1MDFiOTk2YzFjNzdmZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNTY1NjJhYzhiZDJkZTgwZmQ2ZDliMDU1MmU2NDNlOWM2MjlmYWJjZDkzOWZiZDliM2UyODdmYjc2OWFmOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NzkzZDE4OTg0NzU5OGIwOWVmM2E2MWEwZmNiNWU3MjZhNWY1NWMzNDRiNDg4MjgzMjdjYzkyNTU1ZDJjMTkifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L120-L159",
+          "version": "repo-lines-v1:sha256:cbf690d07007a49615942c90bf909b75c97c7aded2c4e3439c0c4d526bdc2c92:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NzE4ZjA2N2I1ZTVjMWYwOTkxYTZlNzQ3MjZmZTJhMjNkMjY0MzQ1ZTA4ZTRlYWQwNGZhZjczYzI3ZWQ0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNzBjZTE3YzM4YzgzNWNmYTk2NTg3ZDdiYTExMTFiMWMyZjY3MmMwNWYyMmVhMjkzNGMwMGQxZjQ1OWQyNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:ffb9ad50df0d4593e6e800bb09a03b9f6bdbe007a855256f84221a6b6de8068a"
+        }
+      ]
+    },
+    {
+      "id": "claim_f8eb49573a7a4bf882a325f049589861",
+      "statement": "openwiki-update.yml 刻意不设 push 触发（每次合并到 main 都会为 wiki 刷新花掉 LLM token，夜间运行会捡起变更），也不能对 openwiki/** 设触发，否则它自己开的 PR 会合并、推送 main、再触发一次运行并再开一个 PR，形成无限循环。",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L1-L20",
+          "version": "repo-lines-v1:sha256:e8c2e5d68b7ea388c92ea026a5f698c8cd9e73091fe58129eeb785d31353dd36:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDI3ODdhZjZkY2MwODM0ZGUxMjFjYmIxY2I5NWY5NDU5YjcyMWVhYjAzNDlmMTA1MDFiOTk2YzFjNzdmZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NDNhMmEyZmI4MmVhZWQyNDg4ZTI4NjRkNDIzYmViNTAwNjFkZDQyM2Q4MGI4NzIxZDNiYWU1YTY0N2E3ZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MDUwNzM4ZGIxM2E1YTQ1MDRmNDhiMTU4MGYwNDA1OGRjMDBjMzMyZDAwODdmYTBjNTU3ZTYyYmI5NTIxNTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ccdb36239b564b3e91256546715d483a",
+      "statement": "Repository-side AI 生成 issue 的入口是 GithubIssueService 的 generateReport / optimizeIssue / prefilledIssueUrl / createIssue 一组方法，属于 githubIssue 服务的 Remote 面，其端点、请求成形与 token 解析由 GitHub REST 集成层承担。",
+      "evidence": [
+        {
+          "resource": "repo://README.md",
+          "version": "repo-file-v1:sha256:6d3e68a0872dbf8c3e536611750d5fa8aafda83a8d9f8df8db967619404480b4"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L82-L82",
+          "version": "repo-lines-v1:sha256:0faf83ea0d5e8385e203957238792d372ab6136b41128b1601684b88ca7a1a31:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZhZjgzZWEwZDVlODM4NWUyMDM5NTcyMzg3OTJkMzcyYWI2MTM2YjQxMTI4YjE2MDE2ODRiODhjYTdhMWEzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZhZjgzZWEwZDVlODM4NWUyMDM5NTcyMzg3OTJkMzcyYWI2MTM2YjQxMTI4YjE2MDE2ODRiODhjYTdhMWEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzc5MjllOTFlMGY5OWMzZTgyNWRlNjliNDM1ZmI2NDg0ZDFiMGExZGYyZjQ2NTYxYWJmMWEyOWYwNDE4OGI4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzc0ZTUxNDAyMGYyMzMzYjM1ZDJjOGFlMGY1M2IzZGMyODg2NTQxYjBhOTNmMDcwYmI5ZDAwNjMxOGI3ZGE3ZSJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L460-L485",
+          "version": "repo-lines-v1:sha256:4c498b4033106b3419b4d192c36c9df4117966d48d8fc95b29ef5c543fe05c12:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0YzhiNjcxYWM5N2FlZDZjMGNlYmQxOGJiMTgzZmU0ZWJjNzI3YmI4NTA4MWNlODc4NjBiY2JmNjNkYWUxZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5ZDM0YWYxZTczOWFmZTZmMzZjYTQ4N2EzNjNhNWM0NDE1NDVkM2NiNmQ2YzI1Y2M5NjJjYjgyZDc1NjRiOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5ZTVkMDhkYzM2YmI3ZTZjYTBhNzk0NmNmOTliMGRhZGViMjZkMjY3ODkwNTNhZTdlYzM5NTRmNzBkMGFkYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmZTFlNDJjMmVkODRlZTFhMDRhYjQzZDdjNGMxZDI0ZWE2NThkOTliMzQ0YjQ1YzEzZDE1NGI1Mjc2MDk0YjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a930fa1379c041008ef7e8ca75b7c384",
+      "statement": "Issue 自动接单的派发提示词由纯函数 renderDispatchPrompt 按 {number}/{title}/{url}/{body}/{labels} 占位符渲染，未配置时用 DEFAULT_DISPATCH_PROMPT；未知占位符原样保留而不是丢弃，以便部署方模板里的拼写错误可见。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L17-L70",
+          "version": "repo-lines-v1:sha256:6fdb09df26a964e08eda2d195180b13d50ddc251323a7a55e203a17b1b403744:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMzgzMjI2N2QyZGI4MDg5ZmZhOWFiNjVkZTE4NWYxODNiM2VkOWIxZmJlYzhiOTY4OWFhNzljZDlmOTEyNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxN2EyNDA2ZGI2ZDk2NjQxYTAzZDQ1MzVmYTEzMGFhZjRmNDZkODcwMTY0ZWM1YjJlZGVmNjY3MjcxOTkxYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZTBiNDMyYzE1MDk3YjgwODk4ODIyZGJiZTg1ZGQ2MWI1MWFkMmJmNTQ1NTUzNmIyYzVhOWQ4MjAzZDVhM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwYzIwZmE1MTMxYjE5MWFlNzU3ZWExNWI3ZjliNjY1MTMxNWY3MGRjNGZkOWNkYjAyZTg0YWFmZTEwNjQ1YzgifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-20T08:03:00.940Z"
   }
 }
