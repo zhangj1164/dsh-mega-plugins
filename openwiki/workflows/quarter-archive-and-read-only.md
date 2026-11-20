@@ -3,9 +3,6 @@ type: 工作流
 title: 季度归档与只读：按标签归档、宿主派生周 id 与写守卫
 description: 一次季度归档的完整路径：写入前拒绝非 `YYYY-Qn` 标签、在独立域 `memo_archive` 只存 `{ label, archivedAt }`、由宿主用星期四规则派生该季度的周 id 交给客户端、`quarter-archived` 守卫在 `addEntry`/`updateEntry`/`deleteEntry`/`summarizeSession` 四处的落点与「归档压过 force」的优先级，以及取消归档的幂等返回形状。
 tags: [memo, workflow, archive, quarter, read-only, period-calendar, storage-domain]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-a028fd3f0a07adb5259e637a
     resource: repo://packages/client/ui-memo/src/client/controller.ts

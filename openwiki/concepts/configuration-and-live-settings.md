@@ -3,9 +3,6 @@ type: concept
 title: 配置与热生效（volatile settings）
 description: 本仓库的配置契约：部署可变的值是带默认值的 schemastery `Config` 字段，只有 `.volatile()` 字段会投影成设置表单，且服务必须在调用点读 ref 才真正热生效；页面写入逐字段带 revision 栅栏、留空即 unset，而混入非易变字段的改动、代码与组合变更仍需重新挂载或重启宿主，`autopilotEnabled` 则是值即时存储、行为从下一次宿主启动生效。
 tags: [configuration, schemastery, volatile, settings-namespace, loader, restart-semantics]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

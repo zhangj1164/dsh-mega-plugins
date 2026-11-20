@@ -3,9 +3,6 @@ type: 参考
 title: 插件组合与 bundle 层
 description: 以「每个组合入口 id 恰好一个归属 bundle」为主线，说明 DSH 部署如何按 dsh.profile.bundles 逐层应用各包的 cordis.patch.yml、安装为什么必须点名启动所需的每个包、registry 与 git 与 link 三种取得方式的差别，以及 verify-bundle-entries 门禁与 not both 出口的判据和局限。
 tags: [plugin-composition, bundle-layer, cordis-patch, entry-id, installation, gate]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

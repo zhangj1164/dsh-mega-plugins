@@ -3,9 +3,6 @@ type: 运维
 title: 构建、测试与门禁套件
 description: 本仓库如何构建并证明自己：每包一份 tsdown 构建与共享 client preset、root vitest 配置（源码别名、装饰器降级、jsdom/React 钉版），以及 scripts/run-gates.ts 的聚合门禁图——test、build、产物门禁、hygiene、doc-sync 与 issue-policy 的依赖顺序、并发上限与本地优先规则。
 tags: [build, tsdown, vitest, quality-gates, ci, doc-sync, verification]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml

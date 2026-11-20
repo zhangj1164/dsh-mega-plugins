@@ -3,9 +3,6 @@ type: 运维
 title: 发布与打包
 description: 本仓库的发布契约：唯一合法的打包器是 `pnpm publish`（npm 会原样写入 `workspace:` 范围），`prepublishOnly` 上的 fail-closed 互锁与保证它不被漏接的门禁，每个 manifest 究竟发布什么，发布后如何核对 registry 副本，以及预览插件按 registry 自更新如何成为这些版本的第一个下游消费者。
 tags: [release, publish, pnpm, workspace-protocol, prepublish-only, npm-registry, self-update]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-bc6c0f3ba64846f42c851938
     resource: repo://.agents/skills/plugin-release/SKILL.md

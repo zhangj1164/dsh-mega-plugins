@@ -3,9 +3,6 @@ type: 系统
 title: 备忘服务（宿主）
 description: 宿主 MemoService 的完整方法面：18 个公开方法（17 个 @Remote 端点加宿主内部的 readExternalPath）按周与时间线、归档、会话、AI、日志、记忆分组，三条失败通道与失败码，必需与可选依赖各自的降级语义，归档只读与"非当前周"force 两道写守卫，遥测锚点，以及 analyze 的账本副作用。
 tags: [memo, host-service, remote-service, typert, week-store, quarter-archive, session-summary, telemetry, ledger]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-6939853d7d89c014b7a33ac0
     resource: repo://packages/memo/dsh-memo/README.md

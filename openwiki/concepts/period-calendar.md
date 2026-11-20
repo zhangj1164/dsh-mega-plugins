@@ -3,9 +3,6 @@ type: concept
 title: 四维周期日历（period calendar）
 description: 宿主与浏览器共用的唯一日历契约：四维固定标签、周一起始的 ISO-8601 周、由星期四决定年份与周期归属，以及宿主对外暴露的枚举/成员判定一对接口，使 UI 永不自行重算日历。
 tags: [period-calendar, iso-8601, week-ownership, four-dimension, memo, host-client-contract]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-a028fd3f0a07adb5259e637a
     resource: repo://packages/client/ui-memo/src/client/controller.ts

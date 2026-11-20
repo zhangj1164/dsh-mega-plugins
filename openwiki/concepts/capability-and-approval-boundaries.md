@@ -3,9 +3,6 @@ type: concept
 title: 敏感能力与审批边界
 description: 本仓库关于危险宿主能力的规则：审批只存在于 open turn 内，面板发起的 Remote 调用落在 turn 之间，因此敏感能力只有「留在宿主内、不注册 @Remote」与「把工作交给某个 turn」两种合规形态；并区分审批、宿主可判定的策略守卫与 UI 意图确认三件不同的事，附当前可达副作用清单（建单、预览启停、自更新）。
 tags: [approval, security, remote-surface, agent-turn, capability-boundary]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md

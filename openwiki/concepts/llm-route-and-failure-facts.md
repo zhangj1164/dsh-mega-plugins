@@ -3,9 +3,6 @@ type: concept
 title: 模型路由与失败事实保全
 description: 解释一次模型调用如何按「请求 → 服务 Config → agentDefaultModel」逐半解析路由（以及这一级在两个宿主包里何时生效）、为什么路由解析失败与模型调用失败必须是两个不同的失败事实、streamLlmText 如何区分终块失败与真正的空响应并把 DSH 的 code/message/status 一路保留，以及 provider/model/status 元数据如何经遥测白名单进入 issue 报告。
 tags: [model-routing, llm-failure, model-catalog, dsh-llm, diagnostics]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-a028fd3f0a07adb5259e637a
     resource: repo://packages/client/ui-memo/src/client/controller.ts

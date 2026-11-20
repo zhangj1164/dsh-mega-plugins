@@ -3,9 +3,6 @@ type: workflow
 title: Issue 接单与 Session 派发循环
 description: 从带接单标签的 open issue 到一个已排入提示词的 DSH 会话的完整流程，包括每日首启检查的两个拒绝点、派发历史去重、先内存后磁盘的提交顺序，以及为什么经 Session 控制器而不是 Agent 注册表派发。
 tags: [workflow, github-issue, intake, session-dispatch, autopilot]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-11-03T09:53:43.931Z
 sources:
   - id: openwiki-source-f73ada1b954acf9b08ba25bf
     resource: repo://docs/plans/2026-11-02-github-issue-intake-autopilot-design.md
