@@ -24,7 +24,12 @@ sources:
     resource: repo://packages/memo/dsh-memo/src/types.ts
   - id: openwiki-source-65b7018afba5ec2f8dacc87b
     resource: repo://packages/memo/dsh-memo/tests/memo.spec.ts
-generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
+  - id: openwiki-source-b3d62e1ae641becbc8087f6a
+    resource: repo://packages/memo/dsh-memo/tests/remote-signatures.spec.ts
+generated: { by: "openwiki/0.9.0", at: "2026-11-22T21:32:59.709Z" }
+verified:
+  - by: openwiki/0.9.0
+    at: 2026-11-22T21:32:59.709Z
 ---
 
 # 季度归档与只读：按标签归档、宿主派生周 id 与写守卫
@@ -42,35 +47,35 @@ generated: { by: "openwiki/0.7.2", at: "2026-11-03T09:53:43.931Z" }
 | 行 | `{ label, archivedAt }`，`archivedAt` 是 `Date.now()` 毫秒数 |
 | 备忘周行 | 一条都不动，也没有新增字段 |
 
-`MemoService` 在自己的 `[Service.init]` 里依次打开两个域，各自用 `ctx.effect` 注册关闭动作（标签 `memo.domainClose` / `memo.archiveDomainClose`），然后把 `quarters` 表存进 `archiveTable` 字段（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L740-L753)）。归档域是**独立域而不是 `weeks` 旁边多一张表**，理由写在域声明处：两个特性写不同的数据，分开之后归档特性再坏也不可能让备忘表打不开（[spec.ts](../../packages/memo/dsh-memo/src/spec.ts#L71-L99)）。域名叫 `memo_archive` 而不是 `memo-archive`，因为存储域的名字只接受 `/^[a-z][a-z0-9_]*$/u`。
+`MemoService` 在自己的 `[Service.init]` 里依次打开两个域，各自用 `ctx.effect` 注册关闭动作（标签 `memo.domainClose` / `memo.archiveDomainClose`），然后把 `quarters` 表存进 `archiveTable` 字段（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L845-L857)）。归档域是**独立域而不是 `weeks` 旁边多一张表**，理由写在域声明处：两个特性写不同的数据，分开之后归档特性再坏也不可能让备忘表打不开（[spec.ts](../../packages/memo/dsh-memo/src/spec.ts#L71-L99)）。域名叫 `memo_archive` 而不是 `memo-archive`，因为存储域的名字只接受 `/^[a-z][a-z0-9_]*$/u`。
 
 ## 为什么是标签，而不是「你正在看的那个周期」
 
-`archiveQuarter` 的入参是 `MemoQuarterLabelRequest`，只有 `label` 一个字段（[types.ts](../../packages/memo/dsh-memo/src/types.ts#L409-L413)）。这不是接口洁癖，而是因为「包含当前周期的那个季度」**没有唯一答案**：
+`archiveQuarter` 的入参是 `MemoQuarterLabelRequest`，只有 `label` 一个字段（[types.ts](../../packages/memo/dsh-memo/src/types.ts#L410-L414)）。这不是接口洁癖，而是因为「包含当前周期的那个季度」**没有唯一答案**：
 
 - **年**跨四个季度，从年标签推不出唯一的季度。
 - **月**在季度里只占三分之一，标签前缀与季度标签同为 `YYYY-`，靠字符串前缀判断正是旧缺陷的来源。
 - **周**更糟：一周的周一是 2025-12-29，它的星期四却是 2026-01-01，于是这一周属于 `2026-Q1` 而不是 `2025-Q4`。
 
-三种情况下「从周期起点的时间戳反推季度」都会归档错的季度，所以宿主干脆不接受周期，只接受季度标签；宿主侧把这条理由直接写在 `archiveQuarter` 的文档注释里（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L755-L767)），回归用例 `archives exactly the quarter named, never a neighbour` 则钉住相邻季度不受影响、重复归档也只留一行（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L662-L693)）。浏览器这一端对应的约束是：归档动作只出现在季度维度，其他维度没有这个按钮，`archiveCurrentQuarter()` 在非季度维度直接 `return false`，连请求都不发（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L534-L548)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L434-L452)）。
+三种情况下「从周期起点的时间戳反推季度」都会归档错的季度，所以宿主干脆不接受周期，只接受季度标签；宿主侧把这条理由直接写在 `archiveQuarter` 的文档注释里（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L835-L871)），回归用例 `archives exactly the quarter named, never a neighbour` 则钉住相邻季度不受影响、重复归档也只留一行（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L662-L693)）。浏览器这一端对应的约束是：归档动作只出现在季度维度，其他维度没有这个按钮，`archiveCurrentQuarter()` 在非季度维度直接 `return false`，连请求都不发（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L536-L550)、[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L490-L505)）。
 
 ## 标签形状校验：写入之前的第一道门
 
-两个写方法开头是同一段前置判断：`typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)` 就返回业务失败 `invalid-quarter-label`，其中 `QUARTER_LABEL_PATTERN = /^\d{4}-Q[1-4]$/u`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L315-L316)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L768-L777)）。它发生在 `Date.now()`、`writeWithRetry`、任何 `put`/`delete` 之前，因此被拒的调用**一行都不写**——用例对 `2026-W37`、`2026-09`、`2026`、`not-a-quarter`、空串逐个断言失败码，最后再读一次归档列表确认长度仍是 0（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L695-L708)）。
+两个写方法开头是同一段前置判断：`typeof label !== 'string' || !QUARTER_LABEL_PATTERN.test(label)` 就返回业务失败 `invalid-quarter-label`，其中 `QUARTER_LABEL_PATTERN = /^\d{4}-Q[1-4]$/u`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L337-L338)、[index.ts](../../packages/memo/dsh-memo/src/index.ts#L873-L880)）。它发生在 `Date.now()`、`writeWithRetry`、任何 `put`/`delete` 之前，因此被拒的调用**一行都不写**——用例对 `2026-W37`、`2026-09`、`2026`、`not-a-quarter`、空串逐个断言失败码，最后再读一次归档列表确认长度仍是 0（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L695-L708)）。
 
-第二道门在持久化边界：`archivedQuarterSchema` 用同一个正则约束 `label`（[spec.ts](../../packages/memo/dsh-memo/src/spec.ts#L71-L75)）。存储域在打开时校验每一行，所以哪怕有人绕过 Remote 直接写坏一行，坏行会**打开即失败**，而不是被当成一条「不认识的归档季度」静默忽略——这与本仓库「一条非法记录让整个插件起不来」的既有事故结论是同一条取舍。
+第二道门在持久化边界：`archivedQuarterSchema` 用同一个正则约束 `label`（[spec.ts](../../packages/memo/dsh-memo/src/spec.ts#L71-L76)）。存储域在打开时校验每一行，所以哪怕有人绕过 Remote 直接写坏一行，坏行会**打开即失败**，而不是被当成一条「不认识的归档季度」静默忽略——这与本仓库「一条非法记录让整个插件起不来」的既有事故结论是同一条取舍。
 
 失败信封是 `{ ok: false, error: { code: 'invalid-quarter-label', message, label: String(label ?? '') } }`，`label` 字段把调用方传进来的原值回显出来。这条拒绝路径**不写遥测**：它直接 `this.failure(...)` 返回，既没有 `track` 也没有 `trackError`（对比成功分支的 `track('archiveQuarter', 'success', { label })`）。
 
 ## 请求序列
 
 1. 用户在季度维度按下「归档本季度」→ `controller.archiveCurrentQuarter()`。控制器先自检 `selection.period === 'quarter' && selection.label !== ''`，否则返回 `false`、不发请求；通过后置 `busy: true`。
-2. `callMemo(rpc, 'archiveQuarter', { label })` 经 `callRemote` 包成 `{ args: { request } }`，走 `rpc.call('/api', 'memo/archiveQuarter', …)`（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L545-L561)）。
+2. `callMemo(rpc, 'archiveQuarter', { label })` 经 `callRemote` 包成 `{ args: { request } }`，走 `rpc.call('/api', 'memo/archiveQuarter', …)`（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L547-L562)）。
 3. 宿主校验标签形状（上一节）。被拒则**到此为止**。
 4. `archivedAt = Date.now()`，`writeWithRetry(() => archiveTable.put(label, { label, archivedAt }))`——与备忘写入共用同一个 `EPERM`/`EBUSY` 重试助手。
 5. 成功时 `track('archiveQuarter', 'success', { label })`，并返回 `{ ok: true, value: archivedQuarter(label, archivedAt) }`：`label`、`archivedAt`、以及**宿主现算的** `weekIds`。
-6. 控制器**丢掉**这个返回值里的 `weekIds`，改为重新调用一次 `memo/listArchivedQuarters`，因为卡片只读与否取决于「所有已归档季度的周 id 合集」，而不只是刚归档的那一个（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L555-L557)）。
-7. 客户端把返回的季度逐个冻结、把每个 `weekIds` 合进一个 `Set`，然后 `set({ archivedWeekIds, archivedQuarters })`。**周列表、时间线、卡片列表都不重新拉取**——卡片没变，变的是它们现在落在归档集合里（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L402-L432)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L415-L431)）。
+6. 控制器**丢掉**这个返回值里的 `weekIds`，改为重新调用一次 `memo/listArchivedQuarters`，因为卡片只读与否取决于「所有已归档季度的周 id 合集」，而不只是刚归档的那一个（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L552-L558)）。
+7. 客户端把返回的季度逐个冻结、把每个 `weekIds` 合进一个 `Set`，然后 `set({ archivedWeekIds, archivedQuarters })`。**周列表、时间线、卡片列表都不重新拉取**——卡片没变，变的是它们现在落在归档集合里（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L405-L432)）。
 8. 下一帧渲染时，每张卡片的 `archived` 由 `view.archivedWeekIds.has(card.weekId)` 决定，于是同一个季度在**四个维度**下同时变成只读。
 
 ```mermaid
@@ -105,18 +110,18 @@ sequenceDiagram
 
 ## 宿主派生周 id，客户端只做成员测试
 
-`archiveQuarter` 与 `listArchivedQuarters` 的返回元素都是同一个构造器产出的：`Object.freeze({ label, archivedAt, weekIds: Object.freeze(weekIdsInPeriod('quarter', label)) })`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L826-L833)）。`weekIds` 是该季度拥有的周 id 升序列表，来自与 `listPeriods` 完全相同的枚举函数（[period.ts](../../packages/memo/dsh-memo/src/period.ts#L153-L192)）。
+`archiveQuarter` 与 `listArchivedQuarters` 的返回元素都是同一个构造器产出的：`Object.freeze({ label, archivedAt, weekIds: Object.freeze(weekIdsInPeriod('quarter', label)) })`（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L933-L941)）。`weekIds` 是该季度拥有的周 id 升序列表，来自与 `listPeriods` 完全相同的枚举函数（[period.ts](../../packages/memo/dsh-memo/src/period.ts#L153-L192)）。
 
 这带来一条对客户端很关键的简化：**浏览器不需要知道「周 → 季度」怎么换算**。它只做 `Set.has(card.weekId)`，所以跨年边界的周（周四在次年、周一在上一年）不会在浏览器里被算错。控制器里三个查询方法全部建立在这个集合上：
 
 | 问题 | 方法 | 依据 |
 |---|---|---|
-| 这张卡只读吗 | `isArchived(card)` | `archivedWeekIds.has(card.weekId)` |
-| 这张卡的季度是谁（取消归档要点哪个标签） | `archivedQuarterOf(card)` | 在 `archivedQuarters` 里找 `weekIds.includes(card.weekId)` 的那一条 |
-| 当前标签页的季度归档了吗 | `archivedQuarterLabel()` | 只有季度维度才回答，比对 `label` |
-| 新增会写进归档吗 | `targetArchived` / `targetArchivedQuarter()` | 对 `targetWeek` 做同一集合的成员测试 |
+| 这张卡只读吗 | `isArchived(card)` | `archivedWeekIds.has(card.weekId)`（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L686-L691)） |
+| 这张卡的季度是谁（取消归档要点哪个标签） | `archivedQuarterOf(card)` | 在 `archivedQuarters` 里找 `weekIds.includes(card.weekId)` 的那一条（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L699-L701)） |
+| 当前标签页的季度归档了吗 | `archivedQuarterLabel()` | 只有季度维度才回答，比对 `label`（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L707-L712)） |
+| 新增会写进归档吗 | `targetArchived` / `targetArchivedQuarter()` | 对 `targetWeek` 做同一集合的成员测试（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L714-L741)） |
 
-`archivedQuarterOf` 用 `find` 取第一个命中即止，这在语义上是安全的：日历的「铺满且不重叠」性质保证每个周恰属于一个季度，因此一张卡片最多只有一个所有者（[period-calendar.md](../concepts/period-calendar.md)）。列表本身按标签 `localeCompare` 升序返回，即**最旧在前**，与写入顺序无关；用例用两次归档后比对排序结果来钉住这一点（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L815-L824)、[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L631-L653)）。
+`archivedQuarterOf` 用 `find` 取第一个命中即止，这在语义上是安全的：日历的「铺满且不重叠」性质保证每个周恰属于一个季度，因此一张卡片最多只有一个所有者（[period-calendar.md](../concepts/period-calendar.md)）。列表本身按标签 `localeCompare` 升序返回，即**最旧在前**，与写入顺序无关；用例用两次归档后比对排序结果来钉住这一点（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L919-L931)、[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L631-L653)）。
 
 ## 为什么只存标签与时间戳，周 id 每次重算
 
@@ -132,25 +137,25 @@ sequenceDiagram
 { code: 'quarter-archived', weekId, message: `week "${weekId}" is inside an archived quarter; unarchive the quarter before changing its memos` }
 ```
 
-（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L903-L925)、[types.ts](../../packages/memo/dsh-memo/src/types.ts#L277)）。四个调用点，都在任何 `put` 之前：
+（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1108-L1122)、[types.ts](../../packages/memo/dsh-memo/src/types.ts#L277)）。四个调用点，都在任何 `put` 之前：
 
 | 入口 | 守卫位置 | 拒绝时机 |
 |---|---|---|
-| `addEntry` | 委托给私有 `appendEntry`，`requireTable()` 之后第一件事就是守卫 | 读已有周行、构造 entry、`put` 之前（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1016-L1020)） |
-| `updateEntry` | 方法体开头，`requireTable()` 之后 | 找行、`force` 判定、`put` 之前（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1061-L1065)） |
-| `deleteEntry` | 同上 | 同上（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1107-L1111)） |
-| `summarizeSession` | 解析出目标 `weekId` 并校验形状之后、读会话标题与调模型之前 | 一次拒绝整次调用，不进 per-session outcome（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1358-L1367)） |
+| `addEntry` | 委托给私有 `appendEntry`，`requireTable()` 之后第一件事就是守卫 | 读已有周行、构造 entry、`put` 之前（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1208-L1211)） |
+| `updateEntry` | 方法体开头，`requireTable()` 之后 | 找行、`force` 判定、`put` 之前（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1254-L1257)） |
+| `deleteEntry` | 同上 | 同上（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1300-L1303)） |
+| `summarizeSession` | 解析出目标 `weekId` 并校验形状之后、读会话标题与调模型之前 | 一次拒绝整次调用，不进 per-session outcome（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1550-L1559)） |
 
-`summarizeSession` 还有第二次拦截：它最终通过 `appendEntry` / `updateEntry` 写卡片，而这两条路各自又过一遍守卫，所以即使一次总结在「顶层检查通过」之后才落地归档，写入仍会被拒，并被搬进该会话的 outcome（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1430-L1445)）。
+`summarizeSession` 还有第二次拦截：它最终通过 `appendEntry` / `updateEntry` 写卡片，而这两条路各自又过一遍守卫，所以即使一次总结在「顶层检查通过」之后才落地归档，写入仍会被拒，并被搬进该会话的 outcome（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1622-L1636)）。
 
-**守卫的边界是「条目写入」，不是「整张表」。** `getWeek`、`listWeeks`、`listPeriods`、`listMemory` 照常可读；`analyze` 与 `exportReport` 也不受拦截——两者都只读取周行（`analyze` 另外把结果追加到 `$DSH_HOME/memo/ledger.json` 账本，`exportReport` 只把 Markdown 交回调用方），都不写周表（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1246-L1301)）。归档一个季度之后，你仍然可以对它做 AI 分析与导出报告，只是不能改它的卡片。
+**守卫的边界是「条目写入」，不是「整张表」。** `getWeek`、`listWeeks`、`listPeriods`、`listMemory` 照常可读，`getOrCreateCurrentWeek` 也不检查归档（它只建一个空周行）；`analyze` 与 `exportReport` 同样不受拦截——两者都只读取周行（`analyze` 另外把结果追加到 `$DSH_HOME/memo/ledger.json` 账本，`exportReport` 只把 Markdown 交回调用方），都不写周表（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1444-L1499)）。归档一个季度之后，你仍然可以对它做 AI 分析与导出报告，只是不能改它的卡片。
 
 ### 为什么这条规则必须在宿主，而不是看板
 
-代码注释给了两条具体的理由，两条都不是理论担忧（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L903-L915)）：
+代码注释给了两条具体的理由，两条都不是理论担忧（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1103-L1112)）：
 
 1. **同一个 Remote 方法任何客户端都能调。** 看板只是其中一个调用方；把只读写进 `MemoBoard`，换一个客户端、或直接发一次 RPC 就绕过了。
-2. **归档可能在对话框已经打开之后落地。** 用户打开编辑框时该周还是可写的，点保存时已经不是了——所以控制器在 `updateCard`/`deleteCard` 里也重新判一次，而宿主再不依赖任何客户端状态地判一次。
+2. **归档可能在对话框已经打开之后落地。** 用户打开编辑框时该周还是可写的，点保存时已经不是了——所以控制器在 `updateCard`/`deleteCard` 里也重新判一次（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L843-L850)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L886-L891)），而宿主再不依赖任何客户端状态地判一次。
 
 浏览器侧的拒绝是为了**把原因摆在用户面前**（错误横幅而不是一个原始失败码），以及**少发一次必然失败的请求**；它不是安全边界。用例直接断言归档后 `memo/addEntry`、`memo/updateEntry`、`memo/deleteEntry` 一次都没有发出（[controller.spec.ts](../../packages/client/ui-memo/tests/controller.spec.ts#L721-L746)），同时宿主用例断言即使带着 `force: true` 打过去也一定被拒、且周内容一字未改（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L711-L761)）。
 
@@ -172,15 +177,15 @@ flowchart TD
 
 由此得到一条必须明说的性质：**已归档季度里的写入永远报 `quarter-archived`，永远不会是 `past-week-requires-force`，而 `force: true` 也解不开它。** 归档是用户的「这个季度关掉了」这个声明，`force` 只是「我知道历史周的分析结果可能变」这个确认，前者比后者更强。
 
-这一点在看板上尤其要紧：控制器**总是**带 `force: true` 发编辑与删除（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L850-L856)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L890-L895)），因为它已经在编辑对话框里摆过确认文案。也就是说，对看板这条路径而言，`past-week-requires-force` 实际上不会成为回退，第二道门只剩归档守卫——这正是它必须由宿主独立把关的原因。
+这一点在看板上尤其要紧：控制器**总是**带 `force: true` 发编辑与删除（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L853-L858)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L893-L898)），因为它已经在编辑对话框里摆过确认文案。也就是说，对看板这条路径而言，`past-week-requires-force` 实际上不会成为回退，第二道门只剩归档守卫——这正是它必须由宿主独立把关的原因。
 
 ## 归档当前季度会连今天一起关掉
 
-`archiveQuarter` 不区分当前季度与历史季度，「归档本季度」对进行中的季度是合法动作。后果是**本周也立刻变成只读**，包括刚打开的空编辑器：控制器会把 composer 的 textarea 与提交按钮一并禁用、把占位文案换成「该季度已归档，取消归档后才能继续添加或编辑」，并在下方内联给出「取消归档」按钮（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L342-L375)、[locales.ts](../../packages/client/ui-memo/src/client/locales.ts#L48-L51)）。宿主用例把这条写成了显式后果而不是意外：归档当前季度后往今天写会被拒，取消归档后同一个写入立刻成功（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L797-L823)）。
+`archiveQuarter` 不区分当前季度与历史季度，「归档本季度」对进行中的季度是合法动作。后果是**本周也立刻变成只读**，包括刚打开的空编辑器：控制器会把 composer 的 textarea 与提交按钮一并禁用、把占位文案换成「该季度已归档，取消归档后才能继续添加或编辑」，并在下方内联给出「取消归档」按钮（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L398-L428)、[locales.ts](../../packages/client/ui-memo/src/client/locales.ts#L59-L62)）。宿主用例把这条写成了显式后果而不是意外：归档当前季度后往今天写会被拒，取消归档后同一个写入立刻成功（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L797-L823)）。
 
 ## 取消归档：删一行，返回「是否真的删掉了」
 
-`unarchiveQuarter` 走同一段标签形状校验，然后 `writeWithRetry(() => archiveTable.delete(label))`，把删除的布尔结果原样放进返回值（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L789-L802)）：
+`unarchiveQuarter` 走同一段标签形状校验，然后 `writeWithRetry(() => archiveTable.delete(label))`，把删除的布尔结果原样放进返回值（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L893-L906)）：
 
 ```ts
 { ok: true, value: { label: string; archived: boolean } }
@@ -188,7 +193,9 @@ flowchart TD
 
 这里的 `archived` 很容易读错：它表示**这次调用是否真的删掉了一行**，而不是「该季度当前是否已归档」。同一个季度归档两次只有一行（`put` 覆盖，`archivedAt` 被后一次刷新）；对一个本来就不在归档里的季度调用取消归档，返回 `ok: true` 且 `archived: false`——这是幂等的 no-op，不是失败（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L646-L660)）。
 
-客户端**不看**这个字段：它只判 `result.ok`，然后重读 `memo/listArchivedQuarters` 并把新的合集写回状态（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L564-L584)）。重读而不是本地删一条，是为了让「只有宿主知道的事实」保持单一来源——多客户端、或一个刚好在别处归档的季度，都不会被本地乐观更新覆盖。删除与写入一样经过 `writeWithRetry`，所以 `EPERM` 重试同样覆盖归档的 `put` 与 `delete`：用例分别给两次操作各安排一次失败，最终 4 次尝试成功（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L1079-L1094)）。
+客户端**不看**这个字段：它只判 `result.ok`，然后重读 `memo/listArchivedQuarters` 并把新的合集写回状态（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L571-L586)）。重读而不是本地删一条，是为了让「只有宿主知道的事实」保持单一来源——多客户端、或一个刚好在别处归档的季度，都不会被本地乐观更新覆盖。服务端的 `unarchiveQuarter` 自己也不检查归档守卫（取消归档本身就是出口），客户端调用它之前也不判 `isArchived`：卡片与工具栏上的按钮已经替它挡住了不该出现的场景。
+
+删除与写入一样经过 `writeWithRetry`，所以 `EPERM` 重试同样覆盖归档的 `put` 与 `delete`：用例分别给两次操作各安排一次失败，最终 4 次尝试成功（[memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L1079-L1094)）。
 
 周期状态因此只有两态，且两态之间没有中间态：
 
@@ -210,8 +217,8 @@ stateDiagram-v2
 
 | 位置 | 归档时的表现 |
 |---|---|
-| 卡片动作行 | 「编辑 / 复制 / 删除」三个会改变季度的按钮全部撤掉，编辑槽位换成「取消归档」，「查看」保留；卡片加 `data-archived`、降透明度、虚线边框与「已归档」标签（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L782-L835)、[styles.ts](../../packages/client/ui-memo/src/client/styles.ts#L223-L237)） |
-| 详情对话框 | 同一条规则：不出现「编辑」，出现「取消归档」；把编辑放回一次点击之外，等于把刚藏起来的按钮还回去（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L856-L891)） |
+| 卡片动作行 | 「编辑 / 复制 / 删除」三个会改变季度的按钮全部撤掉，编辑槽位换成「取消归档」，「查看」保留；卡片加 `data-archived`、降透明度、虚线边框与「已归档」标签（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L843-L891)、[styles.ts](../../packages/client/ui-memo/src/client/styles.ts#L222-L237)） |
+| 详情对话框 | 同一条规则：不出现「编辑」，出现「取消归档」；把编辑放回一次点击之外，等于把刚藏起来的按钮还回去（[MemoBoard.tsx](../../packages/client/ui-memo/src/client/MemoBoard.tsx#L933-L952)） |
 | composer | 目标周在归档季度里时禁用输入与提交，说明原因并内联给出取消归档出口（按 `targetArchivedQuarter()` 找要解哪个季度） |
 | 工具栏 | 只在季度维度出现，按钮文案在「归档本季度 / 取消归档」之间按 `archivedQuarterLabel()` 切换 |
 
@@ -219,12 +226,12 @@ stateDiagram-v2
 
 ### 读不到归档时的失败语义
 
-`readArchivedQuarters` 把任何失败折叠成「空集合 + `ok: false`」，`refresh` 随后**保持 `status: 'ready'`、把卡片显示为可编辑**，但在 `error` 槽里明写「the archived quarters could not be read; cards are shown as editable」（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L390-L395)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L402-L432)）。这是一个刻意的取舍：
+`readArchivedQuarters` 把任何失败折叠成「空集合 + `ok: false`」，`refresh` 随后**保持 `status: 'ready'`、把卡片显示为可编辑**，但在 `error` 槽里明写「the archived quarters could not be read; cards are shown as editable」（[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L405-L432)、[controller.ts](../../packages/client/ui-memo/src/client/controller.ts#L384-L397)）。这是一个刻意的取舍：
 
 - **不能静默。** 「读不到」与「没归档」在屏幕上长得一模一样，这个歧义曾经掩盖了整个特性——宿主归档成功 13 次，客户端的读永远为空，界面上没有任何东西解释为什么（[controller.spec.ts](../../packages/client/ui-memo/tests/controller.spec.ts#L771-L787)）。
 - **可以放宽到可编辑。** 归档只是卡片上的一层只读叠加，读失败不该把用户本来能看的备忘藏起来；真正的安全性由宿主守卫承担，所以这里「显示为可编辑」不会变成「真的写得进去」。
 
-值得注意的是 `listArchivedQuarters` 的类型虽然允许业务失败，实现里却从不返回 `ok: false`：它同步读表、没有 I/O 失败分支，唯一的坏情况是归档域没初始化时 `requireArchiveTable()` 抛错，那会以传输层错误的形式出现（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L927-L933)）。因此客户端看到的 `!result.ok` 基本等价于「端点不可达/请求形状不对」——历史事故正是后者：这个方法曾经完全没有形参，而 Remote 协议按名绑定参数，调用在进入方法体之前就被拒。
+值得注意的是 `listArchivedQuarters` 的类型虽然允许业务失败，实现里却从不返回 `ok: false`：它同步读表、没有 I/O 失败分支，唯一的坏情况是归档域没初始化时 `requireArchiveTable()` 抛错，那会以传输层错误的形式出现（[index.ts](../../packages/memo/dsh-memo/src/index.ts#L1119-L1125)）。因此客户端看到的 `!result.ok` 基本等价于「端点不可达/请求形状不对」——历史事故正是后者：这个方法曾经完全没有形参，而 Remote 协议按名绑定参数，调用在进入方法体之前就被拒。
 
 ## 失败与边界一览
 
@@ -239,6 +246,7 @@ stateDiagram-v2
 | 归档列表读失败 | 卡片显示为可编辑 + 看板警告；宿主仍拒写 |
 | 归档域未初始化 | `requireArchiveTable()` 抛错，作为传输层错误冒出来，不折成业务失败 |
 | 归档写入遇到 `EPERM`/`EBUSY` | 与备忘写入同一套 `writeWithRetry`，耗尽后把最后一次错误抛给调用方 |
+| `@Remote` 方法没有 `request` 形参 | 调用在方法体之前被拒；`remote-signatures.spec.ts` 现在用源码扫描拦住这类声明 |
 
 ## 覆盖这些行为的测试
 
@@ -247,8 +255,9 @@ stateDiagram-v2
 | [memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L611-L709) | 归档返回的 `weekIds` 等于时间线给出的那一组；列表最旧在前；取消归档真的删除、重复取消是 `archived: false` 的 no-op；只归档被点名的那一个季度且重复归档只留一行；五种非法标签全部被拒且零写入 |
 | [memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L711-L824) | 三个写方法全被拒且内容未变、解归档后恢复可写；被归档季度拥有的**每一个**周都被拒；归档之外的周照旧可写；归档当前季度连今天一起关 |
 | [memo.spec.ts](../../packages/memo/dsh-memo/tests/memo.spec.ts#L1079-L1094) | 归档的 `put` 与 `delete` 各自重试一次后成功（共 4 次尝试） |
+| [remote-signatures.spec.ts](../../packages/memo/dsh-memo/tests/remote-signatures.spec.ts#L1-L57) | 扫描源码，要求每个 `@Remote` 方法恰好声明一个名为 `request` 的形参——正是 `listArchivedQuarters` 那次事故的回归护栏 |
 | [controller.spec.ts](../../packages/client/ui-memo/tests/controller.spec.ts#L703-L787) | 归档后三写与复制一次请求都不发；解归档后写入恢复；归档读失败时 `status` 仍是 `ready` 且带警告 |
-| [MemoBoard.spec.tsx](../../packages/client/ui-memo/tests/MemoBoard.spec.tsx#L443-L574) | 归档按钮只在季度维度出现；四个维度下同一张卡都带 `data-archived`、无编辑/复制/删除、有取消归档；详情对话框与 composer 同规则；邻季度（跨年）保持可编辑 |
+| [MemoBoard.spec.tsx](../../packages/client/ui-memo/tests/MemoBoard.spec.tsx#L454-L584) | 归档按钮只在季度维度出现；四个维度下同一张卡都带 `data-archived`、无编辑/复制/删除、有取消归档；详情对话框与 composer 同规则；邻季度（跨年）保持可编辑 |
 
 ## 延伸阅读
 

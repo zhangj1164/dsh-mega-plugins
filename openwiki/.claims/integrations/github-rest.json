@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d2396be35123ac122c7ce4f2806a9c044b94dd9fda109b09eaa21325eb11c418",
+  "pageVersion": "sha256:e907dc8d49aa486d04a15362998213e9da9d820fdf8e883a24e6d82c392416c2",
   "claims": [
     {
       "id": "claim_bb16319b6d5b47b192cf468ddb03fb42",
@@ -40,15 +40,15 @@
     },
     {
       "id": "claim_6052cc383ea741f6ba58608faef0374c",
-      "statement": "`parseRepository` 只接受 `http(s)://host/owner/repo` 这种路径恰好两段（允许一个尾斜杠、段内无空白）的 URL，其余输入返回 `undefined` 并让两个操作以 `invalid-repo` 结束且不发出任何请求；host 不被校验，也不参与请求地址——请求发往 `apiBaseUrl`——`.git` 后缀不会被剥离。",
+      "statement": "`parseRepository` 只接受 `http(s)://host/owner/repo` 这种路径恰好两段（允许一个尾斜杠、段内无空白）的 URL，其余输入返回 `undefined` 并让两个操作以 `invalid-repo` 结束且不发出任何请求；host 不被校验，也不参与请求地址——请求发往 `apiBaseUrl`——`.git` 后缀不会被剥离。测试只覆盖「只有一段路径」与「非 URL」两种拒绝情形。",
       "evidence": [
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L111-L116",
           "version": "repo-lines-v1:sha256:a0b70c43ce01f0a018bb9e07349a9a0cedd71a576d7daab3af08fad0555dc49a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODUxNmU1OTIyM2E3YjEzODU3YjcyMTQwZTI0Y2Q0OTE3ZWU0YTc4YTBlYzIwMjEyZDcyZjA3MGQ2NDk3Mzc1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJkYjg3MmQ0MjE1OTE4M2ZlYmQ0N2I1MjdmOTU3OTc4NWY3YTMzNGIwNjQ5ODUxMWIyZWIwYWMwZmFhYTk3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDUyZTIyMTEyMjEyMmYwMzYzMDJkMTA1YWZiNjVlZmY5Y2NjNjBjMGY0NzNiNjEzYmE1MjM4ZjAzZTI5MzIzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJmMDBlYzE1ZWIwOGFiMzBjZTBjZWZiYjYzNWNhODIyNGY4NzA0YmZmMTQ0YzgyNjVkNDAzZTFhZWY4MWZjOSJ9"
         },
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L67-L79",
-          "version": "repo-lines-v1:sha256:e82c2de7f6dbc5c5ff2125bf1260c0e91f949d5bd389e518cbd758e57e3735f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmOGJhMDY3NTU1YTgwZDI0MjZjYTk3M2E2YzhjNGZkNWU0MjIzZDVmYjU0ZGIwNjYyOTFkMzUzMjdmZjAwOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5NjIxNTg2MTIwYjkyMzI5YjZhZjRiY2MzNTA5MzJmODYzZWQxYTYxNzMyNzRhNWM4NTE3ODY5OTI0YzUwMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkM2E0ODZmNDZkNDUxYmY2NTQ4NWQxNmEyZDkwYzgzMjc4ZjBhNjJhNGY3ZDc2MTU1NTJkOGJiNTQ0YWIyZTYifQ"
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L66-L79",
+          "version": "repo-lines-v1:sha256:86158ce95a8fb42a2f9072d3039d3850dd51b71b9cab0df6244d5771c5bc3cc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkM2Y4NzZhZDM4MGRmN2VmZjkyZGYzNWU0ZTBhZjRiNmQxOTUxMThlOGUzYjFmZDJjNzZhNDc0NTFhMWU2YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkM2E0ODZmNDZkNDUxYmY2NTQ4NWQxNmEyZDkwYzgzMjc4ZjBhNjJhNGY3ZDc2MTU1NTJkOGJiNTQ0YWIyZTYifQ"
         },
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/tests/github.spec.ts#L14-L24",
@@ -299,10 +299,60 @@
           "version": "repo-lines-v1:sha256:804f25cfb5486d684fefa0d6c85cbef40349265d2618ef7080edbb70943fc170:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiMjM1MjU4OWMzNGQzYzYwNjg1OTMxYjZlY2M0ZDUwOTkxYTdjNTZjOGZiYTI4OTQxMTQ2NTc2OTAyNzJjYWMzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2OTkyZDBjYjcyMDFkMDM2MmFlNDZhOWQzMTYzOTBkYzAxM2RiZjMwZWQyOGJmMTkxYmUyNDkwZmQ4MGRhODk3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyYzU4YjBmMmIwOTQ5NDRkMjhmMWVkMjFlMTcwNTFmYzIxOTIxNmNjMGNhMGNiMTJlOTQzMWQ0MzQ0OTM3YjZiIn0"
         }
       ]
+    },
+    {
+      "id": "claim_b46a259891da44c39a9039f43f3abc92",
+      "statement": "服务层 `prefilledIssueUrl` 用一套独立的、更严格的规则校验仓库 URL：正则 `/^https:\\/\\/github\\.com\\/[^/]+\\/[^/]+$/u` 只接受 https 的 github.com 地址，不合法时返回 `invalid-url`；它与 REST 客户端 `parseRepository` 的形状规则互不复用。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L66-L79",
+          "version": "repo-lines-v1:sha256:86158ce95a8fb42a2f9072d3039d3850dd51b71b9cab0df6244d5771c5bc3cc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkM2Y4NzZhZDM4MGRmN2VmZjkyZGYzNWU0ZTBhZjRiNmQxOTUxMThlOGUzYjFmZDJjNzZhNDc0NTFhMWU2YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkM2E0ODZmNDZkNDUxYmY2NTQ4NWQxNmEyZDkwYzgzMjc4ZjBhNjJhNGY3ZDc2MTU1NTJkOGJiNTQ0YWIyZTYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L609-L616",
+          "version": "repo-lines-v1:sha256:dc315ab1adec05895e753e8b3e241c336bbc31f3f784b1ccd62c933fa7ef6aee:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzBjYWZjM2FiODEyOTQyM2E3MDk3M2EyNWE5NmY1OGI4ZjQxYjllOWJkNWFlMjE2OWNmZmMxODYyMDYxNWU1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc3M2MxMTBjYzk0ZTQ1YTE5ZDM2ZTA5YzFmZDFjMDZlYzBiNmY4MDE2YTEyZTk4MDMwOTQ1MWFjZjBjOTk3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODhmNmZiNjE4ZGUyNWU5N2IxM2QxMGRiY2VmZTFiODdlMGFlODA1YzU4ZjdiMTc5OWExMmQ0MTliZjFlYzEyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTdkODYzMmU1NGU5Mjk4YWJiOTU4NzI3ZTJkNTE0MDhhYmFmMTM2NjAzNTM3OTEwMTQwYWJmNjViMzBhYjYxMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_be8cf6cf32cb4424b0362890d7f6d201",
+      "statement": "凭据三个来源都经 `firstNonBlank` 取值（trim 后为空即视为缺失），因此只含空白的环境变量不会被当作凭据。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1038-L1050",
+          "version": "repo-lines-v1:sha256:cbbc3f198a7b0e0c372b56ea74b3d0578dfe597cf9fd4d6c8ee6227443deadca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyOGEyMDZkNmUyOTg0ZWNmZTM0M2FmN2RjOGExYTA1YWY1NjgxMDA3Y2E1ZjFhYWY5NjQwMDE2ZjAyNTY2ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MzU1MmFiNTcxNDk0YjM5OWIxODE5OTYyMmRiZTNiMzgyNmViNjFmY2QxZjc0Y2ZiMTJhYmNmODhlNGY3MjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNDg3YTRjMGM4ZDRlMmQ0ZjkwN2NkMDQ5NTk1NjA5M2EyMTdlNzc4ODY5OTdjMjBlNzFjYTE3ZjdmZDgzZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiMjdlM2MxZTVkZmI0MjAxZTQ4MTk4M2Q3YjgzOTU4Yjk2OTFjMGE2NTk2MDRlOWFjZmNkODcyYzg2Zjg4MjAifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1178-L1191",
+          "version": "repo-lines-v1:sha256:8a18ae1ab82b9cacc4de457bbe7640053c7592a3ed921b4902458b3f8986816c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyZjVkM2UwYTE0NWIxYmZiYzQzNDA5ODZkMDE5ZDI3ZDZkYmVlODJhZTEwODJlMjAxZjQzZjE2ZDBmOGVhOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNTgwZTk2NGY4M2E0NzNmNDNkNDQzODQ2Mjk0OWQ2OGI1NjAwZmRhNzg3ZjE2Mzc0NWQwMGRlODljYmYzNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkYWVjZDQxMDFiNDk1ZTZkYzY0ZjQ2MGY2MTYzYmUyOWIyZTNiMTM4YTVkNDEyMGU5YmZhYTkyMjVhNWNhMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ccec508b97a4c1c9bec54240ba23d8f",
+      "statement": "`createIssue` 的成功复核要求 `number` 是有限数字、`html_url` 是字符串（`readNumber`/`readString` 读取），任一不满足即返回 `http-failure`；正文去标题与标签 trim/去空的规整发生在服务层，客户端只发送收到的字符串。",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L128-L137",
+          "version": "repo-lines-v1:sha256:a5efe208c3fec3e20b929a15f56bb36781dcc5ee799e94b5cf5f3045eace6aed:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2M2EyOTBlY2UzODRiOWIxMWEwZjgzNjllNjYwMjkyMjY5MmQwYTNlMWIxZjE5ZjMwNzFmOGI5MDdlZGEzN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MTE5ZjdjYTljZDBjMWIwNmUzZGVlYTZiZDVhZjBjMjZjMDI2M2RhMzNmZjY1ZmQwNGY1M2YxNzkzYTc0MjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5MGNjMjljMDBmZWZiMzcyNmVhMjdmNjEwNDJmMDlmZGVhMDQzM2E3ZGI0MmM0NjJmNzcwNTE1ZmRlNzE1MDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0YzNiMGRhZTQ5Mzg3YzNiMDc4MGZjM2YxNWJlZTk3YWI5MTlmNGU4MTY1NjRjZWQ5MDhiNjk0YTdkODFjYWMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/github.ts#L256-L264",
+          "version": "repo-lines-v1:sha256:96d76bff766acf22d2c734668d38ef31b30a13ea7bc052334dfe4ce5d13282a8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzg2NTIyOGU2MTgzZDI3YzZjMTQ1ODZmMWQ1NDVmYmQ3ZjM2Y2FlMTBmZDUwZjE3YTNiNTFlNjBmMDlkZjM0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjg5YmI4ZTNiMjFhOGYwM2Y3YTc5OWE4YzVjMzQxNDk4ZDk2ZDkzOGM1ZmY3ODkwMDEyZDM1NWJhMWQ5YWM4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzA4NDRiMDE5YmUyMDE3OGY3YmYzMDQ0MGNmMGJhNGUxMTY4YWZlMzMxODJjODMxOWNlNjY5YmNmYzM5OGI2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmJhMGYwYWZmYmUxMjZlYTUyM2I3MTBiMzJhMTBlM2MyYWQyZWMyMWZlZmNmYWM4MmRmODZmOGFhOTJjNjQ4MyJ9"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L655-L666",
+          "version": "repo-lines-v1:sha256:07608136a3704535b6024b6b09aa921303bfde389ac4a824da5f353998645255:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNDA2Y2ViMTY4NGYwN2ViYzlmM2FhM2ExMzYxMDRhYTBkOGMzOTg1YmUxYTEzZTU2NzJmNGQzZWVmOWZjMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExYjE5MjlkMjg4YzE4OGNhMzZhY2E5YzRkMzZjZTY5YTJjMjUyOGNkNzZiNTkwMzZmZDhiMTQxY2ZkMTYxZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzZWM3OTc5NTBmMDk1OTc3ZTg4ODg0YWJiMTE2ZTBiMTIzYWU1MjUzNjFkYzY1MTcxNDA5MTFjMWJmZDcyOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4NGVmMjY3ZDljYTc5MzU4NzBkMWVlZDk3NTZiNTg0ZjZmODI3ZDljODA3NzUyMDQyYzNmNDRmNDc5YWQwMmYifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/intake.ts#L32-L51",
+          "version": "repo-lines-v1:sha256:b80c680d31ee3b147fcf4f8ddc68ea3c1cff0f8ba313531d1aa8f54624c851c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiNjkxNThhYWE0NTc1NTE3MDhiNjFmMzgxODNjMGFjNjFjMGUzM2Q2ZWYxYmYyNWNkZWNlYTE1NzM4MThkZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4NGUyNDUwMDUyNzJmNDAyOGM1ZTNhYWI2ZDUwZWU1MGQ0Y2JmZTY1ODQzZWRmMGNmNTE0MTRmMGJhYmVlZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwZjU5YTgyNGIxMWZkZmM1YWVkOGU0NDJkY2VjMzMzZmU2ZjQ1YmRkNmE3ZDU4MzM2MmQ5Zjc2OWFhZmE3MjAifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-22T21:32:59.709Z"
   }
 }

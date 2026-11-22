@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:7b23ea23b5f03856c653dcf7b933240b1a7ffcfac8b575315ed719f47759c6e3",
+  "pageVersion": "sha256:60f30a569aa4fd55921cbb79d31adfd12f639f5b40340e610e70492f4044098b",
   "claims": [
     {
       "id": "claim_0df6b926d2da4c04a0d103da7baf46ff",
@@ -14,19 +14,19 @@
     },
     {
       "id": "claim_ecd538dcdda842a48f722983eba4aea8",
-      "statement": "`pnpm run gates` 的 check-all 聚合由 11 个门禁组成（test、build、package-exports、client-bundle-id、bundle-entries、publish-guard、export-jsdoc、translation-pairing、markdown-links、markdown-wrap 与 issue-policy），其中读取产物的事实门禁声明 `needs: ['build']`，本地模式并发上限为 4 个 worker 并可由 `DSH_GATE_CONCURRENCY` 覆盖。",
+      "statement": "`pnpm run gates` 的 check-all 聚合由 11 个门禁组成（test、build、package-exports、client-bundle-id、bundle-entries、publish-guard、export-jsdoc、translation-pairing、markdown-links、markdown-wrap 与 issue-policy），其中读取构建产物的 package-exports 与 client-bundle-id 声明 `needs: ['build']`，而 bundle-entries 与 publish-guard 只读源码与 manifest 因此不依赖构建；本地模式（check-all/hygiene/doc-sync）把并发夹到 4 个 worker，并可由 `DSH_GATE_CONCURRENCY` 覆盖。",
       "evidence": [
         {
-          "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:6f29a2a748106398c43f9892c7929783a6a14119ba81c5d5fa14a4a2f5d68fbb"
+          "resource": "repo://package.json#L11-L14",
+          "version": "repo-lines-v1:sha256:b79bf06b5664fe9cf2f2b057ff6f50f741af03ad5e20d9e68838dc52df256044:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQxZmMyNDllZmE3MWIwZTdhOTdmN2Y0ZWI4Yjg5NDk0YTU5Y2IzZjg3ZDcxYmU2YWFkNjNhYTNiYTVlM2QzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGMxY2MzYzE4NDk0MWViMmQ1NWQ3Nzc4MGY2ZjI3YzE0ZDUxYjZkMzAzMTI4ZjcyNTg5ZmMzMmQxMzg4NTA1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZThhZjYzMmUwMTBjMWY4MGZiMjU1NjQ5MjlhOWU1NTlmMTE1NjY0ODRhYTkyZmJkZTU3NzQ5MzEyODk2ZDdjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzdiMmQ4ZDYzMTI3YjRkMTdhZTBjYjUxZTY5ZmFkOGVlYTM4M2YwYzFhZDkyNTY4OTcxYWRkMDUwNTZiNjc1ZSJ9"
         },
         {
-          "resource": "repo://scripts/run-gates.ts#L107-L132",
-          "version": "repo-lines-v1:sha256:129b89521ab2c5ea08687d85849499ee380f665d1b2af40a5f8fceb27b31c866:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMGFhNWY0ZDM3YWE4NzZmYjBiMGRjMjI0MmUzMTJmMGNlYTkyMmE2NGRmMGUzZTIzZTk4MTE4ZTFmMTg3YzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjMGFiMGZhNTA3ODVkYjUyOGQwYzYxMzUzMDY2MTBhNDg5NTVkZWFlMWQ0ZDVjZjAzYTlhY2VhYWIzNzEwYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmNzVlMWM3MjMyY2RjYTMzNTFiODVjOTMxZTU0YzU5NjI1ZDQwMjRkMzg3YWE2Mzk5MDQxNjhlODE1YmJjNjEifQ"
+          "resource": "repo://scripts/run-gates.ts#L112-L128",
+          "version": "repo-lines-v1:sha256:7909172a851a076d6e1ad75afc6a2a1b1a7ba37a5d3895d96cb77636224d68b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzODgwM2YxMzkxNzljOTUyMWNjMjJjYTFiNzUwYTI2YTI0Mzg5NmEzOTUyOTBiY2RkZTdlOGRmNzA3YTY0OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3OGMwNDZmOWY4ZmQ3ZDg2ZDI0MGQyN2I5NDQxOGNmNzllZDIwNTg1MzgxYzNhMzc4OGQwMWUwMTY2NjAyOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxYWQxZjAyYzdhNDBkMzVkNzAxM2NlZWFhY2U5ODJmMzQ0N2NhMjA1ZGM3ZTFiNTFjM2RhMzhjOTljOWQ3MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZTkwOWNiMGYyYWYyZjdlMjBiNTJhNzFlNDQ1YmVhMmFkNGE1ODJhZDI0NDQ4MDg3NmU5ODJlYjkzZmFlZjEifQ"
         },
         {
-          "resource": "repo://scripts/run-gates.ts#L149-L159",
-          "version": "repo-lines-v1:sha256:a75d9325e29a768aba858aeebbf5e21a66d81ac3196289629ff38a63e62521f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1ZWY4NzdkODU2NGJhM2M2MWEyZGRjZTk2NDAyYTM3YTNkMGFiN2VkNDdlY2MwZWNmNTFiN2NhYjM1MzkyNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0N2I0ZTU0YTE2MDY4MGIxZDQzMWJjYzYxOWFlZDEwNDc4NzIxY2E1MTI0YWE1NGExNjZkNmU4ODQ1MGQwZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwYmQ1YjU3Y2UxYTA1NzRmNWEwOTRmYTFlZDZkYWU2MDIyODliYzY1YTY5NWFjOGMzNzJhNWYzMWNlMjQ4MGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlNDgyNTY2YTJlNzhmZmM2YmY0NDdmN2I3NDNjY2I1MWIxNDZlNmY5NDU0M2ZlNTI1NjJjYjM5ODE5OTIxMzIifQ"
+          "resource": "repo://scripts/run-gates.ts#L169-L215",
+          "version": "repo-lines-v1:sha256:5c8331c3fc1141ebc73ae3078ca83810e41a2546ffd6c462dabe5dc9643d3f28:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1MTkzODI1YzJkNWIxYmYzMWE5NjNhNWIxMGUxODU2Zjc1NGI2MjEwMTM2YjhiZGY3OTliN2M1YjY0ODJkODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MTE5NjhiYmYyODg2ZDdkMDJlYjVkNTAyY2M0NDYzMmEzYjE3NmViMTcwNWM1NjllOTE4MGMyMDkwYmY1MDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2NjdjZTliMmQzMmQ4ZjM1MDY1MDkyZGJmMTk5NTUzNzI5NmYwNjYwMzY1NDYzODkwNDIzYzkxZTNmY2E4OTEifQ"
         }
       ]
     },
@@ -193,10 +193,24 @@
           "version": "repo-lines-v1:sha256:e2e1258169218c33e404c82159aa26d44e7082091c458095eb70a7205257ebdc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3MDI5YzU0MWQ2NmFkMDk3MDg3Mjc2YmRlNjFhZTZhNTViNGFjMDA1YzNjODE0ZDQ2ZWFiYWVhZmVkZjdkMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGVlYThmMWY0ZGEyNmUzYjMzMWY3NDYyMWUyZWNmMzRhYWRhNjEyODhiZDJkYTk3Y2ZjZDAxYWJjNWE1OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiYmYxZjk3YjNlMjBiNTczOTBlZmFjYmE3ZDljMWZmYzI3YmNjMzhjMTc2YmUxN2NjYTZlZTI2MGQ5MzhjN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkZTllNDdjNDlkYjhjMmM5ZTIzN2M5ZmE4ZGY4OGM1Y2NmNDA2ZDA5YWY1NWEzMjY2NDZjYzM5OGQwZWFmMjkifQ"
         }
       ]
+    },
+    {
+      "id": "claim_280a5baa64134fabac3617867e1b8968",
+      "statement": "这个仓库级快速上手页是一张覆盖全站的任务路由表：把架构层的四个页（总览、插件组合与 bundle、宿主⇄浏览器 Remote 契约、存储与持久化）、系统层五个插件页、概念层四页、集成层两页、运维三页、测试策略页与五个 workflow 页按「你要做的改动」组织起来，并声明 `AGENTS.md` 是工作流的唯一权威、源码与测试是事实来源、本 wiki 只是按需的 just-in-time 上下文。",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L108-L118",
+          "version": "repo-lines-v1:sha256:f99d553616f55d5c5ef09327cb93e4bf18be1eca3f66aa2b5bb5ed75aaa2228e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViODYzNWE3ZGY0NzhmZWQ5MTUyNWQyM2RlNGZiYjhiZjU3MTBiMzYwZDU5YjA1MmY3NDlkYjg3YzlkMzUzYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMmYyNzM1ZGFhMDU5Y2FiMmM5ZTAxMTc5YzhmZWNlYzE1ZTI5MDNhNjAwYWJkOWQ5NzliZGU5ZGQwMDM5MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0ZDA1OTQwNmFhNjA3OTYxZDAyOTRhYWE5ZjJmZTVlYzU5Y2JiZWM2NzhlOGU4ZmNmZTIwN2ZkY2U2YjNlODEifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L124-L130",
+          "version": "repo-lines-v1:sha256:059ab1f551c2271f6e2ca15be341aff9ae3481ae1049f6e3357d5d007d1f41ca:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTAyZDFlNjcyNTU4MTg3NTZjYjYyYmUxNGViZDVjMWI1M2FlYmQxOGZhZTVkNWMyMGVkYWNiYWZiYjdjZTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-22T21:32:59.709Z"
   }
 }

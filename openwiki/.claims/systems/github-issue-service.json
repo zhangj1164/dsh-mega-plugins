@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ab47577f36929bc5c83f24fde54ba001a66fc0a309a5aee0af01fd13efe87a43",
+  "pageVersion": "sha256:41afa2bc9e140e6de2fc35a3209a58464057ff9d2abe977f7871967e95d9e179",
   "claims": [
     {
       "id": "claim_642077e64c6f4858bd0815df486c7f41",
@@ -15,14 +15,14 @@
           "version": "repo-lines-v1:sha256:f0c30c60eaa6061989dc8227327f7dbad90bd0841701a7588f99a903ec79ee75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YmNiNjhkNWQ0NjdhMTdlYjNkNGRiN2NmYjllOTM5M2VlZmYyZDBkZTMyYmI1NThkMDY2YjQyY2JkY2NmYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L386-L387",
-          "version": "repo-lines-v1:sha256:f444a885946916a6ab5e0cc834f68b746f736202e8c7177da9e2358e70cc2291:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM3ZDBhNWQ5MDIwY2RkMTlkYzM1ZDllOWFiOTNjMTliMGFhNTAyMTA0ZDI1M2JiNGU0OTVkZmI4NjI5MTRkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM2NDk4OTI2NDM5MWQ5NzNhMjk1MmVjNDJhOTFkNjEyMWQzOTZhMjgzNmRmMDcxNDg4OTlmNGQzYzgxOWNlNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTc2MmQwOTgyZDdhNGMxY2NjNTU2ZjNhMzUwMDEzOGFhMWI5M2VkN2ZlOGQ2NjYzMTUyNGQyN2EyN2IwMzM3OSJ9"
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L495-L499",
+          "version": "repo-lines-v1:sha256:5de7d8778282190bffccca338cae643c8e9084ed2d0b35e31f8b51d3b470c233:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU0Y2UyYjNmOTIyMmZhZTg3ZWJhZjJiZTA1NDk5NDUwM2VhYjUzZGQ1M2JjZTNkZThmNGZjYTQyZjZjZjE1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGQ0OWRmMDZkMTYyMzI5NDczODk5N2Q5ODY1Y2JiODdiNzdjMzJkMDkxMTg4MGE2Y2JlNjE1YjU0OWY4YTQ3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTBlODdiMWEyYzY2YjhiODkzNjM5Nzk5N2FiNWUyYjA5YjQ4OGEyM2Q3N2RmMzIxNWFhNzc3Zjg5M2MwYWJlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlY2RmZjM5YzdjOGVkY2ExNWM4NTFmNjYwYjMzNjIzYzk3YTVlZDdjMTI2NGFiZTQ4OTIwYjhmYTY5ZmFlZiJ9"
         }
       ]
     },
     {
       "id": "claim_8a246d5ee654402a8e1afd11ea29763d",
-      "statement": "`static inject` lists only `llm`: `telemetry`, `storageDomain`, `sessionController`, `schedule`, `workspaceRegistry`, `agents`, and `agentDefaultModel` are read structurally via `ctx.get` / `optionalService`, so the plugin activates on its own bundle and each of those capabilities degrades to a stable failure or a still-working fallback path instead of blocking activation.",
+      "statement": "`static inject` lists only `llm`: `telemetry`, `storageDomain`, `sessionController`, `schedule`, `workspaceRegistry`, and `agentDefaultModel` are read structurally via `ctx.get` / `optionalService`, so the plugin activates on its own bundle and each of those capabilities degrades to a stable failure or a still-working fallback path instead of blocking activation.",
       "evidence": [
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1320-L1328",
@@ -33,8 +33,8 @@
           "version": "repo-lines-v1:sha256:5cc7008421017dfdf91bc114e62de814927acf4015bb98d8cb587b55eb49307e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YTFkOTY4ZDc2ZTdmNjVlZjIxYzliMWRhOTY0MDFhNGFiNDU0ODBkNzc4MzZjMDg2MmMyMDZlYmUwMzM4ZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMDliODEyNGExZmYzNzk1OTU0ZjY2NjZiYjYxNDQ4NWM1NmQxZmIxZmNlNzI3MzE1YTQ3ODlhY2I5OWQ3NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkMjE4NTI3MmZlYWM5Y2FiMDVhMGY2NjFlMTUyNWI4YzVjYWUxNzc1MGE1N2EyMjEwNDZjNDMxMzFhMmUxNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkNTk3ZDRjYjFjODFjMzM5MDAxYzIwNWQyMWFiZjUwODlkMzk4Y2Q3MTIxZTY0ZmYxODkyNGFlOWQ0ZjA3MDYifQ"
         },
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L386-L387",
-          "version": "repo-lines-v1:sha256:f444a885946916a6ab5e0cc834f68b746f736202e8c7177da9e2358e70cc2291:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM3ZDBhNWQ5MDIwY2RkMTlkYzM1ZDllOWFiOTNjMTliMGFhNTAyMTA0ZDI1M2JiNGU0OTVkZmI4NjI5MTRkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjM2NDk4OTI2NDM5MWQ5NzNhMjk1MmVjNDJhOTFkNjEyMWQzOTZhMjgzNmRmMDcxNDg4OTlmNGQzYzgxOWNlNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTc2MmQwOTgyZDdhNGMxY2NjNTU2ZjNhMzUwMDEzOGFhMWI5M2VkN2ZlOGQ2NjYzMTUyNGQyN2EyN2IwMzM3OSJ9"
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L385-L386",
+          "version": "repo-lines-v1:sha256:5e014b9bc39ff15f6b1256fe5c27efd49cc1066bba0374a0706a2497a3220652:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFhODBiOTZiNDE0ODUxMGJhMDdlOGNjNmE1ODZiZjkwZGYyZWFlYjdhYjhjMzU0YWYxMzQwOGYwODAxZjcyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM3ZDBhNWQ5MDIwY2RkMTlkYzM1ZDllOWFiOTNjMTliMGFhNTAyMTA0ZDI1M2JiNGU0OTVkZmI4NjI5MTRkNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjFjMzNlNmNhYmFjY2QxNTZkZDJhMGIxOWE1ZTA0YTA2OTM4OGU5MjRkOWQ4YTlmNzBhNDMwNzUxNjY4MmUwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWM3ZGZjZmExOTRlMGEyODZhNmJlMDQ1MTk0ZmM3YzQ1MWUzZjY3NDdiMTMxMGJmMjBiY2IxNDIwNTI3YTE2YyJ9"
         },
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/tests/github-issue.spec.ts#L453-L474",
@@ -171,12 +171,16 @@
       "statement": "Intake state is one durable row — the local day the last pass completed plus the issues already dispatched — declared as storage domain `github_issue_intake` (version 0) with a single `state` table keyed `intake` and zod validation; the domain module is imported dynamically because `@deepseek-ai/dsh-storage-domain` is an optional peer, and without storage the service falls back to a frozen empty row with `intakePersistent` false.",
       "evidence": [
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L58-L68",
-          "version": "repo-lines-v1:sha256:14999723f57ab216d4c0ad8bc855d35f41732fa24fe5820e443b95d4146c9e8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxYjJmOWIxMTdmY2YzZjFmYjY5NWZlYTAwN2NiY2I3YzhlZmYzNzgxZDU5Y2JmZmQ2YTU0OWRiYjFjYTRlMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyYjQ2YTRjNjc5NWUxMTU3NTI0M2FmNWMyMWY3NGU1Njg4MmYxNjU1MjQ2NWM0ZDgyZGM3ZWViNjExNWIwYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5Nzg0MDMzNGRlNTI3NWZlMmMyZWRlOGVhNTRlM2FhOTRjNDdjMmIzZmZhZjM2MmZiMDBkMjE5YTE2OGI2OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyOTMxNTYxMGY1YzliNzhkN2ZmZDA2NWYwZGFlMGM5ZTQ4YTVhYWM4OGY4OWEzOTA2YmFhMGFjOWNjYWNiN2MifQ"
+          "resource": "repo://packages/github-issue/dsh-github-issue/package.json#L55-L66",
+          "version": "repo-lines-v1:sha256:8079c46714a81768dbcc8302adf715caadc0ed533482bb23ed4e840c3a3712a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2NDFmNzZiNTc0OGJmMWYwOGUwMjQ2N2U5ZTJkOGZhYTk2MWNkZGE5NzdjYzE4Y2QzZjFlODc4NGZkMWQ3MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiNmFmMTQ4N2FmZjNmMjk2NzY0ZDU2MDNiY2M3MWIzZDI5NTdlODJiYzgwYTE1ZTFmYjhiMzE2NTJkMjJiZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyNmNiY2IwYWY2MzRjNjY5MDliYTI4YTZhZTkwNThjMDFjM2FiNDlkZTM2MDRmYzNhNmRlYTY2NjBlMWI0Y2MifQ"
         },
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L940-L966",
-          "version": "repo-lines-v1:sha256:f1fb66a835c2ffb3a21f8ba971e6b92a32d349c1e64f0f85332b2a4f78304953:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMGU2YTljOTkxNWI2ZGRhMWVlYTY0ODliNDlmOWZjNmMwMDMzMjgzODZmZTJlYWNjN2M1Zjc0NmU2MzAwYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5NTQ0MjRiZjVmNzU1NGUwMjAzMmE2YWMwN2M1Yzg5MDM4MjVmNmExMGZkNGVjNmM0OTY2ZjgzMTA1MTQ3OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3Nzg1NDYwY2RlOGI4MWEyYzVjOGNiZWUwYjA2M2I0NDI3NGQ2MmNiY2ZjNjg1YzAzMzYyNDZkNDQ1ZDc1ZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMmQ0YTZmNTY1NTU1MzM3MzAyYWQ0OTkzYTkwYTJjMmM4YjQxYmYyM2Q5NWY5YTRkYjE5OTg2MjY4MmU0YWQifQ"
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1008-L1034",
+          "version": "repo-lines-v1:sha256:f9cddacc38e3a2b015faffec4f5f8a6df76beb58e5234b0176f285a608dcb2c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZGI3NDYwODE4MmNiN2NhNGQ5ZmJhNDlhMzk0OTlhN2YzOTA3YjRlYTAzM2IxNDkyYWQ1Y2YwYmVlZWVjZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MmZmMDFmZTM5YmE1YzZkMDg2MGNhODE2Y2Q0MGNlZTRjMmMzYzVlMjc3OTlmYmFlYTRhOGIwNmExOWQxODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhODAwMmM1NmI3OTU0Njg4MTQ1Yjk2M2U1N2Y5YTE2NWFiYThjYzA3ZjRhYmE4ZDE0YWIwYzJkYmYwZjRlMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjNDg3YTRjMGM4ZDRlMmQ0ZjkwN2NkMDQ5NTk1NjA5M2EyMTdlNzc4ODY5OTdjMjBlNzFjYTE3ZjdmZDgzZWEifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L341-L354",
+          "version": "repo-lines-v1:sha256:1d4f47a159d33b3e686e2114380c6b4f75cfabad73aa26f436e8bd69fbbfd997:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZTVlNTI1ZTVkZmE3NmYzOTQyMmUzNDc2MzQ0YzRkNGI2Mjc5Y2M5MDFlNmFiMDQ3ZDhjZjA5Yzc1NzFjMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMDJlNWJlM2ZiYTk3ZjU2OWIyZThmYjU5OTA5NDA5NDU5MWE0MjAxYTFlYjFhZDUxYWI2MTgyMDQ1ZWEzODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxNzg3Y2RkY2EwNzg0MDNiYjUxZGUyNThjZTQwNDU2NWYwNTViZDJiYTQ1ZDVkODFiZWI5ODI2N2E4Y2UxMWUifQ"
         },
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/src/spec.ts#L34-L69",
@@ -240,15 +244,15 @@
     },
     {
       "id": "claim_38e6d175991b47c887d969019c9d1fe9",
-      "statement": "Dispatch creates the Session through `sessionController.create` with the Workspace-resolved placement (so the deployment's preset and workspace policy apply, and `workspaceId`/`cwd` are sent exclusively), then delivers the rendered prompt either as a one-shot `schedule.create` automation task when the Schedule service is mounted or as `controller.prompt({ mode: 'queue' })` otherwise, and renames the Session best-effort; a missing controller or one without `prompt` yields `session-unavailable`, while a failed create or a refused task/prompt yields `dispatch-failed`, and a rename failure only logs.",
+      "statement": "Dispatch creates the Session through `sessionController.create` with the Workspace-resolved placement (so the deployment's preset and workspace policy apply, and `workspaceId`/`cwd` are sent exclusively), then delivers the rendered prompt either as a one-shot `schedule.create` automation task when the Schedule service is mounted (with `after_seconds: dispatchTaskDelaySeconds`, and the success event carrying `taskId`) or as `controller.prompt({requestId, mode: 'queue'})` otherwise, and renames the Session best-effort; a missing controller or one without `prompt` yields `session-unavailable`, while a failed create or a refused task/prompt yields `dispatch-failed`, and a rename failure only logs.",
       "evidence": [
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L798-L898",
           "version": "repo-lines-v1:sha256:21e36b66a345e35bfb6cc040b709405f8a2a08fe309442fb18169079d4d78770:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0YjdkZjBjMzczMDJlYWY3MjhiZDQ2MmQ2ZjBmMzYwNzAwOTczNTcwNDE0MjA2ODEyZWE1MTVlMzNlM2Y2ZDgzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyYmJjNDliNmI3N2U1Y2RkY2JiYmJmYzg1ZDM0MjI5YTRkNjgxYjE2YmY3NjViNzRjOWUwNjhiZGM3ZTJiMzVmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4YTdmODFmNGU5ZjM4MGIzNGFiYTU0ZDQzNTJlNjYwZjc3ZjdkNTg1NWY0ZmM3YTc4MjE5ZTQ1MjgyZjdlYWQ0In0"
         },
         {
-          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L856-L889",
-          "version": "repo-lines-v1:sha256:f0c778b3fca32912672ea9b3b0e770be0ae9fe9827b7a03b8308d97927330937:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzMmMzYTVlYTZjZTZhMjQ2NTEwZDVjN2JlOTY3N2EyYzIwMWVjYmIwNmQyMDExNjgwNjYwMzkzNDBlYTExNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyN2YwZmU4MjJkYTQzMWU2ZWVkZjBiZWIyZmMwZTkzMDk3MWUxMGQ5ZTIwYTNiZjBiYjUxZDVkZjg2NjJhMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNzVjOTdkNDZjZGFjYTg2OTJmZDgxZGExNDJiYjRjNThiMGRkZDdhZjZjMDg1MzUzMjg1YjUxMDkzZTA0MDYifQ"
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L861-L917",
+          "version": "repo-lines-v1:sha256:91fb19fbb173906559e4532dd8c59226dfd98b4975de402e2c8564b4b5352f42:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMwODIzYWU4NDY5OTQ1NTZjNjQ3OWM1MWZjOWVjMmQ1YjI0ZTI1MDFkNzJmZmFiNGQ0NWM3MmRmZGUyMWI5OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlZGMxMDliYzY3ZGJlNDA4ZWUxNGJlMWMyNzVhNDAxY2QyN2NmMzAxMWU3ODMzMTE3YjVkYjBhODUwYTk2NjUifQ"
         },
         {
           "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L194-L268",
@@ -351,10 +355,46 @@
           "version": "repo-lines-v1:sha256:2ee99459c923b213ff705733f5fe5efb4b8de5fa27347d136feece1963b3bf4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjY2ZDE0ZmUzZDk4MGNlZjljNDMzZjk0ZTMwNzU4NzYyYjBiMTIwYmUwNTU0ZDYxNjMzNmNhNDhjNDJiMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMzUyNTg5YzM0ZDNjNjA2ODU5MzFiNmVjYzRkNTA5OTFhN2M1NmM4ZmJhMjg5NDExNDY1NzY5MDI3MmNhYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhZmRjMmJkZWRkM2RlNzEwZTQwMjM0NGNhOTg4NmIzN2RiMDQ1YTk1MzUwM2JlOWMxYjI0ZDY4ZTdlMjdjZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_5ad1892e2e484116adcaac9bb06bfa77",
+      "statement": "A dispatch's Session placement is decided by normalized directory matching: when `workspaceRegistry.list()` is readable, `cwd` and every registered Workspace path are reduced to a comparable form (separators unified to `/`, repeated and trailing separators collapsed, case folded only on win32/darwin) and a match sends only `workspaceId` so the Session joins that Workspace's sidebar group; no configured directory, no registry, an unreadable registry, and an unmatched directory all fall back to creating by `cwd`, which leaves the Session ungrouped with a warning, and the plugin never creates a Workspace itself.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L1211-L1230",
+          "version": "repo-lines-v1:sha256:65bf3b0ffbae69c5ed5194052e471c6b837fda012adaca6c24c913c874315051:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNjQ1OWJlMWYzY2JmZTgzZjAyNDZlYTgyZDY0M2UyMGM4NDdkZjU3ZjNmYTYwMjQ3ODEzNjYxNTYyNjgzZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNjBiZGI3MTVlZDlmNGE2ZmEwMTVhOGJmMTlkNmUyODNkYmMyNDZlMTQ2OGVmZWRlNTkyODRhOTIxYWRkMDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjYzEyNzAwN2U5YjU3MWI1MTAzY2ZjOGQ0YjMzNjUxZDJlNTY2ZmQ1NzYyOGE5M2NlOTBlMTY3OWYwZjI5ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyZmVkNTg3NTlkMmM3MDE2YTk0YTgyMGUxZTRjZjNjNWY1MTE3YjVjMTA4ZjdiNTJjMGJlMGVhOTc0ZjEyYWMifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L861-L901",
+          "version": "repo-lines-v1:sha256:e6eaf403730c957bdaed147631cc3fb98dfd5895a83917e4d117dd5339543192:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MmZmMDFmZTM5YmE1YzZkMDg2MGNhODE2Y2Q0MGNlZTRjMmMzYzVlMjc3OTlmYmFlYTRhOGIwNmExOWQxODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMwODIzYWU4NDY5OTQ1NTZjNjQ3OWM1MWZjOWVjMmQ1YjI0ZTI1MDFkNzJmZmFiNGQ0NWM3MmRmZGUyMWI5OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNWEwMmI4Nzc2NjczZDMyYTQ2NGUwMDg2NzVjMmE1ZTg5YTg0MmQ1YWY1ODE5ZTk0YTVlZDI5MjAyODkyOTkifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L120-L170",
+          "version": "repo-lines-v1:sha256:14cde68f9554b2bf0650056a880c22f78c46602d6c1bb9a3651d868a2d4ef05b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NDRiOWI2NTg2Njc0YTVlMWQyNzU1ZDYzNjNlMzEzMTFmOTRhYjQ5Y2NjZWRmMzFkNWE0MjNmMmJhYTcwOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiY2Y0OTVmZmI3MGQwMDA5NGRkMjU4NjU1MTM1MDI0ZTU4OGYwYTFiNWVjYzE3YzY3MzI4ZDYzMzAwMDZkOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjOGY4ZDE0ZWUxMWQ4OGI0YTdkNmU3MTc3ZDVmYWM4ZDEzODczZmVkODJkYmZlMTIyMGVjYmUzYWRiZWViZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5YjY3MjBkNDVkYTg2MDY1YmMwNWNlYmJlNGIzNWU4NDJmM2EyOTVhMDYxODJjMGQ2Mzc2ZjFhYjE1ZGMyYzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e95d8892386b4800bc9bf01e7136a511",
+      "statement": "The intake day is committed only when at least one dispatch reached a Session — a pass whose every dispatch failed is left uncommitted, reported as a `dispatch-failed` telemetry error, and retried at the next host start — while de-duplication by issue number means an already-dispatched issue is never dispatched again even on a later day.",
+      "evidence": [
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/src/index.ts#L710-L768",
+          "version": "repo-lines-v1:sha256:509d26c3a7854665afa4a293812437b24c11f67d31c878e502b1d3fc8157144a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGY1YjlhNGViODU5YTJlOTk3MmRiMTc1YTA0OGMwZGZmMzViOGY0MTM2ZTEyOWFiM2IyOWU5MDVjMjgyN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwM2JjMjhjMDcwOGE1MWNhNzg1ZDhkOTJkNDZmZGYyN2FmNWM2YmM5ZTY5ODQwMWMxZWJkNDFkNzA0OTc2MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczYzI5NmM3N2NlYmIwOTE0MzgxMmYyN2M1MTQ3NWE5ZWFmZmNmMmZkNTk2ZTcxZDNkY2I0NDkxOWY3N2ViYzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZTQ3ZWI1MzM5ZjU0ZWEzYmZiODQ2ZDIxODU5MDhhZDJlOGQ5NWZlZTRhYzZiMTg2MmQ4ZDdiZjk0NThmNWQifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L194-L252",
+          "version": "repo-lines-v1:sha256:74ff0da4b39896d4dcd3314ff4436e1f3ce8781e9156af372933b87d7326f42e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1Y2E5YzNkMzVkMTcxMWYyOWQxMjhiODk1OTdhZDFkZjNjYmZlYzdjOTlkZDdhZTVmMjVkZWQ0YjFjMmU3NWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMjRmOTI3N2Y0OGY4ZTdlZjI5MzgwZjU5NGE5M2FmOTI3Njg4YWYyODE2YjJiYzMxYWZiMTQ2ZTliMDNjMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhN2U2ZTliNWU1ZGQ2ZmE4MTM1ODM4NGVjMzJjNGVjZGY4ZTBiZDU5YjU2NmY0YzNjYzVhODUyNTIzMTU1ZjUifQ"
+        },
+        {
+          "resource": "repo://packages/github-issue/dsh-github-issue/tests/intake-service.spec.ts#L308-L330",
+          "version": "repo-lines-v1:sha256:bc903517fa1d5454ec9d4447496f9b2dd954c4f982a9270fb93d55da871cdead:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4OGNhMjNjYTZiOTQyOTRiNjliOGY2ZTI0OWFiNmQ5NjE5MjdkOTM4NGU3YTgwNmM0NjkwM2IzZDliZjliNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMzUyNTg5YzM0ZDNjNjA2ODU5MzFiNmVjYzRkNTA5OTFhN2M1NmM4ZmJhMjg5NDExNDY1NzY5MDI3MmNhYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyYjRlOTg1Y2Y1MWQ0NDJmNWU0MDJiYmU2MjI0MWI2NzFiNGNhMTNmNjBlMjM4NzE4ODQ3Zjg2ODc4ZDlkZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYmNhYjI5ZDg4YWFlNjNlYzcyYjFiZWQ3MGEzYTZiYjBjNTY4NjA1MDQwZWJlOTI1NzA0ZTQwY2MwNDFlMjIifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-19T17:15:50.699Z"
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-22T21:32:59.709Z"
   }
 }

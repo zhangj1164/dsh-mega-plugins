@@ -44,10 +44,10 @@ sources:
     resource: repo://scripts/run-gates.ts
   - id: openwiki-source-fbadcd8591b65031efaaedce
     resource: repo://vitest.config.ts
-generated: { by: "openwiki/0.7.3", at: "2026-11-19T17:15:50.699Z" }
+generated: { by: "openwiki/0.9.0", at: "2026-11-22T21:32:59.709Z" }
 verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-19T17:15:50.699Z
+  - by: openwiki/0.9.0
+    at: 2026-11-22T21:32:59.709Z
 ---
 
 # 快速上手：仓库地图与任务路由
@@ -105,7 +105,7 @@ flowchart LR
   GHI --> ISS
 ```
 
-箭头方向就是调用、注入或写入的方向；浏览器侧只有四条边——`memo` 与 `githubIssue` 两个 Remote 命名空间（看板都经同一个 `callRemote` 包装）、`openwikiVisualize` 一个 Remote 命名空间，加设置页对 `configForms` 两个命名空间的读写，没有跨包的浏览器半边引用。OpenWiki 预览的叶子是 workspace 里的 `openwiki/` 目录与一个被监督的子进程，图中省略。
+箭头方向就是调用、注入或写入的方向；浏览器侧只经 Remote 命名空间访问宿主——`memo` 与 `githubIssue` 两个命名空间（看板都经同一个 `callRemote` 包装）、`openwikiVisualize` 一个命名空间——加上设置页对 `configForms` 两个命名空间的读写，没有跨包的浏览器半边引用。OpenWiki 预览的叶子是 workspace 里的 `openwiki/` 目录与一个被监督的子进程，图中省略。
 
 ## 第一次进仓库
 
@@ -143,7 +143,7 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 
 | 你要做的事 | 先读 | 你会拿到什么 |
 |---|---|---|
-| 建立全局模型：谁在宿主、谁在浏览器、状态落在哪 | [系统总览](architecture/overview.md) | 六包合并表、装配四步顺序、失败定位表、五类改动的落点 |
+| 建立全局模型：谁在宿主、谁在浏览器、状态落在哪 | [系统总览](architecture/overview.md) | 六包合并表、装配四步顺序、四类改动（宿主能力 / 浏览器面 / 持久状态 / Remote 方法）的落点与失败定位 |
 | 加一个宿主能力（新服务、新包、新配置字段） | [备忘服务](systems/memo-service.md) | 一个 `TypertRemoteService` 的完整样本：按周/时间线、归档、会话、AI、日志与自更新分组的方法面、三条失败通道、写守卫、inject 与可选服务 |
 | 在浏览器加一块面（面板、Sidebar tab、Settings section） | [备忘看板 UI](systems/memo-board-ui.md)、[备忘设置页](systems/memo-settings-ui.md)、[OpenWiki 预览](systems/openwiki-visualize.md) | slot 注册与 key 约定、controller 与 RPC 包装、草稿状态机与 `configForms` 守卫、自持右栏 tab 的形态 |
 | 加或改一个 Remote 方法 | [宿主 ⇄ 浏览器 Remote 契约](architecture/host-client-remote-contract.md) | `@Remote` 命名、唯一 `request` 参数、`{ args: { request } }` 线上的双层信封，以及守住它的门禁 |
@@ -157,9 +157,11 @@ pnpm run gates        # check-all：11 个门禁，含 test、build、产物、�
 | 改周/月/季/年标签或周 id | [四维周期日历](concepts/period-calendar.md) | 标签形状、周一起始的 ISO 周与周四规则、宿主唯一的 enumerate/contains 对 |
 | 用宿主服务（`llm`、`fs`、`sessionQuery`、`storageDomain`、`configForms`…） | [DSH 宿主服务](integrations/dsh-host-services.md) | 结构化声明而非 import 的宿主契约，以及让「部分安装」仍可启动的可选读取规则 |
 | 触到 GitHub 侧（建 issue、列可认领 issue、凭据） | [GitHub REST 集成](integrations/github-rest.md)、[GitHub issue 服务](systems/github-issue-service.md) | URL 解析、调用的端点与请求成形、token 解析顺序、超时与稳定失败码 |
-| 改遥测写入/读取或日志分析 | [遥测服务](systems/telemetry-service.md)、[日志分析到 issue 报告](workflows/log-analysis-to-issue.md) | 带序号的写入链与脱敏、读时再脱敏、按 `featureCodeRef` 分组，以及跨插件诊断管线 |
+| 改遥测写入/读取或日志分析 | [遥测服务](systems/telemetry-service.md)、[分析与导出](workflows/analyze-and-export.md)、[日志分析到 issue 报告](workflows/log-analysis-to-issue.md) | 带序号的写入链与脱敏、读时再脱敏、按 `featureCodeRef` 分组，以及跨插件诊断管线；导出报告走哪条链路看分析与导出 |
 | 改 OpenWiki 预览 | [OpenWiki 预览](systems/openwiki-visualize.md) | 环境探测、wiki 检测、被监督子进程与端口解析、版本检查与显式自更新、右栏 tab 与 iframe |
-| 改一条端到端流程 | [分析与导出](workflows/analyze-and-export.md)、[issue 派发](workflows/issue-intake-autopilot.md)、[季度归档与只读](workflows/quarter-archive-and-read-only.md)、[会话总结成周记](workflows/session-summary-to-week.md) | 每个流程的调用链、失败分支、持久副作用，以及哪些守卫在方法内部强制 |
+| 改一条端到端流程 | [分析与导出](workflows/analyze-and-export.md)、[issue 派发](workflows/issue-intake-autopilot.md)、[季度归档与只读](workflows/quarter-archive-and-read-only.md)、[会话总结成周记](workflows/session-summary-to-week.md)、[日志分析到 issue 报告](workflows/log-analysis-to-issue.md) | 每个流程的调用链、失败分支、持久副作用，以及哪些守卫在方法内部强制 |
+
+还有四条概念页，落在架构与系统之间，按触发词进入：[能力与审批边界](concepts/capability-and-approval-boundaries.md)（面板点不动审批）、[配置与实时设置](concepts/configuration-and-live-settings.md)（`Config`、`.volatile()` 与设置页写入）、[LLM 路由与失败事实](concepts/llm-route-and-failure-facts.md)（路由顺序与保留失败码）、[四维周期日历](concepts/period-calendar.md)（周/月/季/年标签与周 id）。集成层两页：[DSH 宿主服务](integrations/dsh-host-services.md) 与 [GitHub REST 集成](integrations/github-rest.md)。目录级索引见 `architecture/`、`concepts/`、`systems/`、`workflows/`、`operations/`、`integrations/`、`testing/` 各自的 `index.md`。
 
 ## 读完之后
 
