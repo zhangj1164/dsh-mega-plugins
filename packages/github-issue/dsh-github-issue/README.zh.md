@@ -44,7 +44,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `dispatchIssue(request)` | 经 Session 控制器新建一个会话并命名，把渲染后的提示词登记为该会话上的一次性自动化任务，由 Schedule 服务送达，并尽量把会话归入配置目录对应的项目工作区；返回 `sessionId`。没有挂载 Schedule 服务的部署改为直接排入提示词。 |
 | `runIntake(request)` | 执行一次接单：列出可接单 issue，跳过此前已派发的，派发其余，并把本地日期持久化。 |
 
-接单方法只报一个稳定的失败码，而不是原始的 `fetch` 错误：`auth-missing`、`auth-failure`、`rate-limited`、`invalid-repo`、`invalid-request`、`http-failure`、`network-failure`、`session-unavailable`、`dispatch-failed`。`auth-missing` 与 `auth-failure` 分开，是因为「没有凭据」和「凭据被拒绝」是两种部署问题，修法不同。
+接单方法只报一个稳定的失败码，而不是原始的 `fetch` 错误：`auth-missing`、`credential-unresolved`、`auth-failure`、`rate-limited`、`invalid-repo`、`invalid-request`、`http-failure`、`network-failure`、`session-unavailable`、`dispatch-failed`。`auth-missing` 与 `auth-failure` 分开，是因为「没有凭据」和「凭据被拒绝」是两种部署问题，修法不同。`credential-unresolved` 表示已配置的凭据来源没能产出 token（消息里带上命令的具体问题），这样 `tokenCommand` 的暂时性失败就不会和「根本没有配置凭据」归进同一组。
 
 ## 模型路由
 
@@ -82,7 +82,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 `runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话，同时登记为一次性自动化任务。会话经 Session 控制器创建，因此与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略；工作本身以任务的形式交给 Schedule 服务——也就是 Web「自动化任务」页面列出的那块面板——由它在任务到点时把渲染好的提示词送进该会话。任务永远绑定一个已存在的会话，所以会话先建；没有挂载 Schedule 服务的部署（非 Web 组合）改为用控制器的 `prompt` 直接排入提示词，那正是 Web 端发提示词走的同一条持久路径：把消息以用户来源记录下来，排进会话 Agent 的收件箱，由控制器自己解析（必要时先恢复）那个 Agent。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
 
-凭据按顺序解析：`token`、`tokenEnv`、`tokenCommand`。成功的结果在进程内缓存，所以走钥匙串的凭据不会每个请求都取一次；失败的结果不缓存，因为「找不到凭据」往往是暂时性的——宿主启动时可能卡住事件循环，而在这段卡顿里已经跑完的命令不能被记成「没有 token」。并发调用共享同一份进行中的解析，超出时限的命令也只有当它真的还在运行时才会被终止。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志；找不到凭据时，失败信息会带上命令的实际问题，因此命令失败不会被报成「部署没有 token」。
+凭据按顺序解析：`token`、`tokenEnv`、`tokenCommand`。成功的结果在进程内缓存，所以走钥匙串的凭据不会每个请求都取一次；失败的结果不缓存，因为「找不到凭据」往往是暂时性的——宿主启动时可能卡住事件循环，而在这段卡顿里已经跑完的命令不能被记成「没有 token」。时限到期后会先看子进程的真实状态，所以迟到的时限会采纳已经跑完的命令，只有真的还在运行的命令才会被终止。并发调用共享同一份进行中的解析，因此第二个调用者不会把「还没解析完」读成「没有凭据」。同一种命令失败只告警一次，因为失败不再缓存、每个 GitHub 调用都会重试。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志；找不到凭据时，失败码是 `credential-unresolved` 并带上命令的实际问题，因此命令失败不会被报成「部署没有 token」。
 
 ### 每天首次启动
 

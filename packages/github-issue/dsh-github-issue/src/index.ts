@@ -10,7 +10,6 @@
  * @module @zhangj1164/dsh-github-issue
  */
 
-import { exec } from 'node:child_process'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { Volatile } from '@deepseek-ai/cosmokit'
 import s from '@deepseek-ai/schemastery'
@@ -19,6 +18,7 @@ import { GithubIssueClient } from './github.ts'
 import { DEFAULT_DISPATCH_PROMPT, isValidTimeZone, issueBody, localDayKey, renderDispatchPrompt } from './intake.ts'
 import { INTAKE_STATE_KEY, createIntakeDomain, type IntakeStateRow } from './spec.ts'
 import { streamLlmText, type LlmRoute, type LlmTextResult, type LlmTextSource } from './llm-text.ts'
+import { runTokenCommand, tokenCommandProblem } from './token-command.ts'
 import type {
   GithubIssueCreateRequest,
   GithubIssueCreateResult,
@@ -450,65 +450,6 @@ function dispatchTitle(issue: GithubIssueTask): string {
   return title.length <= MAX_TITLE_LENGTH ? title : [...title].slice(0, MAX_TITLE_LENGTH).join('')
 }
 
-/** The most token-command output this service buffers; a credential is far smaller. */
-const TOKEN_COMMAND_MAX_BUFFER = 64 * 1024
-
-/** Raised when the configured token command outlives its deadline. */
-class TokenCommandTimeoutError extends Error {
-  /**
-   * @param timeoutMs - the deadline the command exceeded.
-   */
-  constructor(timeoutMs: number) {
-    super('the token command did not finish within ' + timeoutMs + 'ms')
-    this.name = 'TokenCommandTimeoutError'
-  }
-}
-
-/**
- * Run the configured token command under a deadline that survives a stalled event loop.
- *
- * `exec`'s own `timeout` option is a timer on the event loop: when the process
- * stays busy past the deadline, that timer fires only after the command already
- * finished, and exec reports the settled command as killed with an empty
- * stdout. The host blocks its event loop for ten seconds or more while it
- * starts up, which was enough to turn a working `gh auth token` into a missing
- * credential for the rest of the process. This helper starts the child without
- * a built-in timeout and checks the child's real state when its own timer
- * fires, so a late deadline adopts a command that already finished and kills
- * only one that is still running.
- *
- * @param command - the shell command whose stdout is the token.
- * @param timeoutMs - the longest the command may be allowed to run.
- * @returns the command's stdout.
- */
-function runTokenCommand(command: string, timeoutMs: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const child = exec(command, { windowsHide: true, maxBuffer: TOKEN_COMMAND_MAX_BUFFER }, (error, stdout) => {
-      if (error === null) resolve(stdout)
-      else reject(error)
-    })
-    const deadline = setTimeout(() => {
-      setImmediate(() => {
-        if (child.exitCode !== null || child.signalCode !== null) return
-        child.kill()
-        reject(new TokenCommandTimeoutError(timeoutMs))
-      })
-    }, timeoutMs)
-    child.once('close', () => clearTimeout(deadline))
-  })
-}
-
-/**
- * Describe why a token command produced no credential, without leaking its output.
- * @param error - the command failure.
- * @returns a message safe to put in a user-visible failure and in telemetry.
- */
-function tokenCommandProblem(error: unknown): string {
-  if (error instanceof TokenCommandTimeoutError) return error.message
-  const code = (error as { code?: unknown }).code
-  return typeof code === 'number' ? 'the token command exited with code ' + code : 'the token command could not be run'
-}
-
 /** What one credential resolution found. */
 interface TokenResolution {
   /** The token, when one was found. */
@@ -550,6 +491,8 @@ export class GithubIssueService extends TypertRemoteService {
   private resolvedToken?: string
   /** The resolution in flight, shared by concurrent callers. */
   private tokenResolution?: Promise<TokenResolution>
+  /** The last token-command problem already warned about, so retrying does not flood the log. */
+  private warnedTokenProblem?: string
   /** The last invalid time zone already reported, so a warning is not repeated per call. */
   private warnedTimeZone = ''
 
@@ -1121,6 +1064,10 @@ export class GithubIssueService extends TypertRemoteService {
 
   /**
    * Run one credential lookup.
+   *
+   * A failed command is reported once per distinct reason: failures are not
+   * cached, so a deployment whose command never works retries on every GitHub
+   * call, and each attempt must not add another warning line.
    * @returns the token, or the sanitized reason none is available.
    */
   private async resolveTokenOnce(): Promise<TokenResolution> {
@@ -1135,8 +1082,12 @@ export class GithubIssueService extends TypertRemoteService {
       if (fromCommand !== undefined) return { token: fromCommand }
       return { problem: 'the token command printed no output' }
     } catch (error) {
-      this.warn('token command failed: ' + describeError(error))
-      return { problem: tokenCommandProblem(error) }
+      const problem = tokenCommandProblem(error)
+      if (this.warnedTokenProblem !== problem) {
+        this.warnedTokenProblem = problem
+        this.warn('token command failed: ' + describeError(error))
+      }
+      return { problem }
     }
   }
 

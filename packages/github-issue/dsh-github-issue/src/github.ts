@@ -48,8 +48,9 @@ export interface GithubIssueClientOptions {
   readonly token: string | undefined
   /**
    * Sanitized reason no credential was resolved, such as a failed or timed-out
-   * token command. Folded into the `auth-missing` message so a telemetry
-   * diagnosis can tell a missing credential from a command that did not run.
+   * token command. Reported as `credential-unresolved` instead of
+   * `auth-missing`, so a telemetry diagnosis can group a command failure apart
+   * from a deployment that never configured a credential.
    */
   readonly tokenProblem?: string
   /** Fetch implementation; defaults to the process-wide `fetch`. */
@@ -243,17 +244,20 @@ export class GithubIssueClient {
   /**
    * The failure that reports no usable credential.
    *
-   * The reason a lookup failed (a command that timed out or exited non-zero) is
-   * appended when the service knows it: without that, a diagnostic reading only
-   * the telemetry cannot tell a deployment with no credential from one whose
-   * token command failed, which was exactly how a spurious timeout looked like
-   * a missing GitHub token.
+   * When the service knows why its lookup failed (a command that timed out or
+   * exited non-zero), the failure is reported as `credential-unresolved` and
+   * carries that sanitized reason: without the separate code, a diagnostic
+   * reading only the telemetry still groups a transient command failure with a
+   * deployment that has no credential at all, which was exactly how a spurious
+   * timeout looked like a missing GitHub token.
    *
    * @returns the classified failure.
    */
   private authMissing(): GithubIssueFailure {
     const message = 'no GitHub token is configured; set the configured token environment variable or token command'
-    return this.fail('auth-missing', this.tokenProblem === undefined ? message : `${message} (${this.tokenProblem})`)
+    return this.tokenProblem === undefined
+      ? this.fail('auth-missing', message)
+      : this.fail('credential-unresolved', `${message} (${this.tokenProblem})`)
   }
 
   /**

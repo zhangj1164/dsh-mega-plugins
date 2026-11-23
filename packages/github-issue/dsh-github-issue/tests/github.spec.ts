@@ -51,7 +51,7 @@ describe('GithubIssueClient.createIssue', () => {
     expect(called).toBe(false)
   })
 
-  it('names the token command problem in the missing-credential message', async () => {
+  it('names the token command problem in an unresolved-credential failure', async () => {
     let called = false
     const fetchImpl = (async () => {
       called = true
@@ -68,7 +68,7 @@ describe('GithubIssueClient.createIssue', () => {
     const result = await withProblem.listClaimable('ready-for-agent', 1)
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error.code).toBe('auth-missing')
+    expect(result.error.code).toBe('credential-unresolved')
     expect(result.error.message).toContain('no GitHub token is configured')
     expect(result.error.message).toContain('the token command did not finish within 20ms')
     expect(called).toBe(false)
