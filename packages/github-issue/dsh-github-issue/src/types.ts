@@ -141,10 +141,15 @@ export interface GithubIssueTask {
  * The codes are the contract: a caller decides what to do from the code, and
  * the message exists for the human reading the failure. `auth-missing` is
  * separate from `auth-failure` because no credential and a rejected credential
- * are different deployment problems with different fixes.
+ * are different deployment problems with different fixes. `auth-missing` is
+ * also separate from `credential-unresolved`: the first is a deployment with no
+ * credential at all, the second is a configured credential source that failed
+ * to produce one (a timed-out or failing token command) and can succeed on the
+ * next attempt.
  */
 export type GithubIssueFailureCode =
   | 'auth-missing'
+  | 'credential-unresolved'
   | 'auth-failure'
   | 'rate-limited'
   | 'invalid-repo'

@@ -51,6 +51,29 @@ describe('GithubIssueClient.createIssue', () => {
     expect(called).toBe(false)
   })
 
+  it('names the token command problem in an unresolved-credential failure', async () => {
+    let called = false
+    const fetchImpl = (async () => {
+      called = true
+      return json({})
+    }) as typeof fetch
+    const withProblem = new GithubIssueClient({
+      repoUrl: 'https://github.com/acme/widgets',
+      apiBaseUrl: 'https://api.github.com',
+      token: undefined,
+      tokenProblem: 'the token command did not finish within 20ms',
+      timeoutMs: 1000,
+      fetchImpl,
+    })
+    const result = await withProblem.listClaimable('ready-for-agent', 1)
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('credential-unresolved')
+    expect(result.error.message).toContain('no GitHub token is configured')
+    expect(result.error.message).toContain('the token command did not finish within 20ms')
+    expect(called).toBe(false)
+  })
+
   it('classifies the HTTP failures a deployment must distinguish', async () => {
     const cases: { response: Response; code: string }[] = [
       { response: json({ message: 'Bad credentials' }, 401), code: 'auth-failure' },

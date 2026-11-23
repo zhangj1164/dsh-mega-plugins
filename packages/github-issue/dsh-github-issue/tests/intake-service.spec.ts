@@ -1,9 +1,26 @@
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { localDayKey } from '../src/intake.ts'
 import type { IntakeHarness } from './intake-harness.ts'
 import { setupIntakeHarness } from './intake-harness.ts'
 
 const harnesses: IntakeHarness[] = []
+
+/**
+ * Build a token command that appends one byte to a counter file and prints `tok`.
+ *
+ * A side effect is what makes "one resolution" observable: an idempotent
+ * command such as `echo tok` produces the same output whether it ran once, once
+ * per caller, or once per request.
+ * @param counterPath - absolute file the command appends to.
+ * @returns the shell command.
+ */
+function countingTokenCommand(counterPath: string): string {
+  const script = `require('fs').appendFileSync('${counterPath}', 'x');process.stdout.write('tok')`
+  return `"${process.execPath}" -e "${script}"`
+}
 
 afterEach(async () => {
   vi.unstubAllGlobals()
@@ -70,6 +87,95 @@ describe('createIssue', () => {
     if (result.ok) return
     expect(result.error.code).toBe('auth-missing')
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('token resolution', () => {
+  it('keeps a token whose command finished before a stalled deadline fired', async () => {
+    const mounted = await harness({ token: null, tokenCommand: 'echo tok', tokenCommandTimeoutMs: 1000 })
+    const fetchMock = stubFetch([issue(1)])
+    const pending = mounted.service.listClaimableIssues({})
+    // Block the event loop well past the deadline. The command finished long
+    // before it, so the late deadline timer must adopt its output instead of
+    // discarding it: the pre-fix path resolved this lookup with a blank stdout
+    // and cached "no credential" for the rest of the process.
+    const until = Date.now() + 2500
+    while (Date.now() < until) {
+      // stall the event loop
+    }
+    const result = await pending
+    expect(result.ok).toBe(true)
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit
+    expect((init.headers as Record<string, string>).authorization).toBe('Bearer tok')
+  })
+
+  it('times out a command that is still running when the deadline fires', async () => {
+    const mounted = await harness({
+      token: null,
+      tokenCommand: 'node -e "setTimeout(function(){}, 1500)"',
+      tokenCommandTimeoutMs: 1000,
+    })
+    const fetchMock = stubFetch([issue(1)])
+    const result = await mounted.service.listClaimableIssues({})
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('credential-unresolved')
+    expect(result.error.message).toContain('did not finish within 1000ms')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('names the token command failure in the unresolved-credential message', async () => {
+    const mounted = await harness({ token: null, tokenCommand: 'exit 1' })
+    const fetchMock = stubFetch({})
+    const result = await mounted.service.listClaimableIssues({})
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error.code).toBe('credential-unresolved')
+    expect(result.error.message).toContain('no GitHub token is configured')
+    expect(result.error.message).toContain('exited with code 1')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('retries a failed resolution instead of caching the missing credential', async () => {
+    const tokenEnv = 'DSH_TEST_SUITE_LATE_TOKEN'
+    delete process.env[tokenEnv]
+    const mounted = await harness({ token: null, tokenEnv, tokenCommand: 'exit 1' })
+    try {
+      const first = await mounted.service.listClaimableIssues({})
+      expect(first.ok).toBe(false)
+      if (!first.ok) expect(first.error.code).toBe('credential-unresolved')
+      process.env[tokenEnv] = 'late-token'
+      const fetchMock = stubFetch([issue(1)])
+      const second = await mounted.service.listClaimableIssues({})
+      expect(second.ok).toBe(true)
+      const init = fetchMock.mock.calls[0]?.[1] as RequestInit
+      expect((init.headers as Record<string, string>).authorization).toBe('Bearer late-token')
+    } finally {
+      delete process.env[tokenEnv]
+    }
+  })
+
+  it('runs the command once for concurrent callers and reuses a cached success', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-token-command-'))
+    const counterPath = join(dir, 'runs.txt').replace(/\\/gu, '/')
+    try {
+      const mounted = await harness({ token: null, tokenCommand: countingTokenCommand(counterPath) })
+      const fetchMock = stubFetch([issue(1)])
+      const [first, second] = await Promise.all([
+        mounted.service.listClaimableIssues({}),
+        mounted.service.listClaimableIssues({}),
+      ])
+      expect(first.ok).toBe(true)
+      expect(second.ok).toBe(true)
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+      expect(readFileSync(counterPath, 'utf8')).toBe('x')
+      const third = await mounted.service.listClaimableIssues({})
+      expect(third.ok).toBe(true)
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(readFileSync(counterPath, 'utf8')).toBe('x')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 
