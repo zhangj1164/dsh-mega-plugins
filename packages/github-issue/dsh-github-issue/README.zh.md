@@ -17,8 +17,8 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 | `model` | 未设置 | 模型调用的 model id。未设置时与 `provider` 采用同一回退。 |
 | `tokenEnv` | `GITHUB_TOKEN` | `token` 未设置时读取 GitHub token 的环境变量名。空名称表示停用该查找。 |
 | `token` | 未设置 | 显式 GitHub token。由部署自行管理密钥时设置；优先级高于环境变量与命令。 |
-| `tokenCommand` | `gh auth token` | 标准输出即 token 的命令。仅在 `token` 与环境变量都没有提供时执行，且每个进程最多一次。默认复用 `gh` CLI 已保存的凭据，因此已登录 GitHub 的机器无需额外密钥；设为空字符串可停用该查找。 |
-| `tokenCommandTimeoutMs` | `10000` | `tokenCommand` 的超时（毫秒）。 |
+| `tokenCommand` | `gh auth token` | 标准输出即 token 的命令。仅在 `token` 与环境变量都没有提供时执行；成功结果在进程内复用，失败的运行不缓存、下次调用重试，因此一次钥匙串抖动或启动期的卡顿不会让 GitHub 一直不可用直到下次重启。默认复用 `gh` CLI 已保存的凭据，因此已登录 GitHub 的机器无需额外密钥；设为空字符串可停用该查找。 |
+| `tokenCommandTimeoutMs` | `10000` | `tokenCommand` 的超时（毫秒）。超时触发后会先核对子进程的真实状态，因此「在宿主事件循环卡顿期间已经跑完」的命令不会被当成挂起。 |
 | `apiBaseUrl` | `https://api.github.com` | GitHub REST 源。GitHub Enterprise 部署设置自己的 `https://host/api/v3`。 |
 | `requestTimeoutMs` | `15000` | 单次 GitHub REST 请求的超时（毫秒）。 |
 | `claimLabel` | `ready-for-agent` | 标记「可接单」的标签。取值的归属是仓库的分诊词汇表；本字段只决定哪个标签算数。 |
@@ -82,7 +82,7 @@ DSH 的 GitHub issue 生成与优化服务。从遥测分析构建结构化 issu
 
 `runIntake` 随后读取带 `claimLabel` 的 issue，并把每个交给一个新会话，同时登记为一次性自动化任务。会话经 Session 控制器创建，因此与用户在 Web 里新建的会话拿到相同的 preset 与工作区策略；工作本身以任务的形式交给 Schedule 服务——也就是 Web「自动化任务」页面列出的那块面板——由它在任务到点时把渲染好的提示词送进该会话。任务永远绑定一个已存在的会话，所以会话先建；没有挂载 Schedule 服务的部署（非 Web 组合）改为用控制器的 `prompt` 直接排入提示词，那正是 Web 端发提示词走的同一条持久路径：把消息以用户来源记录下来，排进会话 Agent 的收件箱，由控制器自己解析（必要时先恢复）那个 Agent。命名是尽力而为：没有挂载标题服务的部署依然得到一个可用的会话。
 
-凭据每个进程只解析一次，顺序是 `token`、`tokenEnv`、`tokenCommand`。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志。
+凭据按顺序解析：`token`、`tokenEnv`、`tokenCommand`。成功的结果在进程内缓存，所以走钥匙串的凭据不会每个请求都取一次；失败的结果不缓存，因为「找不到凭据」往往是暂时性的——宿主启动时可能卡住事件循环，而在这段卡顿里已经跑完的命令不能被记成「没有 token」。并发调用共享同一份进行中的解析，超出时限的命令也只有当它真的还在运行时才会被终止。默认命令是 `gh auth token`，因此已经登录 GitHub 的机器不需要额外密钥；自行管理密钥的部署设置 `token` 并用空字符串停用命令。token 永远不会被记录到日志；找不到凭据时，失败信息会带上命令的实际问题，因此命令失败不会被报成「部署没有 token」。
 
 ### 每天首次启动
 

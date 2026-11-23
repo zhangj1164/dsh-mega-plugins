@@ -11,7 +11,6 @@
  */
 
 import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { Volatile } from '@deepseek-ai/cosmokit'
 import s from '@deepseek-ai/schemastery'
@@ -451,8 +450,72 @@ function dispatchTitle(issue: GithubIssueTask): string {
   return title.length <= MAX_TITLE_LENGTH ? title : [...title].slice(0, MAX_TITLE_LENGTH).join('')
 }
 
-/** Promise-based `exec`, used only for the configured token command. */
-const execAsync = promisify(exec)
+/** The most token-command output this service buffers; a credential is far smaller. */
+const TOKEN_COMMAND_MAX_BUFFER = 64 * 1024
+
+/** Raised when the configured token command outlives its deadline. */
+class TokenCommandTimeoutError extends Error {
+  /**
+   * @param timeoutMs - the deadline the command exceeded.
+   */
+  constructor(timeoutMs: number) {
+    super('the token command did not finish within ' + timeoutMs + 'ms')
+    this.name = 'TokenCommandTimeoutError'
+  }
+}
+
+/**
+ * Run the configured token command under a deadline that survives a stalled event loop.
+ *
+ * `exec`'s own `timeout` option is a timer on the event loop: when the process
+ * stays busy past the deadline, that timer fires only after the command already
+ * finished, and exec reports the settled command as killed with an empty
+ * stdout. The host blocks its event loop for ten seconds or more while it
+ * starts up, which was enough to turn a working `gh auth token` into a missing
+ * credential for the rest of the process. This helper starts the child without
+ * a built-in timeout and checks the child's real state when its own timer
+ * fires, so a late deadline adopts a command that already finished and kills
+ * only one that is still running.
+ *
+ * @param command - the shell command whose stdout is the token.
+ * @param timeoutMs - the longest the command may be allowed to run.
+ * @returns the command's stdout.
+ */
+function runTokenCommand(command: string, timeoutMs: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = exec(command, { windowsHide: true, maxBuffer: TOKEN_COMMAND_MAX_BUFFER }, (error, stdout) => {
+      if (error === null) resolve(stdout)
+      else reject(error)
+    })
+    const deadline = setTimeout(() => {
+      setImmediate(() => {
+        if (child.exitCode !== null || child.signalCode !== null) return
+        child.kill()
+        reject(new TokenCommandTimeoutError(timeoutMs))
+      })
+    }, timeoutMs)
+    child.once('close', () => clearTimeout(deadline))
+  })
+}
+
+/**
+ * Describe why a token command produced no credential, without leaking its output.
+ * @param error - the command failure.
+ * @returns a message safe to put in a user-visible failure and in telemetry.
+ */
+function tokenCommandProblem(error: unknown): string {
+  if (error instanceof TokenCommandTimeoutError) return error.message
+  const code = (error as { code?: unknown }).code
+  return typeof code === 'number' ? 'the token command exited with code ' + code : 'the token command could not be run'
+}
+
+/** What one credential resolution found. */
+interface TokenResolution {
+  /** The token, when one was found. */
+  readonly token?: string
+  /** The sanitized reason none was found, for the failure the client reports. */
+  readonly problem?: string
+}
 
 /**
  * GitHub-issue generation and optimization service over the configured model.
@@ -483,10 +546,10 @@ export class GithubIssueService extends TypertRemoteService {
   private intakeTable?: GithubIntakeTable
   /** Whether the state is durable; the startup check refuses to run without it. */
   private intakePersistent = false
-  /** The resolved token, cached so a token command runs at most once. */
+  /** The resolved token, cached so a successful token command runs at most once. */
   private resolvedToken?: string
-  /** Whether token resolution finished; a missing credential is a result, not a retry. */
-  private tokenResolved = false
+  /** The resolution in flight, shared by concurrent callers. */
+  private tokenResolution?: Promise<TokenResolution>
   /** The last invalid time zone already reported, so a warning is not repeated per call. */
   private warnedTimeZone = ''
 
@@ -1013,47 +1076,68 @@ export class GithubIssueService extends TypertRemoteService {
   /**
    * Build one GitHub client for a call.
    * @param repoUrl - repository override, or the configured repository.
-   * @returns the client, carrying the resolved credential.
+   * @returns the client, carrying the resolved credential and the reason none was found.
    */
   private async createClient(repoUrl: string | undefined): Promise<GithubIssueClient> {
+    const resolution = await this.resolveToken()
     return new GithubIssueClient({
       repoUrl: firstNonBlank(repoUrl, this.config.repoUrl.get()) ?? this.config.repoUrl.get(),
       apiBaseUrl: this.apiBaseUrl,
-      token: await this.resolveToken(),
+      token: resolution.token,
+      ...(resolution.problem === undefined ? {} : { tokenProblem: resolution.problem }),
       timeoutMs: this.requestTimeoutMs,
     })
   }
 
   /**
-   * Resolve the GitHub credential once.
+   * Resolve the GitHub credential once per success.
    *
    * The order is explicit config, then the configured environment variable,
-   * then the configured command. The command runs at most once per process so
-   * a keyring-backed credential is not fetched on every request, and its output
-   * is never logged.
+   * then the configured command. A successful resolution is cached so a
+   * keyring-backed credential is not fetched on every request. A failed
+   * resolution is not cached: the command may have failed transiently (a
+   * keyring hiccup, or a deadline that fired late because the host's event loop
+   * was busy), and caching that would disable GitHub for the rest of the
+   * process. Concurrent callers share the one resolution in flight, so a second
+   * caller can never read "not resolved yet" as "no credential".
    *
-   * @returns the token, or undefined when the deployment has none.
+   * @returns the token, or the sanitized reason none is available.
    */
-  private async resolveToken(): Promise<string | undefined> {
-    if (this.tokenResolved) return this.resolvedToken
-    this.tokenResolved = true
-    const direct = firstNonBlank(this.token)
-    if (direct !== undefined) return (this.resolvedToken = direct)
-    const fromEnv = this.tokenEnv.length === 0 ? undefined : firstNonBlank(process.env[this.tokenEnv])
-    if (fromEnv !== undefined) return (this.resolvedToken = fromEnv)
-    if (this.tokenCommand.trim().length === 0) return undefined
+  private async resolveToken(): Promise<TokenResolution> {
+    const cached = this.resolvedToken
+    if (cached !== undefined) return { token: cached }
+    const inFlight = this.tokenResolution
+    if (inFlight !== undefined) return inFlight
+    const resolution = this.resolveTokenOnce()
+    this.tokenResolution = resolution
     try {
-      const { stdout } = await execAsync(this.tokenCommand, {
-        timeout: this.tokenCommandTimeoutMs,
-        windowsHide: true,
-        maxBuffer: 64 * 1024,
-      })
+      const result = await resolution
+      if (result.token !== undefined) this.resolvedToken = result.token
+      return result
+    } finally {
+      this.tokenResolution = undefined
+    }
+  }
+
+  /**
+   * Run one credential lookup.
+   * @returns the token, or the sanitized reason none is available.
+   */
+  private async resolveTokenOnce(): Promise<TokenResolution> {
+    const direct = firstNonBlank(this.token)
+    if (direct !== undefined) return { token: direct }
+    const fromEnv = this.tokenEnv.length === 0 ? undefined : firstNonBlank(process.env[this.tokenEnv])
+    if (fromEnv !== undefined) return { token: fromEnv }
+    if (this.tokenCommand.trim().length === 0) return {}
+    try {
+      const stdout = await runTokenCommand(this.tokenCommand, this.tokenCommandTimeoutMs)
       const fromCommand = firstNonBlank(stdout)
-      if (fromCommand !== undefined) return (this.resolvedToken = fromCommand)
+      if (fromCommand !== undefined) return { token: fromCommand }
+      return { problem: 'the token command printed no output' }
     } catch (error) {
       this.warn('token command failed: ' + describeError(error))
+      return { problem: tokenCommandProblem(error) }
     }
-    return undefined
   }
 
   /**

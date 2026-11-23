@@ -210,6 +210,12 @@ export interface IntakeHarnessOptions {
   readonly maxIssuesPerRun?: number
   /** Token to hand the service; `null` means no credential at all. */
   readonly token?: string | null
+  /** Token command the service runs when no direct token is configured. */
+  readonly tokenCommand?: string
+  /** Environment variable the service reads as the second credential source. */
+  readonly tokenEnv?: string
+  /** Deadline for the token command. */
+  readonly tokenCommandTimeoutMs?: number
   /** Make prompt admission fail the way a disposed Agent does. */
   readonly promptFails?: boolean
   /** Mount no Schedule service, the way a non-Web composition does. */
@@ -273,8 +279,10 @@ export async function setupIntakeHarness(options: IntakeHarnessOptions = {}): Pr
   const token = options.token ?? 'test-token'
   await ctx.plugin(GithubIssueService, {
     repoUrl: 'https://github.com/test/repo',
-    tokenEnv: 'DSH_TEST_SUITE_ABSENT_TOKEN',
-    ...(options.token === null ? { tokenCommand: '' } : { token, tokenCommand: '' }),
+    tokenEnv: options.tokenEnv ?? 'DSH_TEST_SUITE_ABSENT_TOKEN',
+    ...(options.token === null ? {} : { token }),
+    tokenCommand: options.tokenCommand ?? '',
+    ...(options.tokenCommandTimeoutMs === undefined ? {} : { tokenCommandTimeoutMs: options.tokenCommandTimeoutMs }),
     autopilotEnabled: options.autopilotEnabled ?? false,
     autopilotTimeZone: options.autopilotTimeZone ?? 'UTC',
     ...(options.autopilotCwd === undefined ? {} : { autopilotCwd: options.autopilotCwd }),

@@ -46,6 +46,12 @@ export interface GithubIssueClientOptions {
   readonly apiBaseUrl: string
   /** Bearer token, or `undefined` when the deployment has no credential. */
   readonly token: string | undefined
+  /**
+   * Sanitized reason no credential was resolved, such as a failed or timed-out
+   * token command. Folded into the `auth-missing` message so a telemetry
+   * diagnosis can tell a missing credential from a command that did not run.
+   */
+  readonly tokenProblem?: string
   /** Fetch implementation; defaults to the process-wide `fetch`. */
   readonly fetchImpl?: typeof fetch
   /** Request deadline in milliseconds. */
@@ -90,6 +96,7 @@ export class GithubIssueClient {
   private readonly repository: GithubRepository | undefined
   private readonly apiBaseUrl: string
   private readonly token: string | undefined
+  private readonly tokenProblem: string | undefined
   private readonly fetchImpl: typeof fetch
   private readonly timeoutMs: number
 
@@ -101,6 +108,7 @@ export class GithubIssueClient {
     this.repository = parseRepository(options.repoUrl)
     this.apiBaseUrl = options.apiBaseUrl.replace(/\/+$/u, '')
     this.token = options.token
+    this.tokenProblem = options.tokenProblem
     this.fetchImpl = options.fetchImpl ?? fetch
     this.timeoutMs = options.timeoutMs
   }
@@ -115,9 +123,7 @@ export class GithubIssueClient {
   async createIssue(report: GithubIssueReport): Promise<GithubIssueCreateResult> {
     const repository = this.repository
     if (repository === undefined) return this.fail('invalid-repo', `"${this.repoUrl}" is not a repository URL`)
-    if (this.token === undefined) {
-      return this.fail('auth-missing', 'no GitHub token is configured; set the configured token environment variable or token command')
-    }
+    if (this.token === undefined) return this.authMissing()
     const title = report.title.trim()
     if (title.length === 0) return this.fail('invalid-request', 'the issue report has no title')
     const response = await this.send({
@@ -152,9 +158,7 @@ export class GithubIssueClient {
   async listClaimable(label: string, max: number): Promise<GithubIssueListResult> {
     const repository = this.repository
     if (repository === undefined) return this.fail('invalid-repo', `"${this.repoUrl}" is not a repository URL`)
-    if (this.token === undefined) {
-      return this.fail('auth-missing', 'no GitHub token is configured; set the configured token environment variable or token command')
-    }
+    if (this.token === undefined) return this.authMissing()
     const query = new URLSearchParams({ state: 'open', labels: label, per_page: String(max) })
     const response = await this.send({
       method: 'GET',
@@ -234,6 +238,22 @@ export class GithubIssueClient {
     }
     if (this.token !== undefined) headers.authorization = `Bearer ${this.token}`
     return headers
+  }
+
+  /**
+   * The failure that reports no usable credential.
+   *
+   * The reason a lookup failed (a command that timed out or exited non-zero) is
+   * appended when the service knows it: without that, a diagnostic reading only
+   * the telemetry cannot tell a deployment with no credential from one whose
+   * token command failed, which was exactly how a spurious timeout looked like
+   * a missing GitHub token.
+   *
+   * @returns the classified failure.
+   */
+  private authMissing(): GithubIssueFailure {
+    const message = 'no GitHub token is configured; set the configured token environment variable or token command'
+    return this.fail('auth-missing', this.tokenProblem === undefined ? message : `${message} (${this.tokenProblem})`)
   }
 
   /**
