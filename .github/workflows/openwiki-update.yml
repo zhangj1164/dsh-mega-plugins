@@ -13,6 +13,9 @@ on:
   # request this workflow opens only touches those paths, so a trigger there
   # would merge, push to main, start another run and open another pull request
   # — forever.
+  #
+  # Set the repository variable OPENWIKI_UPDATE_ENABLED to anything but "true"
+  # to pause the automatic refresh; a manual dispatch still runs.
 
 permissions:
   actions: read
@@ -33,6 +36,10 @@ jobs:
   # arrives outside 00:00-05:59 Asia/Shanghai, and rejects a run that lands
   # within six hours of the previous one. A manual dispatch skips both checks: a
   # maintainer asking for a refresh gets one.
+  #
+  # The repository variable OPENWIKI_UPDATE_ENABLED is a kill switch for the
+  # automatic refresh: unset or "true" keeps the nightly run on, any other value
+  # skips it. A manual dispatch ignores the switch.
   window:
     name: Check the update window
     runs-on: ubuntu-latest
@@ -45,12 +52,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
           TRIGGER: ${{ github.event_name }}
+          SCHEDULE_ENABLED: ${{ vars.OPENWIKI_UPDATE_ENABLED }}
         run: |
           set -euo pipefail
 
           if [ "$TRIGGER" = "workflow_dispatch" ]; then
             echo "Manual run: the night-window check does not apply."
             echo "allowed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # OPENWIKI_UPDATE_ENABLED is the repository switch for the automatic
+          # refresh: unset or "true" keeps the nightly run on, any other value
+          # skips it. A manual run bypasses the switch, so a maintainer can
+          # still refresh on demand; disable the workflow to stop that too.
+          enabled=$(printf '%s' "${SCHEDULE_ENABLED:-true}" | tr '[:upper:]' '[:lower:]')
+          if [ "$enabled" != "true" ]; then
+            echo "OPENWIKI_UPDATE_ENABLED is '${SCHEDULE_ENABLED:-true}', skipping this run."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
