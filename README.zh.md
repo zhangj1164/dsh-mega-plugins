@@ -29,30 +29,31 @@ pnpm run verify-translation-pairing   # 校验双语 README 一致性（7 对）
 
 ```sh
 # 完整备忘套件（遥测 + issue 服务 + 备忘 + 浏览器面板 + 设置页）
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 
 # 只装通用遥测服务，供其他插件消费
 dsh plugin --profile web add @zhangj1164/dsh-telemetry
 ```
 
-`@zhangj1164/dsh-client-ui-memo` 自己不声明 bundle：`@zhangj1164/dsh-memo` 的 patch 会插入它的 `ui-memo` 行，因此面板随 `@zhangj1164/dsh-memo` 一起激活——但包本身仍须点名，且 `dsh plugin add` 会把它报告为普通依赖而非 profile layer。对 `dsh.client` 插件而言这条提示是预期行为，不是缺陷。`@zhangj1164/dsh-client-ui-memo-settings` 则刻意不同：它自带 bundle patch，插入 `ui-memo-settings` 行，因此作为 profile layer 安装，可以独立增删而不必改备忘 bundle。它的页面只在已部署的备忘宿主提供 `memo` 设置命名空间时注册，所以没装备忘套件时装上它不会留下任何可见痕迹。
+启动所需的每个 bundle 都要点名。profile 设置了 `autoInstallPeers: false`，因此安装只引入命令点名的包及其依赖，永远不会带入 peer 依赖。备忘面板就是其中一个依赖：`@zhangj1164/dsh-client-ui-memo` 随 `@zhangj1164/dsh-memo` 一起装上，不需要点名。只装 `@zhangj1164/dsh-memo` 仍会让 `github-issue` 行无法解析——`memo (@zhangj1164/dsh-memo): pending (waiting for service: githubIssue)`——因为该服务属于它自己的 bundle。
 
-凡是启动所需的行或其注入服务所属的包，都必须点名。profile 设置了 `autoInstallPeers: false`，安装只引入命令点名的包——只装 `@zhangj1164/dsh-memo` 会让 `github-issue` 与 `ui-memo` 两行无法解析，加载器随之让启动失败。
+`@zhangj1164/dsh-client-ui-memo` 自己不声明 bundle。`@zhangj1164/dsh-memo` 的 patch 会插入它的 `ui-memo` 行，并且本包依赖它，因此安装备忘服务就装上面板并激活它；`dsh plugin add` 会把没有 `dsh.bundle` 的包报告为普通依赖而非 profile layer，对 `dsh.client` 插件而言这条提示是预期行为，不是缺陷。这里刻意声明为普通依赖而不是 peer：profile 从不安装 peer，把它声明为 peer 的那个版本正是让该行未激活、侧边栏没有「备忘」的原因（[#194](https://github.com/zhangj1164/dsh-mega-plugins/issues/194)）。面板自己保留着对备忘宿主的 peer，因此 pnpm 会在安装时报告循环 workspace 依赖；没有任何构建或启动依赖该顺序。`@zhangj1164/dsh-client-ui-memo-settings` 则刻意不同：它自带 bundle patch，插入 `ui-memo-settings` 行，因此作为 profile layer 安装，可以独立增删而不必改备忘 bundle。它的页面只在已部署的备忘宿主提供 `memo` 设置命名空间时注册，所以没装备忘套件时装上它不会留下任何可见痕迹。
 
 `@zhangj1164/dsh-telemetry` 与 `@zhangj1164/dsh-github-issue` 暴露的是 Cordis 服务（`ctx.telemetry`、`ctx.githubIssue`），而不是模型工具或面板。它们属于基础设施：单独装 `@zhangj1164/dsh-telemetry` 只是给消费方插件提供可调用的能力，终端用户看不到任何界面。可见界面是备忘看板。
 
 ### 从 GitHub 安装（不经过注册表）
 
-同样五个包可以不经任何注册表发布，直接从本仓库安装。pnpm 用 **committish** 里的 `path:` 参数选中仓库内的某个包，也就是写在 `#` 之后——pnpm 把它当作 ref 的一部分，因此把 `&path:` 写在仓库 URL 上会被默默当成仓库名的一部分，拉取随之失败：
+这些包可以不经任何注册表发布，直接从本仓库安装。pnpm 用 **committish** 里的 `path:` 参数选中仓库内的某个包，也就是写在 `#` 之后——pnpm 把它当作 ref 的一部分，因此把 `&path:` 写在仓库 URL 上会被默默当成仓库名的一部分，拉取随之失败：
 
 ```sh
 dsh plugin --profile web add \
   "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
   "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
   "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
-  "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo" \
   "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo-settings"
 ```
+
+当被测改动属于浏览器侧时，再加一条 `"github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"`。不加也能装成功：从 git 读到的 manifest 保留普通范围，备忘 bundle 会从注册表取面板作为其依赖。点名该路径则把面板钉到同一个检出，面板改动需要这一点。
 
 git 安装取的是源码而不是构建产物，因此每个包的 `prepare` 脚本会在安装过程中构建出 `lib/`。pnpm ≥10 在 profile 授权之前不会执行该脚本：首次 `add` 会以 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` 失败，并打印出确切的 `allowBuilds` 键。该键带有解析到的 commit，下一次推送之后就不再匹配。请改用仓库级形式（对任意 commit 都生效），写入 `${DSH_HOME}/profiles/web/pnpm-workspace.yaml`：
 
@@ -67,7 +68,7 @@ allowBuilds:
 
 这项授权意味着允许该包的代码在安装时于你的机器上执行，且不在任何 agent 沙箱之内。只对可信来源授权；当已安装内容必须停止漂移时请锁定 commit——`github:zhangj1164/dsh-mega-plugins#<sha>&path:packages/memo/dsh-memo`，ref 与 `path:` 之间用 `&` 连接。
 
-注册表仍是更好的默认选择：已发布的包直接提供构建好的 `lib/`，完全不需要构建授权。git 安装还会在兄弟 `peerDependencies` 中保留 `workspace:^`，因为 pnpm 直接读取 checkout 里的 manifest，没有任何环节会改写它；pnpm 会为此打印一条 peer 警告，而启动不受影响：profile 已经点名启动所需的每个包，并设置了 `autoInstallPeers: false`，这些范围没有需要解析的对象。
+注册表仍是更好的默认选择：已发布的包直接提供构建好的 `lib/`，完全不需要构建授权。git 安装还会在兄弟 `peerDependencies` 中保留 `workspace:^`，因为 pnpm 直接读取 checkout 里的 manifest，没有任何环节会改写它；pnpm 会为此打印一条 peer 警告，而启动不受影响：profile 已经点名启动所需的每个包，并设置了 `autoInstallPeers: false`，这些范围没有需要解析的对象。出于同一原因，唯一必须随包安装的依赖——备忘 bundle 的面板——使用普通范围，把它写成 `workspace:` 会让这类安装以 `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` 失败。
 
 ## 工作区结构
 

@@ -181,6 +181,9 @@ importers:
       '@deepseek-ai/schemastery':
         specifier: ^3.18.4
         version: 3.18.4
+      '@zhangj1164/dsh-client-ui-memo':
+        specifier: ^0.7.0
+        version: link:../../client/ui-memo
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -209,9 +212,6 @@ importers:
       '@types/node':
         specifier: ^26.5.1
         version: 26.5.1
-      '@zhangj1164/dsh-client-ui-memo':
-        specifier: workspace:*
-        version: link:../../client/ui-memo
       '@zhangj1164/dsh-github-issue':
         specifier: workspace:*
         version: link:../../github-issue/dsh-github-issue

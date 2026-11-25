@@ -88,7 +88,7 @@
 
 ## Bundle 层
 
-该包包含在 `@zhangj1164/dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行。它声明 `dsh.client`——正是这一点让浏览器端经 `exports["./client"]` 可被发现——并刻意不声明自己的 `dsh.bundle`，这与官方 `dsh-client-ui-*` 包一致：它们由宿主 bundle 插入，而不是作为 layer 安装。因此无需单独 bundle，执行 `dsh plugin --profile web add @zhangj1164/dsh-client-ui-memo` 会把它报告为普通依赖而非 profile layer。这里的这条提示是预期行为，不是缺陷。安装 `@zhangj1164/dsh-memo`，面板随之到位。
+该包包含在 `@zhangj1164/dsh-memo` bundle 的 `cordis.patch.yml` 中，作为 `ui-memo` 行；而该 bundle 把本包声明为**普通依赖**，因此 `dsh plugin --profile web add @zhangj1164/dsh-memo` 就会装上面板并激活该行——本包永远不需要单独点名。这里刻意不用 peer：profile 设置了 `autoInstallPeers: false`，peer 什么都不会装，该行在启动时仍然无法解析（[#194](https://github.com/zhangj1164/dsh-mega-plugins/issues/194)）。它声明 `dsh.client`——正是这一点让浏览器端经 `exports["./client"]` 可被发现——并刻意不声明自己的 `dsh.bundle`，这与官方 `dsh-client-ui-*` 包一致：它们由宿主 bundle 插入，而不是作为 layer 安装。因此无需单独 bundle；执行 `dsh plugin --profile web add @zhangj1164/dsh-client-ui-memo` 仍然可用，只是会把它报告为普通依赖而非 profile layer。这里的这条提示是预期行为，不是缺陷。
 
 ## 测试
 

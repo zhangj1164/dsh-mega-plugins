@@ -71,10 +71,10 @@ Package name, registry, profile, and timeout are the Host's `update*` Config fie
 
 This package declares `dsh.bundle` with its own `cordis.patch.yml`, which inserts one row, `ui-memo-settings`. The module always loads; it registers a page only for a namespace the deployment actually serves. Installed without `@zhangj1164/dsh-memo` it shows no memo page, and installed without `@zhangj1164/dsh-github-issue` it shows no intake page.
 
-Install the suite by naming every package, since a profile installs only what is on the command line:
+Install the suite by naming every bundle, since a profile installs only what is on the command line plus what those packages depend on:
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
 ## Tests

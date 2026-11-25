@@ -167,26 +167,33 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 此包声明 `dsh: { bundle: { patch: "./cordis.patch.yml" } }`。补丁只插入两行——`memo` 与 `ui-memo`——不插入其他任何行。本套件的每个组合条目 id 都只有一个归属 bundle：`telemetry` 属于 `@zhangj1164/dsh-telemetry`，`github-issue` 属于 `@zhangj1164/dsh-github-issue`，`memo` 与 `ui-memo` 属于本 bundle。由于没有两个 bundle 插入同一个 id，套件的任意子集都能组合，整套则用最自然的命令即可安装：
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-四个包都必须点名。profile 设置了 `autoInstallPeers: false`（`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`），因此安装只会引入命令中点名的包，永远不会自动带入 peer 依赖。其中三个正是本 bundle 各行得以解析所必需的：memo 服务通过 `inject` 依赖 `telemetry` 与 `githubIssue`，而补丁插入的 `ui-memo` 行指向 `@zhangj1164/dsh-client-ui-memo`。只装 `@zhangj1164/dsh-memo` 会让它们全部无法解析，加载器随之让启动失败——先是 `Cannot find package '@zhangj1164/dsh-github-issue' imported from …`，接着是同样的 `@zhangj1164/dsh-client-ui-memo`。把 `@zhangj1164/dsh-telemetry`、`@zhangj1164/dsh-github-issue`、`@zhangj1164/dsh-client-ui-memo` 与 `@zhangj1164/dsh-memo` 一起点名，套件才能加载。
+`ui-memo` 行不需要点名即可解析：`@zhangj1164/dsh-client-ui-memo` 是本包的普通依赖，而 profile 会安装 bundle 的依赖。另外两个必须点名。profile 设置了 `autoInstallPeers: false`（`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`），因此安装只会引入命令点名的包及其依赖，永远不会带入 peer 依赖；memo 服务通过 `inject` 依赖 `telemetry` 与 `githubIssue` 服务，而它们各属自己的 bundle，所以只装本包时这两个服务无法解析，加载器会把该行挂起——`memo (@zhangj1164/dsh-memo): pending (waiting for service: githubIssue)`。
+
+面板必须是普通依赖，且范围必须写成普通版本号。把它声明成 peer，正是早期版本让 `ui-memo` 行未激活、侧边栏没有「备忘」的原因，因为 profile 从不安装 peer。范围留在 `^0.7.0` 而不是 `workspace:^`，是因为 `pnpm publish` 会改写 `workspace:` 范围，而 pnpm 直接从 git 检出读取的 manifest 永远不会被改写——`workspace:` 依赖会让那种安装以 `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` 失败。根 `pnpm-workspace.yaml` 的 `linkWorkspacePackages` 负责让本地检出仍被链接；当某个 bundle 点名了它并未依赖的 workspace 包、或通过 workspace 协议依赖它时，`pnpm run verify-bundle-entries` 会失败。
 
 本包此前自己插入 `github-issue` 行。这确实让套件可以用一条命令安装，但也让同一个条目 id 有了两个归属方，于是「把所有包都点名」——安装整套最显然的方式——变成了启动失败（`duplicate loader entry id: github-issue`），而不是合并。一个 id 只有一个归属方，正是子集可自由组合的前提，`pnpm run verify-bundle-entries` 会强制这一点。
 
 ### 从本仓库安装（不经过注册表）
 
-当没有可用的注册表发布、或不想走注册表时，同样四个包可以直接从 monorepo 安装。pnpm 用属于 committish 的 `path:` 参数选中仓库内的包，也就是写在 `#` 之后：
+当没有可用的注册表发布、或不想走注册表时，同样的三个 bundle 可以直接从 monorepo 安装。pnpm 用属于 committish 的 `path:` 参数选中仓库内的包，也就是写在 `#` 之后：
 
 ```sh
 dsh plugin --profile web add \
   "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
   "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
-  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo"
+```
+
+从 git 读到的 manifest 保留其声明的范围，因此这种安装会从注册表取本包依赖的已发布 `@zhangj1164/dsh-client-ui-memo`。当被测改动属于浏览器侧时，把面板的路径也点名，让面板同样来自检出：
+
+```sh
   "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
 ```
 
-git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程中构建出 `lib/`。pnpm ≥10 在 profile 授权之前拒绝执行它：首次 `add` 会以 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` 失败；仓库根 README 同时记录了修复所需的、与 commit 无关的 `allowBuilds` 键，以及授权构建所伴随的锁定 commit 注意事项。
+git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程中构建出 `lib/`。pnpm ≥10 在 profile 授权之前拒绝执行它：首次 `add` 会以 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` 失败；仓库根 README 同时记录了修复所需的、与 commit 无关的 `allowBuilds` 键，以及授权构建所伴随的锁定 commit 注意事项。该键以仓库为粒度，因此点名面板路径时同样覆盖它。
 
 ## 需求映射
 

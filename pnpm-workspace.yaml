@@ -1,5 +1,10 @@
 packages:
   - 'packages/*/*'
+# A published manifest may not carry a `workspace:` range in `dependencies`: a
+# git-fetched manifest is never rewritten, and pnpm refuses that install with
+# ERR_PNPM_WORKSPACE_PKG_NOT_FOUND. Packages therefore depend on each other by
+# plain range and this setting keeps the local checkout linked anyway.
+linkWorkspacePackages: true
 allowBuilds:
   esbuild: true
 # Exact DSH releases this workspace resolves to. A fresh rc can be younger than

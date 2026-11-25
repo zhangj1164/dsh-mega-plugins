@@ -3,15 +3,20 @@
 # `githubIssue` services, which are owned by their own bundles — install this
 # bundle with `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue`:
 #
-#   dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+#   dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 #
-# Those two rows are deliberately NOT inserted here. A bundle layer cannot
-# remove an insert from an earlier layer and the loader rejects a duplicate
-# entry id outright, so a bundle that repeats a row another bundle owns makes
-# the natural "install everything" command a boot failure. One entry id has
-# exactly one owning bundle; that is what lets any subset of the suite be
-# installed together. `pnpm run verify-bundle-entries` fails on any workspace
-# bundle that inserts an id another workspace bundle already inserts.
+# The `ui-memo` row below is this bundle's own: `@zhangj1164/dsh-client-ui-memo`
+# is a regular dependency of this package, so the profile installs it with the
+# bundle and no command needs to name it.
+#
+# The telemetry and github-issue rows are deliberately NOT inserted here. A
+# bundle layer cannot remove an insert from an earlier layer and the loader
+# rejects a duplicate entry id outright, so a bundle that repeats a row another
+# bundle owns makes the natural "install everything" command a boot failure. One
+# entry id has exactly one owning bundle; that is what lets any subset of the
+# suite be installed together. `pnpm run verify-bundle-entries` fails on any
+# workspace bundle that inserts an id another workspace bundle already inserts,
+# and on any row whose package the inserting bundle does not depend on.
 
 - insert:
     - id: memo

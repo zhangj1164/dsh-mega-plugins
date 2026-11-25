@@ -71,10 +71,10 @@
 
 本包声明了 `dsh.bundle` 和自己的 `cordis.patch.yml`，只插入一行 `ui-memo-settings`。模块总会加载，但只为部署真正提供的命名空间注册页面：没装 `@zhangj1164/dsh-memo` 就没有备忘页，没装 `@zhangj1164/dsh-github-issue` 就没有接单页。
 
-安装整套时要逐个点名包，因为 profile 只安装命令行上列出的包：
+安装整套时要逐个点名 bundle，因为 profile 只安装命令行上列出的包及其依赖：
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo @zhangj1164/dsh-client-ui-memo-settings
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
 ## 测试
