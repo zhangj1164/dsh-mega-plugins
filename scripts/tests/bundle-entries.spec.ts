@@ -12,15 +12,17 @@
  * assertion lives in the gate itself.
  */
 import { describe, expect, it } from 'vitest'
-import { findCollisions, mentionsExclusion, parseInsertIds } from '../verify-bundle-entries.ts'
+import { findCollisions, findUninstallableRows, mentionsExclusion, parseInsertIds, parseInsertRows } from '../verify-bundle-entries.ts'
 
 /** Build a bundle fixture from a patch body. */
 function bundle(pkg: string, patch: string) {
+  const rows = parseInsertRows(patch, pkg)
   return {
     package: pkg,
     dir: process.cwd(),
     patchPath: `${pkg}/cordis.patch.yml`,
-    ids: parseInsertIds(patch, pkg),
+    rows,
+    ids: rows.map(row => row.id),
     raw: patch,
   }
 }
@@ -74,6 +76,69 @@ describe('parseInsertIds', () => {
     expect(() => parseInsertIds('# only a comment\n', 'fixture')).toThrow(
       /fixture declares a bundle patch but inserts no entry id/u,
     )
+  })
+})
+
+describe('parseInsertRows', () => {
+  it('reads the package each row names', () => {
+    const patch = [
+      '- insert:',
+      '    - id: memo',
+      '      name: "@zhangj1164/dsh-memo"',
+      '      config:',
+      '        repoUrl: https://example.test/repo',
+      '    - id: ui-memo',
+      "      name: '@zhangj1164/dsh-client-ui-memo'",
+    ].join('\n')
+    expect(parseInsertRows(patch, 'fixture')).toEqual([
+      { id: 'memo', name: '@zhangj1164/dsh-memo' },
+      { id: 'ui-memo', name: '@zhangj1164/dsh-client-ui-memo' },
+    ])
+  })
+
+  it('leaves a row nameless when the patch names no package', () => {
+    const patch = ['- insert:', '    - id: telemetry', '      config:', '        name: not-a-row-name'].join('\n')
+    expect(parseInsertRows(patch, 'fixture')).toEqual([{ id: 'telemetry' }])
+  })
+
+  it('ignores a commented-out row', () => {
+    const patch = ['- insert:', '    - id: telemetry', '      name: dsh-telemetry', '    # - id: memo'].join('\n')
+    expect(parseInsertRows(patch, 'fixture')).toEqual([{ id: 'telemetry', name: 'dsh-telemetry' }])
+  })
+})
+
+describe('findUninstallableRows', () => {
+  const workspace = [
+    { name: 'host', dir: 'host', dependencies: { panel: '^0.7.0', proto: 'workspace:^' } },
+    { name: 'panel', dir: 'panel', dependencies: {} },
+    { name: 'peerly', dir: 'peerly', dependencies: {} },
+    { name: 'proto', dir: 'proto', dependencies: {} },
+  ]
+  const patch = (id: string, name: string) => `- insert:\n    - id: ${id}\n      name: ${name}`
+
+  it('accepts a row whose package the bundle depends on with a plain range', () => {
+    expect(findUninstallableRows([bundle('host', patch('panel', 'panel'))], workspace)).toEqual([])
+  })
+
+  it('accepts a row composing the bundle itself', () => {
+    expect(findUninstallableRows([bundle('host', patch('host', 'host'))], workspace)).toEqual([])
+  })
+
+  it('rejects a row whose package is not declared at all', () => {
+    const rows = findUninstallableRows([bundle('host', patch('peerly', 'peerly'))], workspace)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.name).toBe('peerly')
+    expect(rows[0]!.detail).toContain('its manifest does not depend on it')
+  })
+
+  it('rejects a workspace: range, which a git install cannot resolve', () => {
+    const rows = findUninstallableRows([bundle('host', patch('proto', 'proto'))], workspace)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.detail).toContain('ERR_PNPM_WORKSPACE_PKG_NOT_FOUND')
+  })
+
+  it('leaves a package outside the workspace alone', () => {
+    expect(findUninstallableRows([bundle('host', patch('external', '@acme/panel'))], workspace)).toEqual([])
   })
 })
 
