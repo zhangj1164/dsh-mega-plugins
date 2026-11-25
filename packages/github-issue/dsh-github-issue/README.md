@@ -163,10 +163,10 @@ The service has no dependency on `@zhangj1164/dsh-memo`; memo is one consumer am
 This bundle is the sole owner of the `github-issue` entry id. `@zhangj1164/dsh-memo` injects the service but does not insert this row, so the standalone bundle and the memo suite compose without a conflict and `pnpm run verify-bundle-entries` finds no overlap. A memo deployment therefore names the whole suite:
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-`@zhangj1164/dsh-github-issue` is named explicitly rather than pulled in as a peer: a profile sets `autoInstallPeers: false`, so an install brings in only what the command names, and `@zhangj1164/dsh-memo` alone would leave this row unresolvable.
+`@zhangj1164/dsh-github-issue` is named explicitly rather than pulled in as a peer: a profile sets `autoInstallPeers: false`, so an install brings in what the command names plus what those packages depend on, and `@zhangj1164/dsh-memo` alone would leave this row unresolvable. The memo panel needs no name of its own — the memo bundle depends on it — but this service is owned by its own bundle, so it does.
 
 ## Exports
 

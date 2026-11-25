@@ -167,26 +167,33 @@ The current week is always editable. Editing or deleting entries in a past week 
 This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The patch inserts exactly two rows — `memo` and `ui-memo` — and nothing else. Every composition entry id in this suite has one owning bundle: `telemetry` belongs to `@zhangj1164/dsh-telemetry`, `github-issue` to `@zhangj1164/dsh-github-issue`, and `memo` plus `ui-memo` to this bundle. No two bundles insert the same id, so any subset of the suite composes and the whole suite installs with the obvious command:
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-All four packages must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in only the packages the command names and never a peer dependency. Three of the four are what this bundle's rows need in order to resolve: the memo service injects `telemetry` and `githubIssue`, and the patch inserts a `ui-memo` row naming `@zhangj1164/dsh-client-ui-memo`. Installing `@zhangj1164/dsh-memo` by itself leaves all of them unresolvable and the loader fails the boot — `Cannot find package '@zhangj1164/dsh-github-issue' imported from …`, then the same for `@zhangj1164/dsh-client-ui-memo`. Naming `@zhangj1164/dsh-telemetry`, `@zhangj1164/dsh-github-issue` and `@zhangj1164/dsh-client-ui-memo` alongside `@zhangj1164/dsh-memo` is what makes the suite load.
+The `ui-memo` row resolves without being named: `@zhangj1164/dsh-client-ui-memo` is a regular dependency of this package, and a profile installs a bundle's dependencies. The other two must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in what the command names plus what those packages depend on, and never a peer dependency; the memo service injects the `telemetry` and `githubIssue` services, which belong to their own bundles, so installing this package by itself leaves those two unresolvable and the loader holds the row back — `memo (@zhangj1164/dsh-memo): pending (waiting for service: githubIssue)`.
+
+The panel has to be a regular dependency, and its range has to be plain. Declaring it as a peer is what left an earlier release with the row inactive and the sidebar without a memo entry, because the profile never installs a peer. The range stays a plain `^0.7.0` rather than `workspace:^` because `pnpm publish` rewrites a `workspace:` range while a manifest pnpm reads out of a git checkout is never rewritten — a `workspace:` dependency fails that install with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`. `linkWorkspacePackages` in the root `pnpm-workspace.yaml` keeps the local checkout linked instead, and `pnpm run verify-bundle-entries` fails when a bundle names a workspace package it does not depend on or depends on through the workspace protocol.
 
 This package formerly inserted the `github-issue` row itself. That made the suite installable with one command, but it also gave the same entry id two owners, so naming every package — the obvious way to install the suite — was a boot failure (`duplicate loader entry id: github-issue`) rather than a merge. One owner per id is the property that makes subsets composable, and `pnpm run verify-bundle-entries` enforces it.
 
 ### From this repository instead of the registry
 
-The same four packages install straight from the monorepo when no registry release is available or wanted. pnpm selects a package inside a repository with a `path:` parameter that belongs to the committish, after the `#`:
+The same three bundles install straight from the monorepo when no registry release is available or wanted. pnpm selects a package inside a repository with a `path:` parameter that belongs to the committish, after the `#`:
 
 ```sh
 dsh plugin --profile web add \
   "github:zhangj1164/dsh-mega-plugins#path:packages/telemetry/dsh-telemetry" \
   "github:zhangj1164/dsh-mega-plugins#path:packages/github-issue/dsh-github-issue" \
-  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo" \
+  "github:zhangj1164/dsh-mega-plugins#path:packages/memo/dsh-memo"
+```
+
+A git-fetched manifest keeps its declared ranges, so that install takes the published `@zhangj1164/dsh-client-ui-memo` from the registry as this package's dependency. Name the panel's path as well when the change under test is a browser-side one, so the panel comes from the checkout too:
+
+```sh
   "github:zhangj1164/dsh-mega-plugins#path:packages/client/ui-memo"
 ```
 
-A git install fetches source, so this package's `prepare` script builds `lib/` during the install. pnpm ≥10 refuses to run it until the profile authorizes the build: the first `add` fails with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`, and the repository README records both the commit-independent `allowBuilds` keys that fix it and the pinning caveat that comes with authorizing a build.
+A git install fetches source, so this package's `prepare` script builds `lib/` during the install. pnpm ≥10 refuses to run it until the profile authorizes the build: the first `add` fails with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`, and the repository README records both the commit-independent `allowBuilds` keys that fix it and the pinning caveat that comes with authorizing a build. The key names the repository, so it covers the panel as well when its path is named.
 
 ## Requirement mapping
 

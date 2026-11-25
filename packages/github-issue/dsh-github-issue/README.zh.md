@@ -163,10 +163,10 @@ if (issues !== undefined) {
 本 bundle 是 `github-issue` 这个条目 id 的唯一归属方。`@zhangj1164/dsh-memo` 注入该服务，但不插入这一行，因此独立 bundle 与备忘套件可以无冲突地组合，`pnpm run verify-bundle-entries` 也找不到任何重叠。备忘部署因此需要点名整套：
 
 ```sh
-dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo
+dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-`@zhangj1164/dsh-github-issue` 要点名安装，而不是作为 peer 被带入：profile 设置了 `autoInstallPeers: false`，安装只引入命令点名的包，只装 `@zhangj1164/dsh-memo` 会让这一行无法解析。
+`@zhangj1164/dsh-github-issue` 要点名安装，而不是作为 peer 被带入：profile 设置了 `autoInstallPeers: false`，安装只引入命令点名的包及其依赖，只装 `@zhangj1164/dsh-memo` 会让这一行无法解析。备忘面板不需要自己点名——备忘 bundle 依赖它——但本服务归属于它自己的 bundle，所以必须点名。
 
 ## 导出
 
