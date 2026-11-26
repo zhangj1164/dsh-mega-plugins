@@ -170,7 +170,9 @@ This package declares `dsh: { bundle: { patch: "./cordis.patch.yml" } }`. The pa
 dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-The `ui-memo` row resolves without being named: `@zhangj1164/dsh-client-ui-memo` is a regular dependency of this package, and a profile installs a bundle's dependencies. The other two must be named. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in what the command names plus what those packages depend on, and never a peer dependency; the memo service injects the `telemetry` and `githubIssue` services, which belong to their own bundles, so installing this package by itself leaves those two unresolvable and the loader holds the row back — `memo (@zhangj1164/dsh-memo): pending (waiting for service: githubIssue)`.
+The `ui-memo` row resolves without being named: `@zhangj1164/dsh-client-ui-memo` is a regular dependency of this package, and a profile installs a bundle's dependencies. The other two must be named to get their services. A profile sets `autoInstallPeers: false` (`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`), so an install brings in what the command names plus what those packages depend on, and never a peer dependency.
+
+Those two services are optional, not injected. The memo service activates with the storage domain alone, and `capabilities` reports which of them this deployment provides together with the command that installs a missing one. A solo install therefore boots — memos, analysis, and export work — and the board marks the two features it cannot run: Log Analysis needs telemetry, Add Issue needs github-issue, and pressing either button names the bundle to install instead of reporting a failed call.
 
 The panel has to be a regular dependency, and its range has to be plain. Declaring it as a peer is what left an earlier release with the row inactive and the sidebar without a memo entry, because the profile never installs a peer. The range stays a plain `^0.7.0` rather than `workspace:^` because `pnpm publish` rewrites a `workspace:` range while a manifest pnpm reads out of a git checkout is never rewritten — a `workspace:` dependency fails that install with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`. `linkWorkspacePackages` in the root `pnpm-workspace.yaml` keeps the local checkout linked instead, and `pnpm run verify-bundle-entries` fails when a bundle names a workspace package it does not depend on or depends on through the workspace protocol.
 
@@ -205,11 +207,11 @@ A git install fetches source, so this package's `prepare` script builds `lib/` d
 - **Req 6** — `exportReport` generates a standard work report in Markdown, ready for review and export as `.md`.
 - **Req 7** — Every key action calls `ctx.telemetry.track()` / `ctx.telemetry.trackError()` with a `featureCodeRef` anchor.
 - **Req 8** — `analyzeLogs` reads telemetry failures via the `telemetry` service, generates a GitHub issue report via `githubIssue`, and returns the report + prefill URL.
-- **Req 12** — Depends on `@zhangj1164/dsh-telemetry` and `@zhangj1164/dsh-github-issue` as separate generic plugins, each shipping its own bundle. All three packages must be installed together, because the injected services come from those bundles and a profile does not auto-install peers.
+- **Req 12** — Telemetry and GitHub issue are separate generic plugins, each shipping its own bundle. The memo service reads both with `ctx.get` and activates without either: a deployment that installs only this package keeps memos, AI analysis, and export, while `capabilities` reports the missing service and the board offers the command that installs its bundle.
 
 ## Known Limitations
 
 - **Week-keyed only** — entries are organized by ISO week; there is no free-form date or tag system.
 - **Model route is deployment configuration** — `analyze` and `exportReport` fail with `llm-failure` and a `failureCode` when no route resolves or the configured route is not registered. Set `provider`/`model` here or rely on `agentDefaultModel`.
-- **Telemetry and github-issue are injected services** — the memo service depends on their availability through `inject`.
+- **Telemetry and github-issue are optional services** — Log Analysis needs telemetry, and Add Issue needs github-issue. Without them the board still works, and each button that needs one shows the bundle to install rather than a failed call.
 - **No file import in the panel** — `readExternalPath` is host-internal and has no call site, so nothing in the board imports a file today.

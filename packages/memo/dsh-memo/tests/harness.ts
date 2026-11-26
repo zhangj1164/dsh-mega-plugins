@@ -316,6 +316,14 @@ export interface SetupOptions {
   /** Mount no `llm` service at all, as a deployment without a model route. */
   readonly withoutLlm?: boolean
   /**
+   * Mount neither the telemetry nor the github-issue service.
+   *
+   * This is the deployment the issue existed for: the memo bundle installed on
+   * its own. The service must still activate, and `capabilities` must report
+   * both services as unavailable rather than the plugin staying pending.
+   */
+  readonly withoutOptionalServices?: boolean
+  /**
    * What the mock telemetry service's `analyzeForPlugin` answers with for
    * `memo`, so the log-analysis pipeline can be tested without a real
    * telemetry store.
@@ -412,8 +420,10 @@ export async function setupHarness(options: SetupOptions = {}): Promise<TestHarn
     if (options.followAgentDefault !== undefined) {
       await ctx.plugin(MockAgentDefaultModel, options.followAgentDefault)
     }
-    await ctx.plugin(MockTelemetryService, { analysis: options.analysis ?? {}, analysisByPlugin: options.analysisByPlugin ?? {} })
-    await ctx.plugin(MockGithubIssueService)
+    if (options.withoutOptionalServices !== true) {
+      await ctx.plugin(MockTelemetryService, { analysis: options.analysis ?? {}, analysisByPlugin: options.analysisByPlugin ?? {} })
+      await ctx.plugin(MockGithubIssueService)
+    }
     const pinned = options.followAgentDefault !== undefined
       ? {}
       : {

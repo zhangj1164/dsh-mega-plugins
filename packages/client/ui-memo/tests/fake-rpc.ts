@@ -1,5 +1,5 @@
 import { expect, vi } from 'vitest'
-import type { MemoAnalysisPeriod, MemoEntry, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
+import type { MemoAnalysisPeriod, MemoCapabilitiesValue, MemoEntry, MemoPeriodEntry, MemoWeek } from '@zhangj1164/dsh-memo/client'
 import type { GithubIssueReport } from '@zhangj1164/dsh-github-issue/client'
 
 /**
@@ -31,6 +31,13 @@ export interface FakeRpcOptions {
   readonly currentWeekId?: string
   /** Fail every call with this error. */
   readonly failWith?: { code: string; message: string }
+  /**
+   * Which optional services this fake deployment provides.
+   *
+   * Defaults to both, which is the shape a full install has. A test for the
+   * solo-memo deployment passes one or both as unavailable.
+   */
+  readonly capabilities?: MemoCapabilitiesValue
   /** Fail only these endpoints (by method name). */
   readonly failOn?: Record<string, { code: string; message: string }>
   /** Result of `githubIssue/optimizeIssue`. */
@@ -466,6 +473,22 @@ export function createFakeRpc(options: FakeRpcOptions = {}): FakeRpc {
     }
     if (method === 'exportReport') {
       return ok(`# report for ${String(request.periodLabel)}`)
+    }
+    if (method === 'capabilities') {
+      // The default mirrors a full install; a solo-memo deployment passes its
+      // own answer, which is what makes the board's guard reachable in a test.
+      return ok(options.capabilities ?? {
+        telemetry: {
+          available: true,
+          packageName: '@zhangj1164/dsh-telemetry',
+          installCommand: 'dsh plugin --profile web add @zhangj1164/dsh-telemetry',
+        },
+        githubIssue: {
+          available: true,
+          packageName: '@zhangj1164/dsh-github-issue',
+          installCommand: 'dsh plugin --profile web add @zhangj1164/dsh-github-issue',
+        },
+      })
     }
     if (method === 'analyzeLogs') {
       if (options.logAnalysis === undefined) return fail('no-failures', 'no failures recorded')

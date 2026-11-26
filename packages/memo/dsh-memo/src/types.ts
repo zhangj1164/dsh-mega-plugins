@@ -727,3 +727,46 @@ export interface MemoPluginInfoValue {
 export type MemoPluginInfoResult =
   | { readonly ok: true; readonly value: MemoPluginInfoValue }
   | { readonly ok: false; readonly error: MemoMemoFailure }
+
+/**
+ * Request for `capabilities`.
+ *
+ * It carries no input, and it declares `request` because the Remote protocol
+ * binds arguments by name.
+ */
+export interface MemoCapabilitiesRequest {}
+
+/**
+ * One optional service the memo board can use.
+ *
+ * The bundle name and the install command travel with the flag so the board can
+ * name the exact package to install without hardcoding a package name of its
+ * own. A deployment that mirrors the registry, or names its profile something
+ * other than `web`, therefore gets a correct hint without a client change.
+ */
+export interface MemoCapabilityValue {
+  /** Whether this deployment currently provides the service. */
+  readonly available: boolean
+  /** Published bundle that provides it. */
+  readonly packageName: string
+  /** Copyable command that installs that bundle into the configured profile. */
+  readonly installCommand: string
+}
+
+/**
+ * Which optional services this deployment provides.
+ *
+ * Neither is required for the board itself: memos, analysis, and export work
+ * without them, and each one only unlocks the feature that calls it.
+ */
+export interface MemoCapabilitiesValue {
+  /** Telemetry service; log analysis reads it. */
+  readonly telemetry: MemoCapabilityValue
+  /** GitHub-issue service; issue generation and the report editor call it. */
+  readonly githubIssue: MemoCapabilityValue
+}
+
+/** Result of reading which optional services are available. */
+export type MemoCapabilitiesResult =
+  | { readonly ok: true; readonly value: MemoCapabilitiesValue }
+  | { readonly ok: false; readonly error: MemoMemoFailure }

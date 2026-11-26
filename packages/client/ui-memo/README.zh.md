@@ -97,4 +97,5 @@
 ## 已知限制
 
 - **仅文本录入** — 当前 UI 支持文本条目；图片和文件附件类型在后端已有定义，但尚未接入 UI。
+- **有两项功能需要第二个 bundle** — 日志分析读取 telemetry 服务，新增 Issue 读取 github-issue 服务。缺少它们时面板照常加载，对应按钮显示待安装的 bundle 及其安装命令，而不是一次失败的调用（[#197](https://github.com/zhangj1164/dsh-mega-plugins/issues/197)）。
 - **面板发起不了审批** — 面板的每个动作都在 turn 之间调用宿主，而那里 `ctx.approval` 弹不出确认，因此需要用户同意的能力应做成 turn 内的 tool，而不是面板按钮。规则与两种合规形态见 `@zhangj1164/dsh-memo` 的 [turn 之外没有审批](../../memo/dsh-memo/README.zh.md#turn-之外没有审批)。

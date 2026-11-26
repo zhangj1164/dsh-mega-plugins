@@ -23,6 +23,8 @@ export type MemoKey =
   | 'addIssue' | 'issueEditorTitle' | 'issuePlaceholder' | 'optimizeIssue' | 'createIssue' | 'openGithub' | 'clearIssue' | 'copyIssueBody'
   // Log analysis
   | 'analyzeLogs' | 'logAnalysisTitle' | 'openPrefilledIssue'
+  // Install hints for optional services
+  | 'capabilityNeeds' | 'capabilityInstall' | 'copyCommand'
   // Session summary
   | 'summarizeSessions' | 'sessionSummaryTitle' | 'sessionSummaryHint' | 'sessionSummaryTarget'
   | 'sessionSummaryLimit' | 'sessionSummaryLength' | 'sessionSummarySelectAll' | 'sessionSummaryClearSelection'
@@ -100,6 +102,9 @@ export const zh: Record<MemoKey, string> = {
   analyzeLogs: '日志分析',
   logAnalysisTitle: '日志分析报告',
   openPrefilledIssue: '打开预填 Issue',
+  capabilityNeeds: '该功能需要先安装以下 bundle：',
+  capabilityInstall: '安装命令',
+  copyCommand: '复制命令',
   summarizeSessions: '总结会话',
   sessionSummaryTitle: '总结已归档会话',
   sessionSummaryHint: '选择一个或多个官方归档的会话，模型会分别总结，并把结果写入当前周。',
@@ -209,6 +214,9 @@ export const en: Record<MemoKey, string> = {
   analyzeLogs: 'Analyze Logs',
   logAnalysisTitle: 'Log Analysis Report',
   openPrefilledIssue: 'Open Prefilled Issue',
+  capabilityNeeds: 'This feature needs the bundle below:',
+  capabilityInstall: 'Install command',
+  copyCommand: 'Copy command',
   summarizeSessions: 'Summarize Sessions',
   sessionSummaryTitle: 'Summarize Archived Sessions',
   sessionSummaryHint: 'Pick one or more officially archived sessions; the model summarizes each one and writes the results into the current week.',

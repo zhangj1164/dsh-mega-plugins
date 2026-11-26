@@ -58,6 +58,7 @@ describe('memo Config volatility', () => {
   it('marks every top-level field volatile, so the Settings panel can edit it', () => {
     const fields = (Config as unknown as SchemaNode).dict ?? {}
     expect(Object.keys(fields).sort()).toEqual([
+      'githubIssuePackageName',
       'logAnalysisPlugins',
       'model',
       'provider',
@@ -71,6 +72,7 @@ describe('memo Config volatility', () => {
       'sessionSummaryTranscriptMaxChars',
       'storageWriteRetries',
       'storageWriteRetryDelayMs',
+      'telemetryPackageName',
       'updateCheckTimeoutMs',
       'updatePackageName',
       'updateProfileName',
