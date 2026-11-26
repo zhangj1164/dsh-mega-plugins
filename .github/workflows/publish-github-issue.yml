@@ -1,0 +1,96 @@
+name: Publish @zhangj1164/dsh-github-issue
+
+# One workflow per package. npm trusted publishing matches the workflow filename
+# recorded on the package's npm /access page, so one shared workflow cannot
+# publish for several packages: each package names its own file. Rename this
+# file only after updating that page. See docs/publishing.md.
+on:
+  push:
+    tags:
+      - 'github-issue-v*'
+  workflow_dispatch:
+
+# `id-token: write` is the whole credential: pnpm exchanges the GitHub OIDC
+# token for a short-lived npm publish token. No repository secret is involved.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-github-issue
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @zhangj1164/dsh-github-issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v7.0.1
+        with:
+          # Full history and every branch: the next step proves the tag commit
+          # is reachable from main, which a shallow clone cannot answer.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          # No registry-url: setup-node would write `_authToken=${NODE_AUTH_TOKEN}`
+          # into .npmrc, and an empty token stops the OIDC exchange before pnpm
+          # can ask npm for the short-lived publish token.
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve the release plan
+        id: plan
+        env:
+          PACKAGE_DIR: packages/github-issue/dsh-github-issue
+          PACKAGE_NAME: '@zhangj1164/dsh-github-issue'
+          TAG: ${{ github.ref_name }}
+          TAG_PREFIX: github-issue-v
+        run: pnpm exec tsx scripts/publish-plan.ts plan
+
+      - name: Verify the tag is on main
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify --quiet origin/main >/dev/null; then
+            echo "::error::origin/main is missing; checkout must fetch the main branch."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::Tag ${TAG} does not point at a commit on main. Only main is releasable."
+            exit 1
+          fi
+
+      - name: Build the workspace
+        if: steps.plan.outputs.skip != 'true'
+        run: pnpm run build
+
+      - name: Publish to npm
+        if: steps.plan.outputs.skip != 'true'
+        env:
+          PACKAGE_NAME: '@zhangj1164/dsh-github-issue'
+        # `pnpm publish`, never `npm publish`: pnpm rewrites this manifest's
+        # `workspace:` ranges to real versions while packing. The tag checkout
+        # is a detached HEAD, so pnpm's own branch check is off; the ancestry
+        # step above is the check that matters. `pnpm publish` also runs the
+        # package's prepublishOnly guard where one is declared, and attaches
+        # provenance automatically.
+        run: pnpm --filter "$PACKAGE_NAME" publish --access public --no-git-checks --tag latest
+
+      - name: Verify the registry copy
+        env:
+          PACKAGE_NAME: '@zhangj1164/dsh-github-issue'
+          VERSION: ${{ steps.plan.outputs.version }}
+          DIST_TAG: latest
+        run: pnpm exec tsx scripts/publish-plan.ts verify
