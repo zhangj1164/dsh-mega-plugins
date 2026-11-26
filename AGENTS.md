@@ -47,6 +47,8 @@ pnpm run verify-publish-guard         # every package carrying a workspace: rang
 pnpm run verify-translation-pairing   # check bilingual README consistency (7 pairs)
 pnpm run verify-md-links              # check relative Markdown links resolve
 pnpm run verify-md-wrap               # reject hard-wrapped prose paragraphs
+pnpm exec tsx scripts/publish-plan.ts plan    # release plan for the tag in the environment; the publish workflows' first step
+pnpm exec tsx scripts/publish-plan.ts verify  # verify a published version's registry copy: no workspace: ranges, latest tag
 node --test .github/issue-management/policy.test.mjs  # run issue policy tests (31 tests)
 ```
 
@@ -91,6 +93,8 @@ The issue-policy workflow checks out `policy.mjs` from the default branch, so a 
 `npm publish` copies the `workspace:` protocol into the published manifest verbatim: `@zhangj1164/dsh-memo@0.1.0` shipped `"@zhangj1164/dsh-telemetry": "workspace:^"` as a peer range, `npm install` refused the package with `EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"`, and pnpm only warned — which is how a manifest no npm user could install still reached the catalog. `pnpm publish` substitutes the referenced package's real version for every `workspace:` range, in `dependencies` and `peerDependencies` alike. Publish the packages that actually changed from an up-to-date `main`, then verify the registry copy: `npm view <pkg>@<version> peerDependencies` must show no `workspace:` range, and a clean-room `npm install <pkg>@<version>` must succeed.
 
 That rule was prose, and prose did not stop the publish. Two mechanisms back it now. Every package declaring a `workspace:` range runs `scripts/publish-guard.mjs` as `prepublishOnly`, which aborts any publish whose packer is not pnpm, before packing, with the reason and the correct command; a git install is unaffected because neither npm nor pnpm runs `prepublishOnly` on an install. The guard fails closed on a packer it cannot identify. `pnpm run verify-publish-guard` then fails when a workspace package carries a `workspace:` range without that wiring, so a package that adopts one later cannot quietly ship without the interlock.
+
+Every package under `packages/` publishes from its own `.github/workflows/publish-<short>.yml`, triggered by a `<short>-v<version>` tag on `main` and authenticated by npm trusted publishing: the job exchanges its OIDC token for a short-lived publish token, so no repository secret exists. Trusted publishing binds a connection to one workflow filename, which is why the workflows are not shared, and renaming one requires updating the package's npm `/access` page first. The per-package tag prefixes, the exact `/access` field values, the publish order and the recovery steps live in [docs/publishing.md](docs/publishing.md).
 
 ## Design principles
 
