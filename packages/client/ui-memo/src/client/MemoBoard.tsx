@@ -168,6 +168,9 @@ function ResultCard({ title, collapsed, t, onToggle, onClose, children }: Result
  */
 export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoardProps): React.ReactElement {
   const view = useView(controller)
+  // Held in a local so every branch below reads one settled value rather than
+  // re-reading a field the controller may replace between renders.
+  const notice = view.notice
   const [draft, setDraft] = React.useState('')
   const [analysisType, setAnalysisType] = React.useState<MemoAnalysisType>('梳理')
   const [openCard, setOpenCard] = React.useState<MemoCard | null>(null)
@@ -349,6 +352,26 @@ export function MemoBoard({ controller, t, close, openUrl, copyText }: MemoBoard
           React.createElement('button', {
             type: 'button', className: 'dsh-memo-linkBtn', onClick: () => controller.clearError(),
           }, t('dismiss')))
+      : null,
+
+    // A refused feature: this deployment does not install the service, so the
+    // board names the bundle and its install command instead of reporting a
+    // call failure the user cannot act on.
+    notice !== null
+      ? React.createElement('div', { className: 'dsh-memo-notice', role: 'alert' },
+          React.createElement('div', null,
+            `${notice.feature === 'analyzeLogs' ? t('analyzeLogs') : t('addIssue')} · ${t('capabilityNeeds')} ${notice.capability.packageName}`),
+          React.createElement('div', { className: 'dsh-memo-noticeCmd' },
+            `${t('capabilityInstall')}: ${notice.capability.installCommand}`),
+          React.createElement('div', { className: 'dsh-memo-noticeActions' },
+            React.createElement('button', {
+              type: 'button',
+              className: 'dsh-memo-linkBtn',
+              onClick: () => { void copyText(notice.capability.installCommand).catch(() => {}) },
+            }, t('copyCommand')),
+            React.createElement('button', {
+              type: 'button', className: 'dsh-memo-linkBtn', onClick: () => controller.clearNotice(),
+            }, t('dismiss'))))
       : null,
 
     // ── Dimension switch (周/月/季/年) with the year switcher on the same row ──

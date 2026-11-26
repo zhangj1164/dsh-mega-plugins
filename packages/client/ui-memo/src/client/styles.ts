@@ -498,6 +498,29 @@ export const CSS_TEXT = `
   color: var(--dsw-alias-text-error, #d73a4a);
   font-size: 12px;
 }
+.dsh-memo-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-l2);
+  color: var(--dsw-alias-text-1);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.dsh-memo-noticeCmd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--dsw-alias-text-2);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.dsh-memo-noticeActions {
+  display: flex;
+  align-items: center;
+}
 .dsh-memo-empty {
   padding: 28px 16px;
   text-align: center;

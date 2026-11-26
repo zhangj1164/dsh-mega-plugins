@@ -786,3 +786,75 @@ describe('MemoController archived-quarter writes', () => {
     expect(snapshot.status).toBe('ready')
   })
 })
+
+describe('MemoController optional capabilities', () => {
+  /** A solo-memo deployment: neither optional service is installed. */
+  const soloMemo = {
+    telemetry: {
+      available: false,
+      packageName: '@zhangj1164/dsh-telemetry',
+      installCommand: 'dsh plugin --profile web add @zhangj1164/dsh-telemetry',
+    },
+    githubIssue: {
+      available: false,
+      packageName: '@zhangj1164/dsh-github-issue',
+      installCommand: 'dsh plugin --profile web add @zhangj1164/dsh-github-issue',
+    },
+  } as const
+
+  it('reads which services the deployment provides', async () => {
+    const { controller } = await harness()
+    expect(controller.getSnapshot().capabilities?.telemetry.available).toBe(true)
+    expect(controller.getSnapshot().capabilities?.githubIssue.available).toBe(true)
+  })
+
+  it('refuses log analysis without calling the host when telemetry is missing', async () => {
+    const rpc = createFakeRpc({ capabilities: { ...soloMemo } })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+
+    await controller.analyzeLogs()
+
+    const state = controller.getSnapshot()
+    expect(state.notice?.feature).toBe('analyzeLogs')
+    expect(state.notice?.capability.packageName).toBe('@zhangj1164/dsh-telemetry')
+    expect(state.notice?.capability.installCommand).toContain('dsh plugin --profile web add')
+    expect(rpc.calls.some(call => call.endpoint === 'memo/analyzeLogs')).toBe(false)
+  })
+
+  it('refuses the issue editor without calling the host when github-issue is missing', async () => {
+    const rpc = createFakeRpc({ capabilities: { ...soloMemo, telemetry: { ...soloMemo.telemetry, available: true } } })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+
+    await controller.optimizeIssue('crash on analyze')
+
+    const state = controller.getSnapshot()
+    expect(state.notice?.feature).toBe('addIssue')
+    expect(state.notice?.capability.packageName).toBe('@zhangj1164/dsh-github-issue')
+    expect(rpc.calls.some(call => call.endpoint === 'githubIssue/optimizeIssue')).toBe(false)
+  })
+
+  it('clears the install hint on demand', async () => {
+    const rpc = createFakeRpc({ capabilities: { ...soloMemo } })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+    await controller.analyzeLogs()
+    expect(controller.getSnapshot().notice).not.toBeNull()
+    controller.clearNotice()
+    expect(controller.getSnapshot().notice).toBeNull()
+  })
+
+  it('does not guard when the host never answered the capability read', async () => {
+    // Unknown is not absent: a failed read must let the call through so the
+    // user sees the real error rather than a stale "install this" hint.
+    const rpc = createFakeRpc({ failOn: { capabilities: { code: 'rpc-failure', message: 'socket closed' } } })
+    const controller = new MemoController({ rpc: wrap(rpc), storage: fakeStorage() })
+    await controller.refresh()
+
+    expect(controller.getSnapshot().capabilities).toBeNull()
+    await controller.analyzeLogs()
+    expect(controller.getSnapshot().notice).toBeNull()
+    expect(rpc.calls.some(call => call.endpoint === 'memo/analyzeLogs')).toBe(true)
+  })
+})

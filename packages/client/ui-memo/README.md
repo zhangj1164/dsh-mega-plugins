@@ -97,4 +97,5 @@ This package is included in the `@zhangj1164/dsh-memo` bundle's `cordis.patch.ym
 ## Known Limitations
 
 - **Text-only entry** — the current UI supports text entries; image and file attachment types exist in the backend but are not yet wired in the UI.
+- **Two features need a second bundle** — Log Analysis reads the telemetry service and Add Issue reads the github-issue service. Without them the board still loads, and each of those buttons shows the missing bundle and its install command instead of a failed call ([#197](https://github.com/zhangj1164/dsh-mega-plugins/issues/197)).
 - **No approval from the panel** — every board action calls the host between turns, where `ctx.approval` cannot prompt, so a feature that needs consent belongs in a turn-time tool rather than a panel button. `@zhangj1164/dsh-memo` records the rule and both compliant shapes under [No approval outside a turn](../../memo/dsh-memo/README.md#no-approval-outside-a-turn).

@@ -33,6 +33,8 @@ import type {
   MemoAnalysisType,
   MemoArchivedQuarter,
   MemoArchivedSession,
+  MemoCapabilitiesValue,
+  MemoCapabilityValue,
   MemoEntry,
   MemoListArchivedSessionsValue,
   MemoModelProvider,
@@ -144,6 +146,25 @@ export async function callGithubIssue<T>(
 
 // ── View state ─────────────────────────────────────────────────────────────
 
+/** The feature the board refused for lack of an optional service. */
+export type MemoRefusedFeature = 'analyzeLogs' | 'addIssue'
+
+/**
+ * A refusal the board shows in place of an error.
+ *
+ * Kept apart from {@link MemoViewState.error} because the two mean different
+ * things: an error says a call failed, and this says the call was never made
+ * because this deployment does not install the service it needs. The board
+ * renders it with the install command, which is the only action that turns the
+ * button back on.
+ */
+export interface MemoInstallNotice {
+  /** Feature the user asked for. */
+  readonly feature: MemoRefusedFeature
+  /** The missing capability, with its bundle name and install command. */
+  readonly capability: MemoCapabilityValue
+}
+
 /** Published view state of the memo board. */
 export interface MemoViewState {
   /** Load lifecycle of the board data. */
@@ -166,6 +187,15 @@ export interface MemoViewState {
   totalCards: number
   /** Last error message, or `null`. */
   error: string | null
+  /**
+   * Which optional services this deployment provides, or `null` until read.
+   *
+   * `null` means unknown, not absent: the board must not refuse a feature on a
+   * guess, so a refusal only happens once the host has answered.
+   */
+  capabilities: MemoCapabilitiesValue | null
+  /** A feature the board refused for lack of an optional service, or `null`. */
+  notice: MemoInstallNotice | null
   /** AI analysis text for the active period. */
   analysis: string | null
   /** Exported Markdown report. */
@@ -251,6 +281,8 @@ export function createInitialState(): MemoViewState {
     cards: [],
     totalCards: 0,
     error: null,
+    capabilities: null,
+    notice: null,
     analysis: null,
     report: null,
     issueReport: null,
@@ -309,6 +341,38 @@ export class MemoController {
     this.emit()
   }
 
+  /**
+   * Ask the host which optional services it provides.
+   *
+   * Non-fatal on purpose: the board works without both services, so a failed
+   * read leaves the capabilities unknown and the buttons unguarded — a real
+   * call then shows the real error instead of a stale install hint.
+   *
+   * @returns the capabilities, or `null` when the host could not answer.
+   */
+  private async readCapabilities(): Promise<MemoCapabilitiesValue | null> {
+    const result = await callMemo<MemoCapabilitiesValue>(this.rpc, 'capabilities', {})
+    return result.ok ? result.value : null
+  }
+
+  /**
+   * Refuse one feature when the service it needs is known to be missing.
+   *
+   * Guards run before the host call, so a deployment without the bundle shows
+   * the install command instead of an authentication or transport error from a
+   * service that is not there.
+   *
+   * @param feature - the button the user pressed.
+   * @param capability - the service that button needs.
+   * @returns whether the feature was refused.
+   */
+  private refuseWithout(feature: MemoRefusedFeature, capability: MemoCapabilityValue): boolean {
+    if (this._state.capabilities === null) return false
+    if (capability.available) return false
+    this.set({ busy: false, error: null, notice: { feature, capability } })
+    return true
+  }
+
   /** The week a new card would be stored in for the active selection. */
   get targetWeek(): string | undefined {
     const weekIds = this._state.periods.find(entry => entry.label === this._state.selection.label)?.weekIds ?? []
@@ -332,6 +396,8 @@ export class MemoController {
     const dimension = period ?? this._state.selection.period
     this.set({ status: 'loading', error: null, selection: { ...this._state.selection, period: dimension } })
     try {
+      const capabilities = await this.readCapabilities()
+      if (capabilities !== null) this.set({ capabilities })
       const weeksResult = await callMemo<readonly MemoWeek[]>(this.rpc, 'listWeeks', {})
       if (!weeksResult.ok) {
         this.set({ status: 'error', error: weeksResult.error.message, busy: false })
@@ -997,6 +1063,8 @@ export class MemoController {
   async optimizeIssue(description: string): Promise<void> {
     const trimmed = description.trim()
     if (!trimmed) return
+    const capabilities = this._state.capabilities
+    if (capabilities !== null && this.refuseWithout('addIssue', capabilities.githubIssue)) return
     this.set({ busy: true, error: null, issueReport: null })
     try {
       const override = this.modelOverride()
@@ -1027,6 +1095,8 @@ export class MemoController {
   async issuePrefillUrl(): Promise<string | null> {
     const report = this._state.issueReport
     if (report === null) return null
+    const capabilities = this._state.capabilities
+    if (capabilities !== null && this.refuseWithout('addIssue', capabilities.githubIssue)) return null
     try {
       const result = await callGithubIssue<string>(this.rpc, 'prefilledIssueUrl', {
         repoUrl: this.repoUrl,
@@ -1055,6 +1125,8 @@ export class MemoController {
   async createIssue(): Promise<string | null> {
     const report = this._state.issueReport
     if (report === null) return null
+    const capabilities = this._state.capabilities
+    if (capabilities !== null && this.refuseWithout('addIssue', capabilities.githubIssue)) return null
     this.set({ busy: true, error: null })
     try {
       const result = await callGithubIssue<{ number: number; url: string }>(this.rpc, 'createIssue', {
@@ -1075,6 +1147,14 @@ export class MemoController {
 
   /** Analyze this plugin's telemetry failures and build a pre-filled issue. */
   async analyzeLogs(): Promise<void> {
+    const capabilities = this._state.capabilities
+    if (capabilities !== null) {
+      const missing = [capabilities.telemetry, capabilities.githubIssue].find(capability => !capability.available)
+      if (missing !== undefined) {
+        this.set({ busy: false, error: null, notice: { feature: 'analyzeLogs', capability: missing } })
+        return
+      }
+    }
     this.set({ busy: true, error: null, logAnalysis: null })
     try {
       const result = await callMemo<{ report: GithubIssueReport; issueUrl: string }>(this.rpc, 'analyzeLogs', {})
@@ -1091,6 +1171,11 @@ export class MemoController {
   /** Clear the last error. */
   clearError(): void {
     this.set({ error: null })
+  }
+
+  /** Dismiss the install hint. */
+  clearNotice(): void {
+    this.set({ notice: null })
   }
 
   /**
