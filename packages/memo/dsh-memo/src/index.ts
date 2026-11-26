@@ -84,6 +84,9 @@ import type {
   MemoListPeriodsRequest,
   MemoListPeriodsResult,
   MemoMemoFailure,
+  MemoCapabilitiesRequest,
+  MemoCapabilitiesResult,
+  MemoCapabilityValue,
   MemoPluginInfoRequest,
   MemoPluginInfoResult,
   MemoQuarterLabelRequest,
@@ -217,6 +220,21 @@ export interface Config {
    * one a deployment tracks is a deployment choice rather than a constant.
    */
   readonly updatePackageName: Volatile<string>
+  /**
+   * Bundle that provides the `telemetry` service, named in an install hint.
+   *
+   * Telemetry is optional: the memo board keeps working without it, and only
+   * log analysis needs it. The board tells the reader which package to install,
+   * so the name lives here rather than in the browser bundle.
+   */
+  readonly telemetryPackageName: Volatile<string>
+  /**
+   * Bundle that provides the `githubIssue` service, named in an install hint.
+   *
+   * Optional for the same reason as {@link Config.telemetryPackageName}: only
+   * the GitHub report and issue editor need it.
+   */
+  readonly githubIssuePackageName: Volatile<string>
   /** npm registry the update check reads; a mirror deployment overrides it. */
   readonly updateRegistryUrl: Volatile<string>
   /** Profile name the generated manual upgrade command targets. */
@@ -314,6 +332,8 @@ export const Config: s<Config> = s.object({
   sessionSummarySourceTemplate: s.string().default(DEFAULT_SESSION_SUMMARY_SOURCE_TEMPLATE).volatile(),
   sessionSummaryPrompt: s.string().default(DEFAULT_SESSION_SUMMARY_PROMPT).volatile(),
   updatePackageName: s.string().default('@zhangj1164/dsh-memo').volatile(),
+  telemetryPackageName: s.string().default('@zhangj1164/dsh-telemetry').volatile(),
+  githubIssuePackageName: s.string().default('@zhangj1164/dsh-github-issue').volatile(),
   updateRegistryUrl: s.string().default('https://registry.npmjs.org/').volatile(),
   updateProfileName: s.string().default('web').volatile(),
   updateCheckTimeoutMs: s.number().step(1).min(1_000).max(60_000).default(10_000).volatile(),
@@ -729,9 +749,18 @@ function commandArgument(value: string): string {
 
 /**
  * Local memo service: week-keyed personal memos with AI analysis and export.
+ *
+ * `telemetry` and `githubIssue` are optional by design. A deployment that
+ * installs only this bundle still gets the board, the memos, and the AI
+ * analysis; the two capabilities that need another service are reported as
+ * missing by {@link MemoService.capabilities}, and the browser board says which
+ * bundle to install instead of leaving the row pending forever.
  */
 export class MemoService extends TypertRemoteService {
-  static inject = ['storageDomain', 'telemetry', 'githubIssue']
+  // Only the storage domain is required. Declaring the other two here would put
+  // this plugin in the pending state whose only symptom is a warning on boot and
+  // a missing panel, which is exactly what a solo memo install used to look like.
+  static inject = ['storageDomain']
   static Config = Config
 
   /**
@@ -748,7 +777,8 @@ export class MemoService extends TypertRemoteService {
   private archiveTable?: KvTable<string, ArchivedQuarterRow>
 
   /**
-   * @param ctx - Host context carrying the storage-domain, telemetry, and github-issue services.
+   * @param ctx - Host context carrying the storage-domain service, plus the
+   * optional telemetry and github-issue services when this deployment installs them.
    * @param config - Validated deployment configuration.
    */
   constructor(ctx: Context, config: Config) {
@@ -824,6 +854,16 @@ export class MemoService extends TypertRemoteService {
   /** Package the update check asks the registry about. */
   private get updatePackageName(): string {
     return this.config.updatePackageName.get()
+  }
+
+  /** Bundle that provides the optional telemetry service. */
+  private get telemetryPackageName(): string {
+    return this.config.telemetryPackageName.get()
+  }
+
+  /** Bundle that provides the optional github-issue service. */
+  private get githubIssuePackageName(): string {
+    return this.config.githubIssuePackageName.get()
   }
 
   /** Registry base the update check reads. */
@@ -1752,6 +1792,47 @@ export class MemoService extends TypertRemoteService {
         profileName: this.updateProfileName,
       }),
     }
+  }
+
+  /**
+   * Report which optional services this deployment provides.
+   *
+   * Read live from the host context on every call: a deployment may install a
+   * bundle and restart while a browser keeps its board open, and re-reading is
+   * what turns an install hint back into a working button after that restart.
+   *
+   * @param request - carries no input; the Remote protocol binds arguments by name.
+   * @returns each optional capability, its bundle name, and the install command.
+   */
+  @Remote('capabilities')
+  capabilities(request: MemoCapabilitiesRequest): MemoCapabilitiesResult {
+    void request
+    return {
+      ok: true,
+      value: Object.freeze({
+        telemetry: this.describeCapability(this.telemetryPackageName, this.ctx.get('telemetry') !== undefined),
+        githubIssue: this.describeCapability(this.githubIssuePackageName, this.ctx.get('githubIssue') !== undefined),
+      }),
+    }
+  }
+
+  /**
+   * Describe one optional capability the way the board renders it.
+   * @param packageName - the published bundle that provides the service.
+   * @param available - whether this deployment currently provides it.
+   * @returns the availability flag plus the command that would install the bundle.
+   */
+  private describeCapability(packageName: string, available: boolean): MemoCapabilityValue {
+    return Object.freeze({
+      available,
+      packageName,
+      installCommand: [
+        'dsh plugin',
+        '--profile', commandArgument(this.updateProfileName),
+        'add',
+        commandArgument(packageName),
+      ].join(' '),
+    })
   }
 
   /**

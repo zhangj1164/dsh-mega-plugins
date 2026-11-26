@@ -170,7 +170,9 @@ AI 调用按以下顺序解析路由，没有任何硬编码：
 dsh plugin --profile web add @zhangj1164/dsh-telemetry @zhangj1164/dsh-github-issue @zhangj1164/dsh-memo @zhangj1164/dsh-client-ui-memo-settings
 ```
 
-`ui-memo` 行不需要点名即可解析：`@zhangj1164/dsh-client-ui-memo` 是本包的普通依赖，而 profile 会安装 bundle 的依赖。另外两个必须点名。profile 设置了 `autoInstallPeers: false`（`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`），因此安装只会引入命令点名的包及其依赖，永远不会带入 peer 依赖；memo 服务通过 `inject` 依赖 `telemetry` 与 `githubIssue` 服务，而它们各属自己的 bundle，所以只装本包时这两个服务无法解析，加载器会把该行挂起——`memo (@zhangj1164/dsh-memo): pending (waiting for service: githubIssue)`。
+`ui-memo` 行不需要点名即可解析：`@zhangj1164/dsh-client-ui-memo` 是本包的普通依赖，而 profile 会安装 bundle 的依赖。另外两个必须点名才能拿到对应服务。profile 设置了 `autoInstallPeers: false`（`${DSH_HOME}/profiles/<name>/pnpm-workspace.yaml`），因此安装只会引入命令点名的包及其依赖，永远不会带入 peer 依赖。
+
+这两个服务是可选的，而非注入的。memo 服务只凭存储域即可激活，`capabilities` 会报告本部署提供了其中哪些服务，并给出缺失服务的安装命令。因此单独安装也能启动——备忘、分析、导出照常可用——面板会标出它无法运行的两项功能：日志分析需要 telemetry，新增 Issue 需要 github-issue，点下任一按钮显示的是需要安装的 bundle，而不是一次失败的调用。
 
 面板必须是普通依赖，且范围必须写成普通版本号。把它声明成 peer，正是早期版本让 `ui-memo` 行未激活、侧边栏没有「备忘」的原因，因为 profile 从不安装 peer。范围留在 `^0.7.0` 而不是 `workspace:^`，是因为 `pnpm publish` 会改写 `workspace:` 范围，而 pnpm 直接从 git 检出读取的 manifest 永远不会被改写——`workspace:` 依赖会让那种安装以 `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` 失败。根 `pnpm-workspace.yaml` 的 `linkWorkspacePackages` 负责让本地检出仍被链接；当某个 bundle 点名了它并未依赖的 workspace 包、或通过 workspace 协议依赖它时，`pnpm run verify-bundle-entries` 会失败。
 
@@ -205,11 +207,11 @@ git 安装取的是源码，因此本包的 `prepare` 脚本会在安装过程�
 - **需求 6** — `exportReport` 生成标准工作报告（Markdown），可直接审查并导出为 `.md`。
 - **需求 7** — 每个关键操作都调用 `ctx.telemetry.track()` / `ctx.telemetry.trackError()`，携带 `featureCodeRef` 锚点。
 - **需求 8** — `analyzeLogs` 通过 `telemetry` 服务读取遥测失败记录，通过 `githubIssue` 生成 GitHub issue 报告，并返回报告 + 预填 URL。
-- **需求 12** — 依赖 `@zhangj1164/dsh-telemetry` 和 `@zhangj1164/dsh-github-issue` 作为独立的通用插件，两者各自带有自己的 bundle。三个包必须一起安装：注入的服务来自这些 bundle，而 profile 不会自动安装 peer 依赖。
+- **需求 12** — telemetry 与 GitHub issue 是独立的通用插件，各自带有自己的 bundle。memo 服务通过 `ctx.get` 读取两者并在缺任一时照常激活：只装本包的部署仍保有备忘、AI 分析与导出，`capabilities` 报告缺失的服务，面板给出安装其 bundle 的命令。
 
 ## 已知限制
 
 - **仅按周组织** — 条目按 ISO 周组织；没有自由格式的日期或标签系统。
 - **模型路由属于部署配置** — 解析不出路由、或配置的路由未注册时，`analyze` 和 `exportReport` 以 `llm-failure` 加 `failureCode` 失败。请在此处设置 `provider`/`model`，或依赖 `agentDefaultModel`。
-- **遥测和 github-issue 为注入服务** — memo 服务通过 `inject` 依赖它们的可用性。
+- **遥测和 github-issue 为可选服务** — 日志分析需要 telemetry，新增 Issue 需要 github-issue。没有它们面板照常工作，需要它们的按钮显示待安装的 bundle，而不是一次失败的调用。
 - **面板无法导入文件** — `readExternalPath` 是宿主内部方法且没有调用点，所以现在的看板还导入不了文件。
