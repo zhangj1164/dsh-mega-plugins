@@ -57,23 +57,23 @@ Trusted publishing binds a connection to one workflow filename, so a single `pub
 - **No `npm publish`.** pnpm rewrites `workspace:` ranges to real versions while packing; npm ships them verbatim, which is the failure recorded in [Publish with `pnpm publish`, never `npm publish`](../AGENTS.md#publish-with-pnpm-publish-never-npm-publish).
 - **No full gate suite.** The pull request already ran `pnpm run gates` before the merge; a publish run repeats only `pnpm run build`, because a dependent package's `.d.ts` needs its peers' built `lib/`. Re-running eleven gates six times per release batch would mostly re-prove the tag commit the PR already proved.
 - **No `--provenance` flag.** Provenance is attached automatically for a public package published from a public repository; forcing it adds nothing and would fail a release if the environment changed.
-- **No silent re-publish.** A tag push for a version already on the registry fails with a message saying so. Re-running a finished release is the job of `workflow_dispatch` from the tag, which detects the existing version itself and verifies the registry copy instead of publishing again.
+- **No silent re-publish.** A tag push for a version already on the registry fails with a message saying so. Re-checking a finished release is the job of `workflow_dispatch`: the run detects the existing version itself and verifies the registry copy instead of publishing again. Because a dispatch from the tag checks out the tag's own workflow file, re-checking an older release with current tooling runs from `main` and names the tag in the `tag` input, for example `gh workflow run publish-telemetry.yml --ref main -f tag=telemetry-v0.4.1`.
 
 ## The checks behind each workflow
 
 `scripts/publish-plan.ts` is the only shared code; the workflows call it twice.
 
-- `plan` refuses a manifest marked `private`, a tag that does not match the package's prefix, a tag that names a different version than `package.json` declares, and a tag push whose version already exists. It writes `version`, `tag`, and `skip` to `$GITHUB_OUTPUT` for the later steps, and appends a table to the job summary.
-- `verify` reads the registry copy back and fails on a version mismatch, any surviving `workspace:` range in the published manifest, or a `latest` dist-tag pointing somewhere else. A missing provenance attestation is a warning, because the releases published before the workflows existed (memo 0.7.4 among them) carry none.
+- `plan` refuses a manifest marked `private`, a tag that does not match the package's prefix, a tag that names a different version than `package.json` declares, and a tag push whose version already exists. A dispatch that names a tag only re-checks published releases: naming an unpublished version fails instead of publishing from a branch. It writes `version`, `tag`, and `skip` to `$GITHUB_OUTPUT` for the later steps, and appends a table to the job summary.
+- `verify` reads the registry copy back and fails on a version mismatch, any surviving `workspace:` range in the published manifest, or a `latest` dist-tag pointing somewhere else. Both reads retry for about a minute, because a publish that just returned success is not yet readable on every registry replica and the first release this pipeline ran reported a shipped version as missing. Provenance is read from `dist.attestations.url`, where npm writes it; a genuinely missing attestation is a warning, because the releases published before the workflows existed (memo 0.7.4 among them) carry none.
 
-The workflow also proves the tag commit is reachable from `origin/main` before building anything, and passes `--no-git-checks` to `pnpm publish` because the tag checkout is a detached HEAD — pnpm's own branch check would abort with `GIT_UNKNOWN_BRANCH`, and the ancestry check is the stricter test anyway.
+The workflow also proves the tag commit is reachable from `origin/main` before building anything: it resolves `refs/tags/<tag>` and checks that commit, so a dispatch from `main` still validates the tag it names rather than its own commit. `pnpm publish` gets `--no-git-checks` because a tag checkout is a detached HEAD — pnpm's own branch check would abort with `GIT_UNKNOWN_BRANCH`, and the ancestry check is the stricter test anyway.
 
 ## Recovering a failed release
 
 | Situation | What to do |
 | --- | --- |
 | The run failed before the upload finished | Re-run the failed job, or dispatch the workflow from the tag: the version is still absent, so it publishes. |
-| The upload succeeded but a later step failed | Dispatch the workflow from the tag. The plan detects the published version and switches to verification only. |
+| The upload succeeded but a later step failed | Dispatch the workflow from the tag, or from `main` with the tag named in the `tag` input. The plan detects the published version and switches to verification only. |
 | The tag points at a commit that never reached `main` | Delete the tag, merge the commit through a pull request, re-tag the merge commit on `main`. |
 | The tag names the wrong version | Delete the tag, fix the version through a pull request, re-tag the merge commit. Nothing was published: the plan refuses the tag before the build. |
 | The workflow filename was renamed | Update the package's `/access` page first; the OIDC claim carries the new name, so the old connection no longer matches. |
@@ -89,6 +89,8 @@ The workflow also proves the tag commit is reachable from `origin/main` before b
 | `GIT_UNKNOWN_BRANCH` from pnpm | `--no-git-checks` was removed from the publish command. | Restore it; keep the ancestry step as the real check. |
 | The run says the tag is not on `main` | The tag was created on a branch commit, or `fetch-depth: 0` was removed so `origin/main` is unknown. | Tag the squash-merge commit on `main`; keep the full-history checkout. |
 | Provenance is absent on a new release | The repository or the package turned private, or the run published with a token instead of OIDC. | Check repository visibility and remove any `NODE_AUTH_TOKEN`/`registry-url` configuration. |
+| `verify` says the version is not on the registry seconds after a successful publish | Registry propagation: the read replica behind the API had not caught up. | Nothing: the read retries for about a minute. If it still fails, the release did ship — check `npm view <pkg>@<version>` and dispatch the workflow with the tag named in the `tag` input. |
+| The workflow refuses a tag whose version is already published | The version shipped earlier, so a tag push would be a silent no-op. | Bump the version through a pull request and push a new tag; use a dispatch to re-check the existing release. |
 
 ## Trying the checks locally
 
@@ -104,6 +106,8 @@ pnpm exec tsx scripts/publish-plan.ts verify
 ```
 
 `pnpm exec vitest run scripts/tests/publish-plan.spec.ts` covers the refusals without touching the network, and `pnpm --filter <name> publish --dry-run --no-git-checks` packs the package and runs its `prepublishOnly` guard without uploading.
+
+A dispatch that names a tag in the `tag` input sets `TAG_INPUT` next to `TAG`. The plan refuses that pair when the version is absent, so a local rehearsal of the verify-only path sets both: `TAG=telemetry-v0.4.1 TAG_INPUT=telemetry-v0.4.1 GITHUB_EVENT_NAME=workflow_dispatch`.
 
 ## Adding a new publishable package
 

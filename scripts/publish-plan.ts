@@ -36,7 +36,9 @@ export interface Manifest {
   name?: string
   version?: string
   private?: boolean
-  dist?: { attestations?: { provenance?: { url?: string } } }
+  dist?: {
+    attestations?: { url?: string; provenance?: { predicateType?: string } }
+  }
   [field: string]: unknown
 }
 
@@ -158,11 +160,16 @@ export function workspaceRanges(manifest: Manifest): string[] {
 
 /**
  * Read the provenance attestation URL from a registry version manifest.
+ *
+ * npm puts the attestation URL at `dist.attestations.url` and the predicate type
+ * under it at `dist.attestations.provenance.predicateType`, so a reader that
+ * looks for a URL inside `provenance` finds nothing and reports a signed
+ * release as unsigned.
  * @param manifest - a manifest read from the registry.
  * @returns the attestation URL when npm reports one, otherwise null.
  */
 export function provenanceUrl(manifest: Manifest): string | null {
-  const url = manifest.dist?.attestations?.provenance?.url
+  const url = manifest.dist?.attestations?.url
   return typeof url === 'string' && url !== '' ? url : null
 }
 
@@ -277,6 +284,110 @@ export async function isPublished(
   return (await getJson(versionUrl(name, version, registry), fetchImpl)) !== null
 }
 
+/** How many times `verify` re-reads the registry before calling a version absent. */
+export const VERIFY_ATTEMPTS = 12
+
+/** Milliseconds between registry reads, so the default budget is about a minute. */
+export const VERIFY_INTERVAL_MS = 5_000
+
+/** Retry budget and injectable I/O shared by the two registry waiters. */
+export interface RetryInput {
+  attempts?: number
+  intervalMs?: number
+  fetchImpl?: FetchLike
+  sleep?: (milliseconds: number) => Promise<void>
+}
+
+/** Inputs to the retrying version read `verify` uses. */
+export interface WaitForVersionInput extends RetryInput {
+  name: string
+  version: string
+  registry: string
+}
+
+/** Inputs to the retrying dist-tag read `verify` uses. */
+export interface WaitForDistTagInput extends RetryInput {
+  name: string
+  version: string
+  distTag: string
+  registry: string
+}
+
+/**
+ * Wait between two registry reads.
+ * @param milliseconds - how long to wait.
+ */
+async function pause(milliseconds: number): Promise<void> {
+  await new Promise<void>((done) => {
+    setTimeout(done, milliseconds)
+  })
+}
+
+/**
+ * Read a version document until the registry serves it.
+ *
+ * A publish that just returned success is not yet readable on every registry
+ * replica: the first read after `pnpm publish` exits can answer 404 for a few
+ * seconds. Treating that 404 as "absent" failed a release that had shipped, so
+ * the read retries before the absence is believed.
+ * @param input - package, version, registry, and the retry budget.
+ * @returns the version manifest, or null when the budget runs out.
+ */
+export async function waitForVersion(input: WaitForVersionInput): Promise<Manifest | null> {
+  const attempts = input.attempts ?? VERIFY_ATTEMPTS
+  const intervalMs = input.intervalMs ?? VERIFY_INTERVAL_MS
+  const fetchImpl = input.fetchImpl ?? fetch
+  const sleep = input.sleep ?? pause
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const manifest = (await getJson(
+      versionUrl(input.name, input.version, input.registry),
+      fetchImpl,
+    )) as Manifest | null
+    if (manifest !== null) return manifest
+    if (attempt < attempts) {
+      console.log(
+        `::notice::${input.name}@${input.version} is not readable from the registry yet; retrying in ${String(intervalMs / 1000)}s (attempt ${String(attempt + 1)} of ${String(attempts)})`,
+      )
+      await sleep(intervalMs)
+    }
+  }
+  return null
+}
+
+/**
+ * Read dist-tags until `distTag` names the released version.
+ *
+ * The version document and the dist-tags document propagate independently, so
+ * a version can be readable while `latest` still points at the previous release.
+ * @param input - package, version, dist-tag, registry, and the retry budget.
+ * @returns the last dist-tags document read, which the caller reports even when it never matched.
+ */
+export async function waitForDistTag(
+  input: WaitForDistTagInput,
+): Promise<Record<string, string> | null> {
+  const attempts = input.attempts ?? VERIFY_ATTEMPTS
+  const intervalMs = input.intervalMs ?? VERIFY_INTERVAL_MS
+  const fetchImpl = input.fetchImpl ?? fetch
+  const sleep = input.sleep ?? pause
+  let read: Record<string, string> | null = null
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    read = (await getJson(distTagsUrl(input.name, input.registry), fetchImpl)) as Record<
+      string,
+      string
+    > | null
+    if (read?.[input.distTag] === input.version) return read
+    if (attempt < attempts) {
+      console.log(
+        `::notice::the "${input.distTag}" dist-tag does not name ${input.version} yet; retrying in ${String(intervalMs / 1000)}s (attempt ${String(attempt + 1)} of ${String(attempts)})`,
+      )
+      await sleep(intervalMs)
+    }
+  }
+  return read
+}
+
 /**
  * Require one environment variable.
  * @param env - the process environment.
@@ -335,6 +446,14 @@ async function runPlan(): Promise<void> {
 
   const registry = registryFromEnv(env)
   const published = await isPublished(manifest.name, manifest.version, registry)
+
+  const namedTag = env.TAG_INPUT ?? ''
+  if (namedTag !== '' && !published) {
+    throw new Error(
+      `tag ${namedTag} names ${manifest.version}, which is not on the registry: a manual dispatch only re-checks a published release, so push the tag to publish it`,
+    )
+  }
+
   const plan = planPublish({
     manifest,
     tag,
@@ -371,10 +490,8 @@ async function runVerify(): Promise<void> {
   const distTag = env.DIST_TAG ?? 'latest'
   const registry = registryFromEnv(env)
 
-  const [manifest, distTags] = await Promise.all([
-    getJson(versionUrl(name, version, registry)) as Promise<Manifest | null>,
-    getJson(distTagsUrl(name, registry)) as Promise<Record<string, string> | null>,
-  ])
+  const manifest = await waitForVersion({ name, version, registry })
+  const distTags = manifest === null ? null : await waitForDistTag({ name, version, distTag, registry })
   const result = verifyPublished({ manifest, version, distTags, distTag })
 
   for (const warning of result.warnings) console.log(`::warning::${warning}`)

@@ -9,6 +9,11 @@ on:
     tags:
       - 'telemetry-v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to re-check without publishing; empty uses the ref this run starts from'
+        required: false
+        type: string
 
 # `id-token: write` is the whole credential: pnpm exchanges the GitHub OIDC
 # token for a short-lived npm publish token. No repository secret is involved.
@@ -54,20 +59,25 @@ jobs:
         env:
           PACKAGE_DIR: packages/telemetry/dsh-telemetry
           PACKAGE_NAME: '@zhangj1164/dsh-telemetry'
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+          TAG_INPUT: ${{ inputs.tag }}
           TAG_PREFIX: telemetry-v
         run: pnpm exec tsx scripts/publish-plan.ts plan
 
       - name: Verify the tag is on main
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           if ! git rev-parse --verify --quiet origin/main >/dev/null; then
             echo "::error::origin/main is missing; checkout must fetch the main branch."
             exit 1
           fi
-          if ! git merge-base --is-ancestor HEAD origin/main; then
+          if ! tagged=$(git rev-parse --verify --quiet "refs/tags/${TAG}^{commit}"); then
+            echo "::error::tag ${TAG} is not in the checkout; the run must start from a fetched tag."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$tagged" origin/main; then
             echo "::error::Tag ${TAG} does not point at a commit on main. Only main is releasable."
             exit 1
           fi
