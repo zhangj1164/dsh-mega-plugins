@@ -14,6 +14,8 @@ import {
   tagVersion,
   verifyPublished,
   versionUrl,
+  waitForDistTag,
+  waitForVersion,
   workspaceRanges,
 } from '../publish-plan.ts'
 
@@ -137,7 +139,12 @@ describe('verifyPublished', () => {
   it('accepts a registry copy the tag promised', () => {
     const result = verifyPublished({
       manifest: manifest({
-        dist: { attestations: { provenance: { url: 'https://registry.npmjs.org/-/npm/v1/attestations/x' } } },
+        dist: {
+          attestations: {
+            url: 'https://registry.npmjs.org/-/npm/v1/attestations/x',
+            provenance: { predicateType: 'https://slsa.dev/provenance/v1' },
+          },
+        },
       }),
       version: '0.7.5',
       distTags: { latest: '0.7.5' },
@@ -175,6 +182,27 @@ describe('verifyPublished', () => {
     ])
   })
 
+  it('reads the attestation from the field npm actually writes it to', () => {
+    const result = verifyPublished({
+      manifest: manifest({
+        dist: {
+          attestations: {
+            url: 'https://registry.npmjs.org/-/npm/v1/attestations/@zhangj1164%2Fdsh-memo@0.7.5',
+            provenance: { predicateType: 'https://slsa.dev/provenance/v1' },
+          },
+        },
+      }),
+      version: '0.7.5',
+      distTags: { latest: '0.7.5' },
+      distTag: 'latest',
+    })
+    expect(result.problems).toEqual([])
+    expect(result.warnings).toEqual([])
+    expect(result.provenance).toBe(
+      'https://registry.npmjs.org/-/npm/v1/attestations/@zhangj1164%2Fdsh-memo@0.7.5',
+    )
+  })
+
   it('warns but does not fail when provenance is absent', () => {
     const result = verifyPublished({
       manifest: manifest(),
@@ -196,5 +224,106 @@ describe('registry URLs', () => {
     expect(distTagsUrl('@zhangj1164/dsh-memo', 'https://registry.npmjs.org/')).toBe(
       'https://registry.npmjs.org/-/package/@zhangj1164%2Fdsh-memo/dist-tags',
     )
+  })
+})
+
+describe('waitForVersion', () => {
+  it('returns the first readable version without waiting', async () => {
+    const slept: number[] = []
+    const result = await waitForVersion({
+      name: '@zhangj1164/dsh-memo',
+      version: '0.7.5',
+      registry: 'https://registry.npmjs.org/',
+      attempts: 3,
+      intervalMs: 1_000,
+      fetchImpl: async () => ({ ok: true, status: 200, json: async () => manifest() }),
+      sleep: async (milliseconds) => {
+        slept.push(milliseconds)
+      },
+    })
+    expect(result).toEqual(manifest())
+    expect(slept).toEqual([])
+  })
+
+  it('retries the 404 a registry replica answers right after a publish', async () => {
+    const slept: number[] = []
+    let reads = 0
+    const result = await waitForVersion({
+      name: '@zhangj1164/dsh-memo',
+      version: '0.7.5',
+      registry: 'https://registry.npmjs.org/',
+      attempts: 5,
+      intervalMs: 2_000,
+      fetchImpl: async () => {
+        reads += 1
+        return reads < 3
+          ? { ok: false, status: 404, json: async () => ({}) }
+          : { ok: true, status: 200, json: async () => manifest() }
+      },
+      sleep: async (milliseconds) => {
+        slept.push(milliseconds)
+      },
+    })
+    expect(result).toEqual(manifest())
+    expect(reads).toBe(3)
+    expect(slept).toEqual([2_000, 2_000])
+  })
+
+  it('reports absence only after the whole budget is spent', async () => {
+    const slept: number[] = []
+    const result = await waitForVersion({
+      name: '@zhangj1164/dsh-memo',
+      version: '0.7.5',
+      registry: 'https://registry.npmjs.org/',
+      attempts: 3,
+      intervalMs: 500,
+      fetchImpl: async () => ({ ok: false, status: 404, json: async () => ({}) }),
+      sleep: async (milliseconds) => {
+        slept.push(milliseconds)
+      },
+    })
+    expect(result).toBeNull()
+    expect(slept).toEqual([500, 500])
+  })
+})
+
+describe('waitForDistTag', () => {
+  it('waits until the dist-tag names the released version', async () => {
+    const reads = [{ latest: '0.7.4' }, { latest: '0.7.5' }]
+    let index = 0
+    const result = await waitForDistTag({
+      name: '@zhangj1164/dsh-memo',
+      version: '0.7.5',
+      distTag: 'latest',
+      registry: 'https://registry.npmjs.org/',
+      attempts: 4,
+      intervalMs: 1_000,
+      fetchImpl: async () => {
+        const read = reads[Math.min(index, reads.length - 1)]
+        index += 1
+        return { ok: true, status: 200, json: async () => read }
+      },
+      sleep: async () => {},
+    })
+    expect(result).toEqual({ latest: '0.7.5' })
+    expect(index).toBe(2)
+  })
+
+  it('returns the last document read when the tag never names the version', async () => {
+    const result = await waitForDistTag({
+      name: '@zhangj1164/dsh-memo',
+      version: '0.7.5',
+      distTag: 'latest',
+      registry: 'https://registry.npmjs.org/',
+      attempts: 2,
+      intervalMs: 1,
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ latest: '0.7.4' }),
+      }),
+      sleep: async () => {},
+    })
+    expect(result).toEqual({ latest: '0.7.4' })
   })
 })
